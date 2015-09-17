@@ -929,7 +929,7 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         host = urlparse(uri).netloc.split(":")[0]
         ssl_context = get_ssl_context(self.disable_ssl_verify, host)
         connector = yield self.tunnel_runner.get_client()
-        webclient = txweb.WebClient(connector=connector, appname="Ubuntu One",
+        webclient = txweb.WebClient(connector=connector, appname="Magicicada",
                                     oauth_sign_plain=True,
                                     context_factory=ssl_context)
         defer.returnValue(webclient)

@@ -28,7 +28,7 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""Ubuntu One credentials management dbus service."""
+"""Magicicada credentials management dbus service."""
 
 import dbus
 import dbus.service
@@ -51,7 +51,7 @@ DBUS_CREDENTIALS_IFACE = "com.ubuntuone.CredentialsManagement"
 
 
 class CredentialsManagement(dbus.service.Object):
-    """DBus object that manages Ubuntu One credentials."""
+    """DBus object that manages Magicicada credentials."""
 
     def __init__(self, timeout_func=lambda *a: None,
                  shutdown_func=lambda *a: None, *args, **kwargs):
@@ -180,7 +180,7 @@ class CredentialsManagement(dbus.service.Object):
     @dbus.service.method(dbus_interface=DBUS_CREDENTIALS_IFACE,
                          async_callbacks=("reply_handler", "error_handler"))
     def find_credentials(self, reply_handler=NO_OP, error_handler=NO_OP):
-        """Ask the Ubuntu One credentials."""
+        """Ask the Magicicada credentials."""
         self.ref_count += 1
         self.sso_proxy.find_credentials(APP_NAME,
                                         dbus.Dictionary({}, signature='ss'),
@@ -190,7 +190,7 @@ class CredentialsManagement(dbus.service.Object):
                          out_signature="a{ss}",
                          async_callbacks=("reply_handler", "error_handler"))
     def find_credentials_sync(self, reply_handler=NO_OP, error_handler=NO_OP):
-        """Ask the Ubuntu One credentials synchronously.
+        """Ask the Magicicada credentials synchronously.
 
         This method SHOULD NOT be used, is here only for compatibilty issues.
 
@@ -216,7 +216,7 @@ class CredentialsManagement(dbus.service.Object):
     @dbus.service.method(dbus_interface=DBUS_CREDENTIALS_IFACE,
                          async_callbacks=("reply_handler", "error_handler"))
     def clear_credentials(self, reply_handler=NO_OP, error_handler=NO_OP):
-        """Clear the Ubuntu One credentials."""
+        """Clear the Magicicada credentials."""
         self.ref_count += 1
         self.sso_proxy.clear_credentials(APP_NAME,
                                          dbus.Dictionary({}, signature='ss'),
@@ -227,7 +227,7 @@ class CredentialsManagement(dbus.service.Object):
                          async_callbacks=("reply_handler", "error_handler"))
     def store_credentials(self, credentials,
                           reply_handler=NO_OP, error_handler=NO_OP):
-        """Store the token for Ubuntu One application."""
+        """Store the token for Magicicada application."""
         self.ref_count += 1
         self.sso_proxy.store_credentials(APP_NAME, credentials,
             reply_handler=reply_handler, error_handler=error_handler)
@@ -236,7 +236,7 @@ class CredentialsManagement(dbus.service.Object):
                          in_signature='a{ss}',
                          async_callbacks=("reply_handler", "error_handler"))
     def register(self, args, reply_handler=NO_OP, error_handler=NO_OP):
-        """Get credentials if found else prompt to register to Ubuntu One."""
+        """Get credentials if found else prompt to register to Magicicada."""
         self.ref_count += 1
         params = dict(UI_PARAMS)
         params.update(args)
@@ -247,7 +247,7 @@ class CredentialsManagement(dbus.service.Object):
                          in_signature='a{ss}',
                          async_callbacks=("reply_handler", "error_handler"))
     def login(self, args, reply_handler=NO_OP, error_handler=NO_OP):
-        """Get credentials if found else prompt to login to Ubuntu One."""
+        """Get credentials if found else prompt to login to Magicicada."""
         self.ref_count += 1
         params = dict(UI_PARAMS)
         params.update(args)
@@ -259,7 +259,7 @@ class CredentialsManagement(dbus.service.Object):
                          async_callbacks=("reply_handler", "error_handler"))
     def login_email_password(self, args, reply_handler=NO_OP,
                              error_handler=NO_OP):
-        """Get credentials if found else prompt to login to Ubuntu One."""
+        """Get credentials if found else prompt to login to Magicicada."""
         self.ref_count += 1
         params = dict(UI_PARAMS)
         params.update(args)

@@ -1,4 +1,4 @@
-# ubuntuone.syncdaemon - Ubuntu One sync daemon modules
+# ubuntuone.syncdaemon - Magicicada sync daemon modules
 #
 # Copyright 2009-2012 Canonical Ltd.
 #

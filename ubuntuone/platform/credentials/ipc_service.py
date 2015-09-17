@@ -26,7 +26,7 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""Ubuntu One credentials management IPC service."""
+"""Magicicada credentials management IPC service."""
 
 
 from ubuntu_sso.main import get_sso_client
@@ -76,7 +76,7 @@ class RemovableSignal(object):
 
 
 class CredentialsManagement(object):
-    """Object that manages Ubuntu One credentials."""
+    """Object that manages Magicicada credentials."""
 
     _SIGNAL_TO_CALLBACK_MAPPING = {
         'AuthorizationDenied': 'on_authorization_denied_cb',
@@ -98,30 +98,30 @@ class CredentialsManagement(object):
         return match
 
     def find_credentials(self, reply_handler=NO_OP, error_handler=NO_OP):
-        """Ask the Ubuntu One credentials."""
+        """Ask the Magicicada credentials."""
         d = self.sso_proxy.find_credentials(APP_NAME, {})
         d.addCallbacks(lambda _: reply_handler(), error_handler)
 
     def clear_credentials(self, reply_handler=NO_OP, error_handler=NO_OP):
-        """Clear the Ubuntu One credentials."""
+        """Clear the Magicicada credentials."""
         d = self.sso_proxy.clear_credentials(APP_NAME, {})
         d.addCallbacks(lambda _: reply_handler(), error_handler)
 
     def store_credentials(self, credentials,
                           reply_handler=NO_OP, error_handler=NO_OP):
-        """Store the token for Ubuntu One application."""
+        """Store the token for Magicicada application."""
         d = self.sso_proxy.store_credentials(APP_NAME, credentials)
         d.addCallbacks(lambda _: reply_handler(), error_handler)
 
     def register(self, args, reply_handler=NO_OP, error_handler=NO_OP):
-        """Get credentials if found else prompt to register to Ubuntu One."""
+        """Get credentials if found else prompt to register to Magicicada."""
         params = dict(UI_PARAMS)
         params.update(args)
         d = self.sso_proxy.register(APP_NAME, params)
         d.addCallbacks(lambda _: reply_handler(), error_handler)
 
     def login(self, args, reply_handler=NO_OP, error_handler=NO_OP):
-        """Get credentials if found else prompt to login to Ubuntu One."""
+        """Get credentials if found else prompt to login to Magicicada."""
         params = dict(UI_PARAMS)
         params.update(args)
         d = self.sso_proxy.login(APP_NAME, params)
@@ -129,7 +129,7 @@ class CredentialsManagement(object):
 
     def login_email_password(self, args,
                              reply_handler=NO_OP, error_handler=NO_OP):
-        """Get credentials if found else login to Ubuntu One."""
+        """Get credentials if found else login to Magicicada."""
         params = dict(UI_PARAMS)
         params.update(args)
         d = self.sso_proxy.login_email_password(APP_NAME, params)

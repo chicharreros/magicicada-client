@@ -54,7 +54,7 @@ class TunnelClientProtocol(BaseTunnelProtocol):
         method_line = METHOD_LINE % (self.factory.tunnel_host,
                                      self.factory.tunnel_port)
         headers = {
-            "User-Agent": "Ubuntu One tunnel client",
+            "User-Agent": "Magicicada tunnel client",
             TUNNEL_COOKIE_HEADER: self.factory.cookie,
         }
         self.transport.write(method_line +

@@ -1,4 +1,4 @@
-# ubuntuone.status - Ubuntu One status communication module
+# ubuntuone.status - Magicicada status communication module
 #
 # Copyright 2011-2012 Canonical Ltd.
 #

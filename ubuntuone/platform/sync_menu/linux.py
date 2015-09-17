@@ -58,10 +58,10 @@ logger = logging.getLogger("ubuntuone.platform.SyncMenu")
 Q_ = lambda string: gettext.dgettext(GETTEXT_PACKAGE, string)
 
 GET_HELP = Q_("Get Help on the Web")
-GO_TO_WEB = Q_("Go to the Ubuntu One Website")
+GO_TO_WEB = Q_("Go to the Magicicada Website")
 MORE_STORAGE = Q_("Get More Space")
-OPEN_U1 = Q_("Open Ubuntu One")
-OPEN_U1_FOLDER = Q_("Open the Ubuntu One Folder")
+OPEN_U1 = Q_("Open Magicicada")
+OPEN_U1_FOLDER = Q_("Open the Magicicada Folder")
 SHARE_A_FILE = Q_("Share a File")
 TRANSFERS = Q_("Current and Recent Transfers")
 
@@ -184,7 +184,7 @@ class UbuntuOneSyncMenuLinux(object):
             command_line += ' ' + args
 
         try:
-            app = Gio.AppInfo.create_from_commandline(command_line, 'Ubuntu One', flags)
+            app = Gio.AppInfo.create_from_commandline(command_line, 'Magicicada', flags)
 
             if app:
                 app.launch([], self._get_launch_context(timestamp))
@@ -192,7 +192,7 @@ class UbuntuOneSyncMenuLinux(object):
             logger.warning('Failed to open the control panel: %s.' % e)
 
     def open_control_panel(self, menuitem=None, timestamp=0):
-        """Open the Ubuntu One Control Panel."""
+        """Open the Magicicada Control Panel."""
         app = Gio.DesktopAppInfo.new(CLIENT_DESKTOP_ID)
 
         if app:
@@ -204,7 +204,7 @@ class UbuntuOneSyncMenuLinux(object):
             self._open_control_panel_by_command_line(timestamp)
 
     def open_ubuntu_one_folder(self, menuitem=None, timestamp=0):
-        """Open the Ubuntu One folder."""
+        """Open the Magicicada folder."""
         self._open_uri("file://" + self._syncdaemon_service.get_rootdir(), timestamp)
 
     def open_share_file_tab(self, menuitem=None, timestamp=0):
@@ -212,15 +212,15 @@ class UbuntuOneSyncMenuLinux(object):
         self._open_control_panel_by_command_line(timestamp, "--switch-to share_links")
 
     def open_go_to_web(self, menuitem=None, timestamp=0):
-        """Open the Ubuntu One Help Page"""
+        """Open the Magicicada Help Page"""
         self._open_uri(DASHBOARD, timestamp)
 
     def open_web_help(self, menuitem=None, timestamp=0):
-        """Open the Ubuntu One Help Page"""
+        """Open the Magicicada Help Page"""
         self._open_uri(HELP_LINK, timestamp)
 
     def open_get_more_storage(self, menuitem=None, timestamp=0):
-        """Open the Ubuntu One Help Page"""
+        """Open the Magicicada Help Page"""
         self._open_uri(GET_STORAGE_LINK, timestamp)
 
     def _timeout(self, result):

@@ -143,7 +143,7 @@ class FakeSyncdaemonService(object):
     def __init__(self):
         self.connect_called = False
         self.disconnect_called = False
-        self.fake_root_path = "/home/user/Ubuntu One"
+        self.fake_root_path = "/home/user/Magicicada"
 
     def connect(self):
         """Set connect to True."""

@@ -28,7 +28,7 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""Tests for the Ubuntu One credentials management dbus service."""
+"""Tests for the Magicicada credentials management dbus service."""
 
 import logging
 
@@ -254,7 +254,7 @@ class BaseTestCase(DBusTestCase):
 
 
 class CredentialsManagementTestCase(BaseTestCase):
-    """Test case for the DBus object that manages Ubuntu One credentials."""
+    """Test case for the DBus object that manages Magicicada credentials."""
 
     signals = ('CredentialsFound', 'CredentialsNotFound', 'CredentialsCleared',
                'CredentialsStored', 'CredentialsError', 'AuthorizationDenied')

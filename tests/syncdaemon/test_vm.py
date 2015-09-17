@@ -3928,7 +3928,7 @@ class MetadataTestCase(BaseTwistedTestCase):
         """Create some directories."""
         yield super(MetadataTestCase, self).setUp()
         self.root_dir = self.mktemp(
-            os.path.join('ubuntuonehacker', 'Ubuntu One'))
+            os.path.join('ubuntuonehacker', 'Magicicada'))
         self.data_dir = os.path.join(self.tmpdir, 'data_dir')
         self.vm_data_dir = os.path.join(self.tmpdir, 'data_dir', 'vm')
         self.partials_dir = self.mktemp('partials')

@@ -323,8 +323,8 @@ class CreationTests(FSMTestCase):
         other_share = yield self.create_share('share1', u'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
-        make_dir(os.path.join(self.root_dir, 'Ubuntu One'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Ubuntu One',
+        make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
+        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
                             'Shared With Me')
         old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
@@ -386,8 +386,8 @@ class CreationTests(FSMTestCase):
         other_share = yield self.create_share('share1', u'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
-        make_dir(os.path.join(self.root_dir, 'Ubuntu One'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Ubuntu One',
+        make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
+        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
                             'Shared With Me')
         old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
@@ -448,8 +448,8 @@ class CreationTests(FSMTestCase):
         other_share = yield self.create_share('share1', u'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
-        make_dir(os.path.join(self.root_dir, 'Ubuntu One'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Ubuntu One',
+        make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
+        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
                             'Shared With Me')
         old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
@@ -506,13 +506,13 @@ class CreationTests(FSMTestCase):
         other_share = yield self.create_share('share1', u'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
-        make_dir(os.path.join(self.root_dir, 'Ubuntu One'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Ubuntu One',
+        make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
+        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
                             'Shared With Me')
         old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
         old_root_path = os.path.join(os.path.dirname(self.root_dir),
-                                     'Ubuntu One', 'My Files')
+                                     'Magicicada', 'My Files')
 
         # simulate old data in the mdobjs
         share_md = self.fsm.fs[share_mdid]
@@ -3458,8 +3458,8 @@ class RealVMTestCase(FSMTestCase):
         other_share = yield self.create_share('share1', u'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
-        make_dir(os.path.join(self.root_dir, 'Ubuntu One'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Ubuntu One',
+        make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
+        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
                             'Shared With Me')
         old_path = os.path.join(old_shares_path, u'share1_name')
         make_link(self.shares_dir, old_shares_path)
@@ -3525,8 +3525,8 @@ class RealVMTestCase(FSMTestCase):
         other_share = yield self.create_share('share1', u'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid3")
-        make_dir(os.path.join(self.root_dir, 'Ubuntu One'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Ubuntu One',
+        make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
+        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
                             'Shared With Me')
         old_path = os.path.join(old_shares_path, u'share1_name')
         make_link(self.shares_dir, old_shares_path)
@@ -3587,8 +3587,8 @@ class RealVMTestCase(FSMTestCase):
         other_share = yield self.create_share('share1', u'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid3")
-        make_dir(os.path.join(self.root_dir, 'Ubuntu One'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Ubuntu One',
+        make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
+        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
                             'Shared With Me')
         old_path = os.path.join(old_shares_path, u'share1_name')
         make_link(self.shares_dir, old_shares_path)
@@ -3645,13 +3645,13 @@ class RealVMTestCase(FSMTestCase):
         other_share = yield self.create_share('share1', u'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
-        make_dir(os.path.join(self.root_dir, 'Ubuntu One'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Ubuntu One',
+        make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
+        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
                             'Shared With Me')
         old_path = os.path.join(old_shares_path, u'share1_name')
         make_link(self.shares_dir, old_shares_path)
         old_root_path = os.path.join(os.path.dirname(self.root_dir),
-                                     'Ubuntu One', 'My Files')
+                                     'Magicicada', 'My Files')
 
         # put the old path in the mdobjs
         share_md = self.fsm.fs[share_mdid]

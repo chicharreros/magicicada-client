@@ -50,8 +50,8 @@ from ubuntuone.platform.launcher import UbuntuOneLauncher, DummyLauncher
 ONE_DAY = 24 * 60 * 60
 Q_ = lambda string: gettext.dgettext(GETTEXT_PACKAGE, string)
 
-UBUNTUONE_TITLE = Q_("Ubuntu One")
-UBUNTUONE_END = Q_("Ubuntu One file services will be "
+UBUNTUONE_TITLE = Q_("Magicicada")
+UBUNTUONE_END = Q_("Magicicada file services will be "
                    "shutting down on June 1st, 2014.\nThanks for your support.")
 NEW_UDFS_SENDER = Q_("New cloud folder(s) available")
 FINAL_COMPLETED = Q_("File synchronization completed.")

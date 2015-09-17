@@ -32,7 +32,7 @@
 
 from ubuntuone.status.notification import AbstractNotification
 
-APPLICATION_NAME = 'Ubuntu One Client'
+APPLICATION_NAME = 'Magicicada Client'
 
 
 class Notification(AbstractNotification):

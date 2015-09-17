@@ -36,7 +36,7 @@ SESSION_MANAGER_BUSNAME = "org.gnome.SessionManager"
 SESSION_MANAGER_IFACE = "org.gnome.SessionManager"
 SESSION_MANAGER_PATH = "/org/gnome/SessionManager"
 
-APP_ID = "Ubuntu One"
+APP_ID = "Magicicada"
 TOPLEVEL_XID = 0
 
 

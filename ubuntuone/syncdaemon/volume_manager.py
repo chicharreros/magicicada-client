@@ -1677,8 +1677,8 @@ class MetadataUpgrader(object):
     def _upgrade_metadata_3(self, md_version):
         """Upgrade to version 4 (new layout!)
 
-        move "~/Ubuntu One/Shared With" Me to XDG_DATA/ubuntuone/shares
-        move "~/Ubuntu One/My Files" contents to "~/Ubuntu One"
+        move "~/Magicicada/Shared With Me" to XDG_DATA/ubuntuone/shares
+        move "~/Magicicada/My Files" contents to "~/Magicicada"
 
         """
         from ubuntuone.syncdaemon.volume_manager import LegacyShareFileShelf

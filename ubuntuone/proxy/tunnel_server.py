@@ -269,7 +269,7 @@ class ServerTunnelProtocol(BaseTunnelProtocol):
                 logger.info("Connected with keyring credentials")
 
             response_headers = {
-                "Server": "Ubuntu One proxy tunnel",
+                "Server": "Magicicada proxy tunnel",
             }
             self.write_transport("HTTP/1.0 200 Proxy connection established" +
                                  CRLF + self.format_headers(response_headers) +

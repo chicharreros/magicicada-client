@@ -145,7 +145,7 @@ class MetadataOldLayoutTests(MetadataTestCase):
                 "serq\x07U\x07subtreeq\x08U$beb0c48c-6755-4fbd-938f-3d20" + \
                 "fa7b102bq\tU\x12other_visible_nameq\nU\tfake userq\x0bU" + \
                 "\x0caccess_levelq\x0cU\x04Viewq\rU\x04pathq\x0eU=/home/" + \
-                "auser/Ubuntu One/Shared With Me/fakeshare from fakeuser" + \
+                "auser/Magicicada/Shared With Me/fakeshare from fakeuser" + \
                 "q\x0fU\x08acceptedq\x10\x88U\x02idq\x11U$0664f050-9254-" + \
                 "45c5-9f31-3482858709e4q\x12ub."
         with open(share_file, 'w') as fd:

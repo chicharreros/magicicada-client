@@ -32,7 +32,7 @@
 
 from abc import ABCMeta, abstractmethod
 
-APPLICATION_NAME = 'Ubuntu One Client'
+APPLICATION_NAME = 'Magicicada Client'
 
 
 class AbstractNotification(object):

@@ -106,7 +106,7 @@ class Main(object):
         if not throttling_enabled:
             throttling_enabled = user_config.get_throttling()
 
-        self.logger.info("Starting Ubuntu One client version %s",
+        self.logger.info("Starting Magicicada client version %s",
                          clientdefs.VERSION)
         self.logger.info("Using %r as root dir", self.root_dir)
         self.logger.info("Using %r as data dir", self.data_dir)

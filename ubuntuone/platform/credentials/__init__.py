@@ -68,7 +68,7 @@ logger.addHandler(MAIN_HANDLER)
 
 NO_OP = lambda *args, **kwargs: None
 Q_ = lambda string: gettext.dgettext(clientdefs.GETTEXT_PACKAGE, string)
-APP_NAME = u"Ubuntu One"
+APP_NAME = u"Magicicada"
 TC_URL = u"https://one.ubuntu.com/terms/"
 POLICY_URL = u"https://one.ubuntu.com/privacy/"
 
@@ -87,7 +87,7 @@ BASE_PING_URL = \
     u"https://one.ubuntu.com/oauth/sso-finished-so-get-tokens/{email}"
 # the result of platform_data is given by urlencode, encoded with ascii
 PING_URL = BASE_PING_URL + u"?" + platform_data().decode('ascii')
-DESCRIPTION = Q_('Ubuntu One requires an Ubuntu Single Sign On (SSO) account. '
+DESCRIPTION = Q_('Magicicada requires an Ubuntu Single Sign On (SSO) account. '
                  'This process will allow you to create a new account, '
                  'if you do not yet have one.')
 UI_PARAMS = {
@@ -155,10 +155,10 @@ class CredentialsManagementTool(object):
     @log_call(logger.debug, with_result=False)
     @defer.inlineCallbacks
     def find_credentials(self):
-        """Find credentials for Ubuntu One.
+        """Find credentials for Magicicada.
 
         Return a deferred that, when fired, will return the credentials for
-        Ubuntu One for the current logged in user.
+        Magicicada for the current logged in user.
 
         The credentials is a dictionary with both string keys and values. The
         dictionary may be either empty if there are no credentials for the
@@ -200,10 +200,10 @@ class CredentialsManagementTool(object):
     @log_call(logger.debug)
     @defer.inlineCallbacks
     def clear_credentials(self):
-        """Clear credentials for Ubuntu One.
+        """Clear credentials for Magicicada.
 
         Return a deferred that, when fired, will return no result but will
-        indicate that the Ubuntu One credentials for the current user were
+        indicate that the Magicicada credentials for the current user were
         removed from the local keyring.
 
         """
@@ -233,7 +233,7 @@ class CredentialsManagementTool(object):
     @log_call(logger.debug, with_args=False)
     @defer.inlineCallbacks
     def store_credentials(self, token):
-        """Store credentials for Ubuntu One.
+        """Store credentials for Magicicada.
 
         The parameter 'token' should be a dictionary that matches the
         description of the result of 'find_credentials'.
@@ -269,13 +269,13 @@ class CredentialsManagementTool(object):
     @log_call(logger.debug, with_result=False)
     @defer.inlineCallbacks
     def register(self, window_id=0):
-        """Register to Ubuntu One.
+        """Register to Magicicada.
 
         Return a deferred that, when fired, will return the credentials for
-        Ubuntu One for the current logged in user.
+        Magicicada for the current logged in user.
 
         If there are no credentials for the current user, a GTK UI will be
-        opened to invite the user to register to Ubuntu One. This UI provides
+        opened to invite the user to register to Magicicada. This UI provides
         options to either register (main screen) or login (secondary screen).
 
         You can pass an optional 'window_id' parameter that will be used by the
@@ -284,7 +284,7 @@ class CredentialsManagementTool(object):
         The returned credentials will be either a non-empty dictionary like the
         one described in 'find_credentials', or None. The latter indicates that
         there were no credentials for the user in the local keyring and that
-        the user refused to register to Ubuntu One.
+        the user refused to register to Magicicada.
 
         """
         d = defer.Deferred()
@@ -317,13 +317,13 @@ class CredentialsManagementTool(object):
     @log_call(logger.debug, with_result=False)
     @defer.inlineCallbacks
     def login(self, window_id=0):
-        """Login to Ubuntu One.
+        """Login to Magicicada.
 
         Return a deferred that, when fired, will return the credentials for
-        Ubuntu One for the current logged in user.
+        Magicicada for the current logged in user.
 
         If there are no credentials for the current user, a GTK UI will be
-        opened to invite the user to login to Ubuntu One. This UI provides
+        opened to invite the user to login to Magicicada. This UI provides
         options to either login (main screen) or retrieve password (secondary
         screen).
 
@@ -333,7 +333,7 @@ class CredentialsManagementTool(object):
         The returned credentials will be either a non-empty dictionary like the
         one described in 'find_credentials', or None. The latter indicates that
         there were no credentials for the user in the local keyring and that
-        the user refused to login to Ubuntu One.
+        the user refused to login to Magicicada.
 
         """
         d = defer.Deferred()
@@ -366,10 +366,10 @@ class CredentialsManagementTool(object):
     @log_call(logger.debug, with_args=False, with_result=False)
     @defer.inlineCallbacks
     def login_email_password(self, email, password):
-        """Login to Ubuntu One.
+        """Login to Magicicada.
 
         Return a deferred that, when fired, will return the credentials for
-        Ubuntu One for the given email and password.
+        Magicicada for the given email and password.
 
         The returned credentials will be either a non-empty dictionary like the
         one described in 'find_credentials', or None. The latter indicates

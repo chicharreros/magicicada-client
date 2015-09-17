@@ -225,7 +225,7 @@ class FakedPlatformSource(object):
 
 
 class CredentialsManagementToolTestCase(TestCase):
-    """Test case for the object that manages Ubuntu One credentials."""
+    """Test case for the object that manages Magicicada credentials."""
 
     timeout = 3
     error_dict = None

@@ -412,11 +412,11 @@ class FileSystemManager(object):
         """fix the mdobj path for the new layout, only for shares root"""
         base_path, name = os.path.split(mdobj['path'])
         if base_path.startswith('/') and \
-           base_path.endswith('Ubuntu One/Shared With Me'):
+           base_path.endswith('Magicicada/Shared With Me'):
             realpath = os.path.realpath(mdobj['path'])
             mdobj['path'] = realpath
         if base_path.startswith('/') and \
-            base_path.endswith('Ubuntu One') and name == 'My Files':
+            base_path.endswith('Magicicada') and name == 'My Files':
             mdobj['path'] = base_path
 
     def _migrate_trash_to_tritcask(self):

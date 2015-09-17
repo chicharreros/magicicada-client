@@ -42,8 +42,8 @@ assert DistUtilsExtra.auto.__version__ >= '2.18', \
     'needs DistUtilsExtra.auto >= 2.18'
 
 
-PROJECT_NAME = 'ubuntuone-client'
-VERSION = '99.12'
+PROJECT_NAME = 'magicicada-client'
+VERSION = '1.0'
 
 POT_FILE = 'po/%s.pot' % PROJECT_NAME
 SERVICE_FILES = ['data/com.ubuntuone.Credentials.service',
@@ -248,9 +248,9 @@ DistUtilsExtra.auto.setup(
     name=PROJECT_NAME,
     version=VERSION,
     license='GPL v3',
-    author='Ubuntu One Developers',
-    author_email='ubuntuone-users@lists.launchpad.net',
-    description='Ubuntu One file synchronization client',
+    author='Chicharreros',
+    author_email='magicicada-hackers@@lists.launchpad.net',
+    description='Magicicada file synchronization client',
     url='https://launchpad.net/%s' % PROJECT_NAME,
     extra_path=PROJECT_NAME,
     scripts=scripts,

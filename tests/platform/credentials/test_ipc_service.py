@@ -28,7 +28,7 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""Tests for the Ubuntu One credentials management IPC service."""
+"""Tests for the Magicicada credentials management IPC service."""
 
 import logging
 

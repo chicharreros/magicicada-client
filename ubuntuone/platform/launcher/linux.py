@@ -40,7 +40,7 @@ U1_DOTDESKTOP = "ubuntuone-installer.desktop"
 
 
 class UbuntuOneLauncherUnity(object):
-    """The Ubuntu One launcher icon."""
+    """The Magicicada launcher icon."""
 
     def __init__(self):
         self.entry = Unity.LauncherEntry.get_for_desktop_id(U1_DOTDESKTOP)

@@ -34,7 +34,7 @@ U1_DOTDESKTOP = "ubuntuone-control-panel-gtk.desktop"
 
 
 class UbuntuOneLauncher(object):
-    """The Ubuntu One launcher icon."""
+    """The Magicicada launcher icon."""
 
     def __init__(self):
         """Initialize this instance."""
