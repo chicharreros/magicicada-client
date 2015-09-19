@@ -1,1 +1,7 @@
+gir1.2-notify
+protobuf-compiler
+python-configglue
+python-gi
+python-protobuf
 python-pyinotify
+python-twisted

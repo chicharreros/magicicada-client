@@ -1,2 +1,6 @@
-ubuntuone-dev-tools
+bzr
+make
+python-distutils-extra
 python-mocker
+python-virtualenv
+ubuntuone-dev-tools

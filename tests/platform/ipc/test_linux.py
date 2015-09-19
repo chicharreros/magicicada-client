@@ -135,7 +135,7 @@ class IPCTestCase(FakeMainTestCase, DBusTestCase):
 
         self.service = self.service_class(main=self.main, send_events=True)
         self.addCleanup(self.service.shutdown)
-        self.service.oauth_credentials = ('foo', 'bar')
+        self.service.auth_credentials = ('foo', 'bar')
         yield self.service.connect()
 
         self.interface = self.service.interface

@@ -796,7 +796,7 @@ class SyncdaemonEventListener(SyncdaemonObject):
             mdobj = self.fs_manager.get_by_node_id(share_id, node_id)
             if not mdobj.is_dir:
                 path = self.fs_manager.get_abspath(share_id, mdobj.path)
-        except KeyError, e:
+        except KeyError as e:
             msg = 'The metadata is gone before sending %s signal' % signal_name
             args = dict(message=msg, error=str(e),
                         share_id=share_id, node_id=node_id)
@@ -1243,16 +1243,19 @@ class SyncdaemonService(SyncdaemonObject):
         """Push the SYS_USER_CONNECT event with the token.
 
         The token is requested via com.ubuntuone.credentials service. If
-        'autoconnecting' is True, no UI window will be raised to prompt the user
-        for login/registration, only already existent credentials will be used.
+        'autoconnecting' is True, no UI window will be raised to prompt the
+        user for login/registration, only already existent credentials will be
+        used.
+
         """
         if self.auth_credentials is not None:
             logger.debug('connect: auth credentials were given by parameter.')
             token = self.auth_credentials
         else:
             try:
-                token = yield self._request_token(autoconnecting=autoconnecting)
-            except Exception, e:
+                token = yield self._request_token(
+                    autoconnecting=autoconnecting)
+            except Exception as e:
                 logger.exception('failure while getting the token')
                 raise NoAccessToken(e)
 

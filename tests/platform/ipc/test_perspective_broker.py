@@ -419,7 +419,7 @@ class IPCTestCase(FakeMainTestCase, TCPPbServerTestCase):
                    FakeNetworkManagerState)
 
         self.service = self.service_class(main=self.main, send_events=True)
-        self.service.oauth_credentials = ('foo', 'bar')
+        self.service.auth_credentials = ('foo', 'bar')
 
         # patch the way the ipc interface is started so that we use the clean
         # method provided by the test case

@@ -63,6 +63,7 @@ else
 fi
 
 echo "*** Running test suite for ""$MODULE"" ***"
+export SSL_CERTIFICATES_DIR=/etc/ssl/certs
 $PYTHON ./setup.py build
 u1trial --reactor=$REACTOR -i "$IGNORE_FILES" -p "$IGNORE_PATHS,$PROXY_TESTS_PATH" "$MODULE"
 echo "*** Running tests for ubuntuone-client-proxy ***"
