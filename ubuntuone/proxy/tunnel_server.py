@@ -260,7 +260,7 @@ class ServerTunnelProtocol(BaseTunnelProtocol):
                     raise
 
                 credentials = yield Keyring().get_credentials(
-                                                str(self.proxy_domain))
+                    str(self.proxy_domain))
                 if "username" in credentials:
                     self.proxy_credentials = credentials
                 logger.info("Connecting again with keyring credentials")

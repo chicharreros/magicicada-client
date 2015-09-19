@@ -104,8 +104,9 @@ class Watch(object):
         # platform watch used to deal with the platform details
         self.platform_watch = PlatformWatch(self.path, self.process_events)
 
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.platform.common.' +
-            'filesystem_notifications.Watch')
+        self.log = logging.getLogger(
+            'ubuntuone.SyncDaemon.platform.common.filesystem_notifications.'
+            'Watch')
         self.log.setLevel(TRACE)
 
     def process_events(self, action, file_name, cookie, syncdaemon_path):
@@ -249,8 +250,9 @@ class WatchManager(object):
 
     def __init__(self, processor):
         """Init the manager to keep trak of the different watches."""
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.platform.common.'
-            + 'filesystem_notifications.WatchManager')
+        self.log = logging.getLogger(
+            'ubuntuone.SyncDaemon.platform.common.filesystem_notifications.'
+            'WatchManager')
         self.log.setLevel(TRACE)
         self._processor = processor
         # use the platform manager to perform the actual actions
@@ -388,8 +390,8 @@ class FilesystemMonitor(object):
         """Add watch to a dir."""
         # the logic to check if the watch is already set
         # is all in WatchManager.add_watch
-        return self._watch_manager.add_watch(dirpath,
-            self.filesystem_monitor_mask)
+        return self._watch_manager.add_watch(
+            dirpath, self.filesystem_monitor_mask)
 
     def add_watches_to_udf_ancestors(self, volume):
         """Add a inotify watch to volume's ancestors if it's an UDF."""

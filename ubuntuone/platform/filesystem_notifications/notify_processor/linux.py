@@ -79,10 +79,10 @@ def validate_filename(real_func):
             event.name.decode("utf8")
         except UnicodeDecodeError:
             dirname = event.path.decode("utf8")
-            self.general_processor.invnames_log.info("%s in %r: path %r",
-                event.maskname, dirname, event.name)
-            self.general_processor.monitor.eq.push('FS_INVALID_NAME',
-                                 dirname=dirname, filename=event.name)
+            self.general_processor.invnames_log.info(
+                "%s in %r: path %r", event.maskname, dirname, event.name)
+            self.general_processor.monitor.eq.push(
+                'FS_INVALID_NAME', dirname=dirname, filename=event.name)
         else:
             real_func(self, event)
     return func
@@ -95,8 +95,8 @@ class NotifyProcessor(pyinotify.ProcessEvent):
     FS_(DIR|FILE)_MOVE event when possible.
     """
     def __init__(self, monitor, ignore_config=None):
-        self.general_processor = GeneralINotifyProcessor(monitor,
-            self.handle_dir_delete, NAME_TRANSLATIONS,
+        self.general_processor = GeneralINotifyProcessor(
+            monitor, self.handle_dir_delete, NAME_TRANSLATIONS,
             self.platform_is_ignored, pyinotify.IN_IGNORED,
             ignore_config=ignore_config)
         self.held_event = None
@@ -218,12 +218,13 @@ class NotifyProcessor(pyinotify.ProcessEvent):
                                                            path=t_path)
                             if not event.dir:
                                 self.general_processor.eq_push(
-                                            'FS_FILE_CLOSE_WRITE', path=t_path)
+                                    'FS_FILE_CLOSE_WRITE', path=t_path)
                         else:
                             self.general_processor.monitor.inotify_watch_fix(
-                                                                f_path, t_path)
-                            self.general_processor.eq_push(evtname + "MOVE",
-                                         path_from=f_path, path_to=t_path)
+                                f_path, t_path)
+                            self.general_processor.eq_push(
+                                evtname + "MOVE", path_from=f_path,
+                                path_to=t_path)
                     elif is_to_forreal:
                         # this is the case of a MOVE from something ignored
                         # to a valid filename
@@ -235,7 +236,7 @@ class NotifyProcessor(pyinotify.ProcessEvent):
                                                        path=t_path)
                         if not event.dir:
                             self.general_processor.eq_push(
-                                            'FS_FILE_CLOSE_WRITE', path=t_path)
+                                'FS_FILE_CLOSE_WRITE', path=t_path)
 
                     else:
                         # this is the case of a MOVE from something valid
@@ -259,8 +260,8 @@ class NotifyProcessor(pyinotify.ProcessEvent):
             self.general_processor.push_event(event)
             if not event.dir:
                 t_path = os.path.join(event.path, event.name)
-                self.general_processor.eq_push('FS_FILE_CLOSE_WRITE',
-                    path=t_path)
+                self.general_processor.eq_push(
+                    'FS_FILE_CLOSE_WRITE', path=t_path)
 
     @validate_filename
     def process_default(self, event):
@@ -293,8 +294,8 @@ class NotifyProcessor(pyinotify.ProcessEvent):
         self.general_processor.rm_watch(fullpath)
 
         # handle the case of move a dir to a non-watched directory
-        paths = self.general_processor.get_paths_starting_with(fullpath,
-            include_base=False)
+        paths = self.general_processor.get_paths_starting_with(
+            fullpath, include_base=False)
 
         paths.sort(reverse=True)
         for path, is_dir in paths:

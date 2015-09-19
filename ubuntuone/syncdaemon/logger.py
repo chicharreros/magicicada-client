@@ -52,7 +52,6 @@ NOTE = logger.NOTE
 TRACE = logger.TRACE
 
 
-# pylint: disable=C0103
 class mklog(object):
     """
     Create a logger that keeps track of the method where it's being
@@ -67,7 +66,8 @@ class mklog(object):
         all_args = []
         for arg in args:
             all_args.append(
-              repr(arg).decode('ascii', 'replace').encode('ascii', 'replace'))
+                repr(arg).decode('ascii', 'replace').encode('ascii', 'replace')
+            )
         for k, v in kwargs.items():
             v = repr(v).decode('ascii', 'replace').encode('ascii', 'replace')
             all_args.append("%s=%r" % (k, v))
@@ -137,13 +137,12 @@ class mklog(object):
             return failure
         return callback, errback
 
-# pylint: enable=C0103
 LOGFILENAME = os.path.join(ubuntuone_log_dir, 'syncdaemon.log')
 EXLOGFILENAME = os.path.join(ubuntuone_log_dir, 'syncdaemon-exceptions.log')
-INVALIDLOGFILENAME = os.path.join(ubuntuone_log_dir,
-    'syncdaemon-invalid-names.log')
-BROKENLOGFILENAME = os.path.join(ubuntuone_log_dir,
-    'syncdaemon-broken-nodes.log')
+INVALIDLOGFILENAME = os.path.join(
+    ubuntuone_log_dir, 'syncdaemon-invalid-names.log')
+BROKENLOGFILENAME = os.path.join(
+    ubuntuone_log_dir, 'syncdaemon-broken-nodes.log')
 
 
 root_logger = logging.getLogger("ubuntuone.SyncDaemon")
@@ -305,7 +304,6 @@ if SERVER_DEBUG:
 def rotate_logs():
     """do a rollover of the three handlers"""
     # ignore the missing file error on a failed rollover
-    # pylint: disable-msg=W0704
     try:
         root_handler.doRollover()
     except OSError:

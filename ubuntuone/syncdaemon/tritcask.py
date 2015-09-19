@@ -100,8 +100,9 @@ class BadHeader(Exception):
     """A Exception for Bad header value."""
 
 
-TritcaskEntry = namedtuple('TritcaskEntry', ['crc32', 'tstamp', 'key_sz',
-                         'value_sz', 'row_type', 'key', 'value', 'value_pos'])
+TritcaskEntry = namedtuple(
+    'TritcaskEntry', ['crc32', 'tstamp', 'key_sz', 'value_sz', 'row_type',
+                      'key', 'value', 'value_pos'])
 
 
 _HintEntry = namedtuple('_HintEntry', ['tstamp', 'key_sz', 'row_type',
@@ -329,7 +330,7 @@ class DataFile(object):
         try:
             crc32 = crc32_struct.unpack(crc32_bytes)[0]
             tstamp, key_sz, value_sz, row_type = header_struct.unpack(header)
-        except struct.error, e:
+        except struct.error as e:
             raise BadHeader(e)
         key = fmmap[current_pos:current_pos + key_sz]
         current_pos += key_sz
@@ -430,8 +431,8 @@ class DeadDataFile(ImmutableDataFile):
         """raise NotImplementedError."""
         raise NotImplementedError
 
-    _open = close = read = write = make_immutable = make_zombie = \
-            __getitem__ = iter_entries = _not_implemented
+    _open = close = read = write = make_immutable = _not_implemented
+    make_zombie = __getitem__ = iter_entries = _not_implemented
 
 
 class TempDataFile(DataFile):
@@ -449,8 +450,8 @@ class TempDataFile(DataFile):
         new_name = self.filename.replace(self.temp_name, INACTIVE)
         rename(self.filename, new_name)
         if self.has_hint:
-            new_hint_name = self.hint_filename.replace(self.temp_name,
-                INACTIVE)
+            new_hint_name = self.hint_filename.replace(
+                self.temp_name, INACTIVE)
             rename(self.hint_filename, new_hint_name)
         return ImmutableDataFile(*os.path.split(new_name))
 
@@ -487,8 +488,8 @@ class HintFile(object):
                 current_pos += hint_header_size
                 if header == '':
                     raise StopIteration
-                tstamp, key_sz, row_type, value_sz, value_pos = \
-                        hint_header_struct.unpack(header)
+                result = hint_header_struct.unpack(header)
+                tstamp, key_sz, row_type, value_sz, value_pos = result
                 key = fmap[current_pos:current_pos + key_sz]
                 current_pos += key_sz
                 yield HintEntry(tstamp, key_sz, row_type,
@@ -545,11 +546,11 @@ class Keydir(dict):
                 # update those stats too!
                 old_stats = self._stats[old_entry.file_id]
                 old_stats['live_entries'] -= 1
-                old_stats['live_bytes'] -= len(key[1]) + old_entry.value_sz \
-                        + header_size + crc32_size
-
-                new_bytes = len(key[1]) + entry.value_sz \
-                        + header_size + crc32_size
+                old_stats['live_bytes'] -= (
+                    len(key[1]) + old_entry.value_sz + header_size + crc32_size
+                )
+                new_bytes = (
+                    len(key[1]) + entry.value_sz + header_size + crc32_size)
                 # update the live entries in this file_id stats
                 live_entries = stats.get('live_entries', 0)
                 stats['live_entries'] = live_entries + 1
@@ -557,8 +558,8 @@ class Keydir(dict):
                 new_bytes = entry.value_sz - old_entry.value_sz
         except KeyError:
             # a new entry
-            new_bytes = len(key[1]) + entry.value_sz \
-                    + header_size + crc32_size
+            new_bytes = (
+                len(key[1]) + entry.value_sz + header_size + crc32_size)
             live_entries = stats.get('live_entries', 0)
             stats['live_entries'] = live_entries + 1
         live_bytes = stats.get('live_bytes', 0)
@@ -571,14 +572,14 @@ class Keydir(dict):
         # remove it from the keydir and update the stats
         entry = self.pop(key, None)
         # return if we don't have that key
-        if entry == None:
+        if entry is None:
             return
         try:
             stats = self._stats[entry.file_id]
-            stats['live_bytes'] -= len(key[1]) + entry.value_sz \
-                    + header_size + crc32_size
+            stats['live_bytes'] -= (
+                len(key[1]) + entry.value_sz + header_size + crc32_size)
             stats['live_entries'] -= 1
-        except KeyError, e:
+        except KeyError as e:
             logger.warning('Failed to update stats while removing %s with: %s',
                            key, e)
 
@@ -681,8 +682,8 @@ class Tritcask(object):
             # no info for the live file
             return False
         else:
-            return (live_file_stats['live_bytes'] / self.live_file.size) \
-                    < self.dead_bytes_threshold
+            return ((live_file_stats['live_bytes'] / self.live_file.size) <
+                    self.dead_bytes_threshold)
 
     def should_merge(self, immutable_files):
         """Check if the immutable_files should be merged."""
@@ -749,7 +750,7 @@ class Tritcask(object):
                     # it's an immutable file
                     data_file = ImmutableDataFile(self.base_path, filename)
                     self._immutable[data_file.file_id] = data_file
-            except IOError, e:
+            except IOError as e:
                 # oops, failed to open the file..discard it
                 broken_files += 1
                 orig = os.path.join(self.base_path, filename)
@@ -835,8 +836,8 @@ class Tritcask(object):
                 self._keydir.remove((entry.row_type, entry.key))
                 # add the tombstone entry to the hint
                 if build_hint:
-                    hint_entry = HintEntry.from_tritcask_entry(entry,
-                        dead=True)
+                    hint_entry = HintEntry.from_tritcask_entry(
+                        entry, dead=True)
                     hint_idx[hint_entry.key] = hint_entry
             else:
                 kd_entry = KeydirEntry.from_tritcask_entry(data_file.file_id,
@@ -866,8 +867,8 @@ class Tritcask(object):
             raise ValueError('key must be a str instance.')
         if not isinstance(value, str):
             raise ValueError('value must be a str instance.')
-        tstamp, value_pos, value_sz = self.live_file.write(row_type,
-            key, value)
+        tstamp, value_pos, value_sz = self.live_file.write(
+            row_type, key, value)
         if value != TOMBSTONE:
             kd_entry = KeydirEntry(self.live_file.file_id, tstamp,
                                    value_sz, value_pos)
@@ -977,7 +978,6 @@ class TritcaskShelf(object, DictMixin):
     def __len__(self):
         """The len of the shelf."""
         counter = 0
-        # pylint: disable-msg=W0612
         for key in self.keys():
             counter += 1
         return counter

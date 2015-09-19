@@ -30,8 +30,6 @@
 
 from zope.interface import Interface, Attribute
 
-# pylint: disable-msg=W0232,E0213,E0211
-
 
 class IContentQueue(Interface):
     """

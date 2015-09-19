@@ -98,8 +98,9 @@ class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
         if event.mask & pyinotify.IN_ISDIR:
             unsubscribed_udfs = set()
             for udf in self._get_udfs(event.pathname):
-                self.log.info("Got MOVED_FROM on path %r, unsubscribing "
-                               "udf %s", event.pathname, udf)
+                self.log.info(
+                    "Got MOVED_FROM on path %r, unsubscribing udf %s",
+                    event.pathname, udf)
                 self.monitor.fs.vm.unsubscribe_udf(udf.volume_id)
                 unsubscribed_udfs.add(udf)
             self._unwatch_ancestors(unsubscribed_udfs)
@@ -109,8 +110,9 @@ class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
         if event.mask & pyinotify.IN_ISDIR:
             deleted_udfs = set()
             for udf in self._get_udfs(event.pathname):
-                self.log.info("Got DELETE on path %r, deleting udf %s",
-                               event.pathname, udf)
+                self.log.info(
+                    "Got DELETE on path %r, deleting udf %s",
+                    event.pathname, udf)
                 self.monitor.fs.vm.delete_volume(udf.volume_id)
                 deleted_udfs.add(udf)
             self._unwatch_ancestors(deleted_udfs)
@@ -124,8 +126,8 @@ class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
 
         # collect the ancestors of all the still subscribed UDFs except
         # the received ones
-        sub_udfs = (u for u in self.monitor.fs.vm.udfs.itervalues() \
-                    if u.subscribed)
+        sub_udfs = (
+            u for u in self.monitor.fs.vm.udfs.itervalues() if u.subscribed)
         udf_remain = set(sub_udfs) - udfs
         ancestors_to_keep = set()
         for udf in udf_remain:
@@ -150,7 +152,7 @@ class FilesystemMonitor(object):
         self._processor = notify_processor.NotifyProcessor(self, ignore_config)
         self._inotify_notifier_gral = pyinotify.Notifier(wm, self._processor)
         self._inotify_reader_gral = self._hook_inotify_to_twisted(
-                                            wm, self._inotify_notifier_gral)
+            wm, self._inotify_notifier_gral)
         self._general_watchs = {}
 
         # ancestors inotify
@@ -158,7 +160,7 @@ class FilesystemMonitor(object):
         antr_processor = _AncestorsINotifyProcessor(self)
         self._inotify_notifier_antr = pyinotify.Notifier(wm, antr_processor)
         self._inotify_reader_antr = self._hook_inotify_to_twisted(
-                                            wm, self._inotify_notifier_antr)
+            wm, self._inotify_notifier_antr)
         self._ancestors_watchs = {}
 
     @classmethod
@@ -180,11 +182,10 @@ class FilesystemMonitor(object):
 
         class MyReader(abstract.FileDescriptor):
             """Chain between inotify and twisted."""
-            # will never pass a fd to write, pylint: disable-msg=W0223
+            # will never pass a fd to write
 
             def fileno(self):
                 """Returns the fileno to select()."""
-                # pylint: disable-msg=W0212
                 return wm._fd
 
             def doRead(self):

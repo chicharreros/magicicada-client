@@ -43,9 +43,9 @@ class GeneralINotifyProcessor(object):
     """Processor that takes care of dealing with the events."""
 
     def __init__(self, monitor, handle_dir_delete, name_translations,
-            platform_is_ignored, ignore_mask, ignore_config=None):
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.'
-            + 'filesystem_notifications.GeneralProcessor')
+                 platform_is_ignored, ignore_mask, ignore_config=None):
+        self.log = logging.getLogger(
+            'ubuntuone.SyncDaemon.filesystem_notifications.GeneralProcessor')
         self.log.setLevel(TRACE)
         self.invnames_log = logging.getLogger(
             'ubuntuone.SyncDaemon.InvalidNames')
@@ -97,8 +97,8 @@ class GeneralINotifyProcessor(object):
 
     def get_paths_starting_with(self, path, include_base=True):
         """Return all the paths that start with the given one."""
-        return self.monitor.fs.get_paths_starting_with(path,
-            include_base=False)
+        return self.monitor.fs.get_paths_starting_with(
+            path, include_base=False)
 
     def rm_watch(self, path):
         """Remove the watch for the given path."""
@@ -185,8 +185,8 @@ class GeneralINotifyProcessor(object):
         else:
             - push the here received events, return False
         """
-        self.log.trace("Freeze commit: %r (%d events)",
-            self.frozen_path, len(events))
+        self.log.trace(
+            "Freeze commit: %r (%d events)", self.frozen_path, len(events))
         if self.frozen_evts:
             # ouch! we're dirty!
             self.log.debug("Dirty by %s", self.frozen_evts)

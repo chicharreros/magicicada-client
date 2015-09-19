@@ -29,16 +29,12 @@
 """Client module."""
 
 # required capabilities
-REQUIRED_CAPS = frozenset(["no-content",
-                           "account-info",
-                           "resumable-uploads",
-                           "fix462230",
-                           "volumes",
-                           "generations",
-                          ])
+REQUIRED_CAPS = frozenset(
+    ["no-content", "account-info", "resumable-uploads", "fix462230", "volumes",
+     "generations"])
 
 
-#Sync Menu data constants
+# Sync Menu data constants
 RECENT_TRANSFERS = 'recent-transfers'
 UPLOADING = 'uploading'
 DOWNLOADING = 'downloading'

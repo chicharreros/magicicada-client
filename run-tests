@@ -43,12 +43,6 @@ else
     MODULE="tests"
 fi
 
-style_check() {
-    u1lint -i "$LINT_IGNORES"
-    # Don't run pep8 yet, as there are a LOT of warnings to fix
-    # pep8 --exclude '.bzr,.pc,build' . bin/*
-}
-
 SYSNAME=`uname -s`
 
 if [ "$SYSNAME" == "Darwin" ]; then
@@ -73,5 +67,3 @@ rm -rf _trial_temp
 rm -rf build
 
 $PYTHON contrib/check-reactor-import
-
-style_check

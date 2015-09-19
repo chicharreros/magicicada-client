@@ -44,7 +44,7 @@ class OffloadQueue(object):
 
     # limits for file rotation...
     # after the soft limit, we'll rotate if queue is short enough
-    _rotation_soft_limit =  2 * 1024 ** 3
+    _rotation_soft_limit = 2 * 1024 ** 3
     # if the queue is shorter than this, we'll rotate after the soft limit
     _rotation_too_big_size = 50 * 1024 ** 2
     # rotate if file gets larger than this, no matter the queue size
@@ -69,7 +69,7 @@ class OffloadQueue(object):
         # fallback to memory if something goes wrong when using disk
         self._in_memory = False
 
-    def  __len__(self):
+    def __len__(self):
         return self._len
 
     def push(self, item):
@@ -91,7 +91,7 @@ class OffloadQueue(object):
         self._tempfile_size += len(data) + STRUCT_SIZE
         self._rotate()
 
-    def  _handle_bad_write(self, data):
+    def _handle_bad_write(self, data):
         """Support a bad write, go to memory and continue."""
         self.log.exception("Crashed while writing")
 
@@ -135,7 +135,7 @@ class OffloadQueue(object):
         # the file is big, let's check if we would need to copy too much data
         if queuesize > self._rotation_too_big_size:
             # avoid rotation only if file size is still below the hard limit
-             if filesize < self._rotation_hard_limit:
+            if filesize < self._rotation_hard_limit:
                 return
 
         # rotate to a new file

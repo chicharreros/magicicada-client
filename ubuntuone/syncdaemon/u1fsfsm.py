@@ -1,6 +1,6 @@
 """This is a generated python file"""
-# make pylint accept this
-# pylint: disable-msg=C0301
+# make pylflakes accept this
+# noqa
 state_machine = {'events': {u'AQ_DIR_DELETE_ERROR': [{'ACTION': u'md.create(path=path, uuid=uuid, type=type) aq.query(uuid=uuid)',
                                       'ACTION_FUNC': u'',
                                       'COMMENTS': u'the user deleted something we couldnt delete from the server. Re create.',

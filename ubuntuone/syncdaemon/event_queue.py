@@ -105,7 +105,7 @@ EVENTS = {
     'AQ_DELTA_ERROR': ('volume_id', 'error'),
     'AQ_DELTA_NOT_POSSIBLE': ('volume_id',),
     'AQ_RESCAN_FROM_SCRATCH_OK': ('volume_id', 'delta_content',
-        'end_generation', 'free_bytes'),  # must always be full
+                                  'end_generation', 'free_bytes'),
     'AQ_RESCAN_FROM_SCRATCH_ERROR': ('volume_id', 'error'),
 
     'SV_SHARE_CHANGED': ('info',),

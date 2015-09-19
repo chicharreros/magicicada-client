@@ -41,7 +41,7 @@ class DownloadFinishedNanny(object):
     """
     def __init__(self, fsm, eq, hq):
         self.logger = logging.getLogger(
-                                'ubuntuone.SyncDaemon.DownloadFinishedNanny')
+            'ubuntuone.SyncDaemon.DownloadFinishedNanny')
         self.fsm = fsm
         self.eq = eq
         self.hq = hq

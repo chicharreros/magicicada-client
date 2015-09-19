@@ -108,7 +108,6 @@ class FileShelf(object, DictMixin):
 
     def keys(self):
         """ returns a iterator over the keys """
-        # pylint: disable-msg=W0612
         splitext = os.path.splitext
         for dirpath, dirnames, filenames in walk(self._path):
             for filename in filenames:
@@ -125,7 +124,6 @@ class FileShelf(object, DictMixin):
 
     def __contains__(self, key):
         """ returns if the file storage has that key """
-        # this method surely has some effect! pylint: disable-msg=W0104
         try:
             self[key]
         except KeyError:
@@ -205,7 +203,6 @@ class FileShelf(object, DictMixin):
         To get len(keys) we need to iterate over the full key set.
         """
         counter = 0
-        # pylint: disable-msg=W0612
         for key in self.keys():
             counter += 1
         return counter
@@ -343,9 +340,8 @@ class LRUCache(object):
                     self._queue.append(k)
                 else:
                     self._refcount[k] -= 1
-            if not (len(self._queue) == len(self._cache) \
-                    == len(self._refcount) \
-                    == sum(self._refcount.itervalues())):
+            if (not (len(self._queue) == len(self._cache) ==
+                     len(self._refcount) == sum(self._refcount.itervalues()))):
                 # create a custom exception for this error
                 raise CacheInconsistencyError(len(self._queue),
                                               len(self._cache),
@@ -357,5 +353,6 @@ class CacheInconsistencyError(Exception):
     """Exception representing a inconsistency in the cache"""
 
     def __str__(self):
-        return "Inconsistency in the cache: queue: %d cache: %d refcount: %d" \
-                " sum(refcount.values): %d" % self.args
+        return (
+            "Inconsistency in the cache: queue: %d cache: %d refcount: %d "
+            "sum(refcount.values): %d" % self.args)

@@ -179,8 +179,8 @@ class SignalBroadcaster(object):
         for current_client in self.clients_per_signal[signal_name]:
             try:
                 d = current_client.callRemote(signal_name, *args, **kwargs)
-                d.addErrback(self._ignore_no_such_method, signal_name,
-                                                          current_client)
+                d.addErrback(
+                    self._ignore_no_such_method, signal_name, current_client)
                 d.addErrback(self._other_failure, signal_name, current_client)
             except DeadReferenceError:
                 dead_clients.add(current_client)
@@ -500,8 +500,7 @@ class FileSystem(IPCExposedObject):
 
     def get_metadata_by_node(self, share_id, node_id):
         """Return the metadata (as a dict) for the specified share/node."""
-        return self.service.file_system.get_metadata_by_node(share_id,
-                                                               node_id)
+        return self.service.file_system.get_metadata_by_node(share_id, node_id)
 
     def get_metadata_and_quick_tree_synced(self, path):
         """Return the metadata (as a dict) for the specified path.
@@ -510,7 +509,7 @@ class FileSystem(IPCExposedObject):
 
         """
         return self.service.file_system.get_metadata_and_quick_tree_synced(
-                                                                        path)
+            path)
 
     def get_dirty_nodes(self):
         """Return a list of dirty nodes."""
@@ -528,16 +527,16 @@ class Shares(IPCExposedObject):
 
     # calls that will be accessible remotely
     remote_calls = [
-       'get_shares',
-       'accept_share',
-       'reject_share',
-       'delete_share',
-       'subscribe',
-       'unsubscribe',
-       'create_share',
-       'create_shares',
-       'refresh_shares',
-       'get_shared',
+        'get_shares',
+        'accept_share',
+        'reject_share',
+        'delete_share',
+        'subscribe',
+        'unsubscribe',
+        'create_share',
+        'create_shares',
+        'refresh_shares',
+        'get_shared',
     ]
 
     signal_mapping = {

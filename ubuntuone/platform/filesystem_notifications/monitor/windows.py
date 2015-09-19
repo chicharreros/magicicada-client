@@ -120,8 +120,9 @@ class Watch(object):
         self.path = os.path.abspath(path)
         self.process_events = process_events
         self.watching = False
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.platform.windows.' +
-            'filesystem_notifications.Watch')
+        self.log = logging.getLogger(
+            'ubuntuone.SyncDaemon.platform.windows.filesystem_notifications.'
+            'Watch')
         self.log.setLevel(logging.DEBUG)
         self._buf_size = buf_size
         self._mask = mask
@@ -143,9 +144,9 @@ class Watch(object):
         # and then use the proc_fun
         for action, file_name in events:
             syncdaemon_path = get_syncdaemon_valid_path(
-                                        os.path.join(self.path, file_name))
-            self.process_events(action, file_name, str(uuid4()),
-                    syncdaemon_path)
+                os.path.join(self.path, file_name))
+            self.process_events(
+                action, file_name, str(uuid4()), syncdaemon_path)
 
     def _call_deferred(self, f, *args):
         """Executes the deferred call avoiding possible race conditions."""
@@ -156,9 +157,10 @@ class Watch(object):
         """Wrap _watch, and errback on any unhandled error."""
         try:
             self._watch()
-        except Exception:
-            reactor.callFromThread(self._call_deferred,
-                self._watch_started_deferred.errback, Failure())
+        except Exception as e:
+            reactor.callFromThread(
+                self._call_deferred, self._watch_started_deferred.errback,
+                Failure(e))
 
     def _watch(self):
         """Watch a path that is a directory."""
@@ -201,13 +203,13 @@ class Watch(object):
                 self._overlapped,
             )
             if not self._watch_started_deferred.called:
-                reactor.callFromThread(self._call_deferred,
-                    self._watch_started_deferred.callback, True)
+                reactor.callFromThread(
+                    self._call_deferred, self._watch_started_deferred.callback,
+                    True)
             # wait for an event and ensure that we either stop or read the
             # data
-            rc = WaitForMultipleObjects((self._wait_stop,
-                                         self._overlapped.hEvent),
-                                         0, INFINITE)
+            rc = WaitForMultipleObjects(
+                (self._wait_stop, self._overlapped.hEvent), 0, INFINITE)
             if rc == WAIT_OBJECT_0:
                 # Stop event
                 break
@@ -215,9 +217,9 @@ class Watch(object):
             data = GetOverlappedResult(handle, self._overlapped, True)
             # lets ead the data and store it in the results
             events = FILE_NOTIFY_INFORMATION(buf, data)
-            self.log.debug('Got from ReadDirectoryChangesW %r.',
-                    [(ACTIONS_NAMES[action], path) \
-                    for action, path in events])
+            self.log.debug(
+                'Got from ReadDirectoryChangesW %r.',
+                [(ACTIONS_NAMES[action], path) for action, path in events])
             reactor.callFromThread(self._process_events, events)
 
     def start_watching(self):

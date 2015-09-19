@@ -58,7 +58,7 @@ class RemovableSignal(object):
 
         if app_name != APP_NAME:
             # This fixed bug #818190: filter signals not related to APP_NAME
-            logger.info('Received %r but app_name %r does not match %r, ' \
+            logger.info('Received %r but app_name %r does not match %r, '
                         'exiting.', self.signal_name, app_name, APP_NAME)
             return
 

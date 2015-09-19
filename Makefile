@@ -27,8 +27,8 @@
 #
 # For further info, check  http://launchpad.net/magicicada-client
 
-ENV = $(CURDIR)/env
-PROTOCOL_DIR = .protocol
+ENV = $(CURDIR)/.env
+PROTOCOL_DIR = $(CURDIR)/.protocol
 PROTOCOL_LINK = ubuntuone/storageprotocol
 
 deps:
@@ -39,7 +39,7 @@ $(PROTOCOL_DIR):
 	bzr branch lp:magicicada-protocol $(PROTOCOL_DIR)
 
 $(PROTOCOL_LINK): $(PROTOCOL_DIR)
-	ln -s ../$(PROTOCOL_DIR)/$(PROTOCOL_LINK) $(PROTOCOL_LINK)
+	ln -s $(PROTOCOL_DIR)/$(PROTOCOL_LINK) $(PROTOCOL_LINK)
 
 update-protocol:
 	cd $(PROTOCOL_DIR) && bzr pull && python setup.py build
@@ -49,11 +49,14 @@ bootstrap: deps $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol
 lint:
 	virtualenv $(ENV)
 	$(ENV)/bin/pip install flake8
-	$(ENV)/bin/flake8 --filename='*.py' ubuntuone tests
+	$(ENV)/bin/flake8 --filename='*.py' --exclude='u1fsfsm.py' ubuntuone
 
-test:
+test: lint
 	./run-tests
 
 clean:
-	rm -rf _trial_temp $(PROTOCOL_DIR) $(PROTOCOL_LINK)
+	rm -rf build _trial_temp $(PROTOCOL_DIR) $(PROTOCOL_LINK) $(ENV)
 	find -name '*.pyc' -delete
+
+.PHONY:
+	deps update-protocol bootstrap lint test clean

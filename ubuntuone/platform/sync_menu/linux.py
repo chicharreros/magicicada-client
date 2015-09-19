@@ -89,40 +89,42 @@ class UbuntuOneSyncMenuLinux(object):
         self.open_u1 = Dbusmenu.Menuitem()
         self.open_u1.property_set(Dbusmenu.MENUITEM_PROP_LABEL, OPEN_U1)
         self.open_u1_folder = Dbusmenu.Menuitem()
-        self.open_u1_folder.property_set(Dbusmenu.MENUITEM_PROP_LABEL,
-            OPEN_U1_FOLDER)
+        self.open_u1_folder.property_set(
+            Dbusmenu.MENUITEM_PROP_LABEL, OPEN_U1_FOLDER)
         self.share_file = Dbusmenu.Menuitem()
-        self.share_file.property_set(Dbusmenu.MENUITEM_PROP_LABEL,
-            SHARE_A_FILE)
+        self.share_file.property_set(
+            Dbusmenu.MENUITEM_PROP_LABEL, SHARE_A_FILE)
 
         self.go_to_web = Dbusmenu.Menuitem()
-        self.go_to_web.property_set(Dbusmenu.MENUITEM_PROP_LABEL,
-            GO_TO_WEB)
+        self.go_to_web.property_set(
+            Dbusmenu.MENUITEM_PROP_LABEL, GO_TO_WEB)
 
         self.transfers = TransfersMenu(status)
-        self.transfers.property_set(Dbusmenu.MENUITEM_PROP_LABEL,
-            TRANSFERS)
+        self.transfers.property_set(
+            Dbusmenu.MENUITEM_PROP_LABEL, TRANSFERS)
 
         self.more_storage = Dbusmenu.Menuitem()
-        self.more_storage.property_set(Dbusmenu.MENUITEM_PROP_LABEL,
-            MORE_STORAGE)
+        self.more_storage.property_set(
+            Dbusmenu.MENUITEM_PROP_LABEL, MORE_STORAGE)
 
         self.get_help = Dbusmenu.Menuitem()
-        self.get_help.property_set(Dbusmenu.MENUITEM_PROP_LABEL,
-            GET_HELP)
+        self.get_help.property_set(
+            Dbusmenu.MENUITEM_PROP_LABEL, GET_HELP)
 
         # Connect signals
-        self.open_u1.connect(Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED,
-            self.open_control_panel)
-        self.open_u1_folder.connect(Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED,
+        self.open_u1.connect(
+            Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED, self.open_control_panel)
+        self.open_u1_folder.connect(
+            Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED,
             self.open_ubuntu_one_folder)
-        self.share_file.connect(Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED,
-            self.open_share_file_tab)
-        self.go_to_web.connect(Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED,
-            self.open_go_to_web)
-        self.get_help.connect(Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED,
-            self.open_web_help)
-        self.more_storage.connect(Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED,
+        self.share_file.connect(
+            Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED, self.open_share_file_tab)
+        self.go_to_web.connect(
+            Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED, self.open_go_to_web)
+        self.get_help.connect(
+            Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED, self.open_web_help)
+        self.more_storage.connect(
+            Dbusmenu.MENUITEM_SIGNAL_ITEM_ACTIVATED,
             self.open_get_more_storage)
 
         # Add items
@@ -172,11 +174,12 @@ class UbuntuOneSyncMenuLinux(object):
     def _open_uri(self, uri, timestamp=0):
         """Open an uri Using the default handler and the action timestamp"""
         try:
-            Gio.AppInfo.launch_default_for_uri(uri, self._get_launch_context(timestamp))
+            Gio.AppInfo.launch_default_for_uri(
+                uri, self._get_launch_context(timestamp))
         except glib.GError as e:
-            logger.warning('Failed to open the uri %s: %s.' % (uri, e))
+            logger.warning('Failed to open the uri %s: %s.', uri, e)
 
-    def _open_control_panel_by_command_line(self, timestamp, args = ''):
+    def _open_control_panel_by_command_line(self, timestamp, args=''):
         """Open the control panel by command line"""
         flags = Gio.AppInfoCreateFlags.SUPPORTS_STARTUP_NOTIFICATION
         command_line = CLIENT_COMMAND_LINE
@@ -184,7 +187,8 @@ class UbuntuOneSyncMenuLinux(object):
             command_line += ' ' + args
 
         try:
-            app = Gio.AppInfo.create_from_commandline(command_line, 'Magicicada', flags)
+            app = Gio.AppInfo.create_from_commandline(
+                command_line, 'Magicicada', flags)
 
             if app:
                 app.launch([], self._get_launch_context(timestamp))
@@ -205,11 +209,13 @@ class UbuntuOneSyncMenuLinux(object):
 
     def open_ubuntu_one_folder(self, menuitem=None, timestamp=0):
         """Open the Magicicada folder."""
-        self._open_uri("file://" + self._syncdaemon_service.get_rootdir(), timestamp)
+        self._open_uri(
+            "file://" + self._syncdaemon_service.get_rootdir(), timestamp)
 
     def open_share_file_tab(self, menuitem=None, timestamp=0):
         """Open the Control Panel in the Share Tab."""
-        self._open_control_panel_by_command_line(timestamp, "--switch-to share_links")
+        self._open_control_panel_by_command_line(
+            timestamp, "--switch-to share_links")
 
     def open_go_to_web(self, menuitem=None, timestamp=0):
         """Open the Magicicada Help Page"""
@@ -234,7 +240,7 @@ class UbuntuOneSyncMenuLinux(object):
         if not self.timer:
             logger.debug("Updating Transfers.")
             delay = int(max(0, min(DELAY_BETWEEN_UPDATES,
-                self.next_update - time.time())))
+                                   self.next_update - time.time())))
             self.timer = status.aggregator.Timer(delay)
             self.timer.addCallback(self._timeout)
 
@@ -268,16 +274,16 @@ class TransfersMenu(Dbusmenu.Menuitem if use_syncmenu else object):
                 self.child_delete(self._transfers_items[item_transfer])
             for item in recent_transfers:
                 recent_file = Dbusmenu.Menuitem()
-                recent_file.property_set(Dbusmenu.MENUITEM_PROP_LABEL,
-                    item.replace('_', '__'))
+                recent_file.property_set(
+                    Dbusmenu.MENUITEM_PROP_LABEL, item.replace('_', '__'))
                 self.child_add_position(recent_file, 0)
                 temp_transfers[item] = recent_file
             self._transfers_items = temp_transfers
 
         if self.separator is None:
             self.separator = Dbusmenu.Menuitem()
-            self.separator.property_set(Dbusmenu.MENUITEM_PROP_TYPE,
-                Dbusmenu.CLIENT_TYPES_SEPARATOR)
+            self.separator.property_set(
+                Dbusmenu.MENUITEM_PROP_TYPE, Dbusmenu.CLIENT_TYPES_SEPARATOR)
             self.child_append(self.separator)
 
         items_added = 0
@@ -290,7 +296,8 @@ class TransfersMenu(Dbusmenu.Menuitem if use_syncmenu else object):
                 upload_item.property_set_int(
                     SyncMenu.PROGRESS_MENUITEM_PROP_PERCENT_DONE,
                     percentage)
-                logger.debug("Current transfer %s progress update: %r",
+                logger.debug(
+                    "Current transfer %s progress update: %r",
                     item, percentage)
                 items_added += 1
             else:
@@ -304,9 +311,10 @@ class TransfersMenu(Dbusmenu.Menuitem if use_syncmenu else object):
                     size, written = uploading_data[item]
                     percentage = written * 100 / size
                     uploading_file = Dbusmenu.Menuitem()
-                    uploading_file.property_set(Dbusmenu.MENUITEM_PROP_LABEL,
-                        item.replace('_', '__'))
-                    uploading_file.property_set(Dbusmenu.MENUITEM_PROP_TYPE,
+                    uploading_file.property_set(
+                        Dbusmenu.MENUITEM_PROP_LABEL, item.replace('_', '__'))
+                    uploading_file.property_set(
+                        Dbusmenu.MENUITEM_PROP_TYPE,
                         SyncMenu.PROGRESS_MENUITEM_TYPE)
                     uploading_file.property_set_int(
                         SyncMenu.PROGRESS_MENUITEM_PROP_PERCENT_DONE,
@@ -321,4 +329,3 @@ if use_syncmenu:
     UbuntuOneSyncMenu = UbuntuOneSyncMenuLinux
 else:
     UbuntuOneSyncMenu = DummySyncMenu
-

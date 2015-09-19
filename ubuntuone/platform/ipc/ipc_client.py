@@ -127,11 +127,11 @@ def callbacks(callbacks_indexes=None, callbacks_names=None):
                 for current_key, current_index in callbacks_names:
                     try:
                         kwargs[current_key] = RemoteHandler(
-                                                        kwargs[current_key])
+                            kwargs[current_key])
                     except KeyError:
                         if len(args) >= current_index + 1:
                             fixed_args[current_index] = RemoteHandler(
-                                                        args[current_index])
+                                args[current_index])
             fixed_args = tuple(fixed_args)
             return function(*fixed_args, **kwargs)
         return callbacks_wrapper
@@ -778,7 +778,6 @@ class UbuntuOneClient(object):
     @defer.inlineCallbacks
     def connect(self):
         """Connect to the syncdaemon service."""
-        # pylint: disable=W0702
         yield self.connection_lock.acquire()
         try:
             if self.client is None:
@@ -789,12 +788,11 @@ class UbuntuOneClient(object):
                 yield self._request_remote_objects(root)
                 yield self.register_to_signals()
             defer.returnValue(self)
-        except Exception, e:
+        except Exception as e:
             raise SyncDaemonClientConnectionError(
-                            'Could not connect to the syncdaemon ipc.', e)
+                'Could not connect to the syncdaemon ipc.', e)
         finally:
             self.connection_lock.release()
-        # pylint: disable=W0702
 
     @defer.inlineCallbacks
     def reconnect(self):
@@ -804,9 +802,9 @@ class UbuntuOneClient(object):
             yield self._request_remote_objects(root)
             yield self.register_to_signals()
             defer.returnValue(self)
-        except Exception, e:
+        except Exception as e:
             raise SyncDaemonClientConnectionError(
-                            'Could not reconnect to the syncdaemon ipc.', e)
+                'Could not reconnect to the syncdaemon ipc.', e)
 
     def is_connected(self):
         """Return if the client is connected."""

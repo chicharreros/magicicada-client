@@ -130,8 +130,9 @@ class _Hasher(threading.Thread):
             except (IOError, OSError), e:
                 m = "Hasher: hash error %s  (path %r  mdid %s)"
                 self.logger.debug(m, e, path, mdid)
-                reactor.callLater(.1, reactor.callFromThread, self.eq.push,
-                                                    "HQ_HASH_ERROR", mdid=mdid)
+                reactor.callLater(
+                    .1, reactor.callFromThread, self.eq.push,
+                    "HQ_HASH_ERROR", mdid=mdid)
             except StopHashing, e:
                 self.logger.debug(str(e))
             else:

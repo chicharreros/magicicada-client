@@ -51,8 +51,9 @@ ONE_DAY = 24 * 60 * 60
 Q_ = lambda string: gettext.dgettext(GETTEXT_PACKAGE, string)
 
 UBUNTUONE_TITLE = Q_("Magicicada")
-UBUNTUONE_END = Q_("Magicicada file services will be "
-                   "shutting down on June 1st, 2014.\nThanks for your support.")
+UBUNTUONE_END = Q_(
+    "Magicicada file services will be shutting down on June 1st, 2014.\n"
+    "Thanks for your support.")
 NEW_UDFS_SENDER = Q_("New cloud folder(s) available")
 FINAL_COMPLETED = Q_("File synchronization completed.")
 
@@ -373,9 +374,8 @@ class FileDiscoveryGatheringState(FileDiscoveryBaseState):
     def __init__(self, *args):
         """Initialize this instance."""
         super(FileDiscoveryGatheringState, self).__init__(*args)
-        self.timer = DeadlineTimer(self.initial_delay,
-                                 self.initial_timeout,
-                                 clock=self.clock)
+        self.timer = DeadlineTimer(
+            self.initial_delay, self.initial_timeout, clock=self.clock)
         self.timer.addCallback(self._timeout)
 
     def _timeout(self, result):
@@ -624,7 +624,6 @@ class StatusAggregator(object):
         """Create a new toggleable notification object."""
         return self.notification_switch.get_notification()
 
-    # pylint: disable=W0201
     def reset(self):
         """Reset all counters and notifications."""
         self.download_done = 0
@@ -647,7 +646,6 @@ class StatusAggregator(object):
         self.final_status_bubble = FinalStatusBubble(self)
         self.progress = {}
         self.to_do = {}
-    # pylint: enable=W0201
 
     def register_progress_listener(self, listener):
         """Register a callable object to be notified."""
@@ -736,11 +734,9 @@ class StatusAggregator(object):
         if command.deflated_size is not None:
             self.to_do[
                 (command.share_id, command.node_id)] = command.deflated_size
-        # pylint: disable=W0201
         if not self.downloading_filename:
             self.downloading_filename = os.path.basename(
                 self.files_downloading[0].path)
-        # pylint: enable=W0201
         self.update_progressbar()
         logger.debug(
             "queueing command (total: %d): %s",
@@ -770,11 +766,9 @@ class StatusAggregator(object):
         if command.deflated_size is not None:
             self.to_do[
                 (command.share_id, command.node_id)] = command.deflated_size
-        # pylint: disable=W0201
         if not self.uploading_filename:
             self.uploading_filename = os.path.basename(
                 self.files_uploading[0].path)
-        # pylint: enable=W0201
         self.update_progressbar()
         logger.debug(
             "queueing command (total: %d): %s", len(self.to_do),
@@ -839,8 +833,8 @@ class StatusFrontend(object):
     def start_sync_menu(self):
         """Create the sync menu and register the progress listener."""
         if self.syncdaemon_service is not None:
-            self.sync_menu = sync_menu.UbuntuOneSyncMenu(self,
-                self.syncdaemon_service)
+            self.sync_menu = sync_menu.UbuntuOneSyncMenu(
+                self, self.syncdaemon_service)
             self.aggregator.register_connection_listener(
                 self.sync_menu.sync_status_changed)
             self.aggregator.register_progress_listener(
@@ -855,8 +849,9 @@ class StatusFrontend(object):
         uploading = []
         for upload in self.aggregator.files_uploading:
             if upload.deflated_size not in (0, None):
-                uploading.append((upload.path, upload.deflated_size,
-                    upload.n_bytes_written))
+                uploading.append(
+                    (upload.path, upload.deflated_size, upload.n_bytes_written)
+                )
         return uploading
 
     def files_downloading(self):
@@ -874,7 +869,7 @@ class StatusFrontend(object):
         self.notification.send_notification(
             UBUNTUONE_TITLE, status_event.one())
 
-    def file_unpublished(self, public_url):  # pylint: disable=W0613
+    def file_unpublished(self, public_url):
         """A file was unpublished."""
         self.notification.send_notification(
             UBUNTUONE_TITLE, FileUnpublishingStatus().one())

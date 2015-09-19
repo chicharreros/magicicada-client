@@ -58,7 +58,7 @@ def get_listener(fsm, vm, syncdaemon_service=None):
         return None
 
 
-#TODO: hookup the shutdown of the listener to the cleanup in the aggregator
+# TODO: hookup the shutdown of the listener to the cleanup in the aggregator
 class StatusListener(object):
     """SD listener for EQ events that turns them into status updates."""
 
@@ -94,7 +94,6 @@ class StatusListener(object):
     show_all_notifications = property(get_show_all_notifications,
                                       set_show_all_notifications)
 
-    # pylint: disable=W0613
     def handle_AQ_CHANGE_PUBLIC_ACCESS_OK(self, share_id, node_id, is_public,
                                           public_url):
         """The status of a published resource changed."""
@@ -114,7 +113,6 @@ class StatusListener(object):
         """Progress has been made on an upload."""
         self.status_frontend.progress_made(
             share_id, node_id, n_bytes_read, deflated_size)
-    # pylint: enable=W0613
 
     def handle_SYS_QUEUE_ADDED(self, command):
         """A command has been added to the queue."""

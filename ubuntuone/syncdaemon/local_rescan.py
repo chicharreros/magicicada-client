@@ -112,8 +112,8 @@ class LocalRescan(object):
         for vol in to_scan:
             # check that the path exists in disk
             if not path_exists(vol.path):
-                log_warning('Volume dissapeared: %r - %r',
-                    vol.volume_id, vol.path)
+                log_warning(
+                    'Volume dissapeared: %r - %r', vol.volume_id, vol.path)
                 if isinstance(vol, volume_manager.Share):
                     log_debug('Removing %r metadata', vol.volume_id)
                     self.vm.share_deleted(vol.volume_id)
@@ -149,7 +149,7 @@ class LocalRescan(object):
         """
         try:
             partials = listdir(self.fsm.partials_dir)
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
             # no partials dir at all
@@ -164,8 +164,8 @@ class LocalRescan(object):
         """Process the FSM limbos and send corresponding AQ orders."""
         log_info("processing trash")
         trash_log = "share_id=%r  parent_id=%r  node_id=%r  path=%r"
-        for share_id, node_id, parent_id, path, is_dir in \
-                                                self.fsm.get_iter_trash():
+        for item in self.fsm.get_iter_trash():
+            share_id, node_id, parent_id, path, is_dir = item
             datalog = trash_log % (share_id, parent_id, node_id, path)
             if IMarker.providedBy(node_id) or IMarker.providedBy(parent_id):
                 # situation where the node is not in the server
@@ -181,7 +181,7 @@ class LocalRescan(object):
         for data in self.fsm.get_iter_move_limbo():
             to_log = move_log % data
             (share_id, node_id, old_parent_id, new_parent_id, new_name,
-                                                    path_from, path_to) = data
+             path_from, path_to) = data
             maybe_markers = (share_id, node_id, old_parent_id, new_parent_id)
             if any(IMarker.providedBy(x) for x in maybe_markers):
                 # situation where the move was not ready
@@ -190,7 +190,7 @@ class LocalRescan(object):
                 continue
             log_info("generating Move from limbo: " + to_log)
             self.aq.move(share_id, node_id, old_parent_id,
-                    new_parent_id, new_name, path_from, path_to)
+                         new_parent_id, new_name, path_from, path_to)
 
     def _process_ro_shares(self):
         """Process ro shares and reschedule interrupted downloads."""
@@ -205,8 +205,8 @@ class LocalRescan(object):
                     if mdobj.is_dir:
                         # old state, no sense now with generations
                         # but required for the migration path.
-                        log_warning("Found a directory in SERVER: %r",
-                            fullname)
+                        log_warning(
+                            "Found a directory in SERVER: %r", fullname)
                         mdobj = self.fsm.get_by_path(fullname)
                         self.fsm.set_by_mdid(mdobj.mdid,
                                              server_hash=mdobj.local_hash)
@@ -262,7 +262,6 @@ class LocalRescan(object):
             log_error(m)
             raise ValueError(m)
 
-        # No, 'share' is surely defined; pylint: disable-msg=W0631
         self._queue.appendleft((share, direct, mdid, udfmode))
         return self._queue_scan()
 
@@ -307,8 +306,7 @@ class LocalRescan(object):
                         return
 
                 self._scan_tree(*scan_info)
-            # pylint: disable-msg=W0703
-            except Exception, e:
+            except Exception as e:
                 self._previous_deferred.errback(e)
 
         reactor.callLater(0, safe_scan)
@@ -337,7 +335,7 @@ class LocalRescan(object):
             if failure.check(ScanTransactionDirty):
                 reason = failure.getErrorMessage()
                 log_debug("re queue, transaction dirty for %r, reason: %s",
-                                                                  path, reason)
+                          path, reason)
                 self._queue.appendleft((share, path, mdid, udfmode))
             elif failure.check(OSError, IOError):
                 reason = failure.getErrorMessage()
@@ -410,7 +408,6 @@ class LocalRescan(object):
             # if asked, remove metadata por children
             if also_children:
                 log_debug("Removing metadata for %r children", fullname)
-                # pylint: disable-msg=W0612
                 children = self.fsm.get_paths_starting_with(fullname, False)
                 for path, is_dir in children:
                     self.fsm.delete_metadata(path)
@@ -426,7 +423,7 @@ class LocalRescan(object):
                 try:
                     log_info("Also remove %r", also_remove)
                     remove_file(also_remove)
-                except OSError, e:
+                except OSError as e:
                     if e.errno != errno.ENOENT:
                         raise
 
@@ -555,8 +552,8 @@ class LocalRescan(object):
                 to_inform = []
 
                 # get all the info inside that dir
-                objs = self.fsm.get_mdobjs_by_share_id(share.volume_id,
-                    fullname)
+                objs = self.fsm.get_mdobjs_by_share_id(
+                    share.volume_id, fullname)
                 for obj in objs:
                     shrpath = obj.path
                     qparts = len(shrpath.split(os.path.sep))

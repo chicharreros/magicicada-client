@@ -543,7 +543,7 @@ class ZipQueue(object):
             upload.deflated_size = tempfile.tell()
 
             upload.magic_hash = magic_hasher.content_hash()
-        except Exception, e:  # pylint: disable-msg=W0703
+        except Exception as e:
             failed = True
             if tempfile is not None:
                 tempfile.close()
@@ -564,7 +564,7 @@ class ZipQueue(object):
         try:
             try:
                 fileobj = fileobj_factory()
-            except StandardError, e:
+            except StandardError as e:
                 # maybe the user deleted the file before we got to upload it
                 upload.log.warn("Unable to build fileobj (%s: '%s') so "
                                 "cancelling the upload.", type(e), e)
@@ -884,7 +884,6 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         def on_lookup_ok(results):
             """Get a random host from the SRV result."""
             logger.debug('SRV lookup done, choosing a server.')
-            # pylint: disable-msg=W0612
             records, auth, add = results
             if not records:
                 raise ValueError('No available records.')
@@ -1312,7 +1311,6 @@ class ActionQueueCommand(object):
     """Base of all the action queue commands."""
 
     # the info used in the protocol errors is hidden, but very useful!
-    # pylint: disable-msg=W0212
     suppressed_error_messages = (
         [x for x in protocol_errors._error_mapping.values()
          if x is not protocol_errors.InternalError] +
@@ -1393,7 +1391,7 @@ class ActionQueueCommand(object):
         for (name, marker, deferred) in waiting_structure:
             try:
                 value = yield deferred
-            except Exception, e:
+            except Exception as e:
                 # on first failure, errback the marker resolved flag, and
                 # quit waiting for other deferreds
                 self.log.error("failed %r", marker)
@@ -2487,8 +2485,8 @@ class Download(ActionQueueCommand):
         """A streaming decompressor."""
         self.n_bytes_read += len(bytes)
         self.fileobj.write(self.gunzip.decompress(bytes))
-        self.fileobj.flush()     # not strictly necessary but nice to
-                                 # see the downloaded size
+        # not strictly necessary but nice to see the downloaded size
+        self.fileobj.flush()
         self.progress_hook()
 
     def progress_hook(self):
@@ -2608,7 +2606,8 @@ class Upload(ActionQueueCommand):
     def cleanup(self):
         """Cleanup: stop the producer."""
         self.log.debug('cleanup')
-        if self.upload_req is not None and self.upload_req.producer is not None:
+        if (self.upload_req is not None and
+                self.upload_req.producer is not None):
             self.log.debug('stopping the producer')
             self.upload_req.producer.stopProducing()
 

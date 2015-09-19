@@ -44,7 +44,6 @@ from ubuntuone.syncdaemon import (
 )
 
 # Disable the "Invalid Name" check here, as we have lots of DBus style names
-# pylint: disable-msg=C0103
 
 DBUS_IFACE_NAME = 'com.ubuntuone.SyncDaemon'
 DBUS_IFACE_SYNC_NAME = DBUS_IFACE_NAME + '.SyncDaemon'
@@ -391,8 +390,7 @@ class FileSystem(DBusExposedObject):
                          in_signature='ss', out_signature='a{ss}')
     def get_metadata_by_node(self, share_id, node_id):
         """Return the metadata (as a dict) for the specified share/node."""
-        return self.service.file_system.get_metadata_by_node(share_id,
-                                                               node_id)
+        return self.service.file_system.get_metadata_by_node(share_id, node_id)
 
     @dbus.service.method(DBUS_IFACE_FS_NAME,
                          in_signature='s', out_signature='a{ss}')
@@ -403,7 +401,7 @@ class FileSystem(DBusExposedObject):
 
         """
         return self.service.file_system.get_metadata_and_quick_tree_synced(
-                                                                        path)
+            path)
 
     @dbus.service.method(DBUS_IFACE_FS_NAME,
                          in_signature='', out_signature='aa{ss}')
@@ -851,7 +849,7 @@ class PublicFiles(DBusExposedObject):
         """Report an error in changing the public access of a file."""
 
     @dbus.service.signal(DBUS_IFACE_PUBLIC_FILES_NAME,
-                        signature='aa{ss}')
+                         signature='aa{ss}')
     def PublicFilesList(self, files):
         """Notify the list of public files."""
 

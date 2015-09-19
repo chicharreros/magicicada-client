@@ -55,8 +55,8 @@ def expand_user(path):
     except UnicodeDecodeError:
         raise AssertionError('The path %r must be encoded in utf-8' % path)
     tilde = '~'
-    if not path.startswith(tilde) or \
-    (len(path) > 1 and path[1:2] != os.path.sep):
+    if (not path.startswith(tilde) or
+            (len(path) > 1 and path[1:2] != os.path.sep)):
         return path
     result = path.replace('~', user_home, 1)
 

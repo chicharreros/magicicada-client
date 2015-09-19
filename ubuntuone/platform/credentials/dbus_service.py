@@ -71,7 +71,7 @@ class CredentialsManagement(dbus.service.Object):
                      member, app_name)
 
         if app_name != APP_NAME:
-            logger.info('Received %r but app_name %r does not match %r, ' \
+            logger.info('Received %r but app_name %r does not match %r, '
                         'exiting.', member, app_name, APP_NAME)
             return
 
@@ -89,9 +89,9 @@ class CredentialsManagement(dbus.service.Object):
         """Get the SSO dbus proxy."""
         bus = dbus.SessionBus()
         # register signal handlers for each kind of error
-        self.sso_match = bus.add_signal_receiver(self._signal_handler,
-                            member_keyword='member',
-                            dbus_interface=ubuntu_sso.DBUS_CREDENTIALS_IFACE)
+        self.sso_match = bus.add_signal_receiver(
+            self._signal_handler, member_keyword='member',
+            dbus_interface=ubuntu_sso.DBUS_CREDENTIALS_IFACE)
         try:
             obj = bus.get_object(ubuntu_sso.DBUS_BUS_NAME,
                                  ubuntu_sso.DBUS_CREDENTIALS_PATH,
@@ -133,7 +133,6 @@ class CredentialsManagement(dbus.service.Object):
             self.shutdown_func()
 
     # Operator not preceded by a space (fails with dbus decorators)
-    # pylint: disable=C0322
 
     @dbus.service.signal(DBUS_CREDENTIALS_IFACE)
     def AuthorizationDenied(self):
@@ -182,8 +181,8 @@ class CredentialsManagement(dbus.service.Object):
     def find_credentials(self, reply_handler=NO_OP, error_handler=NO_OP):
         """Ask the Magicicada credentials."""
         self.ref_count += 1
-        self.sso_proxy.find_credentials(APP_NAME,
-                                        dbus.Dictionary({}, signature='ss'),
+        self.sso_proxy.find_credentials(
+            APP_NAME, dbus.Dictionary({}, signature='ss'),
             reply_handler=reply_handler, error_handler=error_handler)
 
     @dbus.service.method(dbus_interface=DBUS_CREDENTIALS_IFACE,
@@ -218,8 +217,8 @@ class CredentialsManagement(dbus.service.Object):
     def clear_credentials(self, reply_handler=NO_OP, error_handler=NO_OP):
         """Clear the Magicicada credentials."""
         self.ref_count += 1
-        self.sso_proxy.clear_credentials(APP_NAME,
-                                         dbus.Dictionary({}, signature='ss'),
+        self.sso_proxy.clear_credentials(
+            APP_NAME, dbus.Dictionary({}, signature='ss'),
             reply_handler=reply_handler, error_handler=error_handler)
 
     @dbus.service.method(dbus_interface=DBUS_CREDENTIALS_IFACE,
@@ -229,7 +228,8 @@ class CredentialsManagement(dbus.service.Object):
                           reply_handler=NO_OP, error_handler=NO_OP):
         """Store the token for Magicicada application."""
         self.ref_count += 1
-        self.sso_proxy.store_credentials(APP_NAME, credentials,
+        self.sso_proxy.store_credentials(
+            APP_NAME, credentials,
             reply_handler=reply_handler, error_handler=error_handler)
 
     @dbus.service.method(dbus_interface=DBUS_CREDENTIALS_IFACE,
@@ -240,7 +240,8 @@ class CredentialsManagement(dbus.service.Object):
         self.ref_count += 1
         params = dict(UI_PARAMS)
         params.update(args)
-        self.sso_proxy.register(APP_NAME, params,
+        self.sso_proxy.register(
+            APP_NAME, params,
             reply_handler=reply_handler, error_handler=error_handler)
 
     @dbus.service.method(dbus_interface=DBUS_CREDENTIALS_IFACE,
@@ -251,7 +252,8 @@ class CredentialsManagement(dbus.service.Object):
         self.ref_count += 1
         params = dict(UI_PARAMS)
         params.update(args)
-        self.sso_proxy.login(APP_NAME, params,
+        self.sso_proxy.login(
+            APP_NAME, params,
             reply_handler=reply_handler, error_handler=error_handler)
 
     @dbus.service.method(dbus_interface=DBUS_CREDENTIALS_IFACE,
@@ -263,7 +265,8 @@ class CredentialsManagement(dbus.service.Object):
         self.ref_count += 1
         params = dict(UI_PARAMS)
         params.update(args)
-        self.sso_proxy.login_email_password(APP_NAME, params,
+        self.sso_proxy.login_email_password(
+            APP_NAME, params,
             reply_handler=reply_handler, error_handler=error_handler)
 
 

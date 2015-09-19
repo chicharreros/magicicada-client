@@ -135,8 +135,8 @@ class TunnelClient(object):
         """A connectSSL going thru the tunnel."""
         logger.info("Connecting (SSL) to %r:%r via tunnel at %r:%r",
                     host, port, self.tunnel_host, self.tunnel_port)
-        tunnel_factory = TunnelClientFactory(host, port, factory, self.cookie,
-                                      contextFactory)
+        tunnel_factory = TunnelClientFactory(
+            host, port, factory, self.cookie, contextFactory)
         return reactor.connectTCP(self.tunnel_host, self.tunnel_port,
                                   tunnel_factory, *args, **kwargs)
 
@@ -175,7 +175,8 @@ class TunnelProcessProtocol(protocol.ProcessProtocol):
         self.finish_timeout()
         logger.info("Tunnel process exit status %r.", status)
         if not self.client_d.called:
-            logger.debug("Tunnel process exited before TunnelClient created. Falling back to reactor")
+            logger.debug("Tunnel process exited before TunnelClient created. "
+                         "Falling back to reactor")
             self.client_d.callback(reactor)
 
     def outReceived(self, data):

@@ -260,7 +260,7 @@ def upgrade_log_level(cp):
             # override the default in the new setting
             current.value = old.value
             cp.set('logging', 'level', current)
-    #else, we ignore the setting as we have a non-default
+    # else, we ignore the setting as we have a non-default
     # value in logging-level (newer setting wins)
     logger.warning("Found deprecated config option 'log_level'"
                    " in section: MAIN")

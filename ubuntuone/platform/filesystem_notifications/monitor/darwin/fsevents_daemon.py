@@ -137,8 +137,8 @@ def get_syncdaemon_valid_path(path):
 class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
     """Factory that process events and converts them in pyinotify ones."""
 
-    def __init__(self, processor,
-            ignored_events=DARWIN_IGNORED_ACTIONS):
+    def __init__(
+            self, processor, ignored_events=DARWIN_IGNORED_ACTIONS):
         """Create a new instance."""
         # old style class
         fseventsd.FsEventsFactory.__init__(self)
@@ -157,9 +157,9 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
     def path_is_not_interesting(self, path):
         """Return if the factory is interested in the path."""
         is_watched = any(path.startswith(watched_path)
-                             for watched_path in self.watched_paths)
+                         for watched_path in self.watched_paths)
         is_ignored = any(path.startswith(ignored_path)
-                             for ignored_path in self.ignored_paths)
+                         for ignored_path in self.ignored_paths)
         return not is_watched or (is_watched and is_ignored)
 
     def is_create(self, event):
@@ -233,8 +233,9 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
                 # path of the event. A delete means that we moved from a
                 # watched path for a not watched one and we care about the
                 # FIRST path of the event
-                path = event.event_paths[1] if is_create\
-                            else event.event_paths[0]
+                path = (
+                    event.event_paths[1] if is_create else event.event_paths[0]
+                )
                 path = get_syncdaemon_valid_path(path)
                 head, tail = os.path.split(path)
                 event_raw_data = {
@@ -287,7 +288,8 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
         if not path[-1] == os.path.sep:
             path += os.path.sep
 
-        is_ignored_child = any(ignored in path for ignored in self.ignored_paths)
+        is_ignored_child = any(
+            ignored in path for ignored in self.ignored_paths)
         return path in self.ignored_paths or is_ignored_child
 
     def process_event(self, event):
@@ -400,9 +402,11 @@ class FilesystemMonitor(object):
         if not dirpath[-1] == os.path.sep:
             dirpath = dirpath + os.path.sep
 
-        # if we are watching a parent dir we can just ensure that it is not ignored
-        if any(dirpath.startswith(watched_path) for watched_path in
-                self._factory.watched_paths):
+        # if we are watching a parent dir we can just ensure that it is not
+        # ignored
+        parent_watched = any(dirpath.startswith(watched_path)
+                             for watched_path in self._factory.watched_paths)
+        if parent_watched:
             if dirpath in self._factory.ignored_paths:
                 self._factory.ignored_paths.remove(dirpath)
             defer.returnValue(True)

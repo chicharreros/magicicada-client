@@ -225,8 +225,8 @@ class DebugCapture(logging.Handler):
             return sum(slave.handle(record) for slave in self.slaves)
         if record.levelno == logging.DEBUG:
             return logging.Handler.handle(self, record)
-        elif self.on_error and record.levelno >= logging.ERROR and \
-            record.levelno != NOTE:
+        elif (self.on_error and record.levelno >= logging.ERROR and
+                record.levelno != NOTE):
             # if it's >= ERROR keep it, but mark the dirty falg
             self.dirty = True
             return logging.Handler.handle(self, record)
@@ -243,8 +243,8 @@ class DebugCapture(logging.Handler):
         if exc_type is not None:
             self.emit_debug()
             self.on_error = False
-            self.logger.error('unhandled exception', exc_info=(exc_type,
-                exc_value, traceback))
+            self.logger.error('unhandled exception',
+                              exc_info=(exc_type, exc_value, traceback))
         elif self.dirty:
             # emit all debug messages collected after the error
             self.emit_debug()
@@ -292,13 +292,13 @@ def log_call(log_func, with_args=True, with_result=True):
     return middle
 
 
-### configure the thing ###
+# configure the thing #
 LOGBACKUP = 5  # the number of log files to keep around
 
-basic_formatter = logging.Formatter(fmt="%(asctime)s - %(name)s - " \
-                                    "%(levelname)s - %(message)s")
-debug_formatter = logging.Formatter(fmt="%(asctime)s %(name)s %(module)s " \
-                                    "%(lineno)s %(funcName)s %(message)s")
+basic_formatter = logging.Formatter(
+    fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+debug_formatter = logging.Formatter(
+    fmt="%(asctime)s %(name)s %(module)s %(lineno)s %(funcName)s %(message)s")
 
 # a constant to change the default DEBUG level value
 _DEBUG_LOG_LEVEL = logging.DEBUG

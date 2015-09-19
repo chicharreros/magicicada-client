@@ -38,10 +38,8 @@ APPLICATION_NAME = 'Magicicada Client'
 class Notification(AbstractNotification):
     """Notification of the end user."""
 
-    # pylint: disable=W0231
     def __init__(self, application_name=APPLICATION_NAME):
         self.application_name = application_name
-    # pylint: enable=W0231
 
     def send_notification(self, title, message, icon=None, append=False):
         """Send a notification using the underlying library."""

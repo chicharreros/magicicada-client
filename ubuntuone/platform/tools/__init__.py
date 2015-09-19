@@ -99,7 +99,7 @@ class SyncDaemonTool(object):
             self.proxy.wait_connected()
             self.log.debug('wait_connected: Done!')
             d.callback(True)
-        except Exception, e:  # catch all errors, pylint: disable=W0703
+        except Exception as e:
             self.log.debug('Not connected: %s', e)
             d.errback()
 
@@ -202,7 +202,7 @@ class SyncDaemonTool(object):
             try:
                 if success_filter(*args):
                     d.callback(args)
-            except Exception, e:
+            except Exception as e:
                 logger.exception('wait_for_signals: success_handler failed:')
                 d.errback(IPCError(e.__class__.__name__, args, e.message))
 
@@ -211,7 +211,7 @@ class SyncDaemonTool(object):
             try:
                 if error_filter(*args):
                     d.errback(IPCError(signal_error, args))
-            except Exception, e:
+            except Exception as e:
                 logger.exception('wait_for_signals: error_handler failed:')
                 d.errback(IPCError(e.__class__.__name__, args, e.message))
 
@@ -278,8 +278,9 @@ class SyncDaemonTool(object):
     @log_call(logger.debug)
     def accept_share(self, share_id):
         """Accept the share with id: share_id."""
-        d = self.wait_for_signals(signal_ok='ShareAnswerResponse',
-                success_filter=lambda info: info['volume_id'] == share_id)
+        d = self.wait_for_signals(
+            signal_ok='ShareAnswerResponse',
+            success_filter=lambda info: info['volume_id'] == share_id)
         self.proxy.call_method('shares', 'accept_share', share_id)
         result, = yield d
         defer.returnValue(result)
@@ -288,8 +289,9 @@ class SyncDaemonTool(object):
     @log_call(logger.debug)
     def reject_share(self, share_id):
         """Reject the share with id: share_id."""
-        d = self.wait_for_signals(signal_ok='ShareAnswerResponse',
-                success_filter=lambda info: info['volume_id'] == share_id)
+        d = self.wait_for_signals(
+            signal_ok='ShareAnswerResponse',
+            success_filter=lambda info: info['volume_id'] == share_id)
         self.proxy.call_method('shares', 'reject_share', share_id)
         result, = yield d
         defer.returnValue(result)
@@ -298,9 +300,10 @@ class SyncDaemonTool(object):
     @log_call(logger.debug)
     def subscribe_share(self, share_id):
         """Subscribe to a share given its id."""
-        d = self.wait_for_signals('ShareSubscribed', 'ShareSubscribeError',
-                success_filter=lambda info: info['volume_id'] == share_id,
-                error_filter=lambda info, _: info['volume_id'] == share_id)
+        d = self.wait_for_signals(
+            'ShareSubscribed', 'ShareSubscribeError',
+            success_filter=lambda info: info['volume_id'] == share_id,
+            error_filter=lambda info, _: info['volume_id'] == share_id)
         self.proxy.call_method('shares', 'subscribe', share_id)
         result, = yield d
         defer.returnValue(result)
@@ -309,9 +312,10 @@ class SyncDaemonTool(object):
     @log_call(logger.debug)
     def unsubscribe_share(self, share_id):
         """Unsubscribe from a share given its id."""
-        d = self.wait_for_signals('ShareUnSubscribed', 'ShareUnSubscribeError',
-                success_filter=lambda info: info['volume_id'] == share_id,
-                error_filter=lambda info, _: info['volume_id'] == share_id)
+        d = self.wait_for_signals(
+            'ShareUnSubscribed', 'ShareUnSubscribeError',
+            success_filter=lambda info: info['volume_id'] == share_id,
+            error_filter=lambda info, _: info['volume_id'] == share_id)
         self.proxy.call_method('shares', 'unsubscribe', share_id)
         result, = yield d
         defer.returnValue(result)
@@ -333,8 +337,8 @@ class SyncDaemonTool(object):
     @log_call(logger.debug)
     def offer_share(self, path, username, name, access_level):
         """Offer a share at the specified path to user with id: username."""
-        return self.proxy.call_method('shares', 'create_share', path,
-                                             username, name, access_level)
+        return self.proxy.call_method(
+            'shares', 'create_share', path, username, name, access_level)
 
     @defer.inlineCallbacks
     @log_call(logger.debug)
@@ -349,9 +353,10 @@ class SyncDaemonTool(object):
     @log_call(logger.debug)
     def create_folder(self, path):
         """Create a user defined folder in the specified path."""
-        d = self.wait_for_signals('FolderCreated', 'FolderCreateError',
-                success_filter=lambda info: info['path'] == path,
-                error_filter=lambda info, _: info['path'] == path)
+        d = self.wait_for_signals(
+            'FolderCreated', 'FolderCreateError',
+            success_filter=lambda info: info['path'] == path,
+            error_filter=lambda info, _: info['path'] == path)
 
         self.proxy.call_method('folders', 'create', path)
 
@@ -362,9 +367,10 @@ class SyncDaemonTool(object):
     @log_call(logger.info)
     def delete_folder(self, folder_id):
         """Delete a user defined folder given its id."""
-        d = self.wait_for_signals('FolderDeleted', 'FolderDeleteError',
-                success_filter=lambda info: info['volume_id'] == folder_id,
-                error_filter=lambda info, _: info['volume_id'] == folder_id)
+        d = self.wait_for_signals(
+            'FolderDeleted', 'FolderDeleteError',
+            success_filter=lambda info: info['volume_id'] == folder_id,
+            error_filter=lambda info, _: info['volume_id'] == folder_id)
 
         self.proxy.call_method('folders', 'delete', folder_id)
 
@@ -375,9 +381,10 @@ class SyncDaemonTool(object):
     @log_call(logger.debug)
     def subscribe_folder(self, folder_id):
         """Subscribe to a user defined folder given its id."""
-        d = self.wait_for_signals('FolderSubscribed', 'FolderSubscribeError',
-                success_filter=lambda info: info['volume_id'] == folder_id,
-                error_filter=lambda info, _: info['volume_id'] == folder_id)
+        d = self.wait_for_signals(
+            'FolderSubscribed', 'FolderSubscribeError',
+            success_filter=lambda info: info['volume_id'] == folder_id,
+            error_filter=lambda info, _: info['volume_id'] == folder_id)
 
         self.proxy.call_method('folders', 'subscribe', folder_id)
 
@@ -389,9 +396,9 @@ class SyncDaemonTool(object):
     def unsubscribe_folder(self, folder_id):
         """Unsubscribe from a user defined folder given its id."""
         d = self.wait_for_signals(
-                'FolderUnSubscribed', 'FolderUnSubscribeError',
-                success_filter=lambda info: info['volume_id'] == folder_id,
-                error_filter=lambda info, _: info['volume_id'] == folder_id)
+            'FolderUnSubscribed', 'FolderUnSubscribeError',
+            success_filter=lambda info: info['volume_id'] == folder_id,
+            error_filter=lambda info, _: info['volume_id'] == folder_id)
 
         self.proxy.call_method('folders', 'unsubscribe', folder_id)
 
@@ -524,8 +531,8 @@ class SyncDaemonTool(object):
     @log_call(logger.debug)
     def set_throttling_limits(self, read_limit, write_limit):
         """Set the read and write limits."""
-        return self.proxy.call_method('config', 'set_throttling_limits',
-                                             read_limit, write_limit)
+        return self.proxy.call_method(
+            'config', 'set_throttling_limits', read_limit, write_limit)
 
     def is_setting_enabled(self, setting_name):
         """Return whether 'setting_name' is enabled."""
@@ -665,8 +672,8 @@ def show_shared(shares, out):
     else:
         out.write("Shared list:\n")
     for share in shares:
-        msg_template = '  id=%s name=%s accepted=%s ' + \
-                'access_level=%s to=%s path=%s\n'
+        msg_template = (
+            '  id=%s name=%s accepted=%s access_level=%s to=%s path=%s\n')
         out.write(msg_template % (share['volume_id'], share['name'],
                                   bool(share['accepted']),
                                   share['access_level'],
@@ -730,8 +737,8 @@ def show_uploads(uploads, out):
         out.write("Current uploads: 0\n")
     for upload in uploads:
         out.write("  path: %s\n" % upload['path'])
-        out.write("    deflated size: %s\n" % \
-                  upload.get('deflated_size', 'N/A'))
+        out.write(
+            "    deflated size: %s\n" % upload.get('deflated_size', 'N/A'))
         out.write("    bytes written: %s\n" % upload['n_bytes_written'])
 
 
@@ -743,8 +750,8 @@ def show_downloads(downloads, out):
         out.write("Current downloads: 0\n")
     for download in downloads:
         out.write("  path: %s\n" % download['path'])
-        out.write("    deflated size: %s\n" % \
-                  download.get('deflated_size', 'N/A'))
+        out.write(
+            "    deflated size: %s\n" % download.get('deflated_size', 'N/A'))
         out.write("    bytes read: %s\n" % download['n_bytes_read'])
 
 
@@ -802,8 +809,9 @@ def show_waiting_metadata(waiting_ops, out):
 def show_waiting_content(waiting_ops, out):
     """Print the waiting_content result."""
     out.write("Warning: this option is deprecated! Use '--waiting' instead\n")
-    value_tpl = "operation='%(operation)s' node_id='%(node)s' " + \
-            "share_id='%(share)s' path='%(path)s'"
+    value_tpl = (
+        "operation='%(operation)s' node_id='%(node)s' share_id='%(share)s' "
+        "path='%(path)s'")
     for value in waiting_ops:
         str_value = value_tpl % value
         out.write("%s\n" % str_value)
@@ -822,8 +830,9 @@ def show_dirty_nodes(nodes, out):
     if not nodes:
         out.write(" No dirty nodes.\n")
         return
-    node_line_tpl = "mdid: %(mdid)s volume_id: %(share_id)s " + \
-            "node_id: %(node_id)s is_dir: %(is_dir)s path: %(path)s\n"
+    node_line_tpl = (
+        "mdid: %(mdid)s volume_id: %(share_id)s node_id: %(node_id)s "
+        "is_dir: %(is_dir)s path: %(path)s\n")
     out.write(" Dirty nodes:\n")
     for node in nodes:
         assert isinstance(node['path'], unicode)

@@ -198,7 +198,7 @@ class _MDObject(object):
 
 class ShareNodeDict(dict):
     """Cache for node_id and share."""
-    # pylint: disable-msg=W0612
+
     def __getitem__(self, key):
         share_id, node_id = key
         if node_id is None:
@@ -337,8 +337,8 @@ class FileSystemManager(object):
             # ensure that we can write in the partials_dir
             set_dir_readwrite(self.partials_dir)
         self.fs = TritcaskShelf(FSM_ROW_TYPE, db)
-        self.old_fs = file_shelf.CachedFileShelf(fsmdir, cache_size=1500,
-                                             cache_compact_threshold=4)
+        self.old_fs = file_shelf.CachedFileShelf(
+            fsmdir, cache_size=1500, cache_compact_threshold=4)
         self.trash = TrashTritcaskShelf(TRASH_ROW_TYPE, db)
         self.move_limbo = TrashTritcaskShelf(MOVE_LIMBO_ROW_TYPE, db)
         self.shares = {}
@@ -415,8 +415,8 @@ class FileSystemManager(object):
            base_path.endswith('Magicicada/Shared With Me'):
             realpath = os.path.realpath(mdobj['path'])
             mdobj['path'] = realpath
-        if base_path.startswith('/') and \
-            base_path.endswith('Magicicada') and name == 'My Files':
+        if (base_path.startswith('/') and base_path.endswith('Magicicada')
+                and name == 'My Files'):
             mdobj['path'] = base_path
 
     def _migrate_trash_to_tritcask(self):
@@ -766,7 +766,7 @@ class FileSystemManager(object):
         for _, v in self.fs.items():
             if v['node_id']:
                 all_data.append(
-                        (v['share_id'], v['node_id'], v['server_hash']))
+                    (v['share_id'], v['node_id'], v['server_hash']))
         return all_data
 
     def get_for_server_rescan_by_path(self, base_path):
@@ -842,7 +842,6 @@ class FileSystemManager(object):
         from_context = self._enable_share_write(mdobj['share_id'], path_from)
         to_context = self._enable_share_write(new_share_id, path_to)
 
-        # pylint: disable-msg=W0704
         if mdobj["is_dir"]:
             expected_event = "FS_DIR_MOVE"
         else:
@@ -866,7 +865,7 @@ class FileSystemManager(object):
         path_to = normpath(path_to)
         mdid = self._idx_path.pop(path_from)
         log_debug("move_file: mdid=%r path_from=%r path_to=%r",
-                                                    mdid, path_from, path_to)
+                  mdid, path_from, path_to)
 
         # if the move overwrites other file, send it to trash
         if path_to in self._idx_path:
@@ -887,7 +886,6 @@ class FileSystemManager(object):
         mdobj["info"]["last_moved_from"] = path_from
         mdobj["info"]["last_moved_time"] = time.time()
         # we try to stat, if we fail, so what?
-        #pylint: disable-msg=W0704
         try:
             mdobj["stat"] = stat_path(path_to)  # needed if not the same FS
         except OSError:
@@ -968,8 +966,8 @@ class FileSystemManager(object):
                     # not empty, need to check if we can delete it
                     subtree = self._delete_dir_tree(path=path)
                     for p, is_dir in subtree:
-                        filter_name = "FS_DIR_DELETE" if is_dir \
-                                                      else "FS_FILE_DELETE"
+                        filter_name = (
+                            "FS_DIR_DELETE" if is_dir else "FS_FILE_DELETE")
                         self.eq.add_to_mute_filter(filter_name, path=p)
                         self.delete_metadata(p)
 
@@ -1031,7 +1029,7 @@ class FileSystemManager(object):
                     raise
 
         for p, is_dir in self.get_paths_starting_with(
-        path, include_base=False):
+                path, include_base=False):
             if is_dir:
                 # remove inotify watch
                 try:
@@ -1180,7 +1178,6 @@ class FileSystemManager(object):
         log_debug("remove_partial: path=%r mdid=%r share_id=%r node_id=%r",
                   path, mdid, share_id, node_id)
         partial_path = self._get_partial_path(mdobj)
-        #pylint: disable-msg=W0704
         try:
             # don't alert EQ, partials are in other directory, not watched
             remove_file(partial_path)
@@ -1289,8 +1286,8 @@ class FileSystemManager(object):
             for p, m in self._idx_path.iteritems():
                 if os.path.dirname(p) == path and p != path:
                     mdobj = self.fs[m]
-                    yield (os.path.basename(p), mdobj["is_dir"],
-                                                            mdobj["node_id"])
+                    yield (
+                        os.path.basename(p), mdobj["is_dir"], mdobj["node_id"])
 
         return sorted(_get_all())
 
@@ -1309,7 +1306,6 @@ class FileSystemManager(object):
         if path == share.path:
             # the relaitve path is the fullpath
             return share.path
-        # pylint: disable-msg=W0612
         head, sep, tail = path.rpartition(share.path)
         if sep == '':
             raise ValueError("'%s' isn't a child of '%s'" % (path, share.path))
@@ -1375,10 +1371,9 @@ class FileSystemManager(object):
                 mdobj = self.fs[m]
                 # ignore shares that are not root (root is id='')
                 # and ignore files not present on the server
-                if ((ignore_shares and
-                    mdobj["share_id"] != '' and
-                    mdobj["share_id"] in self.vm.shares)
-                    or not mdobj["server_hash"]):
+                if ((ignore_shares and mdobj["share_id"] != '' and
+                        mdobj["share_id"] in self.vm.shares) or
+                        not mdobj["server_hash"]):
                     continue
                 if pattern.search(p):
                     yield p

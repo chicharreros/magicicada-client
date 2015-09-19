@@ -76,8 +76,7 @@ from comtypes import shelllink
 from comtypes.client import CreateObject
 from comtypes.persist import IPersistFile
 
-# ugly trick to stop pylint for complaining about
-# WindowsError on Linux
+# ugly trick to stop pylint for complaining about WindowsError on Linux
 if sys.platform != 'win32':
     WindowsError = None
 
@@ -161,7 +160,7 @@ def assert_windows_path(path, method_name=None):
         'unicode_path': 'Path %r should be unicode.',
         'long_path': 'Path %r should start with the LONG_PATH_PREFIX.',
         'illegal_path': '%r should not contain any character from' +
-                         ' WINDOWS_ILLEGAL_CHARS_MAP.',
+                        ' WINDOWS_ILLEGAL_CHARS_MAP.',
     }
     messages = _add_method_info(messages, method_name)
 
@@ -171,8 +170,8 @@ def assert_windows_path(path, method_name=None):
 
     path = path.replace(LONG_PATH_PREFIX, u'')
     drive, path = os.path.splitdrive(path)
-    assert not any(c in WINDOWS_ILLEGAL_CHARS_MAP for c in path), \
-                   messages['illegal_path'] % path
+    assert not any(c in WINDOWS_ILLEGAL_CHARS_MAP for c in path), (
+        messages['illegal_path'] % path)
 
 
 def assert_syncdaemon_path(path, method_name=None):
@@ -465,9 +464,9 @@ def _set_file_attributes(path, groups):
     for group_sid, attributes in groups:
         # set the attributes of the group only if not null
         if attributes:
-            dacl.AddAccessAllowedAceEx(ACL_REVISION,
-                CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE, attributes,
-                group_sid)
+            dacl.AddAccessAllowedAceEx(
+                ACL_REVISION, CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE,
+                attributes, group_sid)
     # the dacl has all the info of the diff groups passed in the parameters
     security_descriptor.SetSecurityDescriptorDacl(1, dacl, 0)
     SetFileSecurity(path, DACL_SECURITY_INFORMATION, security_descriptor)
@@ -625,9 +624,8 @@ def native_rename(path_from, path_to):
     # function from win32 which will allow to replace the destination path if
     # exists and the user has the proper rights. For further information, see:
     # http://msdn.microsoft.com/en-us/library/aa365240(v=vs.85).aspx
-    flag = MOVEFILE_COPY_ALLOWED | \
-           MOVEFILE_WRITE_THROUGH | \
-           MOVEFILE_REPLACE_EXISTING
+    flag = (MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH |
+            MOVEFILE_REPLACE_EXISTING)
     try:
         MoveFileExW(path_from, path_to, flag)
     except PyWinError, e:
@@ -757,8 +755,10 @@ def listdir(directory):
     # return those paths that are system paths. Those paths are the ones that
     # we do not want to work with.
 
-    return map(_unicode_to_bytes, [p for p in os.listdir(directory) if not
-        native_is_system_path(os.path.join(directory, p))])
+    return map(
+        _unicode_to_bytes,
+        [p for p in os.listdir(directory)
+         if not native_is_system_path(os.path.join(directory, p))])
 
 
 @windowspath()
@@ -780,10 +780,14 @@ def walk(path, topdown=True):
         dirpath = _unicode_to_bytes(dirpath.replace(LONG_PATH_PREFIX, u''))
         if native_is_system_path(dirpath):
             continue
-        dirnames = map(_unicode_to_bytes, [p for p in dirnames if
-             not native_is_system_path(os.path.join(dirpath, p))])
-        filenames = map(_unicode_to_bytes, [p for p in filenames if not
-                native_is_system_path(os.path.join(dirpath, p))])
+        dirnames = map(
+            _unicode_to_bytes,
+            [p for p in dirnames
+             if not native_is_system_path(os.path.join(dirpath, p))])
+        filenames = map(
+            _unicode_to_bytes,
+            [p for p in filenames
+             if not native_is_system_path(os.path.join(dirpath, p))])
         yield dirpath, dirnames, filenames
 
 
@@ -807,8 +811,9 @@ def access(path):
         ace = dacl.GetAce(index)
         if _has_read_mask(ace[1]):
             sids.append(ace[2])
-    return (USER_SID in sids or EVERYONE_SID in sids) and\
-            os.access(path, os.R_OK)
+    return (
+        (USER_SID in sids or EVERYONE_SID in sids) and os.access(path, os.R_OK)
+    )
 
 
 @windowspath()
@@ -831,8 +836,9 @@ def can_write(path):
         ace = dacl.GetAce(index)
         if _has_read_mask(ace[1]):
             sids.append(ace[2])
-    return (USER_SID in sids or EVERYONE_SID in sids) and\
-            os.access(path, os.R_OK)
+    return (
+        (USER_SID in sids or EVERYONE_SID in sids) and os.access(path, os.R_OK)
+    )
 
 
 @windowspath()
@@ -863,8 +869,8 @@ def move_to_trash(path):
     # the shell code does not know how to deal with long paths, lets
     # try to move it to the trash if it is short enough, else we remove it
     no_prefix_path = path.replace(LONG_PATH_PREFIX, u'')
-    flags = shellcon.FOF_ALLOWUNDO | shellcon.FOF_NOCONFIRMATION | \
-            shellcon.FOF_NOERRORUI | shellcon.FOF_SILENT
+    flags = (shellcon.FOF_ALLOWUNDO | shellcon.FOF_NOCONFIRMATION |
+             shellcon.FOF_NOERRORUI | shellcon.FOF_SILENT)
     result = shell.SHFileOperation((0, shellcon.FO_DELETE,
                                     no_prefix_path, None, flags))
 

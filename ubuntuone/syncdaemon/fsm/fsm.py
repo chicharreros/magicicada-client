@@ -83,7 +83,6 @@ def build_combinations_from_varlist(varlist):
     """
     items = varlist.items()
     keys = [x[0] for x in items]
-    # pylint: disable-msg=W0631
     values = [x[1] for x in items]
 
     possible_states = [dict(zip(keys, state))
@@ -150,7 +149,6 @@ class StateMachineRunner(object):
         elif af == "pass":
             self.log.debug("passing")
         else:
-            # pylint: disable-msg=W0703
             self.log.info("Calling %s (got %s:%s)",
                           action_func_name, event_name, parameters)
             try:
@@ -165,19 +163,18 @@ class StateMachineRunner(object):
         try:
             out_state = self.get_state()
         except KeyError:
-            self.log.error("from state %s on %s:%s, "
-                "cant find current out state: %s" % (
-                    enter_state.values, event_name, parameters,
-                    self.get_state_values()))
+            self.log.error(
+                "from state %s on %s:%s, cant find current out state: %s",
+                enter_state.values, event_name, parameters,
+                self.get_state_values())
             self.on_error(event_name, parameters)
             raise KeyError("unknown out state")
 
         if out_state.values != transition.target:
             self.log.error(
-                "in state %s with event %s:%s, out state is:"
-                "%s and should be %s" % (
-                enter_state.values, event_name, parameters,
-                out_state.values, transition.target))
+                "in state %s with event %s:%s, out state is: %s and should "
+                "be %s", enter_state.values, event_name, parameters,
+                out_state.values, transition.target)
             raise ValueError("Incorrect out state")
         self.log.debug("Called %s", action_func_name)
         return action_func_name
@@ -218,8 +215,6 @@ class StateMachine(object):
                 spec = fsm_parser.parse(input_data)
             elif input_data.endswith(".py"):
                 result = {}
-                # pylint doesnt like exec
-                # pylint: disable-msg=W0122
                 exec open(input_data) in result
                 spec = result["state_machine"]
             else:
@@ -250,9 +245,10 @@ class StateMachine(object):
                 try:
                     value = state[kind][name]
                 except KeyError:
-                    self.errors.append(ValidationError(
-                        "variable name '%s' not found in section %s" % (
-                           name, kind)))
+                    err = ValidationError(
+                        "variable name '%s' not found in section %s" %
+                        (name, kind))
+                    self.errors.append(err)
                 else:
                     if str(value).strip() == "=" and kind != "STATE_OUT":
                         self.errors.append(ValidationError(
@@ -298,7 +294,7 @@ class StateMachine(object):
 
         # build transitions
         for event_name, lines in self.spec["events"].items():
-            if self.event_filter and not event_name in self.event_filter:
+            if self.event_filter and event_name not in self.event_filter:
                 continue
             event = Event(event_name, lines, self)
             self.events[event_name] = event
@@ -309,18 +305,17 @@ class StateMachine(object):
                     state = self.states[hash_dict(transition.source)]
                 except KeyError:
                     continue
-                    # pylint: disable-msg=W0101
                     # we dont error, so * that cover invalid states still work
                     # XXX: lucio.torre:
                     # we should check that if the transition
                     # is not expanded or all the states it covers are
                     # invalid, because this is an error
                     self.errors.append(
-                        ValidationError("Transitiont on %s with %s from '%s'"
-                                          "cant find source state." % (
-                                            transition.event,
-                                            transition.parameters,
-                                            transition.source)))
+                        ValidationError(
+                            "Transitiont on %s with %s from '%s'cant find "
+                            "source state." % (transition.event,
+                                               transition.parameters,
+                                               transition.source)))
                     continue
                 s = {}
                 s.update(transition.source)
@@ -328,18 +323,18 @@ class StateMachine(object):
                 try:
                     tracker.remove(s)
                 except ValueError:
-                    self.errors.append(ValidationError(
-                        "For event %s, the following transition was "
-                                          "already covered: %s" % (
-                                            event, transition)))
+                    self.errors.append(
+                        ValidationError(
+                            "For event %s, the following transition was "
+                            "already covered: %s" % (event, transition)))
                 else:
                     state.add_transition(transition)
             if tracker.empty():
                 for s in tracker.pending:
-                    self.errors.append(ValidationError(
-                        "The following state x parameters where "
-                                      "not covered for '%s': %s" % (
-                                        event, s)))
+                    self.errors.append(
+                        ValidationError(
+                            "The following state x parameters where not "
+                            "covered for '%s': %s" % (event, s)))
 
     def get_state(self, vars_dict):
         """Get a state instance from a dict with {varname:value}"""
@@ -394,7 +389,7 @@ class Event(object):
                     if k in invalid:
                         invalid.remove(k)
 
-        #remove invalids from lines
+        # remove invalids from lines
         for line in lines:
             for inv in invalid:
                 if inv in line["PARAMETERS"]:
@@ -418,7 +413,7 @@ class Event(object):
                         if sxp[k] != v:
                             break
                     else:
-                        if not sxp in toremove:
+                        if sxp not in toremove:
                             toremove.append(sxp)
 
         map(self.state_x_params.remove, toremove)
@@ -506,7 +501,7 @@ class Transition(object):
     def __str__(self):
         """___str___"""
         return "<Transition: %s: %s x %s>" % (
-                self.event, self.source, self.parameters)
+            self.event, self.source, self.parameters)
 
 
 class State(object):

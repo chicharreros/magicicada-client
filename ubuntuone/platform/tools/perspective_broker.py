@@ -119,8 +119,8 @@ class SyncDaemonToolProxy(object):
             return attr
 
     def __init__(self, bus=None):
-        self.log = logging.getLogger('ubuntuone.platform.tools.' +
-            'perspective_broker')
+        self.log = logging.getLogger(
+            'ubuntuone.platform.tools.perspective_broker')
         self.client = UbuntuOneClient()
         self.connected = None
         self.connected_signals = defaultdict(set)
@@ -167,8 +167,8 @@ class SyncDaemonToolProxy(object):
             # may happen in the case we reconnected and the server side objects
             # for gc
             yield self._reconnect_client()
-            result = yield self.call_method(client_kind, method_name,
-                    *args, **kwargs)
+            result = yield self.call_method(
+                client_kind, method_name, *args, **kwargs)
         except RemoteError as e:
             # Wrap RemoteErrors in IPCError to match DBus interface's
             # behavior:
@@ -191,9 +191,8 @@ class SyncDaemonToolProxy(object):
         client_kind, callback = self._SIGNAL_MAPPING[signal_name]
         client = getattr(self.client, client_kind)
         if len(self.connected_signals[signal_name]) == 0:
-            setattr(client, callback,
-                lambda *args, **kwargs:
-                    self._handler(signal_name, *args, **kwargs))
+            f = lambda *args, **kw: self._handler(signal_name, *args, **kw)
+            setattr(client, callback, f)
         # do remember the connected signal in case we need to reconnect
         self.connected_signals[signal_name].add(handler)
         return handler

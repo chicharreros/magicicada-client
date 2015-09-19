@@ -78,7 +78,6 @@ import pprint
 if "HAS_OOFFICE" in os.environ:
     # we have to do this because python-uno breaks mocker
     import uno
-    # pylint: disable-msg=F0401
     from com.sun.star.connection import NoConnectException
     from com.sun.star.lang import IndexOutOfBoundsException
     from com.sun.star.container import NoSuchElementException
@@ -100,7 +99,7 @@ if "HAS_OOFFICE" in os.environ:
             """Create a reader"""
             local = uno.getComponentContext()
             resolver = local.ServiceManager.createInstanceWithContext(
-                                "com.sun.star.bridge.UnoUrlResolver", local)
+                "com.sun.star.bridge.UnoUrlResolver", local)
 
             try:
                 context = resolver.resolve(
@@ -110,11 +109,11 @@ if "HAS_OOFFICE" in os.environ:
                 raise Exception(CONNECT_MSG)
 
             desktop = context.ServiceManager.createInstanceWithContext(
-                                        "com.sun.star.frame.Desktop", context)
+                "com.sun.star.frame.Desktop", context)
 
             cwd = systemPathToFileUrl(os.getcwd())
-            file_url = absolutize(cwd, systemPathToFileUrl(
-                    os.path.join(os.getcwd(), filename)))
+            file_url = absolutize(
+                cwd, systemPathToFileUrl(os.path.join(os.getcwd(), filename)))
             in_props = PropertyValue("Hidden", 0, True, 0),
             document = desktop.loadComponentFromURL(
                 file_url, "_blank", 0, in_props)
@@ -184,7 +183,7 @@ if "HAS_OOFFICE" in os.environ:
             while True:
                 cells = [
                     self.invalid.getCellByPosition(x, iter_line).getFormula()
-                                            for x in xrange(line_length)]
+                    for x in xrange(line_length)]
                 if not any(cells):
                     break
 
@@ -283,12 +282,12 @@ if "HAS_OOFFICE" in os.environ:
                 afunc = row[action_func_idx]
                 p += 1
                 states.append(dict(STATE=st, STATE_OUT=st_out, PARAMETERS=vars,
-                                ACTION=act, COMMENTS=comm, ACTION_FUNC=afunc))
+                              ACTION=act, COMMENTS=comm, ACTION_FUNC=afunc))
             events[event_name] = states
 
         # build invalid state list
         invalid = ods.get_invalid()
-        invalid = [dict(zip(invalid[0], row)) for row in invalid[1:]]
+        invalid = [dict(zip(invalid[0], r)) for r in invalid[1:]]
 
         return dict(events=events, state_vars=state_vars,
                     parameters=parameters, invalid=invalid)
@@ -311,9 +310,7 @@ if "HAS_OOFFICE" in os.environ:
         if options.output:
             f = open(options.output, "w")
             data = pprint.pformat(result)
-            f.write("\"\"\"This is a generated python file\"\"\"\n"
-                    "# make pylint accept this\n"
-                    "# pylint: disable-msg=C0301\n"
+            f.write("\"\"\"This is a generated python file.\"\"\"\n"
                     "state_machine = %s""" % data)
             f.close()
         else:

@@ -143,7 +143,7 @@ class ConnectionManager(object):
             self.log.debug("Setting up the 'waiting' timer on %d secs",
                            self.waiting_timeout)
             self._waiting_timer = reactor.callLater(self.waiting_timeout,
-                                                   self._waiting_timeout)
+                                                    self._waiting_timeout)
 
         elif new_node in self._handshake_nodes:
             self.log.debug("Setting up the 'handshake' timer on %d secs",
@@ -215,8 +215,8 @@ class Node(object):
 
     def __repr__(self):
         return "<Node %s (%s) error=%s connected=%s online=%s" % (
-                self.name, self.description, self.is_error,
-                self.is_connected, self.is_online)
+            self.name, self.description, self.is_error, self.is_connected,
+            self.is_online)
 
 
 class StateInfo(Node):
@@ -227,9 +227,11 @@ class StateInfo(Node):
         self.connection_state = conn.state
 
     def __repr__(self):
-        return "%s (error=%s connected=%s online=%s)  Queue: %s  "\
-               "Connection: %s" % (self.name, self.is_error, self.is_connected,
-               self.is_online, self.queue_state, self.connection_state)
+        return (
+            "%s (error=%s connected=%s online=%s)  Queue: %s  Connection: "
+            "%s" % (self.name, self.is_error, self.is_connected,
+                    self.is_online, self.queue_state, self.connection_state))
+
     __str__ = __repr__
 
 
@@ -362,23 +364,19 @@ class StateManager(object):
             (self.READY, 'SYS_CONNECTION_MADE'): _from_ready,
             (self.READY, 'SYS_CONNECTION_FAILED'): self.WAITING,
             (self.WAITING, 'SYS_CONNECTION_RETRY'): self.READY,
-
-            (self.CHECK_VERSION, 'SYS_PROTOCOL_VERSION_OK'):
-                                                    self.SET_CAPABILITIES,
-            (self.CHECK_VERSION, 'SYS_PROTOCOL_VERSION_ERROR'):
-                                                    self.BAD_VERSION,
+            (self.CHECK_VERSION,
+             'SYS_PROTOCOL_VERSION_OK'): self.SET_CAPABILITIES,
+            (self.CHECK_VERSION,
+             'SYS_PROTOCOL_VERSION_ERROR'): self.BAD_VERSION,
             (self.CHECK_VERSION, 'SYS_SERVER_ERROR'): self.STANDOFF,
-
-            (self.SET_CAPABILITIES, 'SYS_SET_CAPABILITIES_OK'):
-                                                    self.AUTHENTICATE,
-            (self.SET_CAPABILITIES, 'SYS_SET_CAPABILITIES_ERROR'):
-                                                    self.CAPABILITIES_MISMATCH,
+            (self.SET_CAPABILITIES,
+             'SYS_SET_CAPABILITIES_OK'): self.AUTHENTICATE,
+            (self.SET_CAPABILITIES,
+             'SYS_SET_CAPABILITIES_ERROR'): self.CAPABILITIES_MISMATCH,
             (self.SET_CAPABILITIES, 'SYS_SERVER_ERROR'): self.STANDOFF,
-
             (self.AUTHENTICATE, 'SYS_AUTH_OK'): self.SERVER_RESCAN,
             (self.AUTHENTICATE, 'SYS_AUTH_ERROR'): self.AUTH_FAILED,
             (self.AUTHENTICATE, 'SYS_SERVER_ERROR'): self.STANDOFF,
-
             (self.SERVER_RESCAN, 'SYS_SERVER_RESCAN_DONE'): self.QUEUE_MANAGER,
             (self.SERVER_RESCAN, 'SYS_SERVER_ERROR'): self.STANDOFF,
         }
@@ -497,8 +495,8 @@ class StateManager(object):
         self.eq.push('SYS_STATE_CHANGED', state=info)
 
     def __str__(self):
-        return "<State: %r  (queues %s  connection %r)>" % (self.state.name,
-                                self.queues.state.name, self.connection.state)
+        return "<State: %r  (queues %s  connection %r)>" % (
+            self.state.name, self.queues.state.name, self.connection.state)
 
     def shutdown(self):
         """Finish all pending work."""

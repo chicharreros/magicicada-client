@@ -26,6 +26,7 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
+
 """Common code for the credentials management."""
 
 import gettext
@@ -179,12 +180,13 @@ class CredentialsManagementTool(object):
         sig = proxy.connect_to_signal('CredentialsFound', d.callback)
         self._cleanup_signals.append(sig)
 
-        sig = proxy.connect_to_signal('CredentialsNotFound',
-                    partial(self.callback, result={}, deferred=d))
+        sig = proxy.connect_to_signal(
+            'CredentialsNotFound',
+            partial(self.callback, result={}, deferred=d))
         self._cleanup_signals.append(sig)
 
-        sig = proxy.connect_to_signal('CredentialsError',
-                    partial(self.errback, deferred=d))
+        sig = proxy.connect_to_signal(
+            'CredentialsError', partial(self.errback, deferred=d))
         self._cleanup_signals.append(sig)
 
         done = defer.Deferred()
@@ -212,12 +214,13 @@ class CredentialsManagementTool(object):
 
         proxy = yield self.get_creds_proxy()
 
-        sig = proxy.connect_to_signal('CredentialsCleared',
-                    partial(self.callback, result=None, deferred=d))
+        sig = proxy.connect_to_signal(
+            'CredentialsCleared',
+            partial(self.callback, result=None, deferred=d))
         self._cleanup_signals.append(sig)
 
-        sig = proxy.connect_to_signal('CredentialsError',
-                    partial(self.errback, deferred=d))
+        sig = proxy.connect_to_signal(
+            'CredentialsError', partial(self.errback, deferred=d))
         self._cleanup_signals.append(sig)
 
         done = defer.Deferred()
@@ -248,16 +251,18 @@ class CredentialsManagementTool(object):
 
         proxy = yield self.get_creds_proxy()
 
-        sig = proxy.connect_to_signal('CredentialsStored',
-                    partial(self.callback, result=None, deferred=d))
+        sig = proxy.connect_to_signal(
+            'CredentialsStored',
+            partial(self.callback, result=None, deferred=d))
         self._cleanup_signals.append(sig)
 
-        sig = proxy.connect_to_signal('CredentialsError',
-                    partial(self.errback, deferred=d))
+        sig = proxy.connect_to_signal(
+            'CredentialsError', partial(self.errback, deferred=d))
         self._cleanup_signals.append(sig)
 
         done = defer.Deferred()
-        proxy.store_credentials(token,
+        proxy.store_credentials(
+            token,
             reply_handler=partial(self.callback, result=None, deferred=done),
             error_handler=partial(self.errback, deferred=done))
 
@@ -295,16 +300,18 @@ class CredentialsManagementTool(object):
         sig = proxy.connect_to_signal('CredentialsFound', d.callback)
         self._cleanup_signals.append(sig)
 
-        sig = proxy.connect_to_signal('AuthorizationDenied',
-                    partial(self.callback, result=None, deferred=d))
+        sig = proxy.connect_to_signal(
+            'AuthorizationDenied',
+            partial(self.callback, result=None, deferred=d))
         self._cleanup_signals.append(sig)
 
-        sig = proxy.connect_to_signal('CredentialsError',
-                    partial(self.errback, deferred=d))
+        sig = proxy.connect_to_signal(
+            'CredentialsError', partial(self.errback, deferred=d))
         self._cleanup_signals.append(sig)
 
         done = defer.Deferred()
-        proxy.register({'window_id': str(window_id)},
+        proxy.register(
+            {'window_id': str(window_id)},
             reply_handler=partial(self.callback, result=None, deferred=done),
             error_handler=partial(self.errback, deferred=done))
 
@@ -344,16 +351,18 @@ class CredentialsManagementTool(object):
         sig = proxy.connect_to_signal('CredentialsFound', d.callback)
         self._cleanup_signals.append(sig)
 
-        sig = proxy.connect_to_signal('AuthorizationDenied',
-                    partial(self.callback, result=None, deferred=d))
+        sig = proxy.connect_to_signal(
+            'AuthorizationDenied',
+            partial(self.callback, result=None, deferred=d))
         self._cleanup_signals.append(sig)
 
-        sig = proxy.connect_to_signal('CredentialsError',
-                    partial(self.errback, deferred=d))
+        sig = proxy.connect_to_signal(
+            'CredentialsError', partial(self.errback, deferred=d))
         self._cleanup_signals.append(sig)
 
         done = defer.Deferred()
-        proxy.login({'window_id': str(window_id)},
+        proxy.login(
+            {'window_id': str(window_id)},
             reply_handler=partial(self.callback, result=None, deferred=done),
             error_handler=partial(self.errback, deferred=done))
 
@@ -384,12 +393,13 @@ class CredentialsManagementTool(object):
         sig = proxy.connect_to_signal('CredentialsFound', d.callback)
         self._cleanup_signals.append(sig)
 
-        sig = proxy.connect_to_signal('CredentialsError',
-                    partial(self.errback, deferred=d))
+        sig = proxy.connect_to_signal(
+            'CredentialsError', partial(self.errback, deferred=d))
         self._cleanup_signals.append(sig)
 
         done = defer.Deferred()
-        proxy.login_email_password({'email': email, 'password': password},
+        proxy.login_email_password(
+            {'email': email, 'password': password},
             reply_handler=partial(self.callback, result=None, deferred=done),
             error_handler=partial(self.errback, deferred=done))
 

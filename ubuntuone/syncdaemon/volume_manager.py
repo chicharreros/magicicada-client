@@ -314,7 +314,8 @@ class Root(Volume):
     def from_volume(cls, volume):
         """Create a Root instance from a RootVolume."""
         # TODO: include the generation and the volume_id(?)
-        return cls(node_id=str(volume.node_id),
+        return cls(
+            node_id=str(volume.node_id),
             free_bytes=volume.free_bytes, generation=volume.generation)
 
     def __repr__(self):
@@ -720,8 +721,9 @@ class VolumeManager(object):
                 except KeyError:
                     # we don't have the file/md of this shared node_id yet
                     # for the moment ignore this share
-                    self.log.warning("we got a share with 'from_me' direction,"
-                            " but don't have the node_id in the metadata yet")
+                    self.log.warning(
+                        "we got a share with 'from_me' direction, "
+                        "but don't have the node_id in the metadata yet")
                     path = None
                 share = Shared.from_response(a_share, path)
                 shared.append(share.volume_id)
@@ -757,8 +759,9 @@ class VolumeManager(object):
     def _cleanup_shares(self, to_keep):
         """Cleanup not-yet accepted Shares from the shares shelf."""
         self.log.debug('deleting dead shares')
-        for share in ifilter(lambda item: item and item not in to_keep and \
-                             not self.shares[item].accepted, self.shares):
+        shares = (
+            lambda i: i and i not in to_keep and not self.shares[i].accepted)
+        for share in ifilter(shares, self.shares):
             self.log.debug('deleting shares: id=%s', share)
             self.share_deleted(share)
 
@@ -1022,7 +1025,6 @@ class VolumeManager(object):
         # XXX: partially implemented, this should be moved into fsm?.
         # should delete all the files in the share?
         # delete all the metadata but dont touch the files/folders
-        # pylint: disable-msg=W0612
         for a_path, _ in self.m.fs.get_paths_starting_with(path):
             self.m.fs.delete_metadata(a_path)
 
@@ -1061,9 +1063,9 @@ class VolumeManager(object):
             node_id = mdobj.node_id
         abspath = self.m.fs.get_abspath(mdobj.share_id, mdobj.path)
         share = Shared(path=abspath, volume_id=marker,
-                      name=name, access_level=access_level,
-                      other_username=username, other_visible_name=None,
-                      node_id=node_id)
+                       name=name, access_level=access_level,
+                       other_username=username, other_visible_name=None,
+                       node_id=node_id)
         self.marker_share_map[marker] = share
         # XXX: unicode boundary! username, name should be unicode
         self.m.action_q.create_share(node_id, username, name,
@@ -1133,8 +1135,9 @@ class VolumeManager(object):
                 # don't scan the udf as we are not subscribed to it
                 d = defer.succeed(None)
 
-            d.addCallback(lambda _: self.m.event_q.push('VM_UDF_CREATED',
-                                        udf=self.get_volume(udf.volume_id)))
+            d.addCallback(
+                lambda _: self.m.event_q.push(
+                    'VM_UDF_CREATED', udf=self.get_volume(udf.volume_id)))
             return d
 
     def udf_deleted(self, udf_id):
@@ -1187,8 +1190,8 @@ class VolumeManager(object):
 
         """
         new_path = path + os.path.sep
-        volumes = itertools.chain([self.shares[request.ROOT]],
-                                   self.udfs.values())
+        volumes = itertools.chain(
+            [self.shares[request.ROOT]], self.udfs.values())
         for volume in volumes:
             vol_path = volume.path + os.path.sep
             if new_path.startswith(vol_path) or vol_path.startswith(new_path):
@@ -1267,8 +1270,8 @@ class VolumeManager(object):
         Also fire a local and server rescan.
 
         """
-        push_error = functools.partial(self.m.event_q.push,
-            'VM_SHARE_SUBSCRIBE_ERROR', share_id=share_id)
+        push_error = functools.partial(
+            self.m.event_q.push, 'VM_SHARE_SUBSCRIBE_ERROR', share_id=share_id)
         push_success = lambda volume: \
             self.m.event_q.push('VM_SHARE_SUBSCRIBED', share=volume)
         self.log.info('subscribe_share: %r', share_id)
@@ -1362,8 +1365,9 @@ class VolumeManager(object):
     def unsubscribe_share(self, share_id):
         """Mark the share with share_id as unsubscribed."""
         self.log.info('unsubscribe_share: %r', share_id)
-        push_error = functools.partial(self.m.event_q.push,
-            'VM_SHARE_UNSUBSCRIBE_ERROR', share_id=share_id)
+        push_error = functools.partial(
+            self.m.event_q.push, 'VM_SHARE_UNSUBSCRIBE_ERROR',
+            share_id=share_id)
         push_success = lambda volume: \
             self.m.event_q.push('VM_SHARE_UNSUBSCRIBED', share=volume)
         self._unsubscribe_volume(share_id, push_success, push_error)
@@ -1371,8 +1375,8 @@ class VolumeManager(object):
     def unsubscribe_udf(self, udf_id):
         """Mark the UDF with udf_id as unsubscribed."""
         self.log.info('unsubscribe_udf: %r', udf_id)
-        push_error = functools.partial(self.m.event_q.push,
-            'VM_UDF_UNSUBSCRIBE_ERROR', udf_id=udf_id)
+        push_error = functools.partial(
+            self.m.event_q.push, 'VM_UDF_UNSUBSCRIBE_ERROR', udf_id=udf_id)
         push_success = lambda volume: \
             self.m.event_q.push('VM_UDF_UNSUBSCRIBED', udf=volume)
         self._unsubscribe_volume(udf_id, push_success, push_error)
@@ -1484,8 +1488,8 @@ class MetadataUpgrader(object):
         """Upgrade the metadata (only if it's needed)"""
         # upgrade the metadata
         if self.md_version != VolumeManager.METADATA_VERSION:
-            upgrade_method = getattr(self, "_upgrade_metadata_%s" % \
-                                     self.md_version)
+            upgrade_method = getattr(
+                self, "_upgrade_metadata_%s" % self.md_version)
             upgrade_method(self.md_version)
 
     def _get_md_version(self):
@@ -1527,12 +1531,12 @@ class MetadataUpgrader(object):
            and path_exists(self._shared_md_dir):
             # we have shares and shared dirs
             # md_version >= 1
-            old_root_dir = os.path.abspath(os.path.join(self._root_dir,
-                'My Files'))
-            old_share_dir = os.path.abspath(os.path.join(self._root_dir,
-                                                 'Shared With Me'))
-            if path_exists(old_share_dir) and path_exists(old_root_dir) \
-               and not is_link(old_share_dir):
+            old_root_dir = os.path.abspath(
+                os.path.join(self._root_dir, 'My Files'))
+            old_share_dir = os.path.abspath(
+                os.path.join(self._root_dir, 'Shared With Me'))
+            if (path_exists(old_share_dir) and path_exists(old_root_dir) and
+                    not is_link(old_share_dir)):
                 # md >= 1 and <= 3
                 # we have a My Files dir, 'Shared With Me' isn't a
                 # symlink and ~/.local/share/ubuntuone/shares doesn't
@@ -1547,9 +1551,8 @@ class MetadataUpgrader(object):
                     target = read_link(self._shares_dir_link)
                 except OSError:
                     target = None
-                if is_link(self._shares_dir_link) \
-                and normpath(target) == os.path.abspath(
-                self._shares_dir_link):
+                if (normpath(target) == os.path.abspath(self._shares_dir_link)
+                        and is_link(self._shares_dir_link)):
                     # broken symlink, md_version = 4
                     md_version = '4'
                 else:
@@ -1583,18 +1586,16 @@ class MetadataUpgrader(object):
         backup = os.path.join(self._data_dir, '0.bkp')
         if not path_exists(backup):
             make_dir(backup, recursive=True)
-        # pylint: disable-msg=W0612
         # filter 'shares' and 'shared' dirs, in case we are in the case of
         # missing version but existing .version file
         filter_known_dirs = lambda d: d != os.path.basename(
-                self._shares_md_dir) and \
-                d != os.path.basename(self._shared_md_dir)
+            self._shares_md_dir) and d != os.path.basename(self._shared_md_dir)
         for dirname, dirs, files in walk(self._data_dir):
             if dirname == self._data_dir:
                 for dir in filter(filter_known_dirs, dirs):
                     if dir != os.path.basename(backup):
                         recursive_move(os.path.join(dirname, dir),
-                                    os.path.join(backup, dir))
+                                       os.path.join(backup, dir))
         # regenerate the shelf using the new layout using the backup as src
         old_shelf = LegacyShareFileShelf(backup)
         if not path_exists(self._shares_dir):
@@ -1871,8 +1872,9 @@ class VMFileShelf(file_shelf.CachedFileShelf):
     """
 
     TYPE = 'type'
-    classes = dict((sub.__name__, sub) for sub in \
-                   Volume.__subclasses__() + Share.__subclasses__())
+    classes = dict(
+        (sub.__name__, sub)
+        for sub in Volume.__subclasses__() + Share.__subclasses__())
 
     def __init__(self, *args, **kwargs):
         """Create the instance."""
@@ -1955,8 +1957,9 @@ class VMTritcaskShelf(TritcaskShelf):
     """
 
     TYPE = 'type'
-    classes = dict((sub.__name__, sub) for sub in \
-                   Volume.__subclasses__() + Share.__subclasses__())
+    classes = dict(
+        (sub.__name__, sub)
+        for sub in Volume.__subclasses__() + Share.__subclasses__())
 
     def __init__(self, *args, **kwargs):
         """Create the instance."""
