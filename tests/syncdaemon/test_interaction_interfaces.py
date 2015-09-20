@@ -33,10 +33,11 @@ import os
 
 from twisted.internet import defer
 from ubuntuone.devtools.handlers import MementoHandler
-from ubuntu_sso.networkstate.networkstates import ONLINE
-from tests.platform.ipc.test_perspective_broker import (
-    FakeNetworkManagerState
-)
+try:
+    from ubuntu_sso.networkstate.networkstates import ONLINE
+except ImportError:
+    from ubuntu_sso.networkstate import ONLINE
+from tests.platform.ipc.test_perspective_broker import FakeNetworkManagerState
 
 from contrib.testing.testcase import (
     FakeCommand,

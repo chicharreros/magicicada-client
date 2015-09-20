@@ -77,8 +77,10 @@ from ubuntuone.platform.ipc.ipc_client import (
     SharesClient,
 )
 from ubuntuone.syncdaemon import interaction_interfaces
-
-from ubuntu_sso.networkstate.networkstates import ONLINE
+try:
+    from ubuntu_sso.networkstate.networkstates import ONLINE
+except ImportError:
+    from ubuntu_sso.networkstate import ONLINE
 
 TEST_PORT = 40404
 TEST_DOMAIN_SOCKET = os.path.join(basedir.xdg_cache_home, 'ubuntuone', 'ipc')

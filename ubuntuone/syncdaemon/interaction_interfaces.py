@@ -50,9 +50,7 @@ from ubuntu_sso.networkstate import NetworkManagerState
 try:
     from ubuntu_sso.networkstate.networkstates import ONLINE
 except ImportError:
-    class OnlineNetworkState(object):
-        label = 'online'
-    ONLINE = OnlineNetworkState()
+    from ubuntu_sso.networkstate import ONLINE
 
 from ubuntuone.logger import log_call
 from ubuntuone.platform import credentials, ExternalInterface
@@ -1331,7 +1329,7 @@ class SyncdaemonService(SyncdaemonObject):
     @log_call(logger.debug)
     def network_state_changed(self, state):
         """Receive the connection state and call the proper function."""
-        if state.label == ONLINE.label:
+        if state == ONLINE:
             self.network_connected()
         else:
             self.network_disconnected()

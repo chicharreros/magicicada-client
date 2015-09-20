@@ -59,7 +59,10 @@ from twisted.internet import defer, interfaces
 from zope.interface import implements
 
 from ubuntu_sso.keyring import Keyring
-from ubuntu_sso.utils.locale import fix_turkish_locale
+try:
+    from ubuntu_sso.utils.locale import fix_turkish_locale
+except ImportError:
+    fix_turkish_locale = lambda: None
 from ubuntu_sso.utils.webclient import gsettings
 from ubuntuone.proxy.common import (
     BaseTunnelProtocol,
