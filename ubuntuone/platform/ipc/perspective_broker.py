@@ -95,8 +95,11 @@ def ipc_server_listen(server_factory, reactor=None):
 def is_already_running(bus=None):
     """Return if the sd is running by trying to get the port."""
     ai = ActivationInstance(get_activation_config())
+    ai_method = getattr(ai, 'get_server_description', None)
+    if ai_method is None:  # backwards compatible
+        ai_method = getattr(ai, 'get_port')
     try:
-        yield ai.get_server_description()
+        yield ai_method()
         defer.returnValue(False)
     except AlreadyStartedError:
         defer.returnValue(True)
