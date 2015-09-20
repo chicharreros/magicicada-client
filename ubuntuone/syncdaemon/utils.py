@@ -33,7 +33,13 @@ import sys
 
 from twisted.python import procutils
 
-from dirspec.utils import get_program_path
+try:
+    from dirspec.utils import get_program_path
+except ImportError:
+    get_program_path = (
+        lambda exe_name, **kw: os.path.abspath(
+            os.path.join(os.path.curdir, 'bin', exe_name)))
+
 
 SYNCDAEMON_EXECUTABLE = 'ubuntuone-syncdaemon'
 TUNNEL_EXECUTABLE = 'ubuntuone-proxy-tunnel'

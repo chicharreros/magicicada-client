@@ -4,6 +4,7 @@ python-configglue
 python-gi
 python-protobuf
 python-pyinotify
+python-qt4-dbus
 python-qt4reactor
 python-twisted
 python-ubuntu-sso-client
