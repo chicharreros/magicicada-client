@@ -821,19 +821,24 @@ class DUSInterfaceTestCase(IPCInterfaceTestCase):
 class IPCPortTestCase(TestCase):
     """Tests for the ipc port setup."""
 
+    def patch_ipc_activation(self, new_value):
+        method_name = 'get_server_description'
+        if getattr(ipc.ActivationInstance, method_name, None) is None:
+            method_name = 'get_port'
+        self.patch(ipc.ActivationInstance, method_name, new_value)
+
     @defer.inlineCallbacks
     def test_is_already_running_no(self):
         """Test the is_already_running function."""
-        self.patch(ipc.ActivationInstance, "get_server_description",
-                   lambda _: defer.succeed(TEST_PORT))
+        self.patch_ipc_activation(lambda _: defer.succeed(TEST_PORT))
         is_running = yield ipc.is_already_running()
         self.assertFalse(is_running, "Should not be running.")
 
     @defer.inlineCallbacks
     def test_is_already_running_yes(self):
         """Test the is_already_running function."""
-        self.patch(ipc.ActivationInstance, "get_server_description",
-                   lambda _: defer.fail(ipc.AlreadyStartedError()))
+        self.patch_ipc_activation(
+            lambda _: defer.fail(ipc.AlreadyStartedError()))
         is_running = yield ipc.is_already_running()
         self.assertTrue(is_running, "Should be running by now.")
 
