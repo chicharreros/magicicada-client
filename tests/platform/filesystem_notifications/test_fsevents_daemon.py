@@ -34,7 +34,13 @@ from twisted.internet import defer, protocol
 
 from contrib.testing.testcase import BaseTwistedTestCase
 from ubuntuone import fseventsd
-from ubuntuone.devtools.testcases.txsocketserver import TidyUnixServer
+try:
+    from ubuntuone.devtools.testcases import skipIf
+    from ubuntuone.devtools.testcases.txsocketserver import TidyUnixServer
+    TidyUnixServer = None
+except ImportError:
+    from ubuntuone.devtools.testcase import skipIf
+    TidyUnixServer = None
 from ubuntuone.platform.filesystem_notifications.monitor.darwin import (
     fsevents_daemon,
 )
@@ -100,7 +106,7 @@ class FakeTransport(object):
         self.called = []
 
     def loseConnection(self):
-        """"Lost the connection."""
+        """Lost the connection."""
         self.called.append('loseConnection')
 
 
@@ -460,6 +466,8 @@ class FilesystemMonitorTestCase(BaseTwistedTestCase):
         yield self.monitor.add_watch(dirpath)
         self.assertNotIn('add_path', self.protocol.called)
 
+    @skipIf(TidyUnixServer is None,
+            'Testcases from txsocketserver not availble.')
     @defer.inlineCallbacks
     def test_is_available_monitor_running(self):
         """Test the method when it is indeed running."""

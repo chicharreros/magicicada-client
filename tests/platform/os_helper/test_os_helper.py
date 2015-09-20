@@ -40,7 +40,6 @@ from contrib.testing.testcase import (
     BaseTwistedTestCase,
     skip_if_win32_and_uses_readonly,
 )
-from ubuntuone.devtools.testcases import skipIfJenkins
 from ubuntuone.platform import (
     access,
     allow_writes,
@@ -133,7 +132,6 @@ class OSWrapperTests(BaseTestCase):
             os.mkdir(foo_dir)
             self.assertTrue(path_exists(foo_dir))
 
-    @skipIfJenkins("win32", "Fails due to Jenkins setup on Windows")
     def test_set_file_readonly(self):
         """Test for set_file_readonly."""
         set_file_readonly(self.testfile)

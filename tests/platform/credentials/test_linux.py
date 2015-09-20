@@ -38,8 +38,11 @@ import dbus.service
 
 from twisted.internet.defer import Deferred, inlineCallbacks
 from ubuntuone.devtools.handlers import MementoHandler
-from ubuntuone.devtools.testcases import skipTest
-from ubuntuone.devtools.testcases.dbus import DBusTestCase
+try:
+    from ubuntuone.devtools.testcases import skipTest
+    from ubuntuone.devtools.testcases.dbus import DBusTestCase
+except ImportError:
+    from ubuntuone.devtools.testcase import DBusTestCase, skipTest
 
 from ubuntuone.platform.credentials import (
     CredentialsError,

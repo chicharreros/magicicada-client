@@ -35,8 +35,10 @@ import operator
 
 from dbus.mainloop.glib import DBusGMainLoop
 from twisted.internet.defer import inlineCallbacks
-from ubuntuone.devtools.testcases.dbus import DBusTestCase
-
+try:
+    from ubuntuone.devtools.testcases.dbus import DBusTestCase
+except ImportError:
+    from ubuntuone.devtools.testcase import DBusTestCase
 from ubuntuone.platform import session
 
 INHIBIT_ALL = (session.INHIBIT_LOGGING_OUT |

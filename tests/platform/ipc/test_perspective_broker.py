@@ -45,11 +45,10 @@ from contrib.testing.testcase import (
     FakedService,
     FakeMainTestCase,
 )
-from ubuntuone.devtools.testcases import skipIfOS
-from ubuntuone.devtools.testcases.txsocketserver import (
-    TidyUnixServer,
-    TCPPbServerTestCase,
-)
+try:
+    from ubuntuone.devtools.testcases import skipTest, skipIf, skipIfOS
+except ImportError:
+    from ubuntuone.devtools.testcase import skipTest, skipIf, skipIfOS
 from ubuntuone.platform.ipc import perspective_broker as ipc
 from ubuntuone.platform.ipc.perspective_broker import (
     Config,
@@ -81,6 +80,19 @@ try:
     from ubuntu_sso.networkstate.networkstates import ONLINE
 except ImportError:
     from ubuntu_sso.networkstate import ONLINE
+
+
+class NoTestCase(object):
+    """Dummy class to be used when txsocketserver is not available."""
+
+try:
+    from ubuntuone.devtools.testcases.txsocketserver import (
+        TidyUnixServer,
+        TCPPbServerTestCase,
+    )
+except ImportError:
+    TidyUnixServer = None
+    TCPPbServerTestCase = NoTestCase
 
 TEST_PORT = 40404
 TEST_DOMAIN_SOCKET = os.path.join(basedir.xdg_cache_home, 'ubuntuone', 'ipc')
@@ -381,6 +393,8 @@ class RemoteClientTestCase(TestCase):
         self.assertEqual(fake_remote_object.called, expected)
 
 
+@skipIf(TCPPbServerTestCase is NoTestCase,
+        'Testcases from txsocketserver not availble.')
 class IPCTestCase(FakeMainTestCase, TCPPbServerTestCase):
     """Set the ipc to a random port for this instance."""
 
@@ -554,6 +568,7 @@ class StatusTestCase(IPCTestCase):
     client_class = StatusClient
 
 
+@skipIf(TidyUnixServer is None, 'Testcases from txsocketserver not availble.')
 @skipIfOS('win32', 'Unix domain sockets not supported on windows.')
 class DUSStatusTestCase(StatusTestCase):
     """Test the status client class."""
@@ -569,6 +584,7 @@ class EventsTestCase(IPCTestCase):
     client_class = EventsClient
 
 
+@skipIf(TidyUnixServer is None, 'Testcases from txsocketserver not availble.')
 @skipIfOS('win32', 'Unix domain sockets not supported on windows.')
 class DUSEventsTestCase(EventsTestCase):
     """Test the events client class."""
@@ -584,6 +600,7 @@ class SyncDaemonTestCase(IPCTestCase):
     client_class = SyncDaemonClient
 
 
+@skipIf(TidyUnixServer is None, 'Testcases from txsocketserver not availble.')
 @skipIfOS('win32', 'Unix domain sockets not supported on windows.')
 class DUSSyncDaemonTestCase(SyncDaemonTestCase):
     """Test the syncdaemon client class."""
@@ -599,6 +616,7 @@ class FileSystemTestCase(IPCTestCase):
     client_class = FileSystemClient
 
 
+@skipIf(TidyUnixServer is None, 'Testcases from txsocketserver not availble.')
 @skipIfOS('win32', 'Unix domain sockets not supported on windows.')
 class DUSFileSystemTestCase(FileSystemTestCase):
     """Test the file system client class."""
@@ -614,6 +632,7 @@ class SharesTestCase(IPCTestCase):
     client_class = SharesClient
 
 
+@skipIf(TidyUnixServer is None, 'Testcases from txsocketserver not availble.')
 @skipIfOS('win32', 'Unix domain sockets not supported on windows.')
 class DUSSharesTestCase(SharesTestCase):
     """Test the shares client class."""
@@ -629,6 +648,7 @@ class ConfigTestCase(IPCTestCase):
     client_class = ConfigClient
 
 
+@skipIf(TidyUnixServer is None, 'Testcases from txsocketserver not availble.')
 @skipIfOS('win32', 'Unix domain sockets not supported on windows.')
 class DUSConfigTestCase(ConfigTestCase):
     """Test the status client class."""
@@ -644,6 +664,7 @@ class FoldersTestCase(IPCTestCase):
     client_class = FoldersClient
 
 
+@skipIf(TidyUnixServer is None, 'Testcases from txsocketserver not availble.')
 @skipIfOS('win32', 'Unix domain sockets not supported on windows.')
 class DUSFoldersTestCase(FoldersTestCase):
     """Test the status client class."""
@@ -659,6 +680,7 @@ class PublicFilesTestCase(IPCTestCase):
     client_class = PublicFilesClient
 
 
+@skipIf(TidyUnixServer is None, 'Testcases from txsocketserver not availble.')
 @skipIfOS('win32', 'Unix domain sockets not supported on windows.')
 class DUSPublicFilesTestCase(PublicFilesTestCase):
     """Test the status client class."""
@@ -786,6 +808,7 @@ class IPCInterfaceTestCase(IPCTestCase):
         self.assertIsInstance(remote, RemoteReference)
 
 
+@skipIf(TidyUnixServer is None, 'Testcases from txsocketserver not availble.')
 @skipIfOS('win32', 'Unix domain sockets not supported on windows.')
 class DUSInterfaceTestCase(IPCInterfaceTestCase):
     """Ensure that the IPCInterface works as expected."""

@@ -33,7 +33,10 @@ import logging
 import dbus
 
 from twisted.internet import defer
-from ubuntuone.devtools.testcases.dbus import DBusTestCase
+try:
+    from ubuntuone.devtools.testcases.dbus import DBusTestCase
+except ImportError:
+    from ubuntuone.devtools.testcase import DBusTestCase
 
 from contrib.testing.testcase import (
     FakeMainTestCase,
