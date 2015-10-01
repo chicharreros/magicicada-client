@@ -19,18 +19,9 @@ msgstr ""
 "X-Generator: Launchpad (build 15966)\n"
 "X-Poedit-Language: Danish\n"
 
-#: ../ubuntuone/clientdefs.py.in:52
-#: ../ubuntuone/platform/credentials/__init__.py:90
-msgid ""
-"Ubuntu One requires an Ubuntu Single Sign On (SSO) account. This process "
-"will allow you to create a new account, if you do not yet have one."
-msgstr ""
-"Ubuntu One kræver en Ubuntu Single SIgn On-konto (SSO). Denne process vil "
-"hjælpe dig med at oprette en ny konto, hvis du endnu ikke har en."
-
 #: ../ubuntuone/status/aggregator.py:51
-msgid "Ubuntu One"
-msgstr "Ubuntu One"
+msgid "Magicicada"
+msgstr "Magicicada"
 
 #: ../ubuntuone/status/aggregator.py:52
 msgid "New cloud folder(s) available"

@@ -18,18 +18,9 @@ msgstr ""
 "X-Launchpad-Export-Date: 2012-09-17 18:32+0000\n"
 "X-Generator: Launchpad (build 15966)\n"
 
-#: ../ubuntuone/clientdefs.py.in:52
-#: ../ubuntuone/platform/credentials/__init__.py:90
-msgid ""
-"Ubuntu One requires an Ubuntu Single Sign On (SSO) account. This process "
-"will allow you to create a new account, if you do not yet have one."
-msgstr ""
-"우분투 원을 사용하시려면 우분투 통합 로그인(Single Sign On, SSO) 계정이 필요합니다. 다음 과정을 통해 새로운 계정을 "
-"만드실 수 있습니다."
-
 #: ../ubuntuone/status/aggregator.py:51
-msgid "Ubuntu One"
-msgstr "우분투 원"
+msgid "Magicicada"
+msgstr "Magicicada"
 
 #: ../ubuntuone/status/aggregator.py:52
 msgid "New cloud folder(s) available"

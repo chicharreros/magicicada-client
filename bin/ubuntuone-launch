@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# ubuntuone-launch - Ubuntu One storage synchronization daemon startup helper
+# Magicicada storage synchronization daemon startup helper
 #
 # Author: John Lenton <john.lenton@canonical.com>
 #
@@ -31,12 +31,12 @@
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
 """
-Ubuntu One storage synchronization daemon (syncdaemon) startup helper.
+Storage synchronization daemon (syncdaemon) startup helper.
 
 This script decides whether to start and connect syncdaemon.
 
- * If you've never used Ubuntu One file sync, or if you've disabled
-   file sync via Ubuntu One control panel (or equivalently via setting
+ * If you've never used file sync, or if you've disabled
+   file sync via the control panel (or equivalently via setting
    files_sync_enabled to False in the syncdaemon configuration file),
    syncdaemon is not started, and nothing happens as a result of this
    script being run.
@@ -45,7 +45,7 @@ This script decides whether to start and connect syncdaemon.
    local rescan is allowed to finish.
 
  * if syncdaemon has never synced to the server, or if there are no
-   credentials for Ubuntu One in the keyring, nothing further happens.
+   credentials, nothing further happens.
 
  * otherwise, syncdaemon is asked to connect.
 
@@ -53,12 +53,12 @@ This script decides whether to start and connect syncdaemon.
 import sys
 import os
 
-U1ROOT = os.path.expanduser('~/Ubuntu One/')
+ROOT_FOLDER = os.path.expanduser('~/Magicicada/')
 
 if __name__ == '__main__':
     # this check is done early to speed up startup on people who are not
     # (yet) using the service (this way avoids all the imports).
-    if not os.path.isdir(U1ROOT):
+    if not os.path.isdir(ROOT_FOLDER):
         # no directory, just quit
         sys.exit(1)
 

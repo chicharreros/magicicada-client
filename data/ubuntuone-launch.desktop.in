@@ -1,6 +1,6 @@
 [Desktop Entry]
-Name=Ubuntu One
-Exec=/bin/sh -c '[ -d "$HOME/Ubuntu One" ] && ubuntuone-launch'
+Name=Magicicada
+Exec=/bin/sh -c '[ -d "$HOME/Magicicada" ] && ubuntuone-launch'
 Type=Application
 X-GNOME-Autostart-Delay=30
 Icon=ubuntuone

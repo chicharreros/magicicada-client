@@ -42,7 +42,6 @@ from twisted.internet import defer
 
 from ubuntu_sso import UI_EXECUTABLE_QT
 from ubuntu_sso.credentials import (
-    HELP_TEXT_KEY,
     PING_URL_KEY,
     POLICY_URL_KEY,
     UI_EXECUTABLE_KEY,
@@ -88,11 +87,7 @@ BASE_PING_URL = \
     u"https://one.ubuntu.com/oauth/sso-finished-so-get-tokens/{email}"
 # the result of platform_data is given by urlencode, encoded with ascii
 PING_URL = BASE_PING_URL + u"?" + platform_data().decode('ascii')
-DESCRIPTION = Q_('Magicicada requires an Ubuntu Single Sign On (SSO) account. '
-                 'This process will allow you to create a new account, '
-                 'if you do not yet have one.')
 UI_PARAMS = {
-    HELP_TEXT_KEY: DESCRIPTION,
     PING_URL_KEY: PING_URL,
     POLICY_URL_KEY: POLICY_URL,
     TC_URL_KEY: TC_URL,

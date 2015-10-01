@@ -2166,6 +2166,7 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
 
         self.assertEqual(self.called, ['MetaQueueChanged'])
 
+    @defer.inlineCallbacks
     def test_handle_SYS_QUEUE_REMOVED_content_queue_changed_upload(self):
         """Test that handle_SYS_QUEUE_REMOVED also calls ContentQueueChanged."""
         d = defer.Deferred()

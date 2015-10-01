@@ -1,18 +1,11 @@
-Ubuntu One requires acceptance of the Canonical Contributor Agreement. You
-will need to follow the instructions at:
-
-http://www.canonical.com/contributors
-
-Once the agreement is accepted, you will be added to the Canonical Contributor
-Agreement team on Launchpad, so that your branches may be merged in upstream.
-
-
 In order to run tests in ubuntuone-client, you will need to have a built
 version of ubuntuone-storage-protocol in a tree, or installed. You can
 specify the path to a built tree with the --with-protocol option to configure,
 or autogen.sh (which calls configure after creating it).
 
-$: ./configure --with-protocol=$HOME/source/ubuntuone-storage-protocol/trunk
+Or you can simply bootstrap and everything will happen automagically:
+
+$: make boostrap
 
 After configuring, in order to run the tests, all you need to do is run
 make check.
@@ -20,7 +13,7 @@ make check.
 $: make check
 
 
-Ubuntu One uses branch based development on Launchpad, and bugs to track
+Magicicada uses branch based development on Launchpad, and bugs to track
 features and issues. Make sure a bug is filed for the piece of code you wish
 to work on. When committing your changes, be sure to specify the bug # it
 fixes using the --fixes option in bzr.
@@ -34,6 +27,8 @@ $: bzr commit --unchanged --fixes=lp:<BUGNUMER>
 
 After pushing your branch to Launchpad, you will need to propose it
 for merging into the parent branch. You can do this from the Launchpad web
-page for your branch. In order for your branch to be accepted, you will have
-to have accepted the Canonical Contributor Agreement as stated above, and
-there will need to be at least two approvals from Ubuntu One developers.
+page for your branch. In order for your branch to be accepted, it needs to
+ensure all existing tests keep passing, and the code you are adding/modifying
+has the proper addings/modifications in the tests/ folder.
+Your branch will also need at least one Magicicada developers (the
+chicharreros team) positive vote before landing.

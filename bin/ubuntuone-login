@@ -27,7 +27,7 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""The script tu ron the Ubuntu One Login D-Bus service."""
+"""The script tu run the Login D-Bus service."""
 
 # Invalid name "ubuntuone-login"
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         name = bus.request_name(DBUS_BUS_NAME,
                                 dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
         if name == dbus.bus.REQUEST_NAME_REPLY_EXISTS:
-            logger.error("Ubuntu One login manager already running, quitting.")
+            logger.error(Login manager already running, quitting.")
             sys.exit(0)
     except dbus.DBusException:
         pass
@@ -68,7 +68,7 @@ if __name__ == "__main__":
             logger.setLevel(logging.DEBUG)
             logger.addHandler(debug_handler)
 
-        logger.info("Starting Ubuntu One login manager for bus %r.",
+        logger.info("Starting login manager for bus %r.",
                     DBUS_BUS_NAME)
         bus_name = dbus.service.BusName(DBUS_BUS_NAME, bus=bus)
         mainloop = GLib.MainLoop()

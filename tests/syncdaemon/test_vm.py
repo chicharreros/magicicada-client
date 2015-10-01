@@ -2006,6 +2006,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         d.addCallback(check)
         return d
 
+    @defer.inlineCallbacks
     def test_create_udf_unicode(self):
         """Test VolumeManager.create_udf.
 
@@ -2368,6 +2369,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self.assertIn(share.volume_id, self.vm.shares)
         self.assertIn(share_2.volume_id, self.vm.shares)
 
+    @defer.inlineCallbacks
     def test_handle_AQ_CREATE_UDF_OK(self):
         """Test AQ_CREATE_UDF_OK. The UDF is always subscribed."""
         d = defer.Deferred()
@@ -3819,6 +3821,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         vol_id = yield d
         self.assertEquals(vol_id, share.volume_id)
 
+    @defer.inlineCallbacks
     def test_handle_SV_VOLUME_NEW_GENERATION_share_eq(self):
         """Test handle_SV_VOLUME_NEW_GENERATION for a share."""
         share = self._create_share(subscribed=True)

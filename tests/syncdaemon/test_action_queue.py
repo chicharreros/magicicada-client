@@ -5416,6 +5416,7 @@ class CommandCycleTestCase(BasicTestCase):
         self.assertEqual(called, ['run', exc, 'run', 'finish'])
         self._check_finished_ok()
 
+    @defer.inlineCallbacks
     def test_retry_conditions_solved(self):
         """Retry the command because conditions solved later."""
         finished = defer.Deferred()
@@ -5671,6 +5672,7 @@ class InterruptibleDeferredTests(TwistedTestCase):
         intrdef.interrupt()
         self.assertFalse(intrdef.interrupted)
 
+    @defer.inlineCallbacks
     def test_interrupt_except(self):
         """Interrupt!"""
         intrdef = InterruptibleDeferred(defer.Deferred())
@@ -5683,6 +5685,7 @@ class InterruptibleDeferredTests(TwistedTestCase):
         else:
             self.fail("Test should have raised an exception")
 
+    @defer.inlineCallbacks
     def test_interrupt_callback_original(self):
         """Interrupt silences further original callbacks."""
         origdef = defer.Deferred()
@@ -5699,6 +5702,7 @@ class InterruptibleDeferredTests(TwistedTestCase):
         # further callback to original deferred is harmless
         origdef.callback("foo")
 
+    @defer.inlineCallbacks
     def test_interrupt_errback_original(self):
         """Interrupt silences further original errbacks."""
         origdef = defer.Deferred()

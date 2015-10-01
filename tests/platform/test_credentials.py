@@ -47,8 +47,6 @@ from ubuntuone.platform.credentials import (
     BASE_PING_URL,
     CredentialsError,
     CredentialsManagementTool,
-    DESCRIPTION,
-    HELP_TEXT_KEY,
     NO_OP,
     PING_URL,
     PING_URL_KEY,
@@ -253,7 +251,6 @@ class CredentialsManagementToolTestCase(TestCase):
     def test_ui_params(self):
         """The UI_PARAMS dict is correct."""
         expected = {
-            HELP_TEXT_KEY: DESCRIPTION,
             PING_URL_KEY: PING_URL,
             POLICY_URL_KEY: POLICY_URL,
             TC_URL_KEY: TC_URL,

@@ -78,6 +78,11 @@ class DontHitMe(object):
                                           (a, k))
 
 
+class FakedVolume(object):
+
+    path = __file__
+
+
 class WatchTests(BaseEQTestCase):
     """Test the EQ API to add and remove watchs."""
 
@@ -98,11 +103,12 @@ class WatchTests(BaseEQTestCase):
         self.assertEqual(called, [method_arg])
         self.assertEqual(res, method_resp)
 
+    @defer.inlineCallbacks
     def test_add_watches_to_udf_ancestors(self):
         """Test that ancestors watches can be added."""
         called = []
         method_resp = True
-        method_arg = object()
+        method_arg = FakedVolume()
 
         def add_watches_to_udf_ancestors(path):
             """Fake it."""
@@ -115,11 +121,12 @@ class WatchTests(BaseEQTestCase):
         self.assertEqual(called, [method_arg])
         self.assertEqual(res, method_resp)
 
+    @defer.inlineCallbacks
     def test_add_watches_to_udf_ancestors_no_access(self):
         """Test that ancestors watches are not added."""
         called = []
         method_resp = True
-        method_arg = object()
+        method_arg = FakedVolume()
 
         def add_watches_to_udf_ancestors(path):
             """Fake it."""
@@ -127,7 +134,7 @@ class WatchTests(BaseEQTestCase):
             return defer.succeed(method_resp)
 
         self.patch(event_queue, 'access', lambda path: False)
-        self.pathc(self.eq.monitor, 'add_watches_to_udf_ancestors',
+        self.patch(self.eq.monitor, 'add_watches_to_udf_ancestors',
                    add_watches_to_udf_ancestors)
         added = yield self.eq.add_watches_to_udf_ancestors(method_arg)
         self.assertFalse(added, 'Watches should have not been added.')

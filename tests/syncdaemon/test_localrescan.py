@@ -1775,6 +1775,7 @@ class BadStateTests(TwistedBase):
         self.assertFalse(path_exists(partial_path), partial_path)
         self.assertTrue(self.fsm.has_metadata(path=path))
 
+    @defer.inlineCallbacks
     def test_partial_for_dir_in_NONE(self):
         """Found a .partial of a directory whose MD said changed=NONE."""
         # create the dir in metadata
