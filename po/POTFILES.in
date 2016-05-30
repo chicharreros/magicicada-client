@@ -1,4 +1,3 @@
 ubuntuone/clientdefs.py.in
 ubuntuone/status/aggregator.py
-ubuntuone/platform/credentials/__init__.py
 ubuntuone/platform/sync_menu/linux.py

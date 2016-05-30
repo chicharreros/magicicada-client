@@ -45,7 +45,7 @@ from twisted.spread.pb import (
 )
 
 from ubuntuone.syncdaemon.utils import get_sd_bin_cmd
-from ubuntu_sso.utils.tcpactivation import (
+from ubuntuone.utils.tcpactivation import (
     ActivationClient,
     ActivationConfig,
     ActivationInstance,
@@ -63,13 +63,12 @@ else:
 DescriptionFactory = source.DescriptionFactory
 
 logger = logging.getLogger("ubuntuone.SyncDaemon.Pb")
-SD_SSO_PORT_OFFSET = 1
 SD_SERVICE_NAME = "ubuntuone-syncdaemon"
 CLIENT_NOT_PROCESSED = -1
 
 
 def get_activation_config():
-    """Get the configuration to activate the sso service."""
+    """Get the configuration to activate the service."""
     description = DescriptionFactory()
     service_name = SD_SERVICE_NAME
 

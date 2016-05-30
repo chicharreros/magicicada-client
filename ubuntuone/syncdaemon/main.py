@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
+# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -106,8 +107,8 @@ class Main(object):
         if not throttling_enabled:
             throttling_enabled = user_config.get_throttling()
 
-        self.logger.info("Starting Magicicada client version %s",
-                         clientdefs.VERSION)
+        self.logger.info("Starting %s client version %s",
+                         clientdefs.NAME, clientdefs.VERSION)
         self.logger.info("Using %r as root dir", self.root_dir)
         self.logger.info("Using %r as data dir", self.data_dir)
         self.logger.info("Using %r as shares root dir", self.shares_dir)
@@ -123,7 +124,7 @@ class Main(object):
         self.event_q.subscribe(self.vm)
         self.vm.init_root()
 
-        # we don't have the oauth tokens yet, we 'll get them later
+        # we don't have the auth tokens yet, we 'll get them later
         self.action_q = action_queue.ActionQueue(self.event_q, self,
                                                  host, port,
                                                  dns_srv, ssl,

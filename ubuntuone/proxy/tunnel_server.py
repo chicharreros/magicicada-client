@@ -58,12 +58,13 @@ from PyQt4.QtNetwork import (
 from twisted.internet import defer, interfaces
 from zope.interface import implements
 
-from ubuntu_sso.keyring import Keyring
+from ubuntuone.clientdefs import NAME
+from ubuntuone.keyring import Keyring
 try:
-    from ubuntu_sso.utils.locale import fix_turkish_locale
+    from ubuntuone.utils.locale import fix_turkish_locale
 except ImportError:
     fix_turkish_locale = lambda: None
-from ubuntu_sso.utils.webclient import gsettings
+from ubuntuone.utils.webclient import gsettings
 from ubuntuone.proxy.common import (
     BaseTunnelProtocol,
     CRLF,
@@ -272,7 +273,7 @@ class ServerTunnelProtocol(BaseTunnelProtocol):
                 logger.info("Connected with keyring credentials")
 
             response_headers = {
-                "Server": "Magicicada proxy tunnel",
+                "Server": "%s proxy tunnel" % NAME,
             }
             self.write_transport("HTTP/1.0 200 Proxy connection established" +
                                  CRLF + self.format_headers(response_headers) +

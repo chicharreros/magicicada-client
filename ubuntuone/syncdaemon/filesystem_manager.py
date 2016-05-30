@@ -43,6 +43,7 @@ import errno
 import stat
 import uuid
 
+from ubuntuone.clientdefs import NAME
 from ubuntuone.syncdaemon import file_shelf, config
 from ubuntuone.syncdaemon.volume_manager import VolumeDoesNotExist
 from ubuntuone.syncdaemon.interfaces import IMarker
@@ -412,10 +413,10 @@ class FileSystemManager(object):
         """fix the mdobj path for the new layout, only for shares root"""
         base_path, name = os.path.split(mdobj['path'])
         if base_path.startswith('/') and \
-           base_path.endswith('Magicicada/Shared With Me'):
+           base_path.endswith('%s/Shared With Me' % NAME):
             realpath = os.path.realpath(mdobj['path'])
             mdobj['path'] = realpath
-        if (base_path.startswith('/') and base_path.endswith('Magicicada')
+        if (base_path.startswith('/') and base_path.endswith(NAME)
                 and name == 'My Files'):
             mdobj['path'] = base_path
 

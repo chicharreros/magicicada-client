@@ -26,8 +26,7 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""Use appropriate API to show a progressbar and emblems on the
-launcher icon."""
+"""Show a progressbar and emblems on the launcher icon."""
 
 import sys
 
@@ -39,7 +38,7 @@ else:
     from ubuntuone.platform.launcher import linux
     source = linux
 
-U1_DOTDESKTOP = source.U1_DOTDESKTOP
+CONTORLPANEL_DOTDESKTOP = source.CONTROLPANEL_DOTDESKTOP
 
-UbuntuOneLauncher = source.UbuntuOneLauncher
+Launcher = source.Launcher
 DummyLauncher = source.DummyLauncher

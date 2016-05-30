@@ -170,13 +170,9 @@ class BuildLocale(build_i18n.build_i18n):
 def set_py2exe_paths():
     """Set the path so that py2exe finds the required modules."""
     # Pylint does not understand same spaced imports
-    # pylint: disable=F0401
     import win32com
-    # pylint: enable=F0401
     try:
-        # pylint: disable=F0401
         import py2exe.mf as modulefinder
-        # pylint: enable=F0401
     except ImportError:
         import modulefinder
 
@@ -194,8 +190,6 @@ def set_py2exe_paths():
             modulefinder.AddPackagePath(extra_mod, module_path)
 
 
-# pylint: disable=C0103
-
 cmdclass = {
     'install': Install,
     'build': Build,
@@ -209,7 +203,6 @@ bin_scripts = [
 ]
 
 libexec_scripts = [
-    'bin/ubuntuone-login',
     'bin/ubuntuone-proxy-tunnel',
     'bin/ubuntuone-syncdaemon',
 ]

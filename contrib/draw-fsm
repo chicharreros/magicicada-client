@@ -35,7 +35,6 @@ import tempfile
 import time
 import sys
 
-# pylint: disable-msg=F0401
 from gi.repository import Gtk as gtk
 
 import xdot

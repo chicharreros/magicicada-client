@@ -39,21 +39,17 @@ import gettext
 
 from twisted.internet import reactor, defer
 
-from ubuntuone.clientdefs import GETTEXT_PACKAGE
+from ubuntuone.clientdefs import GETTEXT_PACKAGE, NAME
 from ubuntuone.status.logger import logger
 from ubuntuone.platform import (
     notification,
     sync_menu
 )
-from ubuntuone.platform.launcher import UbuntuOneLauncher, DummyLauncher
+from ubuntuone.platform.launcher import Launcher, DummyLauncher
 
 ONE_DAY = 24 * 60 * 60
 Q_ = lambda string: gettext.dgettext(GETTEXT_PACKAGE, string)
 
-UBUNTUONE_TITLE = Q_("Magicicada")
-UBUNTUONE_END = Q_(
-    "Magicicada file services will be shutting down on June 1st, 2014.\n"
-    "Thanks for your support.")
 NEW_UDFS_SENDER = Q_("New cloud folder(s) available")
 FINAL_COMPLETED = Q_("File synchronization completed.")
 
@@ -66,7 +62,7 @@ SHARE_QUOTA_EXCEEDED = Q_(
 
 def alert_user():
     """Set the launcher to urgent to alert the user."""
-    launcher = UbuntuOneLauncher()
+    launcher = Launcher()
     launcher.set_urgent()
 
 
@@ -489,7 +485,7 @@ class FileDiscoveryBubble(object):
             return
         text = self.status_aggregator.get_discovery_message()
         if text:
-            self.notification.send_notification(UBUNTUONE_TITLE, text)
+            self.notification.send_notification(NAME, text)
             logger.debug("notification shown: %s", text)
         self._change_state(FileDiscoveryUpdateState)
 
@@ -500,7 +496,7 @@ class FileDiscoveryBubble(object):
         text = self.status_aggregator.get_discovery_message()
         if text:
             logger.debug("notification updated: %s", text)
-            self.notification.send_notification(UBUNTUONE_TITLE, text)
+            self.notification.send_notification(NAME, text)
 
     def start_sleeping(self):
         """Wait for 10 minutes before annoying again."""
@@ -538,7 +534,7 @@ class ProgressBar(object):
         """Initialize this instance."""
         self.clock = clock
         try:
-            self.launcher = UbuntuOneLauncher()
+            self.launcher = Launcher()
         except TypeError:
             # Unity GIR can cause a TypeError here so we should not fail
             self.launcher = DummyLauncher()
@@ -590,7 +586,7 @@ class FinalStatusBubble(object):
         """Show the final status notification."""
         self.notification = self.status_aggregator.get_notification()
         text = self.status_aggregator.get_final_status_message()
-        self.notification.send_notification(UBUNTUONE_TITLE, text)
+        self.notification.send_notification(NAME, text)
 
 
 def group_statuses(status_events):
@@ -827,8 +823,7 @@ class StatusFrontend(object):
 
     def farewell_ubuntuone_sync(self):
         """Show notification about the upcoming end of UbuntuOne sync."""
-        self.notification.send_notification(
-            UBUNTUONE_TITLE, UBUNTUONE_END)
+        self.notification.send_notification(NAME, 'Coming soon')
 
     def start_sync_menu(self):
         """Create the sync menu and register the progress listener."""
@@ -866,13 +861,12 @@ class StatusFrontend(object):
     def file_published(self, public_url):
         """A file was published."""
         status_event = FilePublishingStatus(new_public_url=public_url)
-        self.notification.send_notification(
-            UBUNTUONE_TITLE, status_event.one())
+        self.notification.send_notification(NAME, status_event.one())
 
     def file_unpublished(self, public_url):
         """A file was unpublished."""
         self.notification.send_notification(
-            UBUNTUONE_TITLE, FileUnpublishingStatus().one())
+            NAME, FileUnpublishingStatus().one())
 
     def download_started(self, command):
         """A file was queued for download."""
@@ -902,14 +896,14 @@ class StatusFrontend(object):
     def new_share_available(self, share):
         """A new share is available for subscription."""
         self.notification.send_notification(
-            UBUNTUONE_TITLE, ShareAvailableStatus(share=share).one())
+            NAME, ShareAvailableStatus(share=share).one())
 
     def new_udf_available(self, udf):
         """A new udf is available for subscription."""
         if udf.subscribed:
             return
         self.notification.send_notification(
-            UBUNTUONE_TITLE, UDFAvailableStatus(udf=udf).one())
+            NAME, UDFAvailableStatus(udf=udf).one())
 
     def server_connection_lost(self):
         """The client lost the connection to the server."""
@@ -935,7 +929,7 @@ class StatusFrontend(object):
         else:
             self.quota_timer = Timer(ONE_DAY, clock=self.aggregator.clock)
         self.notification.send_notification(
-            UBUNTUONE_TITLE, SHARE_QUOTA_EXCEEDED % (
+            NAME, SHARE_QUOTA_EXCEEDED % (
                 volume_dict['path'], volume_dict['other_visible_name']))
         alert_user()
 

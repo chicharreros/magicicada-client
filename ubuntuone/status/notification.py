@@ -32,8 +32,6 @@
 
 from abc import ABCMeta, abstractmethod
 
-APPLICATION_NAME = 'Magicicada Client'
-
 
 class AbstractNotification(object):
     """Abstract Base Class for notification implementations."""

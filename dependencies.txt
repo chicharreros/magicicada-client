@@ -1,10 +1,11 @@
 gir1.2-notify
+gir1.2-soup-2.4
 protobuf-compiler
 python-configglue
 python-gi
+python-httplib2
 python-protobuf
 python-pyinotify
 python-qt4-dbus
 python-qt4reactor
 python-twisted
-python-ubuntu-sso-client

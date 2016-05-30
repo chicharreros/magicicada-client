@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
+# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -53,7 +54,6 @@ from twisted.internet import error as twisted_errors
 from twisted.names import client as dns_client
 from twisted.python.failure import Failure, DefaultException
 
-from ubuntu_sso.utils.webclient import txweb
 from ubuntuone import clientdefs
 from ubuntuone.platform import platform, remove_file
 from ubuntuone.storageprotocol import protocol_pb2, content_hash
@@ -68,6 +68,7 @@ from ubuntuone.syncdaemon.logger import mklog, TRACE
 from ubuntuone.syncdaemon.volume_manager import ACCESS_LEVEL_RW
 from ubuntuone.syncdaemon import config, offload_queue
 from ubuntuone.syncdaemon import tunnel_runner
+from ubuntuone.utils.webclient import txweb
 
 logger = logging.getLogger("ubuntuone.SyncDaemon.ActionQueue")
 
@@ -918,7 +919,7 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         webclient = yield self.get_webclient(iri)
         # FIXME: we need to review these requests after credentials change
         response = yield webclient.request(
-            iri, oauth_credentials=self.credentials, **kwargs)
+            iri, auth_credentials=self.credentials, **kwargs)
         defer.returnValue(response)
 
     @defer.inlineCallbacks
@@ -928,9 +929,9 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         host = urlparse(uri).netloc.split(":")[0]
         ssl_context = get_ssl_context(self.disable_ssl_verify, host)
         connector = yield self.tunnel_runner.get_client()
-        webclient = txweb.WebClient(connector=connector, appname="Magicicada",
-                                    oauth_sign_plain=True,
-                                    context_factory=ssl_context)
+        webclient = txweb.WebClient(
+            connector=connector, appname=clientdefs.NAME,
+            context_factory=ssl_context)
         defer.returnValue(webclient)
 
     @defer.inlineCallbacks

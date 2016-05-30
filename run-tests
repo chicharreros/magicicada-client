@@ -27,7 +27,7 @@
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
 
-PROXY_TESTS_PATH="tests/proxy"
+PROXY_TESTS_PATH="ubuntuone/proxy/tests"
 
 # Allow alternative python executable via environment variable.  This is
 # useful for virtualenv testing.
@@ -39,19 +39,19 @@ if [ $# -ne 0 ]; then
     MODULE="$@"
 else
     # run all tests, useful for tarmac and reviews
-    MODULE="tests"
+    MODULE="ubuntuone"
 fi
 
 SYSNAME=`uname -s`
 
 if [ "$SYSNAME" == "Darwin" ]; then
     IGNORE_FILES="test_linux.py,test_windows.py"
-    IGNORE_PATHS="tests/platform/linux"
+    IGNORE_PATHS="ubuntuone/platform/tests/linux"
     REACTOR=qt4
 else
     # Linux
     IGNORE_FILES="test_darwin.py,test_fsevents_daemon.py,test_windows.py"
-    IGNORE_PATHS="tests/platform/windows"
+    IGNORE_PATHS="ubuntuone/platform/tests/windows"
     REACTOR=gi
 fi
 

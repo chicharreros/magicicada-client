@@ -32,6 +32,7 @@ import logging
 
 from twisted.internet import protocol, reactor
 
+from ubuntuone.clientdefs import NAME
 from ubuntuone.proxy.common import (
     BaseTunnelProtocol,
     CRLF,
@@ -54,7 +55,7 @@ class TunnelClientProtocol(BaseTunnelProtocol):
         method_line = METHOD_LINE % (self.factory.tunnel_host,
                                      self.factory.tunnel_port)
         headers = {
-            "User-Agent": "Magicicada tunnel client",
+            "User-Agent": "%s tunnel client" % NAME,
             TUNNEL_COOKIE_HEADER: self.factory.cookie,
         }
         self.transport.write(method_line +

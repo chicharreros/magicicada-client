@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
+# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -679,7 +680,7 @@ class FakedService(interaction_interfaces.SyncdaemonService):
 
     def __init__(self, main, send_events=False, interface=None):
         super(FakedService, self).__init__(main, send_events, interface)
-        self.oauth_credentials = ('foo', 'bar')
+        self.auth_credentials = ('foo', 'bar')
 
     def _create_children(self):
         """Override parent's method to have fakes for children."""

@@ -30,11 +30,11 @@
 # files in the program, then also delete it here.
 """Use libunity to show a progressbar and emblems on the launcher icon."""
 
-U1_DOTDESKTOP = "ubuntuone-control-panel-gtk.desktop"
+CONTROLPANEL_DOTDESKTOP = "ubuntuone-control-panel-gtk.desktop"
 
 
-class UbuntuOneLauncher(object):
-    """The Magicicada launcher icon."""
+class Launcher(object):
+    """The launcher icon."""
 
     def __init__(self):
         """Initialize this instance."""
@@ -55,4 +55,4 @@ class UbuntuOneLauncher(object):
 # linux needs a dummy launcher in case Unity is not running, of course this
 # makes no bloody sense on windows, lets adapt to it and discuss about it
 # later
-DummyLauncher = UbuntuOneLauncher
+DummyLauncher = Launcher

@@ -36,11 +36,11 @@ try:
 except ImportError:
     use_libunity = False
 
-U1_DOTDESKTOP = "ubuntuone-installer.desktop"
+CONTROLPANEL_DOTDESKTOP = "ubuntuone-installer.desktop"
 
 
-class UbuntuOneLauncherUnity(object):
-    """The Magicicada launcher icon."""
+class LauncherUnity(object):
+    """The launcher icon."""
 
     def __init__(self):
         self.entry = Unity.LauncherEntry.get_for_desktop_id(U1_DOTDESKTOP)
@@ -102,4 +102,4 @@ class DummyLauncher(object):
         """Show the count."""
 
 
-UbuntuOneLauncher = UbuntuOneLauncherUnity if use_libunity else DummyLauncher
+Launcher = LauncherUnity if use_libunity else DummyLauncher

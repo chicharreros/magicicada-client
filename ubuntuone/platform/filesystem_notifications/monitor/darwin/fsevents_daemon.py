@@ -35,12 +35,6 @@ from uuid import uuid4
 
 from twisted.internet import defer, endpoints, reactor
 
-from ubuntu_sso.utils.tcpactivation import (
-    ActivationConfig,
-    ActivationInstance,
-    AlreadyStartedError,
-)
-
 from ubuntuone import logger
 from ubuntuone import fseventsd
 from ubuntuone.platform.filesystem_notifications.notify_processor import (
@@ -57,6 +51,11 @@ from ubuntuone.platform.filesystem_notifications.pyinotify_agnostic import (
     IN_MOVED_FROM,
     IN_MOVED_TO,
     IN_MODIFY,
+)
+from ubuntuone.utils.tcpactivation import (
+    ActivationConfig,
+    ActivationInstance,
+    AlreadyStartedError,
 )
 
 TRACE = logger.TRACE
@@ -113,7 +112,7 @@ class DescriptionFactory(object):
 
 
 def get_activation_config():
-    """Get the configuration to activate the sso service."""
+    """Get the configuration to activate the service."""
     description = DescriptionFactory()
     return ActivationConfig(None, None, description)
 
@@ -140,8 +139,7 @@ def get_syncdaemon_valid_path(path):
 class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
     """Factory that process events and converts them in pyinotify ones."""
 
-    def __init__(
-            self, processor, ignored_events=DARWIN_IGNORED_ACTIONS):
+    def __init__(self, processor, ignored_events=DARWIN_IGNORED_ACTIONS):
         """Create a new instance."""
         # old style class
         fseventsd.FsEventsFactory.__init__(self)

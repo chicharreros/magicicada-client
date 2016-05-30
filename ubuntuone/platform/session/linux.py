@@ -32,11 +32,11 @@ import dbus
 
 from twisted.internet import defer
 
+from ubuntuone.clientdefs import NAME
+
 SESSION_MANAGER_BUSNAME = "org.gnome.SessionManager"
 SESSION_MANAGER_IFACE = "org.gnome.SessionManager"
 SESSION_MANAGER_PATH = "/org/gnome/SessionManager"
-
-APP_ID = "Magicicada"
 TOPLEVEL_XID = 0
 
 
@@ -62,7 +62,7 @@ class Inhibitor(object):
             self.cookie = cookie
             d.callback(self)
 
-        self.proxy.Inhibit(APP_ID, TOPLEVEL_XID, reason, flags,
+        self.proxy.Inhibit(NAME, TOPLEVEL_XID, reason, flags,
                            reply_handler=inhibit_handler,
                            error_handler=d.errback)
         return d

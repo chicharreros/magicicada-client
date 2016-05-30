@@ -31,10 +31,9 @@
 # NOTE: the goal of this script is to avoid a bug that affects
 # ubuntuone-control-panel on windows and darwin. Those platforms use
 # the qt4reactor, and will break if the default reactor is installed
-# first. This can happen if a module used by control-panel (such as
-# ubuntuone.platform.credentials), imports reactor.  Only sub-modules
-# that are not used by ubuntuone-control-panel can safely import
-# reactor at module-level.
+# first. This can happen if a module used by control-panel imports reactor.
+# Only sub-modules that are not used by ubuntuone-control-panel can safely
+# import reactor at module-level.
 
 from __future__ import (unicode_literals, print_function)
 
@@ -72,6 +71,6 @@ if __name__ == '__main__':
     real_import = __builtin__.__import__
     __builtin__.__import__ = fake_import
 
-    subs = ["", ".tools", ".logger", ".credentials"]
+    subs = ["", ".tools", ".logger"]
     for module in ["ubuntuone.platform" + p for p in subs]:
         m = __import__(module)

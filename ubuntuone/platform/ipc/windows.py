@@ -28,14 +28,12 @@
 # files in the program, then also delete it here.
 """IPC implementation for windows."""
 
-from ubuntu_sso.main.windows import get_sso_pb_port
-
-SD_SSO_PORT_OFFSET = 1
+SD_PORT = 5555
 
 
 def get_sd_pb_port():
     """Returns the host and port for this user."""
-    return get_sso_pb_port() + SD_SSO_PORT_OFFSET
+    return SD_PORT_OFFSET
 
 
 class DescriptionFactory(object):

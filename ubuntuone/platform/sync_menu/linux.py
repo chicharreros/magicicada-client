@@ -46,11 +46,11 @@ try:
 except:
     use_syncmenu = False
 
-from ubuntuone.clientdefs import GETTEXT_PACKAGE
+from ubuntuone.clientdefs import GETTEXT_PACKAGE, NAME
 from ubuntuone import status
 from ubuntuone.platform.sync_menu.common import (
     UbuntuOneSyncMenu as DummySyncMenu,
-    )
+)
 
 
 logger = logging.getLogger("ubuntuone.platform.SyncMenu")
@@ -58,10 +58,10 @@ logger = logging.getLogger("ubuntuone.platform.SyncMenu")
 Q_ = lambda string: gettext.dgettext(GETTEXT_PACKAGE, string)
 
 GET_HELP = Q_("Get Help on the Web")
-GO_TO_WEB = Q_("Go to the Magicicada Website")
+GO_TO_WEB = Q_("Go to the main website")
 MORE_STORAGE = Q_("Get More Space")
-OPEN_U1 = Q_("Open Magicicada")
-OPEN_U1_FOLDER = Q_("Open the Magicicada Folder")
+OPEN_U1 = Q_("Open")
+OPEN_U1_FOLDER = Q_("Open the main folder")
 SHARE_A_FILE = Q_("Share a File")
 TRANSFERS = Q_("Current and Recent Transfers")
 
@@ -188,7 +188,7 @@ class UbuntuOneSyncMenuLinux(object):
 
         try:
             app = Gio.AppInfo.create_from_commandline(
-                command_line, 'Magicicada', flags)
+                command_line, NAME, flags)
 
             if app:
                 app.launch([], self._get_launch_context(timestamp))
@@ -196,7 +196,7 @@ class UbuntuOneSyncMenuLinux(object):
             logger.warning('Failed to open the control panel: %s.' % e)
 
     def open_control_panel(self, menuitem=None, timestamp=0):
-        """Open the Magicicada Control Panel."""
+        """Open the Control Panel."""
         app = Gio.DesktopAppInfo.new(CLIENT_DESKTOP_ID)
 
         if app:
@@ -208,7 +208,7 @@ class UbuntuOneSyncMenuLinux(object):
             self._open_control_panel_by_command_line(timestamp)
 
     def open_ubuntu_one_folder(self, menuitem=None, timestamp=0):
-        """Open the Magicicada folder."""
+        """Open the folder."""
         self._open_uri(
             "file://" + self._syncdaemon_service.get_rootdir(), timestamp)
 
@@ -218,15 +218,15 @@ class UbuntuOneSyncMenuLinux(object):
             timestamp, "--switch-to share_links")
 
     def open_go_to_web(self, menuitem=None, timestamp=0):
-        """Open the Magicicada Help Page"""
+        """Open the Help Page"""
         self._open_uri(DASHBOARD, timestamp)
 
     def open_web_help(self, menuitem=None, timestamp=0):
-        """Open the Magicicada Help Page"""
+        """Open the Help Page"""
         self._open_uri(HELP_LINK, timestamp)
 
     def open_get_more_storage(self, menuitem=None, timestamp=0):
-        """Open the Magicicada Help Page"""
+        """Open the Help Page"""
         self._open_uri(GET_STORAGE_LINK, timestamp)
 
     def _timeout(self, result):

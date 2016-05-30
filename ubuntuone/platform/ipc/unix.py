@@ -33,8 +33,8 @@ import os
 from dirspec import basedir
 
 
-def get_u1_domain_socket():
-    """Compute the domain socket for the sso ipc."""
+def get_domain_socket():
+    """Compute the domain socket for the service ipc."""
     path = os.path.join(basedir.xdg_cache_home, 'ubuntuone', 'ipc')
     return path
 
@@ -47,6 +47,6 @@ class DescriptionFactory(object):
 
     def __init__(self):
         """Create a new instance."""
-        self.domain = get_u1_domain_socket()
+        self.domain = get_domain_socket()
         self.server = self.server_description_pattern % self.domain
         self.client = self.client_description_pattern % self.domain

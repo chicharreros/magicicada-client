@@ -40,6 +40,4 @@ else:
     ICON_NAME = source.ICON_NAME
 
 
-APPLICATION_NAME = source.APPLICATION_NAME
-
 Notification = source.Notification

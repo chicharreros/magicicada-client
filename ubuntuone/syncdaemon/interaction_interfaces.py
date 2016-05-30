@@ -46,14 +46,14 @@ from functools import wraps
 
 from twisted.internet import defer
 
-from ubuntu_sso.networkstate import NetworkManagerState
+from ubuntuone.networkstate import NetworkManagerState
 try:
-    from ubuntu_sso.networkstate.networkstates import ONLINE
+    from ubuntuone.networkstate.networkstates import ONLINE
 except ImportError:
-    from ubuntu_sso.networkstate import ONLINE
+    from ubuntuone.networkstate import ONLINE
 
 from ubuntuone.logger import log_call
-from ubuntuone.platform import credentials, ExternalInterface
+from ubuntuone.platform import ExternalInterface
 from ubuntuone.storageprotocol import request
 from ubuntuone.syncdaemon import config
 from ubuntuone.syncdaemon.action_queue import Download, Upload
@@ -1240,44 +1240,28 @@ class SyncdaemonService(SyncdaemonObject):
 
         self.interface.shutdown(with_restart=with_restart)
 
-    @defer.inlineCallbacks
     @log_call(logger.info)
-    def connect(self, autoconnecting=False):
-        """Push the SYS_USER_CONNECT event with the token.
+    def connect(self, autoconnecting=True):
+        """Push the SYS_USER_CONNECT event with the stored credentials.
 
-        The token is requested via com.ubuntuone.credentials service. If
-        'autoconnecting' is True, no UI window will be raised to prompt the
-        user for login/registration, only already existent credentials will be
-        used.
+        If 'autoconnecting' is False, nothing will be done.
 
         """
-        if self.auth_credentials is not None:
-            logger.debug('connect: auth credentials were given by parameter.')
-            token = self.auth_credentials
-        else:
-            try:
-                token = yield self._request_token(
-                    autoconnecting=autoconnecting)
-            except Exception as e:
-                logger.exception('failure while getting the token')
-                raise NoAccessToken(e)
+        d = defer.succeed(None)
 
-            if not token:
-                raise NoAccessToken("got empty credentials.")
+        if not autoconnecting:
+            logger.info('connect: autoconnecting not set, doing nothing.')
+            return d
 
-        self.main.event_q.push('SYS_USER_CONNECT', access_token=token)
+        if self.auth_credentials is None:
+            logger.error('connect: autoconnecting set but no credentials.')
+            return defer.fail(NoAccessToken("got empty credentials."))
 
-    def _request_token(self, autoconnecting):
-        """Request to SSO auth service to fetch the token."""
-        # FIXME: we need to unbind this from SSO, probably just
-        # get tokens from keyring
-        # call ubuntu sso
-        management = credentials.CredentialsManagementTool()
-        # return the deferred, since we are no longer using signals
-        if autoconnecting:
-            return management.find_credentials()
-        else:
-            return management.login(window_id=0)  # no window ID
+        logger.debug('connect: auth credentials were given by parameter.')
+        self.main.event_q.push(
+            'SYS_USER_CONNECT', access_token=self.auth_credentials)
+
+        return d
 
     @log_call(logger.debug)
     def disconnect(self):

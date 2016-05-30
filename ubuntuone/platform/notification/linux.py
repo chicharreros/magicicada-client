@@ -37,16 +37,16 @@ try:
 except ImportError:
     pass
 
+from ubuntuone.clientdefs import NAME
 from ubuntuone.status.notification import AbstractNotification
 
-APPLICATION_NAME = 'Magicicada Client'
-ICON_NAME = "ubuntuone"
+ICON_NAME = NAME.lower()
 
 
 class Notification(AbstractNotification):
     """Notification of the end user."""
 
-    def __init__(self, application_name=APPLICATION_NAME):
+    def __init__(self, application_name=NAME):
         self.application_name = application_name
         self.notification = None
 
