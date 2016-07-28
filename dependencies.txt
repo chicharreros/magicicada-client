@@ -2,6 +2,8 @@ gir1.2-notify
 gir1.2-soup-2.4
 protobuf-compiler
 python-configglue
+python-dirspec
+python-distutils-extra
 python-gi
 python-httplib2
 python-protobuf

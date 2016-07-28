@@ -1,6 +1,5 @@
 bzr
 make
-python-distutils-extra
 python-flake8
 python-mocker
 python-virtualenv

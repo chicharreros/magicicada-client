@@ -43,7 +43,8 @@ class LauncherUnity(object):
     """The launcher icon."""
 
     def __init__(self):
-        self.entry = Unity.LauncherEntry.get_for_desktop_id(U1_DOTDESKTOP)
+        self.entry = Unity.LauncherEntry.get_for_desktop_id(
+            CONTROLPANEL_DOTDESKTOP)
 
     def show_progressbar(self):
         """Show the progress bar."""
