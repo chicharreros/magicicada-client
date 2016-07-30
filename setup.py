@@ -37,7 +37,8 @@ try:
 except ImportError:
     print >> sys.stderr, 'To build this program you need '\
                          'https://launchpad.net/python-distutils-extra'
-    print >> sys.stderr, '\n'.join(sorted(os.listdir('/usr/lib/python2.7/dist-packages')))
+    print >> sys.stderr, '\n'.join(sorted(os.listdir('/usr/lib/python2.7/dist-packages/DistUtilsExtra')))
+    print >> sys.stderr, '\n'.join(sorted(os.listdir('/usr/lib/python2.7/dist-packages/DistUtilsExtra/command')))
     sys.exit(1)
 assert DistUtilsExtra.auto.__version__ >= '2.18', \
     'needs DistUtilsExtra.auto >= 2.18'
