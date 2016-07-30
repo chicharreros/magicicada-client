@@ -111,7 +111,6 @@ class PromptMock(dbus.service.Object):
     def __init__(self, dismissed=True,
                  result=dbus.String("", variant_level=1), *args, **kwargs):
         """Initialize this instance."""
-        
         super(PromptMock, self).__init__(*args, **kwargs)
         self.dismissed = dismissed
         self.result = result
@@ -223,7 +222,6 @@ class SecretServiceMock(dbus.service.Object):
 
     def __init__(self, *args, **kwargs):
         """Initialize this instance."""
-        
         super(SecretServiceMock, self).__init__(*args, **kwargs)
         self.sessions = {}
         self.collections = {}
@@ -378,17 +376,14 @@ class AltSecretServiceMock(SecretServiceMock):
     clxn_label_property = txsecrets.CLXN_LABEL_PROPERTY
     collections_property = txsecrets.COLLECTIONS_PROPERTY
 
-    
     @dbus.service.method(dbus_interface=txsecrets.SERVICE_IFACE,
                          in_signature="a{sv}s", out_signature="oo")
     def CreateCollection(self, properties, alias):
         """Create a new collection with the specified properties."""
-        
         collection, prompt = super(AltSecretServiceMock,
                                    self).CreateCollection(properties)
         self.SetAlias(alias, collection)
         return collection, prompt
-    
 
 
 def create_object_path(base):

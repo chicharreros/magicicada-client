@@ -118,10 +118,9 @@ class WebClient(BaseWebClient):
         else:
             port = parsed_url.port
 
-        factory = self.client_factory(uri, method=method,
-                                       postdata=postdata,
-                                       headers=headers,
-                                       followRedirect=False)
+        factory = self.client_factory(
+            uri, method=method, postdata=postdata, headers=headers,
+            followRedirect=False)
         if https:
             self.connector.connectSSL(host, port, factory,
                                       self.context_factory)

@@ -33,14 +33,11 @@
 import logging
 import os
 import shutil
-import sys
 
 try:
-    from urllib.parse import (urlencode, unquote, urlparse,
-                              urljoin, parse_qsl)
+    from urllib.parse import urlencode
 except ImportError:
-    from urllib import urlencode, unquote
-    from urlparse import urlparse, urljoin, parse_qsl
+    from urllib import urlencode
 
 from OpenSSL import crypto
 from socket import gethostname
@@ -55,12 +52,9 @@ from ubuntuone.devtools.testing.txwebserver import (
     HTTPSWebServer,
 )
 
-
-from ubuntuone import keyring
 from ubuntuone.utils import webclient
 from ubuntuone.utils.webclient import gsettings, txweb
 from ubuntuone.utils.webclient.common import (
-    BaseWebClient,
     HeaderDict,
     UnauthorizedError,
     WebClientError,
@@ -154,12 +148,12 @@ class VerifyPostParameters(resource.Resource):
     def render_POST(self, request):
         """Verify the parameters that we've been called with."""
         post_params = self.fetch_post_args_only(request)
-        expected = dict((key, [val]) for key, val
-                                      in SAMPLE_POST_PARAMS.items())
+        expected = dict(
+            (key, [val]) for key, val in SAMPLE_POST_PARAMS.items())
         if post_params != expected:
             request.setResponseCode(http.BAD_REQUEST)
             return "ERROR: Expected arguments not present, %r != %r" % (
-                    post_params, expected)
+                post_params, expected)
         return SAMPLE_RESOURCE
 
 
@@ -206,8 +200,8 @@ def get_root_resource():
     db.addUser(SAMPLE_USERNAME, SAMPLE_PASSWORD)
     test_portal = portal.Portal(SimpleRealm(), [db])
     cred_factory = guard.BasicCredentialFactory("example.org")
-    guarded_resource = guard.HTTPAuthSessionWrapper(test_portal,
-                                                        [cred_factory])
+    guarded_resource = guard.HTTPAuthSessionWrapper(
+        test_portal, [cred_factory])
     root.putChild(GUARDED, guarded_resource)
     return root
 
@@ -300,8 +294,8 @@ class WebClientTestCase(TestCase):
         headers = {
             "content-type": "application/x-www-form-urlencoded",
         }
-        result = yield self.wc.request(iri, method="POST",
-                                      extra_headers=headers, post_content=args)
+        result = yield self.wc.request(
+            iri, method="POST", extra_headers=headers, post_content=args)
         self.assertEqual(SAMPLE_RESOURCE, result.content)
 
     @defer.inlineCallbacks
@@ -548,7 +542,6 @@ class BasicProxyTestCase(SquidTestCase):
         reason = "txweb does not support proxies."
         test_anonymous_proxy_is_used.skip = reason
         test_authenticated_proxy_is_used.kip = reason
-        test_auth_proxy_is_used_creds_requested.skip = reason
 
 
 class HeaderDictTestCase(TestCase):
@@ -673,15 +666,6 @@ class CorrectProxyTestCase(BaseSSLTestCase):
 
         # fake the gsettings to have diff settings for https and http
         http_settings = self.get_auth_proxy_settings()
-
-        # remember so that we can use them in the creds request
-        proxy_username = http_settings['username']
-        proxy_password = http_settings['password']
-
-        # delete the username and password so that we get a 407 for testing
-        del http_settings['username']
-        del http_settings['password']
-
         https_settings = self.get_nonauth_proxy_settings()
 
         proxy_settings = dict(http=http_settings, https=https_settings)

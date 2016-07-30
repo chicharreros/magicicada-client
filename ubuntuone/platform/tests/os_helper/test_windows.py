@@ -69,7 +69,10 @@ from ubuntuone.platform.os_helper.windows import (
     set_no_rights,
     WINDOWS_ILLEGAL_CHARS_MAP,
 )
-from ubuntuone.platform.tests.os_helper.test_os_helper import OSWrapperTests, WalkTests
+from ubuntuone.platform.tests.os_helper.test_os_helper import (
+    OSWrapperTests,
+    WalkTests,
+)
 
 
 # ugly trick to stop pylint for complaining about
@@ -309,7 +312,7 @@ class TestAccess(BaseTwistedTestCase):
         exc = self.assertRaises(WindowsError, _set_file_attributes,
                                 self.valid_path, groups)
         self.assertEqual(errno.ENOENT, exc.errno,
-                        'Errno should be file not found.')
+                         'Errno should be file not found.')
 
 
 class DecoratorsTestCase(TestCase):
@@ -319,8 +322,8 @@ class DecoratorsTestCase(TestCase):
         if method_name is None:
             self.assertRaises(AssertionError, assert_windows_path, path)
         else:
-            exc = self.assertRaises(AssertionError, assert_windows_path, path,
-                                     method_name)
+            exc = self.assertRaises(
+                AssertionError, assert_windows_path, path, method_name)
             self.assertTrue(method_name in exc.message)
 
     def test_assert_windows_path_slash(self):
@@ -395,8 +398,8 @@ class TestIllegalPathsWalk(WalkTests):
         """Walk the tree top-down."""
         valid_base_dir = get_windows_valid_path(self.basedir)
         result = os.walk(valid_base_dir, topdown)
-        expected = self._build_dict_from_walk(result,
-            path_transformer=get_syncdaemon_valid_path,
+        expected = self._build_dict_from_walk(
+            result, path_transformer=get_syncdaemon_valid_path,
             name_transformer=_unicode_to_bytes)
         super(TestIllegalPathsWalk, self).test_top_down(topdown=topdown,
                                                         expected=expected)
@@ -442,8 +445,8 @@ class TestSystemPaths(TestCase):
     def test_os_listdir(self):
         """Test the list dir."""
         expected_result = self.dirs + self.files
-        self.assertEqual(sorted(expected_result),
-                sorted(os_helper.listdir(self.temp)))
+        self.assertEqual(
+            sorted(expected_result), sorted(os_helper.listdir(self.temp)))
 
     def test_os_walk(self):
         """Test the walk."""

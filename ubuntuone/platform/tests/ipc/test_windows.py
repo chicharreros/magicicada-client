@@ -38,11 +38,8 @@ class IPCPortTestCase(TestCase):
 
     def test_get_sd_pb_port(self):
         """A test for the get_sd_pb_port function."""
-        sso_port = 50001
-        self.patch(windows, "get_sso_pb_port", lambda: sso_port)
         result = windows.get_sd_pb_port()
-        expected = sso_port + windows.SD_SSO_PORT_OFFSET
-        self.assertEqual(result, expected)
+        self.assertEqual(result, windows.SD_PORT)
 
 
 class DescriptionFactoryTestCase(TestCase):
@@ -54,8 +51,7 @@ class DescriptionFactoryTestCase(TestCase):
         self.patch(windows, 'get_sd_pb_port', lambda: port)
 
         factory = windows.DescriptionFactory()
-        self.assertEqual(factory.server_description_pattern % port,
-                factory.server)
-        self.assertEqual(factory.client_description_pattern % port,
-                factory.client)
-
+        self.assertEqual(
+            factory.server_description_pattern % port, factory.server)
+        self.assertEqual(
+            factory.client_description_pattern % port, factory.client)

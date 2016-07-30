@@ -188,8 +188,8 @@ class ActivationConfigTestCase(TestCase):
 
     def test_initialization(self):
         """Test the constructor."""
-        config = ActivationConfig(SAMPLE_SERVICE, SAMPLE_CMDLINE,
-                                                   SAMPLE_CLIENT_DESCRIPTION)
+        config = ActivationConfig(
+            SAMPLE_SERVICE, SAMPLE_CMDLINE, SAMPLE_CLIENT_DESCRIPTION)
         self.assertEqual(config.service_name, SAMPLE_SERVICE)
         self.assertEqual(config.command_line, SAMPLE_CMDLINE)
         self.assertEqual(config.description, SAMPLE_CLIENT_DESCRIPTION)
@@ -208,8 +208,7 @@ class ActivationDetectorTestCase(TestCase):
         """Initialize this test instance."""
         yield super(ActivationDetectorTestCase, self).setUp()
         self.description_factory = FakeDescriptionFactory(
-            self.server_description,
-            self.client_description)
+            self.server_description, self.client_description)
         self.config = ActivationConfig(SAMPLE_SERVICE, SAMPLE_CMDLINE,
                                        self.description_factory)
 
@@ -243,15 +242,12 @@ class ActivationDetectorTestCase(TestCase):
             @defer.inlineCallbacks
             def connect(my_self, factory):
                 """A fake connection."""
+                conn_fact = yield server.connect_client(PortDetectFactory)
+                self.patch(factory, 'is_listening', conn_fact.is_listening)
+                defer.returnValue(conn_fact)
 
-                connected_factory = yield server.connect_client(
-                        PortDetectFactory)
-                self.patch(factory, 'is_listening',
-                        connected_factory.is_listening)
-                defer.returnValue(connected_factory)
-
-        self.patch(tcpactivation, 'clientFromString',
-                lambda *args: TestConnect())
+        self.patch(
+            tcpactivation, 'clientFromString', lambda *args: TestConnect())
 
         yield server.listen_server(protocol.ServerFactory)
 
@@ -296,8 +292,8 @@ class ActivationClientTestCase(TestCase):
         """Test _do_get_active_description method when is not running."""
         server_spawned = []
         ac = ActivationClient(self.config)
-        self.patch(ac, "_spawn_server",
-                                lambda *args: server_spawned.append(args))
+        self.patch(
+            ac, "_spawn_server", lambda *args: server_spawned.append(args))
         self.patch(ac, "is_already_running", lambda: defer.succeed(False))
         self.patch(ac, "_wait_server_active", lambda: defer.succeed(None))
         result = yield ac._do_get_active_description()
@@ -342,7 +338,7 @@ class ActivationClientTestCase(TestCase):
         self.patch(ac, "is_already_running", lambda: defer.succeed(False))
         d = ac._wait_server_active()
         clock.pump([tcpactivation.DELAY_BETWEEN_CHECKS] *
-                      tcpactivation.NUMBER_OF_CHECKS)
+                   tcpactivation.NUMBER_OF_CHECKS)
         return self.assertFailure(d, ActivationTimeoutError)
 
     def test_spawn_server(self):
@@ -403,15 +399,12 @@ class ActivationInstanceTestCase(ServerTestCase):
             @defer.inlineCallbacks
             def connect(my_self, factory):
                 """A fake connection."""
+                conn_fact = yield server.connect_client(PortDetectFactory)
+                self.patch(factory, 'is_listening', conn_fact.is_listening)
+                defer.returnValue(conn_fact)
 
-                connected_factory = yield server.connect_client(
-                        PortDetectFactory)
-                self.patch(factory, 'is_listening',
-                        connected_factory.is_listening)
-                defer.returnValue(connected_factory)
-
-        self.patch(tcpactivation, 'clientFromString',
-                lambda *args: TestConnect())
+        self.patch(
+            tcpactivation, 'clientFromString', lambda *args: TestConnect())
 
         yield server.listen_server(protocol.ServerFactory)
 

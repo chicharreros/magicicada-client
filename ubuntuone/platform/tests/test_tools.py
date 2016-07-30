@@ -204,7 +204,8 @@ class TestToolsBasic(TestToolsBase):
         self.fs.fs = {mdid: mdobj, mdid2: mdobj2, mdid3: mdobj3}
 
         result = yield self.tool.search_files('file')
-        expected = [os.path.join(self.root_dir, 'path/to/file_test'),
+        expected = [
+            os.path.join(self.root_dir, 'path/to/file_test'),
             os.path.join(self.root_dir, 'path/to/my_files')]
         self.assertEqual(result, expected)
 
@@ -265,8 +266,6 @@ class TestWaitForSignals(TestToolsBase):
 
     signal_ok = 'Foo'
     signal_error = 'Bar'
-    success_filter = lambda *a: True
-    error_filter = lambda *a: True
 
     target_signal = signal_ok
     target_filter = 'success_filter'
@@ -274,9 +273,14 @@ class TestWaitForSignals(TestToolsBase):
     @defer.inlineCallbacks
     def setUp(self):
         yield super(TestWaitForSignals, self).setUp()
+        self.success_filter = self.return_true
+        self.error_filter = self.return_true
         self.signals = defaultdict(list)
         self.patch(self.tool, 'connect_signal', self.connect_signal)
         self.patch(self.tool, 'disconnect_signal', self.disconnect_signal)
+
+    def return_true(self, *a):
+        return True
 
     def connect_signal(self, signal_name, handler):
         """Fake signal connection."""
@@ -295,8 +299,9 @@ class TestWaitForSignals(TestToolsBase):
     @defer.inlineCallbacks
     def test_filter_yes(self):
         """Test emitting signal with filter returning True."""
-        d = self.tool.wait_for_signals(self.signal_ok, self.signal_error,
-                **{self.target_filter: lambda *a: True})
+        d = self.tool.wait_for_signals(
+            self.signal_ok, self.signal_error,
+            **{self.target_filter: lambda *a: True})
         expected = object()
         self.emit_signal(self.target_signal, expected)
 
@@ -309,8 +314,9 @@ class TestWaitForSignals(TestToolsBase):
 
     def test_filter_no(self):
         """Test emitting signal with filter returning False."""
-        d = self.tool.wait_for_signals(self.signal_ok, self.signal_error,
-                **{self.target_filter: lambda *a: False})
+        d = self.tool.wait_for_signals(
+            self.signal_ok, self.signal_error,
+            **{self.target_filter: lambda *a: False})
         expected = object()
         self.emit_signal(self.target_signal, expected)
 
@@ -328,8 +334,9 @@ class TestWaitForSignals(TestToolsBase):
             """Broken filter"""
             raise ValueError('DIE!!!!')
 
-        d = self.tool.wait_for_signals(self.signal_ok, self.signal_error,
-                **{self.target_filter: some_filter})
+        d = self.tool.wait_for_signals(
+            self.signal_ok, self.signal_error,
+            **{self.target_filter: some_filter})
         args = (object(), 123456789)
         self.emit_signal(self.target_signal, *args)
 
@@ -358,8 +365,9 @@ class TestWaitForSignalsEmitSignalError(TestWaitForSignals):
     @defer.inlineCallbacks
     def test_filter_yes(self):
         """Test emitting signal with filter returning True."""
-        d = self.tool.wait_for_signals(self.signal_ok, self.signal_error,
-                **{self.target_filter: lambda *a: True})
+        d = self.tool.wait_for_signals(
+            self.signal_ok, self.signal_error,
+            **{self.target_filter: lambda *a: True})
         expected = object()
         self.emit_signal(self.target_signal, expected)
 
@@ -418,21 +426,23 @@ class TestToolsSomeMore(TestToolsBase):
     def test_connect(self):
         """Test the connect method."""
         self.assertEqual(self.main.state_manager.state,
-                          states.StateManager.QUEUE_MANAGER)
+                         states.StateManager.QUEUE_MANAGER)
         d = self.main.wait_for('SYS_USER_DISCONNECT')
         self.tool.disconnect()
+
         def connect(r):
             d = self.main.wait_for('SYS_USER_CONNECT')
             self.tool.connect()
             d.addCallbacks(lambda x: x, self.fail)
             return d
+
         d.addCallbacks(connect, self.fail)
         return d
 
     def test_disconnect(self):
         """Test the disconnect method."""
         self.assertEqual(self.main.state_manager.state,
-                          states.StateManager.QUEUE_MANAGER)
+                         states.StateManager.QUEUE_MANAGER)
         d = self.main.wait_for('SYS_USER_DISCONNECT')
         self.tool.disconnect()
         d.addCallbacks(self.assertFalse, self.fail)

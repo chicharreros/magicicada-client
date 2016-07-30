@@ -154,8 +154,8 @@ class TestIllegalPathsWalk(test_os_helper.WalkTests):
     def test_top_down(self, topdown=True, expected=None):
         """Walk the tree top-down."""
         result = os.walk(self.basedir, topdown)
-        expected = self._build_dict_from_walk(result,
-            path_transformer=darwin.get_syncdaemon_valid_path,
+        expected = self._build_dict_from_walk(
+            result, path_transformer=darwin.get_syncdaemon_valid_path,
             name_transformer=darwin.get_syncdaemon_valid_path)
         super(TestIllegalPathsWalk, self).test_top_down(topdown=topdown,
                                                         expected=expected)

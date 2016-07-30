@@ -43,8 +43,7 @@ class DescriptionFactoryTestCase(TestCase):
         self.patch(unix, 'get_domain_socket', lambda: path)
 
         factory = unix.DescriptionFactory()
-        self.assertEqual(factory.server_description_pattern % path,
-                factory.server)
-        self.assertEqual(factory.client_description_pattern % path,
-                factory.client)
-
+        self.assertEqual(
+            factory.server_description_pattern % path, factory.server)
+        self.assertEqual(
+            factory.client_description_pattern % path, factory.client)

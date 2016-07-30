@@ -24,17 +24,6 @@ NetworkManagerState: class with listening thread, calls back with state changes
 
 import logging
 
-from threading import Thread
-
-from twisted.internet import defer
-
-from ubuntuone.networkstate import NetworkFailException
-from ubuntuone.networkstate.networkstates import (ONLINE, OFFLINE, UNKNOWN)
-
-logger = logging.getLogger(__name__)
-
-HOSTNAME_TO_CHECK = 'login.ubuntu.com'
-
 from ctypes import (
     CDLL,
     POINTER,
@@ -44,10 +33,21 @@ from ctypes import (
     c_bool,
     c_long,
     c_void_p,
-    c_uint32)
+    c_uint32,
+)
+from threading import Thread
+
+from twisted.internet import defer
+
+from ubuntuone.networkstate import NetworkFailException
+from ubuntuone.networkstate.networkstates import (ONLINE, OFFLINE, UNKNOWN)
+
 
 from ctypes.util import find_library
 
+
+logger = logging.getLogger(__name__)
+HOSTNAME_TO_CHECK = 'login.ubuntu.com'
 
 # Functions and constants below are from
 # /System/Library/CoreFoundation.framework/

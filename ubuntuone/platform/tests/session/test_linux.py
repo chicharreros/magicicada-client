@@ -114,8 +114,7 @@ class SessionDBusClientTestCase(DBusTestCase):
                  dbus.bus.NAME_FLAG_ALLOW_REPLACEMENT)
         name = self.bus.request_name(bus_name, flags=flags)
         self.assertNotEqual(name, dbus.bus.REQUEST_NAME_REPLY_EXISTS)
-        fake = object_class(object_path=object_path, conn=self.bus,
-                                 **kwargs)
+        fake = object_class(object_path=object_path, conn=self.bus, **kwargs)
         self.addCleanup(fake.remove_from_connection)
         self.addCleanup(self.bus.release_name, bus_name)
 
@@ -125,9 +124,8 @@ class SessionDBusClientTestCase(DBusTestCase):
     def test_inhibit_call(self):
         """Test the inhibit call."""
         fakeinhibitor = self.register_fakeserver(
-                                             session.SESSION_MANAGER_BUSNAME,
-                                             session.SESSION_MANAGER_PATH,
-                                             FakeGnomeSessionManagerInhibitor)
+            session.SESSION_MANAGER_BUSNAME, session.SESSION_MANAGER_PATH,
+            FakeGnomeSessionManagerInhibitor)
         inhibit_result = yield session.inhibit_logout_suspend("fake reason")
         self.assertNotEqual(None, inhibit_result)
         result = fakeinhibitor.IsInhibited(session.INHIBIT_LOGGING_OUT)

@@ -243,11 +243,11 @@ class SecretService(object):
         def set_default_alias(collection):
             """Set the newly created collection as the default one."""
             d4 = Deferred()
-            alias_set = lambda: d4.callback(collection)
             object_path = dbus.ObjectPath(collection.object_path)
-            self.service.SetAlias(DEFAULT_LABEL, object_path,
-                                  reply_handler=alias_set,
-                                  error_handler=d4.errback)
+            self.service.SetAlias(
+                DEFAULT_LABEL, object_path,
+                reply_handler=lambda: d4.callback(collection),
+                error_handler=d4.errback)
             return d4
 
         def readalias_handler(collection_path):

@@ -122,12 +122,13 @@ class TimestampCheckerTestCase(TestCase):
         fake_timestamp = 1
         self.patch(timestamp.time, "time", lambda: fake_timestamp)
         checker = timestamp.TimestampChecker(self.webclient_class)
-        failing_get_server_time = lambda _: defer.fail(FakedError())
-        self.patch(checker, "get_server_time", failing_get_server_time)
+        self.patch(
+            checker, "get_server_time", lambda _: defer.fail(FakedError()))
         yield checker.get_faithful_time()
         self.assertEqual(checker.skew, 0)
-        self.assertEqual(checker.next_check,
-                    fake_timestamp + timestamp.TimestampChecker.ERROR_INTERVAL)
+        self.assertEqual(
+            checker.next_check,
+            fake_timestamp + timestamp.TimestampChecker.ERROR_INTERVAL)
 
     @defer.inlineCallbacks
     def test_server_date_sends_nocache_headers(self):

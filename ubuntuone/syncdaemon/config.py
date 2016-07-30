@@ -90,7 +90,9 @@ _user_config_path = os.path.join(save_config_path('ubuntuone'),
 # this object is the shared config
 _user_config = None
 
-path_from_unix = lambda path: path.replace('/', os.path.sep)
+
+def path_from_unix(path):
+    return path.replace('/', os.path.sep)
 
 
 def home_dir_parser(value):

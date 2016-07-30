@@ -48,7 +48,7 @@ from ubuntuone.syncdaemon import config
 
 
 class TestConfigBasic(BaseTwistedTestCase):
-    """Basic _Config object tests"""
+    """Basic _Config object tests."""
 
     @defer.inlineCallbacks
     def setUp(self):
@@ -56,32 +56,30 @@ class TestConfigBasic(BaseTwistedTestCase):
         self.test_root = self.mktemp()
 
     def assertThrottlingSection(self, expected, current, on, read, write):
-        """Assert for equality two ConfigParser and against the on, read and
-        write args
-        """
-        self.assertEquals(expected.getboolean(config.THROTTLING, 'on'), on)
-        self.assertEquals(expected.getint(config.THROTTLING, 'read_limit'),
-                          read)
-        self.assertEquals(expected.getint(config.THROTTLING, 'write_limit'),
-                          write)
-        self.assertEquals(expected.getboolean(config.THROTTLING, 'on'),
-                          current.get_throttling())
-        self.assertEquals(expected.getint(config.THROTTLING, 'read_limit'),
-                          current.get_throttling_read_limit())
-        self.assertEquals(expected.getint(config.THROTTLING, 'write_limit'),
-                          current.get_throttling_write_limit())
+        """Assert equality for two ConfigParser."""
+        self.assertEqual(expected.getboolean(config.THROTTLING, 'on'), on)
+        self.assertEqual(
+            expected.getint(config.THROTTLING, 'read_limit'), read)
+        self.assertEqual(
+            expected.getint(config.THROTTLING, 'write_limit'), write)
+        self.assertEqual(expected.getboolean(config.THROTTLING, 'on'),
+                         current.get_throttling())
+        self.assertEqual(expected.getint(config.THROTTLING, 'read_limit'),
+                         current.get_throttling_read_limit())
+        self.assertEqual(expected.getint(config.THROTTLING, 'write_limit'),
+                         current.get_throttling_write_limit())
 
     def test_load_empty(self):
-        """test loading the a non-existent config file"""
+        """Test loading the a non-existent config file."""
         conf_file = os.path.join(self.test_root, 'test_missing_config.conf')
         # create the config object with an empty config file
         conf = config._Config(conf_file)
-        self.assertEquals(False, conf.get_throttling())
-        self.assertEquals(2097152, conf.get_throttling_read_limit())
-        self.assertEquals(2097152, conf.get_throttling_write_limit())
+        self.assertEqual(False, conf.get_throttling())
+        self.assertEqual(2097152, conf.get_throttling_read_limit())
+        self.assertEqual(2097152, conf.get_throttling_write_limit())
 
     def test_load_basic(self):
-        """test loading the config file containing only the throttling values"""
+        """Test loading the config file with only the throttling values."""
         conf_file = os.path.join(self.test_root, 'test_load_config.conf')
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
@@ -90,12 +88,12 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('read_limit = 1000\n')
             fp.write('write_limit = 200\n')
         conf = config._Config(conf_file)
-        self.assertEquals(True, conf.get_throttling())
-        self.assertEquals(1000, conf.get_throttling_read_limit())
-        self.assertEquals(200, conf.get_throttling_write_limit())
+        self.assertEqual(True, conf.get_throttling())
+        self.assertEqual(1000, conf.get_throttling_read_limit())
+        self.assertEqual(200, conf.get_throttling_write_limit())
 
     def test_load_extra_data(self):
-        """test loading the a config file with other sections too"""
+        """Test loading the a config file with other sections too."""
         conf_file = os.path.join(self.test_root, 'test_load_extra_config.conf')
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
@@ -108,12 +106,12 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('read_limit = 1000\n')
             fp.write('write_limit = 200\n')
         conf = config._Config(conf_file)
-        self.assertEquals(True, conf.get_throttling())
-        self.assertEquals(1000, conf.get_throttling_read_limit())
-        self.assertEquals(200, conf.get_throttling_write_limit())
+        self.assertEqual(True, conf.get_throttling())
+        self.assertEqual(1000, conf.get_throttling_read_limit())
+        self.assertEqual(200, conf.get_throttling_write_limit())
 
     def test_write_new(self):
-        """test writing the throttling section to a new config file"""
+        """Test writing the throttling section to a new config file."""
         conf_file = os.path.join(self.test_root, 'test_write_new_config.conf')
         self.assertFalse(path_exists(conf_file))
         conf = config._Config(conf_file)
@@ -127,7 +125,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         self.assertThrottlingSection(conf_1, conf, True, 1000, 100)
 
     def test_write_existing(self):
-        """test writing the throttling section to a existing config file"""
+        """Test writing the throttling section to a existing config file."""
         conf_file = os.path.join(self.test_root,
                                  'test_write_existing_config.conf')
         # write some throttling values to the config file
@@ -148,10 +146,9 @@ class TestConfigBasic(BaseTwistedTestCase):
         self.assertThrottlingSection(conf_1, conf, True, 2000, 200)
 
     def test_write_extra(self):
-        """test writing the throttling section back to the config file,
-        including extra sections
-        """
-        conf_file = os.path.join(self.test_root, 'test_write_extra_config.conf')
+        """Writing the throttling back to the file, with extra sections."""
+        conf_file = os.path.join(
+            self.test_root, 'test_write_extra_config.conf')
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
             fp.write('[__main__]\n')
@@ -172,15 +169,13 @@ class TestConfigBasic(BaseTwistedTestCase):
         conf_1 = ConfigParser()
         conf_1.read(conf_file)
         self.assertThrottlingSection(conf_1, conf, True, 3000, 300)
-        self.assertEquals(conf_1.get('__main__', 'log_level'),
-                          conf.get('__main__', 'log_level'))
-        self.assertEquals(conf_1.getboolean('__main__', 'disable_ssl_verify'),
-                          conf.getboolean('__main__', 'disable_ssl_verify'))
+        self.assertEqual(conf_1.get('__main__', 'log_level'),
+                         conf.get('__main__', 'log_level'))
+        self.assertEqual(conf_1.getboolean('__main__', 'disable_ssl_verify'),
+                         conf.getboolean('__main__', 'disable_ssl_verify'))
 
     def test_write_existing_partial(self):
-        """test writing a partially updated throttling section
-        to a existing config file
-        """
+        """Writing a partially updated throttling section to existing file."""
         conf_file = os.path.join(self.test_root,
                                  'test_write_existing_config.conf')
         # write some throttling values to the config file
@@ -199,7 +194,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         self.assertThrottlingSection(conf_1, conf, False, 1000, 100)
 
     def test_load_negative_limits(self):
-        """test loading the config file with negative read/write limits"""
+        """Test loading the config file with negative read/write limits."""
         conf_file = os.path.join(self.test_root, 'test_load_config.conf')
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
@@ -208,12 +203,12 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('read_limit = -1\n')
             fp.write('write_limit = -1\n')
         conf = config._Config(conf_file)
-        self.assertEquals(True, conf.get_throttling())
-        self.assertEquals(None, conf.get_throttling_read_limit())
-        self.assertEquals(None, conf.get_throttling_write_limit())
+        self.assertEqual(True, conf.get_throttling())
+        self.assertEqual(None, conf.get_throttling_read_limit())
+        self.assertEqual(None, conf.get_throttling_write_limit())
 
     def test_load_partial_config(self):
-        """test loading a partial config file and fallback to defaults"""
+        """Test loading a partial config file and fallback to defaults."""
         conf_file = os.path.join(self.test_root, 'test_load_config.conf')
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
@@ -221,12 +216,12 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('on = True\n')
             fp.write('read_limit = 1\n')
         conf = config._Config(conf_file)
-        self.assertEquals(True, conf.get_throttling())
-        self.assertEquals(1, conf.get_throttling_read_limit())
-        self.assertEquals(2097152, conf.get_throttling_write_limit())
+        self.assertEqual(True, conf.get_throttling())
+        self.assertEqual(1, conf.get_throttling_read_limit())
+        self.assertEqual(2097152, conf.get_throttling_write_limit())
 
     def test_override(self):
-        """test loading the config file containing only the throttling values"""
+        """Test loading the config file with only the throttling values."""
         conf_file = os.path.join(self.test_root, 'test_load_config.conf')
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
@@ -238,10 +233,10 @@ class TestConfigBasic(BaseTwistedTestCase):
         conf_orig = config._Config(conf_file)
         overridden_opts = [('bandwidth_throttling', 'on', False)]
         conf.override_options(overridden_opts)
-        self.assertEquals(False, conf.get_throttling())
+        self.assertEqual(False, conf.get_throttling())
         self.assertFalse(conf.get_throttling() == conf_orig.get_throttling())
-        self.assertEquals(1000, conf.get_throttling_read_limit())
-        self.assertEquals(200, conf.get_throttling_write_limit())
+        self.assertEqual(1000, conf.get_throttling_read_limit())
+        self.assertEqual(200, conf.get_throttling_write_limit())
         conf.save()
         # load the config in a barebone ConfigParser and check
         conf_1 = ConfigParser()
@@ -295,7 +290,7 @@ class TestConfigBasic(BaseTwistedTestCase):
                             conf_orig.get_udf_autosubscribe())
         conf.save()
         conf_1 = config._Config(conf_file)
-        self.assertEquals(True, conf_1.get_udf_autosubscribe())
+        self.assertEqual(True, conf_1.get_udf_autosubscribe())
 
     def test_load_share_autosubscribe(self):
         """Test load/set/override of share_autosubscribe config value."""
@@ -337,7 +332,7 @@ class TestConfigBasic(BaseTwistedTestCase):
                             conf_orig.get_share_autosubscribe())
         conf.save()
         conf_1 = config._Config(conf_file)
-        self.assertEquals(True, conf_1.get_share_autosubscribe())
+        self.assertEqual(True, conf_1.get_share_autosubscribe())
 
     def test_load_autoconnect(self):
         """Test load/set/override of autoconnect config value."""
@@ -385,7 +380,7 @@ class TestConfigBasic(BaseTwistedTestCase):
                             conf_orig.get_autoconnect())
         conf.save()
         conf_1 = config._Config(conf_file)
-        self.assertEquals(True, conf_1.get_autoconnect())
+        self.assertEqual(True, conf_1.get_autoconnect())
 
     def test_load_show_all_notifications(self):
         """Test load/set/override of show_all_notifications config value."""
@@ -433,8 +428,7 @@ class TestConfigBasic(BaseTwistedTestCase):
                             conf_orig.get_show_all_notifications())
         conf.save()
         conf_1 = config._Config(conf_file)
-        self.assertEquals(True, conf_1.get_show_all_notifications())
-
+        self.assertEqual(True, conf_1.get_show_all_notifications())
 
     def test_get_simult_transfers(self):
         """Get simult transfers."""
@@ -504,8 +498,8 @@ class UnicodePathsTestCase(TestCase):
         os.makedirs(fake_path)
         with open(os.path.join(fake_path, config.CONFIG_FILE), "w") as f:
             f.write("this is a fake config file")
-        fake_load_config_paths = lambda _: [fake_path.encode("utf8")]
-        self.patch(config, "load_config_paths", fake_load_config_paths)
+        self.patch(
+            config, "load_config_paths", lambda _: [fake_path.encode("utf8")])
         config_files = config.get_config_files()
         branch_config = os.path.join(fake_path, config.CONFIG_FILE)
         self.assertIn(branch_config, config_files)
@@ -515,30 +509,31 @@ class UnicodePathsTestCase(TestCase):
         config_files = [os.path.normpath(p) for p in config.get_config_files()]
         rootdir = os.environ['ROOTDIR']
         branch_config = os.path.join(rootdir, "data", config.CONFIG_FILE)
-        branch_logging_config = os.path.join(rootdir, "data", config.CONFIG_LOGS)
+        branch_logging_config = os.path.join(
+            rootdir, "data", config.CONFIG_LOGS)
         self.assertIn(branch_config, config_files)
-        self.assertIn(branch_logging_config, config_files)  
+        self.assertIn(branch_logging_config, config_files)
 
-        
+
 class ConfigglueParsersTests(BaseTwistedTestCase):
     """Tests for our custom configglue parsers."""
 
     def test_throttling_limit_parser(self):
-        """Test throttling_limit_parser"""
+        """Test throttling_limit_parser."""
         good_value = '20480'
         unset_value = '-1'
         bad_value = 'hola'
         invalid_value = None
         zero_value = '0'
         parser = config.throttling_limit_parser
-        self.assertEquals(20480, parser(good_value))
-        self.assertEquals(None, parser(unset_value))
+        self.assertEqual(20480, parser(good_value))
+        self.assertEqual(None, parser(unset_value))
         self.assertRaises(ValueError, parser, bad_value)
         self.assertRaises(TypeError, parser, invalid_value)
-        self.assertEquals(None, parser(zero_value))
+        self.assertEqual(None, parser(zero_value))
 
     def test_log_level_parser(self):
-        """Test log_level_parser"""
+        """Test log_level_parser."""
         good_value = 'INFO'
         bad_value = 'hola'
         invalid_value = None
@@ -599,7 +594,7 @@ class XdgDataParsersTests(XdgCacheParsersTests):
 
 
 class SyncDaemonConfigParserTests(BaseTwistedTestCase):
-    """Tests for SyncDaemonConfigParser"""
+    """Tests for SyncDaemonConfigParser."""
 
     @defer.inlineCallbacks
     def setUp(self):
@@ -623,10 +618,10 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEquals(self.cp.get('logging', 'level').value, 10)
+        self.assertEqual(self.cp.get('logging', 'level').value, 10)
 
     def test_log_level_new_config(self):
-        """Test log_level upgrade hook with new config"""
+        """Test log_level upgrade hook with new config."""
         conf_file = os.path.join(self.test_root, 'test_new_config.conf')
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
@@ -635,7 +630,7 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEquals(self.cp.get('logging', 'level').value, 10)
+        self.assertEqual(self.cp.get('logging', 'level').value, 10)
 
     def test_log_level_old_and_new_config(self):
         """Test log_level upgrade hook with a mixed config."""
@@ -650,10 +645,10 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEquals(self.cp.get('logging', 'level').value, logging.ERROR)
+        self.assertEqual(self.cp.get('logging', 'level').value, logging.ERROR)
 
     def test_old_default_config(self):
-        """Test log_level upgrade hook with an old default config"""
+        """Test log_level upgrade hook with an old default config."""
         self.cp.read(config.get_config_files()[0])
         # fake an old config
         value = self.cp.get('logging', 'level.default')
@@ -668,10 +663,10 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         # parse it
         self.cp.parse_all()
         new_value = self.cp.get('logging', 'level')
-        self.assertEquals(new_value.value, new_value.parser(value))
+        self.assertEqual(new_value.value, new_value.parser(value))
 
     def test_add_upgrade_hook(self):
-        """Test add_upgrade_hook method"""
+        """Test add_upgrade_hook method."""
         self.cp.add_upgrade_hook('foo', 'bar', lambda x: None)
         self.assertIn(('foo', 'bar'), self.cp.upgrade_hooks)
         # try to add the same upgrade_hook
@@ -687,8 +682,7 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEquals(self.cp.get('__main__', 'ignore').value,
-                          [r'.*\.pyc'])
+        self.assertEqual(self.cp.get('__main__', 'ignore').value, [r'.*\.pyc'])
 
     def test_ignore_two(self):
         """Test ignore files config, two regexes."""
@@ -700,8 +694,8 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEquals(self.cp.get('__main__', 'ignore').value,
-                          ['.*\\.pyc', '.*\\.sw[opnx]'])
+        self.assertEqual(self.cp.get('__main__', 'ignore').value,
+                         ['.*\\.pyc', '.*\\.sw[opnx]'])
 
     def test_fs_monitor_not_default(self):
         """Test get monitor."""
@@ -713,8 +707,8 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEquals(self.cp.get('__main__', 'fs_monitor').value,
-                monitor_id)
+        self.assertEqual(
+            self.cp.get('__main__', 'fs_monitor').value, monitor_id)
 
     def test_use_trash_default(self):
         """Test default configuration for use_trash."""

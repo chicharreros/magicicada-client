@@ -33,6 +33,11 @@ import sys
 
 from dirspec.utils import user_home
 
+from ubuntuone.platform import ipc
+from ubuntuone.platform import logger
+from ubuntuone.platform import os_helper
+
+
 # define a platform string separate from sys.platform to be sent to
 # the server for metrics in ActionQueue.authenticate().
 if sys.platform == "win32":
@@ -41,10 +46,6 @@ elif sys.platform == "darwin":
     platform = "darwin"
 else:
     platform = "linux"
-
-from ubuntuone.platform import ipc
-from ubuntuone.platform import logger
-from ubuntuone.platform import os_helper
 
 
 def expand_user(path):

@@ -57,13 +57,14 @@ def print_test():
     print '\tRoot dir: %s' % root_dir
     is_udf_autosubscribe_enabled = yield sdtool.is_udf_autosubscribe_enabled()
     print '\tAutosubscribe enabled: %s' % is_udf_autosubscribe_enabled
-    is_share_autosubscribe_enabled = yield sdtool.is_share_autosubscribe_enabled()
+    is_share_autosubscribe_enabled = (
+        yield sdtool.is_share_autosubscribe_enabled())
     print '\tAutosubscribe enabled: %s' % is_share_autosubscribe_enabled
-    is_show_all_notifications_enabled =\
-                            yield sdtool.is_show_all_notifications_enabled()
+    is_show_all_notifications_enabled = (
+        yield sdtool.is_show_all_notifications_enabled())
     print '\tShow all notifications: %s' % is_show_all_notifications_enabled
     reactor.stop()
-    
+
 
 if __name__ == '__main__':
     reactor.callLater(0, print_test)

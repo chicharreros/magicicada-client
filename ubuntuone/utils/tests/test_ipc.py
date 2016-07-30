@@ -99,7 +99,7 @@ class FakeReactor(object):
     def __init__(self):
         """Initialize this faker."""
         self.connection_class = namedtuple("Connection",
-                                         "host port factory backlog")
+                                           "host port factory backlog")
         self.connections = []
 
     def connectTCP(self, host, port, factory, timeout=None, bindAddress=None):
@@ -400,14 +400,12 @@ class TCPListenConnectTestCase(BaseIPCTestCase):
                                                      TEST_CLIENT_DESCRIPTION)
 
         fake_factory = object()
-        returned_protocol = yield ipc.client_connect(fake_factory,
-                                              TEST_SERVICE,
-                                              TEST_CMDLINE,
-                                              description_factory,
-                                              reactor=self.fake_reactor)
-
-        self.assertIn(('clientFromString', self.fake_reactor,
-                          description_factory.client), called)
+        returned_protocol = yield ipc.client_connect(
+            fake_factory, TEST_SERVICE, TEST_CMDLINE, description_factory,
+            reactor=self.fake_reactor)
+        expected = (
+            'clientFromString', self.fake_reactor, description_factory.client)
+        self.assertIn(expected, called)
         self.assertEqual(protocol, returned_protocol)
 
 
@@ -505,8 +503,8 @@ class RemoteMetaTestCase(TestCase):
                 return test_token
 
         tc = TestClass()
-        self.assertEquals(tc.test_method(), test_token)
-        self.assertEquals(tc.remote_test_method(), test_token)
+        self.assertEqual(tc.test_method(), test_token)
+        self.assertEqual(tc.remote_test_method(), test_token)
 
 
 class SignalBroadcasterTestCase(TestCase):
@@ -678,5 +676,5 @@ class ReconnectTestCase(TestCase):
         for name in clients:
             self.assertIn('get_%s' % name, self.called)
 
-        self.assertEqual(len(clients),
-                self.called.count('register_to_signals'))
+        self.assertEqual(
+            len(clients), self.called.count('register_to_signals'))

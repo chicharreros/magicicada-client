@@ -86,7 +86,9 @@ class BaseTestCase(BaseTwistedTestCase):
         self.testfile = os.path.join(self.basedir, test_file_name)
 
         if valid_file_path_builder is None:
-            valid_file_path_builder = lambda x: x  # skip
+
+            def valid_file_path_builder(x):
+                return x  # skip
 
         self.valid_file_path_builder = valid_file_path_builder
         self.valid_path = self.valid_file_path_builder(self.testfile)
@@ -228,8 +230,8 @@ class OSWrapperTests(BaseTestCase):
 
     def test_rename_not_there(self):
         """Rename something that does not exist."""
-        exc = self.assertRaises(OSError, rename,
-                          os.path.join(self.basedir, 'no'), 'foo')
+        exc = self.assertRaises(
+            OSError, rename, os.path.join(self.basedir, 'no'), 'foo')
         self.assertEqual(exc.errno, errno.ENOENT)
 
     def test_rename_file(self, target=None):
@@ -240,9 +242,11 @@ class OSWrapperTests(BaseTestCase):
         assert path_exists(self.testfile)
         rename(self.testfile, target)
 
-        self.assertFalse(path_exists(self.testfile),
+        self.assertFalse(
+            path_exists(self.testfile),
             'Path %r should not exist after rename.' % self.testfile)
-        self.assertTrue(path_exists(target),
+        self.assertTrue(
+            path_exists(target),
             'Path %r should exist after rename.' % target)
 
     def test_rename_dir(self, source=None, target=None):
@@ -255,9 +259,11 @@ class OSWrapperTests(BaseTestCase):
 
         rename(source, target)
 
-        self.assertFalse(path_exists(source),
+        self.assertFalse(
+            path_exists(source),
             'Path %r should not exist after rename.' % source)
-        self.assertTrue(path_exists(target),
+        self.assertTrue(
+            path_exists(target),
             'Path %r should exist after rename.' % target)
 
     def test_listdir(self, expected_result=None):

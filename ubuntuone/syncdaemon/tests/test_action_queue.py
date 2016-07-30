@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
 #
@@ -324,7 +324,8 @@ class BasicTestCase(BaseTwistedTestCase):
     def user_connect(self):
         """User requested to connect to server."""
         auth_info = dict(username='test_username', password='test_password')
-        self.action_queue.event_queue.push('SYS_USER_CONNECT', access_token=auth_info)
+        self.action_queue.event_queue.push(
+            'SYS_USER_CONNECT', access_token=auth_info)
 
 
 class BasicTests(BasicTestCase):
@@ -2830,7 +2831,10 @@ class DownloadTestCase(ConnectedBaseTestCase):
 
         class MyDownload(Download):
             """Just to allow monkeypatching."""
-            sync = lambda s: None
+
+            def sync(s):
+                return None
+
         self.command = MyDownload(self.rq, share_id='a_share_id',
                                   node_id='a_node_id',
                                   server_hash='server_hash', mdid=self.mdid)
@@ -3691,11 +3695,9 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.command.pause()
         # make it run again
         self.command._run()
-        try:
-            upload_id = self.command.action_queue.client.called[1][2]['upload_id']
-            self.assertEqual(upload_id, 'hola')
-        finally:
-            self.command.action_queue.client = None
+        upload_id = self.command.action_queue.client.called[1][2]['upload_id']
+        self.assertEqual(upload_id, 'hola')
+        self.addCleanup(setattr, self.command.action_queue, 'client', None)
 
     def test_uses_rb_flags_when_creating_temp_file(self):
         """Check that the 'b' flag is used for the temporary file."""
@@ -3961,8 +3963,9 @@ class SimpleAQTestCase(BasicTestCase):
         """handle_SYS_USER_CONNECT stores credentials."""
         self.assertEqual(self.action_queue.credentials, {})
         self.user_connect()
-        self.assertEqual(self.action_queue.credentials,
-                         {'password': 'test_password', 'username': 'test_username'})
+        self.assertEqual(
+            self.action_queue.credentials,
+            {'password': 'test_password', 'username': 'test_username'})
 
 
 class SpecificException(Exception):
@@ -4820,7 +4823,10 @@ class MoveTestCase(ConnectedBaseTestCase):
     def test_path_locking(self):
         """Test that it acquires correctly the path lock."""
         t = []
-        fake_acquire = lambda s, *a, **k: t.extend((a, k)) or defer.succeed(None)
+
+        def fake_acquire(s, *a, **k):
+            return t.extend((a, k)) or defer.succeed(None)
+
         self.patch(PathLockingTree, 'acquire', fake_acquire)
         cmd = Move(self.rq, VOLUME, 'node', 'o_parent', 'n_parent', 'n_name',
                    os.path.join(os.path.sep, 'path', 'from'),
@@ -5060,7 +5066,8 @@ class AuthenticateTestCase(ConnectedBaseTestCase):
         request = client.Authenticate(self.action_queue.client,
                                       {'dummy_token': 'credentials'})
         request.session_id = str(uuid.uuid4())
-        self.action_queue.client.simple_authenticate = lambda *args: defer.succeed(request)
+        self.action_queue.client.simple_authenticate = (
+            lambda *args: defer.succeed(request))
 
         yield self.action_queue.authenticate()
 
@@ -5083,7 +5090,8 @@ class AuthenticateTestCase(ConnectedBaseTestCase):
         yield self.action_queue.authenticate()
         self.assertEqual(len(called), 1)
         metadata = called[0][0][2]
-        expected_metadata = {'platform': platform, 'version': clientdefs.VERSION}
+        expected_metadata = {
+            'platform': platform, 'version': clientdefs.VERSION}
         self.assertEqual(metadata, expected_metadata)
 
 
@@ -5855,7 +5863,9 @@ class PingManagerTestCase(TwistedTestCase):
             """Fake object for the tests."""
             log = logging.getLogger("ubuntuone.SyncDaemon.ActionQueue")
             log.setLevel(logger.TRACE)
-            ping = lambda self: defer.Deferred()
+
+            def ping(self):
+                return defer.Deferred()
 
         self.fake_aqp = FakeActionQueueProtocol()
         self.handler = MementoHandler()

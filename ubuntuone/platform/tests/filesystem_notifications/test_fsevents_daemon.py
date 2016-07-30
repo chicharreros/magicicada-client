@@ -37,7 +37,6 @@ from ubuntuone import fseventsd
 try:
     from ubuntuone.devtools.testcases import skipIf
     from ubuntuone.devtools.testcases.txsocketserver import TidyUnixServer
-    TidyUnixServer = None
 except ImportError:
     from ubuntuone.devtools.testcase import skipIf
     TidyUnixServer = None
@@ -51,6 +50,7 @@ from ubuntuone.platform.filesystem_notifications.pyinotify_agnostic import (
     IN_MOVED_FROM,
     IN_MOVED_TO,
 )
+
 
 class FakeServerProtocol(protocol.Protocol):
     """A test protocol."""
@@ -131,6 +131,7 @@ class FakeProtocol(object):
     def add_path(self, path):
         """Add a path."""
         self.called.extend(['add_path', path])
+
 
 class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
     """Test the factory used to receive events."""
@@ -268,7 +269,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
             pyinotify_event = converted_events[0]
             self.assertEqual(0, pyinotify_event.wd)
             self.assertEqual(event.is_directory, pyinotify_event.dir)
-            self.assertEqual(fsevents_daemon.DARWIN_ACTIONS[action],
+            self.assertEqual(
+                fsevents_daemon.DARWIN_ACTIONS[action],
                 pyinotify_event.mask)
             self.assertEqual(event_path, pyinotify_event.pathname)
 
@@ -381,8 +383,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
         event.event_type = fseventsd.FSE_CREATE_FILE
         self.factory.process_event(event)
         self.assertEqual(1, len(self.processor.processed_events))
-        self.assertEqual(event_path,
-                self.processor.processed_events[0].pathname)
+        self.assertEqual(
+            event_path, self.processor.processed_events[0].pathname)
 
 
 class FilesystemMonitorTestCase(BaseTwistedTestCase):
@@ -407,8 +409,9 @@ class FilesystemMonitorTestCase(BaseTwistedTestCase):
         self.monitor._factory = self.factory
 
         # patch the connect
-        self.patch(fsevents_daemon.FilesystemMonitor, '_connect_to_daemon',
-                self.fake_connect_to_daemon)
+        self.patch(
+            fsevents_daemon.FilesystemMonitor, '_connect_to_daemon',
+            self.fake_connect_to_daemon)
 
     @defer.inlineCallbacks
     def test_shutdown_protocol(self):

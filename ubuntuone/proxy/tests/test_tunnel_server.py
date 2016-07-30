@@ -194,7 +194,7 @@ class FakeClient(object):
     def connect(self, hostport):
         """Establish a connection with the other end."""
         if (self.check_credentials and
-            self.protocol.proxy_credentials != FAKE_CREDS):
+                self.protocol.proxy_credentials != FAKE_CREDS):
             self.proxy_domain = "fake domain"
             return defer.fail(tunnel_server.ProxyAuthenticationError())
         return self.connection_result
@@ -209,7 +209,6 @@ class FakeClient(object):
 
     def close(self):
         """Reset this client."""
-
 
 
 class ServerTunnelProtocolTestCase(SquidTestCase):
@@ -411,7 +410,9 @@ class RemoteSocketTestCase(SquidTestCase):
     """Tests for the client that connects to the other side."""
 
     timeout = 3
-    get_proxy_settings = lambda _: {}
+
+    def get_proxy_settings(self):
+        return {}
 
     @defer.inlineCallbacks
     def setUp(self):
@@ -716,8 +717,8 @@ class MainFunctionTestCase(TestCase):
         """The QtDbus mainloop is installed."""
         self.patch(tunnel_server.sys, "platform", "linux123")
         installed = []
-        self.patch(tunnel_server, "install_qt_dbus",
-                  lambda: installed.append(None))
+        self.patch(
+            tunnel_server, "install_qt_dbus", lambda: installed.append(None))
         self.proxies_enabled = True
         tunnel_server.main(["example.com", "443"])
         self.assertEqual(len(installed), 1)
@@ -726,8 +727,8 @@ class MainFunctionTestCase(TestCase):
         """The QtDbus mainloop is installed."""
         self.patch(tunnel_server.sys, "platform", "win98")
         installed = []
-        self.patch(tunnel_server, "install_qt_dbus",
-                  lambda: installed.append(None))
+        self.patch(
+            tunnel_server, "install_qt_dbus", lambda: installed.append(None))
         self.proxies_enabled = True
         tunnel_server.main(["example.com", "443"])
         self.assertEqual(len(installed), 0)
@@ -735,7 +736,8 @@ class MainFunctionTestCase(TestCase):
     def test_fix_turkish_locale_called(self):
         """The fix_turkish_locale function is called, always."""
         called = []
-        self.patch(tunnel_server, "fix_turkish_locale",
-                   lambda *args, **kwargs: called.append((args, kwargs)))
+        self.patch(
+            tunnel_server, "fix_turkish_locale",
+            lambda *args, **kwargs: called.append((args, kwargs)))
         tunnel_server.main(["localhost", "443"])
         self.assertEqual(called, [((), {})])

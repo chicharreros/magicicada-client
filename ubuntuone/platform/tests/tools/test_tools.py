@@ -50,16 +50,17 @@ class TestSyncDaemonTool(TestCase):
     @defer.inlineCallbacks
     def setUp(self):
         yield super(TestSyncDaemonTool, self).setUp()
-        self.patch(perspective_broker.UbuntuOneClient, "connect",
-                lambda _: defer.Deferred())
+        self.patch(
+            perspective_broker.UbuntuOneClient, "connect",
+            lambda _: defer.Deferred())
         self.sdtool = perspective_broker.SyncDaemonToolProxy()
         self.calls = {}
 
     def test_call_after_connection(self):
         """Test the _call_after_connection method."""
         collected_calls = []
-        test_method = lambda *args: collected_calls.append(args)
-        test_method = self.sdtool._call_after_connection(test_method)
+        test_method = self.sdtool._call_after_connection(
+            lambda *args: collected_calls.append(args))
         test_method(123)
         self.assertEqual(len(collected_calls), 0)
         self.sdtool.connected.callback("got connected!")
@@ -68,12 +69,12 @@ class TestSyncDaemonTool(TestCase):
     def test_call_after_connection_connect(self):
         """Test execute connect in _call_after_connection method."""
         self.patch(self.sdtool.client, "is_connected", lambda: False)
-        my_connect = lambda *args, **kwargs: operator.setitem(
-                self.calls, "connect", (args, kwargs))
-        self.patch(self.sdtool.client, "connect", my_connect)
+        self.patch(
+            self.sdtool.client, "connect",
+            lambda *a, **kw: operator.setitem(self.calls, "connect", (a, kw)))
         collected_calls = []
-        test_method = lambda *args: collected_calls.append(args)
-        test_method = self.sdtool._call_after_connection(test_method)
+        test_method = self.sdtool._call_after_connection(
+            lambda *args: collected_calls.append(args))
         test_method(123)
         self.assertIn("connect", self.calls)
         self.assertEqual(self.calls["connect"], ((), {}))
@@ -81,12 +82,12 @@ class TestSyncDaemonTool(TestCase):
     def test_call_after_connection_not_connect(self):
         """Test execute connect in _call_after_connection method."""
         self.patch(self.sdtool.client, "is_connected", lambda: True)
-        my_connect = lambda *args, **kwargs: operator.setitem(
-                self.calls, "connect", (args, kwargs))
-        self.patch(self.sdtool.client, "connect", my_connect)
+        self.patch(
+            self.sdtool.client, "connect",
+            lambda *a, **kw: operator.setitem(self.calls, "connect", (a, kw)))
         collected_calls = []
-        test_method = lambda *args: collected_calls.append(args)
-        test_method = self.sdtool._call_after_connection(test_method)
+        test_method = self.sdtool._call_after_connection(
+            lambda *args: collected_calls.append(args))
         test_method(123)
         self.assertNotIn("connect", self.calls)
 
@@ -162,17 +163,19 @@ class PerspectiveBrokerReconnect(TestCase):
             """Fake connect_signal call."""
             self.connected_signals.append(('connect_signal', args, kwargs))
 
-        self.patch(perspective_broker.SyncDaemonToolProxy, 'connect_signal',
-                connect_signal)
+        self.patch(
+            perspective_broker.SyncDaemonToolProxy, 'connect_signal',
+            connect_signal)
 
         def fake_reconnect(_):
             """Fake the reconnection of the client."""
             self.reconnected = True
 
-        self.patch(perspective_broker.UbuntuOneClient, 'reconnect',
-                fake_reconnect)
-        self.patch(perspective_broker.UbuntuOneClient, 'connect',
-                lambda _: defer.succeed(True))
+        self.patch(
+            perspective_broker.UbuntuOneClient, 'reconnect', fake_reconnect)
+        self.patch(
+            perspective_broker.UbuntuOneClient, 'connect',
+            lambda _: defer.succeed(True))
 
     @defer.inlineCallbacks
     def test_reconnect_no_signals(self):
@@ -252,7 +255,10 @@ class PerspectiveBrokerConnectSignal(TestCase):
         data = []
 
         signal_name = "PublicFilesList"
-        func = lambda *a: data.append(a)
+
+        def func(*a):
+            return data.append(a)
+
         self.sdtool.connect_signal(signal_name, func)
         self.sdtool.connect_signal(signal_name, func)
 

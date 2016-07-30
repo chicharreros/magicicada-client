@@ -126,8 +126,8 @@ class DeadlineTimerTestCase(TimerTestCase):
         """Initialize this test instance."""
         yield super(DeadlineTimerTestCase, self).setUp()
         self.clock = PatchedClock()
-        self.timer = aggregator.DeadlineTimer(delay=0.5, timeout=3.0,
-                                            clock=self.clock)
+        self.timer = aggregator.DeadlineTimer(
+            delay=0.5, timeout=3.0, clock=self.clock)
 
     def test_fired_if_initial_timeout_exceeded(self):
         """Timer is fired if the initial timeout is exceeded."""
@@ -173,8 +173,8 @@ class FakeNotification(AbstractNotification):
 
     def send_notification(self, title, message, icon=None, append=False):
         """Show a notification to the user."""
-        if (self.notification_switch is not None
-            and not self.notification_switch.enabled):
+        if (self.notification_switch is not None and
+                not self.notification_switch.enabled):
             return
         self.notification = (title, message, icon, append)
         self.notifications_shown.append((title, message, icon, append))
@@ -406,22 +406,22 @@ class FileDiscoveryBubbleTestCase(TestCase):
 
     def test_idle_state(self):
         """The idle state is verified."""
-        self.assertEqual(type(self.bubble.state),
-                                   aggregator.FileDiscoveryIdleState)
+        self.assertEqual(
+            type(self.bubble.state), aggregator.FileDiscoveryIdleState)
 
     def test_gathering_state(self):
         """The gathering state is set after the first file is found."""
         self.bubble.new_file_found()
-        self.assertEqual(type(self.bubble.state),
-                                   aggregator.FileDiscoveryGatheringState)
+        self.assertEqual(
+            type(self.bubble.state), aggregator.FileDiscoveryGatheringState)
 
     def test_update_state(self):
         """When the gathering state finishes, the update state is started."""
         self.bubble.connection_made()
         self.bubble.new_file_found()
         self.clock.advance(self.initial_delay)
-        self.assertEqual(type(self.bubble.state),
-                                   aggregator.FileDiscoveryUpdateState)
+        self.assertEqual(
+            type(self.bubble.state), aggregator.FileDiscoveryUpdateState)
 
     def test_sleeping_state(self):
         """When the update state finishes, the sleeping state is started."""
@@ -429,8 +429,8 @@ class FileDiscoveryBubbleTestCase(TestCase):
         self.bubble.new_file_found()
         self.clock.advance(self.initial_delay)
         self.clock.advance(self.updates_timeout)
-        self.assertEqual(type(self.bubble.state),
-                                   aggregator.FileDiscoverySleepState)
+        self.assertEqual(
+            type(self.bubble.state), aggregator.FileDiscoverySleepState)
 
     def test_back_to_initial_state(self):
         """When the last state finishes, we return to the idle state."""
@@ -439,8 +439,8 @@ class FileDiscoveryBubbleTestCase(TestCase):
         self.clock.advance(self.initial_delay)
         self.clock.advance(self.updates_timeout)
         self.clock.advance(self.sleep_delay)
-        self.assertEqual(type(self.bubble.state),
-                                   aggregator.FileDiscoveryIdleState)
+        self.assertEqual(
+            type(self.bubble.state), aggregator.FileDiscoveryIdleState)
 
     def test_new_files_found_while_updating_not_shown_immediately(self):
         """New files found in the updating state are not shown immediately."""
@@ -808,7 +808,8 @@ class StatusFrontendTestCase(BaseTwistedTestCase):
         self.assertEqual(transfers, expected)
 
         menu_data = self.listener.menu_data()
-        self.assertEqual(menu_data,
+        self.assertEqual(
+            menu_data,
             {UPLOADING: [],
              DOWNLOADING: [],
              RECENT_TRANSFERS: expected})
@@ -822,7 +823,8 @@ class StatusFrontendTestCase(BaseTwistedTestCase):
         expected = [('testfile.txt', 200, 0)]
         self.assertEqual(uploading, expected)
         menu_data = self.listener.menu_data()
-        self.assertEqual(menu_data,
+        self.assertEqual(
+            menu_data,
             {UPLOADING: expected,
              DOWNLOADING: [],
              RECENT_TRANSFERS: []})
@@ -838,7 +840,8 @@ class StatusFrontendTestCase(BaseTwistedTestCase):
         self.assertEqual(uploading, expected)
 
         menu_data = self.listener.menu_data()
-        self.assertEqual(menu_data,
+        self.assertEqual(
+            menu_data,
             {UPLOADING: expected,
              DOWNLOADING: [],
              RECENT_TRANSFERS: []})
@@ -852,7 +855,8 @@ class StatusFrontendTestCase(BaseTwistedTestCase):
         expected = [('testfile.txt', 200, 0)]
         self.assertEqual(downloading, expected)
         menu_data = self.listener.menu_data()
-        self.assertEqual(menu_data,
+        self.assertEqual(
+            menu_data,
             {DOWNLOADING: expected,
              UPLOADING: [],
              RECENT_TRANSFERS: []})
@@ -868,7 +872,8 @@ class StatusFrontendTestCase(BaseTwistedTestCase):
         self.assertEqual(downloading, expected)
 
         menu_data = self.listener.menu_data()
-        self.assertEqual(menu_data,
+        self.assertEqual(
+            menu_data,
             {DOWNLOADING: expected,
              UPLOADING: [],
              RECENT_TRANSFERS: []})
@@ -1372,8 +1377,8 @@ class StatusAggregatorTestCase(TestCase):
 
     def test_register_progress_listener_fail(self):
         """Check that register listener fails with not Callable objects."""
-        self.assertRaises(TypeError,
-            self.aggregator.register_progress_listener, [])
+        self.assertRaises(
+            TypeError, self.aggregator.register_progress_listener, [])
         self.assertEqual(len(self.aggregator.progress_listeners), 0)
 
     def test_register_connection_listener(self):
@@ -1387,8 +1392,8 @@ class StatusAggregatorTestCase(TestCase):
 
     def test_register_connection_listener_fail(self):
         """Check that register listener fails with not Callable objects."""
-        self.assertRaises(TypeError,
-            self.aggregator.register_connection_listener, [])
+        self.assertRaises(
+            TypeError, self.aggregator.register_connection_listener, [])
         self.assertEqual(len(self.aggregator.connection_listeners), 0)
 
     def test_connection_notifications(self):
@@ -1735,7 +1740,7 @@ class HundredFeetTestCase(TestCase):
         # the progress bar is now shown
         self.assertTrue(sf.aggregator.progress_bar.visible)
         notifications_shown = (sf.aggregator.file_discovery_bubble.
-                                             notification.notifications_shown)
+                               notification.notifications_shown)
         # no notifications shown yet
         self.assertEqual(0, len(notifications_shown))
         clock.advance(aggregator.FileDiscoveryGatheringState.initial_delay)
@@ -1776,7 +1781,7 @@ class HundredFeetTestCase(TestCase):
         # the progress bar is now shown
         self.assertTrue(sf.aggregator.progress_bar.visible)
         notifications_shown = (sf.aggregator.file_discovery_bubble.
-                                             notification.notifications_shown)
+                               notification.notifications_shown)
         # no notifications shown, never
         self.assertEqual(0, len(notifications_shown))
         clock.advance(aggregator.FileDiscoveryGatheringState.initial_delay)

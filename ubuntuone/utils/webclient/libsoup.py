@@ -68,8 +68,8 @@ class WebClient(BaseWebClient):
         if message.status_code == httplib.OK:
             headers = HeaderDict()
             response_headers = message.get_property("response-headers")
-            add_header = lambda key, value, _: headers[key].append(value)
-            response_headers.foreach(add_header, None)
+            response_headers.foreach(
+                lambda key, value, _: headers[key].append(value), None)
             content = message.response_body.flatten().get_data()
             response = Response(content, headers)
             d.callback(response)

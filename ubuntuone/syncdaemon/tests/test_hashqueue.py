@@ -54,10 +54,11 @@ FAKE_TIMESTAMP = 1
 
 
 class FakeEventQueue(object):
-    """Helper class."""
+    """Faked EventQueue class."""
 
     def __init__(self, deferred, expected_events=1):
         """Initialize this fake instance."""
+        super(FakeEventQueue, self).__init__()
         self.deferred = deferred
         self.received = []
         self.expected_events = expected_events
@@ -74,6 +75,7 @@ class FakeTimeModule(object):
 
     def __init__(self):
         """Initialize this fake instance."""
+        super(FakeTimeModule, self).__init__()
         self.timestamp = 1000
         self.sleep_calls = []
         self.time_calls = []
@@ -87,6 +89,22 @@ class FakeTimeModule(object):
         """A forced nap."""
         self.sleep_calls.append(delay)
         self.timestamp += delay
+
+
+class FakeReceiver(object):
+    """Fake Receiver class."""
+
+    def __init__(self, events_limit=1):
+        super(FakeReceiver, self).__init__()
+        self.events = []
+        self.deferred = defer.Deferred()
+        self.events_limit = events_limit
+
+    def push(self, event, **kwargs):
+        """Callback."""
+        self.events.append((event, kwargs))
+        if len(self.events) == self.events_limit:
+            self.deferred.callback((event, kwargs))
 
 
 class FixedOrderedDictTestCase(BaseTwistedTestCase):
@@ -133,12 +151,7 @@ class HasherTests(BaseTwistedTestCase):
         # create the hasher
         mark = object()
         queue = hash_queue.UniqueQueue()
-        class Helper(object):
-            """Helper class."""
-            def push(self, event, **kwargs):
-                """Callback."""
-        receiver = Helper()
-        hasher = hash_queue._Hasher(queue, mark, receiver)
+        hasher = hash_queue._Hasher(queue, mark, FakeReceiver())
         hasher.start()
 
         # it's aliveeeeeeee!
@@ -146,11 +159,11 @@ class HasherTests(BaseTwistedTestCase):
 
         # stop it, and release the processor to let the other thread run
         hasher.stop()
+        self.addCleanup(hasher.join, timeout=5)
         time.sleep(.1)
 
         # "I see dead threads"
         self.assertFalse(hasher.isAlive())
-        hasher.join(timeout=5)
 
     @defer.inlineCallbacks
     def test_called_back_log_ok(self):
@@ -158,19 +171,14 @@ class HasherTests(BaseTwistedTestCase):
         # create the hasher
         mark = object()
         queue = hash_queue.UniqueQueue()
-        d = defer.Deferred()
-        class Helper(object):
-            """Helper class."""
-            def push(self, event, **kwargs):
-                """Callback."""
-                d.callback(kwargs)
-        receiver = Helper()
+        receiver = FakeReceiver()
         hasher = hash_queue._Hasher(queue, mark, receiver)
 
         # log config
         handler = MementoHandler()
         handler.setLevel(logging.DEBUG)
         hasher.logger.addHandler(handler)
+        self.addCleanup(hasher.logger.removeHandler, handler)
 
         # send what to hash
         testfile = os.path.join(self.test_dir, "testfile")
@@ -183,7 +191,7 @@ class HasherTests(BaseTwistedTestCase):
         hasher.start()
 
         # wait event and stop hasher
-        yield d
+        yield receiver.deferred
         hasher.stop()
         hasher.join(timeout=5)
 
@@ -197,20 +205,14 @@ class HasherTests(BaseTwistedTestCase):
         self.assertTrue("st_ino" in log_msg)
         self.assertTrue("st_size" in log_msg)
         self.assertTrue("st_mtime" in log_msg)
-        hasher.logger.removeHandler(handler)
 
+    @defer.inlineCallbacks
     def test_called_back_ok(self):
         """Test that the hasher produces correct info."""
         # create the hasher
         mark = object()
         queue = hash_queue.UniqueQueue()
-        d = defer.Deferred()
-        class Helper(object):
-            """Helper class."""
-            def push(self, event, **kwargs):
-                """Callback."""
-                d.callback((event, kwargs))
-        receiver = Helper()
+        receiver = FakeReceiver()
         hasher = hash_queue._Hasher(queue, mark, receiver)
 
         # send what to hash
@@ -222,40 +224,31 @@ class HasherTests(BaseTwistedTestCase):
 
         # start the hasher after putting the work items
         hasher.start()
-
-        def check_info((event, kwargs)):
-            """check the info pushed by the hasher"""
-            hasher.stop()
-            hasher.join(timeout=5)
-            self.assertEqual(event, "HQ_HASH_NEW")
-            # calculate what we should receive
-            realh = content_hash_factory()
-            realh.hash_object.update("foobar")
-            should_be = realh.content_hash()
-            curr_stat = stat_path(testfile)
-            self.assertEquals(should_be, kwargs['hash'])
-            for attr in ('st_mode', 'st_ino', 'st_dev', 'st_nlink', 'st_uid',
-                         'st_gid', 'st_size', 'st_ctime', 'st_mtime'):
-                self.assertEquals(getattr(curr_stat, attr),
-                                  getattr(kwargs['stat'], attr))
-
-
-        d.addCallback(check_info)
         # release the processor and check
-        return d
+        event, kwargs = yield receiver.deferred
+        # stop hasher
+        hasher.stop()
+        hasher.join(timeout=5)
 
+        self.assertEqual(event, "HQ_HASH_NEW")
+        # calculate what we should receive
+        realh = content_hash_factory()
+        realh.hash_object.update("foobar")
+        should_be = realh.content_hash()
+        curr_stat = stat_path(testfile)
+        self.assertEqual(should_be, kwargs['hash'])
+        for attr in ('st_mode', 'st_ino', 'st_dev', 'st_nlink', 'st_uid',
+                     'st_gid', 'st_size', 'st_ctime', 'st_mtime'):
+            self.assertEqual(getattr(curr_stat, attr),
+                             getattr(kwargs['stat'], attr))
+
+    @defer.inlineCallbacks
     def test_called_back_error(self):
         """Test that the hasher signals error when no file."""
         # create the hasher
         mark = object()
         queue = hash_queue.UniqueQueue()
-        d = defer.Deferred()
-        class Helper(object):
-            """Helper class."""
-            def push(self, event, **kwargs):
-                """Callback."""
-                d.callback((event, kwargs))
-        receiver = Helper()
+        receiver = FakeReceiver()
         hasher = hash_queue._Hasher(queue, mark, receiver)
 
         # send what to hash
@@ -264,19 +257,16 @@ class HasherTests(BaseTwistedTestCase):
 
         # start the hasher after putting the work items
         hasher.start()
-
-        def check_info((event, kwargs)):
-            """Check the info pushed by the hasher."""
-            hasher.stop()
-            hasher.join(timeout=5)
-            self.assertEqual(event, "HQ_HASH_ERROR")
-            self.assertEqual(kwargs['mdid'], "foo")
-
-
-        d.addCallback(check_info)
         # release the processor and check
-        return d
+        event, kwargs = yield receiver.deferred
+        # stop hasher
+        hasher.stop()
+        hasher.join(timeout=5)
 
+        self.assertEqual(event, "HQ_HASH_ERROR")
+        self.assertEqual(kwargs['mdid'], "foo")
+
+    @defer.inlineCallbacks
     def test_order(self):
         """The hasher should return in order."""
         # calculate what we should receive
@@ -296,24 +286,7 @@ class HasherTests(BaseTwistedTestCase):
         mark = object()
         queue = hash_queue.UniqueQueue()
         d = defer.Deferred()
-
-        class Helper(object):
-            """Helper class."""
-            # class-closure, cannot use self, pylint: disable-msg=E0213
-            def __init__(innerself):
-                innerself.store = []
-            def push(innerself, event, **kwargs):
-                """Callback."""
-                innerself.store.append((event, kwargs))
-                if len(innerself.store) == 10:
-                    hasher.stop()
-                    hasher.join(timeout=5)
-                    if innerself.store == should_be:
-                        d.callback(True)
-                    else:
-                        d.errback(Exception("are different!"))
-        receiver = Helper()
-
+        receiver = FakeReceiver(events_limit=10)
         hasher = hash_queue._Hasher(queue, mark, receiver)
 
         # send what to hash
@@ -324,9 +297,15 @@ class HasherTests(BaseTwistedTestCase):
 
         # start the hasher after putting the work items
         hasher.start()
+        # release the processor and check
+        event, kwargs = yield receiver.deferred
+        # stop hasher
+        hasher.stop()
+        hasher.join(timeout=5)
 
-        return d
+        self.assertEqual(receiver.events, should_be)
 
+    @defer.inlineCallbacks
     def test_large_content(self):
         """The hasher works ok for a lot of info."""
         # calculate what we should receive
@@ -340,23 +319,7 @@ class HasherTests(BaseTwistedTestCase):
         mark = object()
         queue = hash_queue.UniqueQueue()
 
-        d = defer.Deferred()
-
-        class Helper(object):
-            """Helper class."""
-            def push(self, event, path, hash, crc32, size, stat):
-                """callback"""
-                hasher.stop()
-                hasher.join(timeout=5)
-                if event != "HQ_HASH_NEW":
-                    d.errback(Exception("envent is not HQ_HASH_NEW"))
-                elif path != testfile:
-                    d.errback(Exception("path is not the original one"))
-                elif hash != testhash:
-                    d.errback(Exception("the hashes are different!"))
-                else:
-                    d.callback(True)
-        receiver = Helper()
+        receiver = FakeReceiver()
         hasher = hash_queue._Hasher(queue, mark, receiver)
         # send what to hash
         with open_file(testfile, "wb") as fh:
@@ -366,8 +329,15 @@ class HasherTests(BaseTwistedTestCase):
 
         # start the hasher after putting the work items
         hasher.start()
+        # release the processor and check
+        event, kwargs = yield receiver.deferred
+        # stop hasher
+        hasher.stop()
+        hasher.join(timeout=5)
 
-        return d
+        self.assertEqual(event, "HQ_HASH_NEW")
+        self.assertEqual(kwargs.get('path'), testfile)
+        self.assertEqual(kwargs.get('hash'), testhash)
 
     @defer.inlineCallbacks
     def test_open_file_with_rb(self):
@@ -375,6 +345,7 @@ class HasherTests(BaseTwistedTestCase):
         called = []
 
         orig = hash_queue.open_file
+
         def faked_open_file(*a):
             called.append(a)
             return orig(*a)
@@ -420,8 +391,8 @@ class HasherSleepTests(BaseTwistedTestCase):
 
         self.event_d = defer.Deferred()
         self.eq = FakeEventQueue(self.event_d, expected_events)
-        self.hasher = hash_queue._Hasher(queue=self.queue, end_mark='end-mark',
-                                    event_queue=self.eq)
+        self.hasher = hash_queue._Hasher(
+            queue=self.queue, end_mark='end-mark', event_queue=self.eq)
 
         def stop_hasher():
             """Safely stop the hasher."""
@@ -493,7 +464,6 @@ class HasherSleepTests(BaseTwistedTestCase):
         self.assertEqual(self.fake_time.sleep_calls, expected_naps)
 
 
-
 class HashQueueTests(BaseTwistedTestCase):
     """Test the whole stuff to receive signals."""
 
@@ -508,16 +478,11 @@ class HashQueueTests(BaseTwistedTestCase):
         self.log.info("starting test %s.%s", self.__class__.__name__,
                       self._testMethodName)
 
+    @defer.inlineCallbacks
     def test_called_back_ok(self):
         """Test that the hasher produces correct info."""
         # create the hasher
-        d = defer.Deferred()
-        class Helper(object):
-            """Helper class."""
-            def push(self, event, **kwargs):
-                """Callback."""
-                d.callback((event, kwargs))
-        receiver = Helper()
+        receiver = FakeReceiver()
         hq = hash_queue.HashQueue(receiver)
         self.addCleanup(hq.shutdown)
 
@@ -527,40 +492,33 @@ class HashQueueTests(BaseTwistedTestCase):
             fh.write("foobar")
         hq.insert(testfile, "mdid")
 
-        def check_info((event, kwargs)):
-            """check the info pushed by the hasher"""
-            self.assertEqual(event, "HQ_HASH_NEW")
-            # calculate what we should receive
-            realh = content_hash_factory()
-            realh.hash_object.update("foobar")
-            should_be = realh.content_hash()
-            curr_stat = stat_path(testfile)
-            self.assertEquals(should_be, kwargs['hash'])
-            for attr in ('st_mode', 'st_ino', 'st_dev', 'st_nlink', 'st_uid',
-                         'st_gid', 'st_size', 'st_ctime', 'st_mtime'):
-                self.assertEquals(getattr(curr_stat, attr),
-                                  getattr(kwargs['stat'], attr))
+        # release the processor and check
+        event, kwargs = yield receiver.deferred
 
-        d.addCallback(check_info)
-        return d
+        self.assertEqual(event, "HQ_HASH_NEW")
+        # calculate what we should receive
+        realh = content_hash_factory()
+        realh.hash_object.update("foobar")
+        should_be = realh.content_hash()
+        curr_stat = stat_path(testfile)
+        self.assertEqual(should_be, kwargs['hash'])
+        for attr in ('st_mode', 'st_ino', 'st_dev', 'st_nlink', 'st_uid',
+                     'st_gid', 'st_size', 'st_ctime', 'st_mtime'):
+            self.assertEqual(getattr(curr_stat, attr),
+                             getattr(kwargs['stat'], attr))
 
     @defer.inlineCallbacks
     def test_called_back_error(self):
         """Test that the hasher generates an error when no file."""
         # create the hasher
-        d = defer.Deferred()
-        class Helper(object):
-            """Helper class."""
-            def push(self, event, **kwargs):
-                """Callback."""
-                d.callback((event, kwargs))
-        receiver = Helper()
+        receiver = FakeReceiver()
         hq = hash_queue.HashQueue(receiver)
         self.addCleanup(hq.shutdown)
         call_later_called = []
 
         # the call is delayed
         original_call_later = reactor.callLater
+
         def fake_call_later(delay, func, *args, **kwargs):
             """Fake call later that checks and calls."""
             if func == reactor.callFromThread:
@@ -570,12 +528,13 @@ class HashQueueTests(BaseTwistedTestCase):
                 self.assertEqual(kwargs, dict(mdid='foo'))
                 call_later_called.append(True)
             return original_call_later(delay, func, *args, **kwargs)
+
         self.patch(reactor, 'callLater', fake_call_later)
 
         # send what to hash
         hq.insert("not_to_be_found", "foo")
 
-        event, kwargs = yield d
+        event, kwargs = yield receiver.deferred
         self.assertEqual(event, "HQ_HASH_ERROR")
         self.assertEqual(kwargs['mdid'], "foo")
         self.assertTrue(call_later_called)
@@ -596,31 +555,28 @@ class HashQueueTests(BaseTwistedTestCase):
         self.addCleanup(hq.shutdown)
 
         event = threading.Event()
-        original_hash = hash_queue._Hasher._hash
 
         def f(*a):
             """Fake _hash."""
             event.wait()
             return "foo"
-        hash_queue._Hasher._hash = f
 
-        try:
-            # nothing yet
-            self.assertFalse(hq.is_hashing(tfile1, "mdid"))
+        self.patch(hash_queue._Hasher, '_hash', f)
+        self.addCleanup(event.set)
 
-            # push something, test for it and for other stuff
-            hq.insert(tfile1, "mdid")
-            self.assertTrue(hq.is_hashing(tfile1, "mdid"))
-            self.assertFalse(hq.is_hashing(tfile2, "mdid"))
+        # nothing yet
+        self.assertFalse(hq.is_hashing(tfile1, "mdid"))
 
-            # push tfile2, that gets queued, and check again
-            hq.insert(tfile2, "mdid")
-            self.assertTrue(hq.is_hashing(tfile2, "mdid"))
-        finally:
-            event.set()
-            hash_queue._Hasher._hash = original_hash
+        # push something, test for it and for other stuff
+        hq.insert(tfile1, "mdid")
+        self.assertTrue(hq.is_hashing(tfile1, "mdid"))
+        self.assertFalse(hq.is_hashing(tfile2, "mdid"))
 
+        # push tfile2, that gets queued, and check again
+        hq.insert(tfile2, "mdid")
+        self.assertTrue(hq.is_hashing(tfile2, "mdid"))
 
+    @defer.inlineCallbacks
     def test_order(self):
         """The hasher should return in order."""
         # calculate what we should receive
@@ -636,22 +592,7 @@ class HashQueueTests(BaseTwistedTestCase):
                      crc32=crc32(text), size=len(text), stat=stat_path(tfile))
             should_be.append(("HQ_HASH_NEW", d))
 
-        d = defer.Deferred()
-        class Helper(object):
-            """Helper class."""
-            # class-closure, cannot use self, pylint: disable-msg=E0213
-            def __init__(innerself):
-                innerself.store = []
-            def push(innerself, event, **kwargs):
-                """Callback."""
-                innerself.store.append((event, kwargs))
-                if len(innerself.store) == 10:
-                    if innerself.store[:-1] == should_be[:-1]:
-                        d.callback(True)
-                    else:
-                        d.errback(Exception("are different! "))
-        receiver = Helper()
-
+        receiver = FakeReceiver(events_limit=10)
         hq = hash_queue.HashQueue(receiver)
         self.addCleanup(hq.shutdown)
 
@@ -659,8 +600,12 @@ class HashQueueTests(BaseTwistedTestCase):
         for i in range(10):
             tfile = os.path.join(self.test_dir, "tfile"+str(i))
             hq.insert(tfile, "mdid")
-        return d
 
+        # release the processor and check
+        event, kwargs = yield receiver.deferred
+        self.assertEqual(receiver.events, should_be)
+
+    @defer.inlineCallbacks
     def test_unique(self):
         """The hasher should return in order."""
         # calculate what we should receive
@@ -676,23 +621,7 @@ class HashQueueTests(BaseTwistedTestCase):
                      crc32=crc32(text), size=len(text), stat=stat_path(tfile))
             should_be.append(("HQ_HASH_NEW", d))
 
-        d = defer.Deferred()
-        class Helper(object):
-            """Helper class."""
-            # class-closure, cannot use self, pylint: disable-msg=E0213
-            def __init__(innerself):
-                innerself.store = []
-            def push(innerself, event, **kwargs):
-                """Callback."""
-                innerself.store.append((event, kwargs))
-                if len(innerself.store) == 10:
-                    if innerself.store == should_be:
-                        d.callback(True)
-                    else:
-                        d.errback(Exception("are different!"))
-
-        receiver = Helper()
-
+        receiver = FakeReceiver(events_limit=10)
         hq = hash_queue.HashQueue(receiver)
         self.addCleanup(hq.shutdown)
         # stop the hasher so we can test the unique items in the queue
@@ -717,8 +646,15 @@ class HashQueueTests(BaseTwistedTestCase):
         for i in range(9, 10):
             tfile = os.path.join(self.test_dir, "tfile"+str(i))
             hq.insert(tfile, "mdid")
-        return d
 
+        # release the processor and check
+        event, kwargs = yield receiver.deferred
+        # stop hasher
+        hq.hasher.stop()
+        hq.hasher.join(timeout=5)
+        self.assertEqual(receiver.events, should_be)
+
+    @defer.inlineCallbacks
     def test_interrupt_current(self):
         """Test that the hasher correctly interrupts a inprogress task."""
         # calculate what we should receive
@@ -730,27 +666,6 @@ class HashQueueTests(BaseTwistedTestCase):
         # send what to hash
         with open_file(testfile, "wb") as fh:
             fh.write(testinfo)
-
-        d = defer.Deferred()
-
-        class Helper(object):
-            """Helper class, acts as a event_queue."""
-
-            def push(self, event, path, hash, crc32, size, stat):
-                """Callback."""
-                msg = None
-                if event != "HQ_HASH_NEW":
-                    msg = "envent is not HQ_HASH_NEW (got %r instead)." % event
-                elif path != testfile:
-                    msg = "path is not the original %r (got %r instead)." % \
-                          (testfile, path)
-                elif hash != testhash:
-                    msg = "hash is not the original %r (got %r instead)." % \
-                          (testhash, hash)
-                if msg:
-                    d.errback(Exception(msg))
-                else:
-                    d.callback(True)
 
         class FakeFile(StringIO):
             """An endless file."""
@@ -786,27 +701,24 @@ class HashQueueTests(BaseTwistedTestCase):
         open_faker = OpenFaker([testfile])
         hash_queue.open_file = open_faker
 
-        receiver = Helper()
+        receiver = FakeReceiver()
         hq = hash_queue.HashQueue(receiver)
-        def cleanup():
-            """Cleanup the mess."""
-            hash_queue.open_file = old_open
-            hq.shutdown()
-        self.addCleanup(cleanup)
+        self.addCleanup(setattr, hash_queue, 'open_file', old_open)
+        self.addCleanup(hq.shutdown)
+
         hq.insert(testfile, "mdid")
 
         # insert it again, to cancel the first one
         reactor.callLater(0.1, hq.insert, testfile, "mdid")
-        return d
+
+        event, kwargs = yield receiver.deferred
+        self.assertEqual(event, "HQ_HASH_NEW")
+        self.assertEqual(kwargs.get('path'), testfile)
+        self.assertEqual(kwargs.get('hash'), testhash)
 
     def test_shutdown(self):
         """Test that the HashQueue shutdown """
-        class Helper(object):
-            """Helper class."""
-            def push(self, event, **kwargs):
-                """Callback."""
-        receiver = Helper()
-        hq = hash_queue.HashQueue(receiver)
+        hq = hash_queue.HashQueue(FakeReceiver())
         hq.shutdown()
         self.assertTrue(hq._stopped)
 
@@ -820,13 +732,7 @@ class HashQueueTests(BaseTwistedTestCase):
         # send what to hash
         with open_file(testfile, "wb") as fh:
             fh.write(testinfo)
-
-        class Helper(object):
-            """Helper class."""
-            def push(self, event, **kwargs):
-                """Callback."""
-        receiver = Helper()
-        hq = hash_queue.HashQueue(receiver)
+        hq = hash_queue.HashQueue(FakeReceiver())
         # read in small chunks, so we have more iterations
         hq.hasher.chunk_size = 2**10
         hq.insert(testfile, "mdid")
@@ -837,17 +743,12 @@ class HashQueueTests(BaseTwistedTestCase):
         hq._queue.join()
         self.assertFalse(hq.hasher.hashing)
         self.assertTrue(hq.hasher._stopped)
-        #self.assertFalse(hq.hasher.isAlive())
+        # self.assertFalse(hq.hasher.isAlive())
         self.assertTrue(hq._queue.empty())
 
     def test_insert_post_shutdown(self):
         """test inserting a path after the shutdown"""
-        class Helper(object):
-            """Helper class."""
-            def push(self, event, **kwargs):
-                """Callback."""
-        receiver = Helper()
-        hq = hash_queue.HashQueue(receiver)
+        hq = hash_queue.HashQueue(FakeReceiver())
         hq.shutdown()
         hq.insert('foo', 'mdid')
         self.assertFalse(hq.is_hashing('foo', 'mdid'))
@@ -861,17 +762,17 @@ class UniqueQueueTests(TwistedTestCase):
         queue = hash_queue.UniqueQueue()
         queue.put(('item1', "mdid"))
         queue.put(('item1', "mdid"))
-        self.assertEquals(1, queue.qsize())
+        self.assertEqual(1, queue.qsize())
         queue.get()
-        self.assertEquals(0, queue.qsize())
+        self.assertEqual(0, queue.qsize())
         queue.put(('item1', "mdid"))
         queue.put(('item2', "mdid"))
         queue.put(('item1', "mdid"))
         queue.put(('item2', "mdid"))
-        self.assertEquals(2, queue.qsize())
+        self.assertEqual(2, queue.qsize())
         queue.get()
         queue.get()
-        self.assertEquals(0, queue.qsize())
+        self.assertEqual(0, queue.qsize())
 
     def test_previous_item_discarded(self):
         """It's the previous instance of an item the one that's discarded."""
@@ -910,31 +811,30 @@ class UniqueQueueTests(TwistedTestCase):
         queue = hash_queue.UniqueQueue()
         queue.put(('item1', "mdid"))
         queue.put(('item2', "mdid"))
-        self.assertEquals(2, queue.qsize())
+        self.assertEqual(2, queue.qsize())
         # check that queue.clear actually clear the queue
         queue.clear()
-        self.assertEquals(0, queue.qsize())
+        self.assertEqual(0, queue.qsize())
         queue.put(('item3', "mdid"))
         queue.put(('item4', "mdid"))
         queue.get()
-        self.assertEquals(2, queue.unfinished_tasks)
-        self.assertEquals(1, queue.qsize())
+        self.assertEqual(2, queue.unfinished_tasks)
+        self.assertEqual(1, queue.qsize())
         # check that queue.clear also cleanup unfinished_tasks
         queue.clear()
-        self.assertEquals(0, queue.unfinished_tasks)
-        self.assertEquals(0, queue.qsize())
+        self.assertEqual(0, queue.unfinished_tasks)
+        self.assertEqual(0, queue.qsize())
 
     def test_clear_unfinished_tasks(self):
         """test the clear wakeup waiting threads."""
         queue = hash_queue.UniqueQueue()
         d = defer.Deferred()
-        # helper function, pylint: disable-msg=C0111
+
         def consumer(queue, d):
             # wait util unfinished_tasks == 0
             queue.join()
             reactor.callFromThread(d.callback, True)
 
-        # helper function, pylint: disable-msg=C0111
         def check(result):
             self.assertTrue(result)
 

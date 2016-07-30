@@ -119,9 +119,11 @@ def ipc_client_connect(client_factory, reactor=None):
 
 
 def remote_handler(handler):
+    result = handler
     if handler:
-        handler = lambda x: handler.callRemote('execute', x)
-    return handler
+        def result(x):
+            return handler.callRemote('execute', x)
+    return result
 
 
 class RemoteMeta(type):

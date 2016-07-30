@@ -33,7 +33,7 @@ SD_PORT = 5555
 
 def get_sd_pb_port():
     """Returns the host and port for this user."""
-    return SD_PORT_OFFSET
+    return SD_PORT
 
 
 class DescriptionFactory(object):

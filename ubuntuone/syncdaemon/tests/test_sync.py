@@ -84,7 +84,8 @@ class TestSyncClassAPI(unittest.TestCase):
             event = EVENTS[handle.replace('handle_', '')]
             spec = getargspec(handler).args[1:]
             # the argspec must also match (same order same variable names)
-            self.assertEqual(list(event), spec,
+            self.assertEqual(
+                list(event), spec,
                 "Handler %s args do not match event args %s" % (handle, event))
 
 
@@ -97,7 +98,7 @@ class FSKeyTestCase(BaseTwistedTestCase):
         yield super(FSKeyTestCase, self).setUp()
         self.shares_dir = self.mktemp('shares')
         self.root_dir = self.mktemp('root')
-        self.fsmdir = self.mktemp( "fsmdir")
+        self.fsmdir = self.mktemp("fsmdir")
         self.partials_dir = self.mktemp("partials")
         self.tritcask_dir = self.mktemp("tritcask_dir")
         self.db = Tritcask(self.tritcask_dir)
@@ -130,11 +131,11 @@ class FSKeyTests(FSKeyTestCase):
         path = os.path.join(self.share.path, 'path')
         mdid = self.fsm.create(path, "share", node_id='uuid1')
         key = FSKey(self.fsm, path=path)
-        self.assertEquals(mdid, key.get_mdid())
+        self.assertEqual(mdid, key.get_mdid())
         key = FSKey(self.fsm, share_id='share', node_id='uuid1')
-        self.assertEquals(mdid, key.get_mdid())
+        self.assertEqual(mdid, key.get_mdid())
         key = FSKey(self.fsm, mdid=mdid)
-        self.assertEquals(mdid, key.get_mdid())
+        self.assertEqual(mdid, key.get_mdid())
         # with bad keys
         key = FSKey(self.fsm, share='share', node_id='uuid1')
         self.assertRaises(KeyError, key.get_mdid)
@@ -148,11 +149,11 @@ class FSKeyTests(FSKeyTestCase):
         self.fsm.create(path, "share", node_id='uuid1')
         key = FSKey(self.fsm, path=path)
         key.set(local_hash='a_hash')
-        self.assertEquals('a_hash', key._changes['local_hash'])
+        self.assertEqual('a_hash', key._changes['local_hash'])
         key.set(server_hash='a_hash_1')
-        self.assertEquals('a_hash_1', key._changes['server_hash'])
+        self.assertEqual('a_hash_1', key._changes['server_hash'])
         key.sync()
-        self.assertEquals({}, key._changes)
+        self.assertEqual({}, key._changes)
 
     def test_sync(self):
         """test sync of the changes to the fsm"""
@@ -165,10 +166,10 @@ class FSKeyTests(FSKeyTestCase):
         key.sync()
         # get the mdobj and check the values
         mdobj = self.fsm.get_by_mdid(mdid)
-        self.assertEquals('server_hash', mdobj.server_hash)
-        self.assertEquals('local_hash', mdobj.local_hash)
-        self.assertEquals('share', mdobj.share_id)
-        self.assertEquals('uuid1', mdobj.node_id)
+        self.assertEqual('server_hash', mdobj.server_hash)
+        self.assertEqual('local_hash', mdobj.local_hash)
+        self.assertEqual('share', mdobj.share_id)
+        self.assertEqual('uuid1', mdobj.node_id)
 
     def test_mdid_reset(self):
         """Test for mdid reset after a deletion"""
@@ -208,8 +209,8 @@ class FSKeyTests(FSKeyTestCase):
         # create the node again
         self.fsm.create(path, "share", node_id='uuid1')
         key.sync()
-        self.assertNotEquals('server_hash',
-                             self.fsm.get_by_path(path).server_hash)
+        self.assertNotEqual(
+            'server_hash', self.fsm.get_by_path(path).server_hash)
         # now check the delete_file method
         key = FSKey(self.fsm, path=path)
         key.set(server_hash="server_hash1")
@@ -218,8 +219,8 @@ class FSKeyTests(FSKeyTestCase):
         # create the node again
         self.fsm.create(path, "share", node_id='uuid1')
         key.sync()
-        self.assertNotEquals('server_hash1',
-                             self.fsm.get_by_path(path).server_hash)
+        self.assertNotEqual('server_hash1',
+                            self.fsm.get_by_path(path).server_hash)
 
     def test_subscribed_yes_nodecreated(self):
         """Ask if subscribed (yes) for a node that exists."""
@@ -297,6 +298,7 @@ class BaseSync(BaseTwistedTestCase):
         yield self.fsm.vm.add_share(share)
         defer.returnValue(share)
 
+
 class TestUsingRealFSMonitor(BaseSync):
     """Class for tests that require a real FS monitor."""
     timeout = 3
@@ -332,6 +334,7 @@ class TestUsingRealFSMonitor(BaseSync):
         self.main.start()
         d.addCallback(cb)
         return d
+
 
 class TestSync(BaseSync):
     """Test for Sync."""
@@ -541,19 +544,21 @@ class TestSync(BaseSync):
         failure = Failure(Exception('foo'))
         params = {'not_authorized': 'F', 'not_available': 'F'}
         self.sync.handle_AQ_FILE_NEW_ERROR('marker', failure)
-        self.assertEqual(called[1:],
-                        ['AQ_FILE_NEW_ERROR', params, failure, 'marker'])
+        self.assertEqual(
+            called[1:], ['AQ_FILE_NEW_ERROR', params, failure, 'marker'])
 
     def test_AQ_FILE_NEW_ERROR_md_ok(self):
         """Error creating the file, MD is ok."""
         # fake method
         called = []
         realf = SyncStateMachineRunner.filedir_error_in_creation
+
         def fake(*args):
             """Call the original function, but storing the args."""
             called.extend(args)
             realf(*args)
             SyncStateMachineRunner.filedir_error_in_creation = realf
+
         SyncStateMachineRunner.filedir_error_in_creation = fake
 
         # create the node
@@ -566,7 +571,7 @@ class TestSync(BaseSync):
         params = {'not_authorized': 'F', 'not_available': 'F'}
         self.sync.handle_AQ_FILE_NEW_ERROR(mdid, failure)
         self.assertEqual(called[1:],
-                        ['AQ_FILE_NEW_ERROR', params, failure, mdid])
+                         ['AQ_FILE_NEW_ERROR', params, failure, mdid])
 
     def test_AQ_FILE_NEW_ERROR_md_says_dir(self):
         """Error creating the file, MD says it's now a dir."""
@@ -584,7 +589,7 @@ class TestSync(BaseSync):
         params = {'not_authorized': 'F', 'not_available': 'F'}
         self.sync.handle_AQ_FILE_NEW_ERROR('marker', failure)
         self.assertEqual(called[1:],
-                        ['AQ_FILE_NEW_ERROR', params, failure, 'marker'])
+                         ['AQ_FILE_NEW_ERROR', params, failure, 'marker'])
 
     def test_AQ_DIR_NEW_ERROR_no_md(self):
         """Error creating the dir, MD is no longer there."""
@@ -598,18 +603,20 @@ class TestSync(BaseSync):
         params = {'not_authorized': 'F', 'not_available': 'F'}
         self.sync.handle_AQ_DIR_NEW_ERROR('marker', failure)
         self.assertEqual(called[1:],
-                        ['AQ_DIR_NEW_ERROR', params, failure, 'marker'])
+                         ['AQ_DIR_NEW_ERROR', params, failure, 'marker'])
 
     def test_AQ_DIR_NEW_ERROR_md_ok(self):
         """Error creating the dir, MD is ok."""
         # fake method
         called = []
         realf = SyncStateMachineRunner.filedir_error_in_creation
+
         def fake(*args):
             """Call the original function, but storing the args."""
             called.extend(args)
             realf(*args)
             SyncStateMachineRunner.filedir_error_in_creation = realf
+
         SyncStateMachineRunner.filedir_error_in_creation = fake
 
         # create the node
@@ -622,7 +629,7 @@ class TestSync(BaseSync):
         params = {'not_authorized': 'F', 'not_available': 'F'}
         self.sync.handle_AQ_DIR_NEW_ERROR(mdid, failure)
         self.assertEqual(called[1:],
-                        ['AQ_DIR_NEW_ERROR', params, failure, mdid])
+                         ['AQ_DIR_NEW_ERROR', params, failure, mdid])
 
     def test_AQ_DIR_NEW_ERROR_md_says_file(self):
         """Error creating the dir, MD says it's now a file."""
@@ -640,7 +647,7 @@ class TestSync(BaseSync):
         params = {'not_authorized': 'F', 'not_available': 'F'}
         self.sync.handle_AQ_DIR_NEW_ERROR('marker', failure)
         self.assertEqual(called[1:],
-                        ['AQ_DIR_NEW_ERROR', params, failure, 'marker'])
+                         ['AQ_DIR_NEW_ERROR', params, failure, 'marker'])
 
     def test_AQ_MOVE_OK_with_node(self):
         """Handle AQ_MOVE_OK having a node."""
@@ -973,9 +980,11 @@ class SyncStateMachineRunnerTestCase(BaseSync):
         else:
             self.fsm.set_by_mdid(self.mdid, upload_id=None)
         called = []
+
         def my_upload(*args, **kwargs):
             """AQ.upload method that only collect the arguments."""
             called.append((args, kwargs))
+
         self.patch(self.aq, 'upload', my_upload)
         yield
         self.assertEqual(len(called), 1)
@@ -1398,8 +1407,8 @@ class SyncStateMachineRunnerTestCase(BaseSync):
         self.fsm.set_node_id = lambda *a: called.append(a)
 
         # call the tested method and check
-        ssmr.new_server_file_having_local('event', {}, '', 'node_id',
-                                          'parent_id', 'name')
+        ssmr.new_server_file_having_local(
+            'event', {}, '', 'node_id', 'parent_id', 'name')
         self.assertEqual(called, [(somepath, 'node_id')])
 
 
@@ -1412,7 +1421,10 @@ class FakedState(object):
 
     def get_transition(self, event_name, parameters):
         """A fake get_transition."""
-        class A(object): pass
+
+        class A(object):
+            pass
+
         result = A()
         result.action_func = self.action_func
         result.target = self.values
@@ -1725,8 +1737,7 @@ class TestHandleAqDeltaOk(TestSyncDelta):
 
     def test_new_file(self):
         """Make sure a live file in the delta is in fs after executed."""
-        deltas = [ self.filetxtdelta ]
-
+        deltas = [self.filetxtdelta]
         kwargs = dict(volume_id=ROOT, delta_content=deltas, end_generation=11,
                       full=True, free_bytes=10)
         self.sync.handle_AQ_DELTA_OK(**kwargs)
@@ -1777,8 +1788,8 @@ class TestHandleAqDeltaOk(TestSyncDelta):
         kwargs = dict(volume_id=ROOT, delta_content=[dt2], end_generation=11,
                       full=True, free_bytes=10)
         called = []
-        self.sync._handle_SV_FILE_DELETED = \
-                   lambda *args, **kwargs: called.append((args, kwargs))
+        self.sync._handle_SV_FILE_DELETED = (
+            lambda *args, **kwargs: called.append((args, kwargs)))
         self.sync.handle_AQ_DELTA_OK(**kwargs)
 
         # check that the handler is called
@@ -1786,9 +1797,7 @@ class TestHandleAqDeltaOk(TestSyncDelta):
 
     def test_new_dir(self):
         """Make sure a live dir in the delta is in fs after executed."""
-
-        deltas = [ self.dirdelta ]
-
+        deltas = [self.dirdelta]
         kwargs = dict(volume_id=ROOT, delta_content=deltas, end_generation=11,
                       full=True, free_bytes=10)
         self.sync.handle_AQ_DELTA_OK(**kwargs)
@@ -1809,8 +1818,8 @@ class TestHandleAqDeltaOk(TestSyncDelta):
         kwargs = dict(volume_id=ROOT, delta_content=[dt2], end_generation=11,
                       full=True, free_bytes=10)
         called = []
-        self.sync._handle_SV_HASH_NEW = \
-                   lambda *args, **kwargs: called.append((args, kwargs))
+        self.sync._handle_SV_HASH_NEW = (
+            lambda *args, **kwargs: called.append((args, kwargs)))
         self.sync.handle_AQ_DELTA_OK(**kwargs)
 
         # check that the handler is called
@@ -1826,8 +1835,8 @@ class TestHandleAqDeltaOk(TestSyncDelta):
         kwargs = dict(volume_id=ROOT, delta_content=[dt2], end_generation=11,
                       full=True, free_bytes=10)
         called = []
-        self.sync._handle_SV_HASH_NEW = \
-                   lambda *args, **kwargs: called.append((args, kwargs))
+        self.sync._handle_SV_HASH_NEW = (
+            lambda *args, **kwargs: called.append((args, kwargs)))
         self.sync.handle_AQ_DELTA_OK(**kwargs)
 
         # check that the handler is called
@@ -1845,8 +1854,8 @@ class TestHandleAqDeltaOk(TestSyncDelta):
         kwargs = dict(volume_id=ROOT, delta_content=[dt2], end_generation=11,
                       full=True, free_bytes=10)
         called = []
-        self.sync._handle_SV_MOVED = \
-                   lambda *args, **kwargs: called.append((args, kwargs))
+        self.sync._handle_SV_MOVED = (
+            lambda *args, **kwargs: called.append((args, kwargs)))
         self.sync.handle_AQ_DELTA_OK(**kwargs)
 
         # check that the handler is called
@@ -1864,8 +1873,8 @@ class TestHandleAqDeltaOk(TestSyncDelta):
         kwargs = dict(volume_id=ROOT, delta_content=[dt2], end_generation=11,
                       full=True, free_bytes=10)
         called = []
-        self.sync._handle_SV_MOVED = \
-                   lambda *args, **kwargs: called.append((args, kwargs))
+        self.sync._handle_SV_MOVED = (
+            lambda *args, **kwargs: called.append((args, kwargs)))
         self.sync.handle_AQ_DELTA_OK(**kwargs)
 
         # check that the handler is called
@@ -1882,8 +1891,8 @@ class TestHandleAqDeltaOk(TestSyncDelta):
         kwargs = dict(volume_id=ROOT, delta_content=[dt2], end_generation=11,
                       full=True, free_bytes=10)
         called = []
-        self.sync._handle_SV_MOVED = \
-                   lambda *args, **kwargs: called.append((args, kwargs))
+        self.sync._handle_SV_MOVED = (
+            lambda *args, **kwargs: called.append((args, kwargs)))
         self.sync.handle_AQ_DELTA_OK(**kwargs)
 
         # check that the handler is called
@@ -1896,8 +1905,7 @@ class TestHandleAqDeltaOk(TestSyncDelta):
         dt2.is_live = False
         kwargs = dict(volume_id=ROOT, delta_content=[dt2], end_generation=11,
                       full=True, free_bytes=10)
-        self.sync._handle_SV_FILE_DELETED = \
-                   lambda *args, **kwargs: 1/0
+        self.sync._handle_SV_FILE_DELETED = lambda *args, **kwargs: 1/0
         handler = MementoHandler()
         handler.setLevel(logging.ERROR)
         self.sync.logger.addHandler(handler)
@@ -1933,10 +1941,10 @@ class TestHandleAqDeltaOk(TestSyncDelta):
                       end_generation=22,
                       full=True, free_bytes=10)
         called = []
-        self.sync._handle_SV_HASH_NEW = \
-                   lambda *args, **kwargs: called.append("hash")
-        self.sync._handle_SV_FILE_DELETED = \
-                   lambda *args, **kwargs: called.append("delete")
+        self.sync._handle_SV_HASH_NEW = (
+            lambda *args, **kwargs: called.append("hash"))
+        self.sync._handle_SV_FILE_DELETED = (
+            lambda *args, **kwargs: called.append("delete"))
 
         self.sync.handle_AQ_DELTA_OK(**kwargs)
 
@@ -1953,8 +1961,7 @@ class TestHandleAqDeltaOk(TestSyncDelta):
         dt2.is_live = False
         kwargs = dict(volume_id=ROOT, delta_content=[dt2], end_generation=11,
                       full=True, free_bytes=10)
-        self.sync._handle_SV_FILE_DELETED = \
-                   lambda *args, **kwargs: 1/0
+        self.sync._handle_SV_FILE_DELETED = lambda *args, **kwargs: 1/0
 
         # send the delta and check
         self.sync.handle_AQ_DELTA_OK(**kwargs)
@@ -2040,21 +2047,21 @@ class TestHandleAqRescanFromScratchOk(TestSyncDelta):
     def test_calls_handle_aq_delta_ok(self):
         """Make sure it calls handle_AQ_DELTA_OK."""
         called = []
-        self.sync.handle_AQ_DELTA_OK = \
-            lambda *args, **kwargs: called.append((args, kwargs))
+        self.sync.handle_AQ_DELTA_OK = (
+            lambda *args, **kwargs: called.append((args, kwargs)))
 
         self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(ROOT, [self.rootdt], 0, 0)
 
         # we must remove root node for delta
-        self.assertEqual(called, [((ROOT, [], 0,True, 0), {})])
+        self.assertEqual(called, [((ROOT, [], 0, True, 0), {})])
 
     def test_deletes_file_not_in_delta(self):
         """Files not in delta should be deleted."""
         self.create_filetxt()
 
         called = []
-        self.sync._handle_SV_FILE_DELETED = \
-            lambda *args, **kwargs: called.append((args, kwargs))
+        self.sync._handle_SV_FILE_DELETED = (
+            lambda *args, **kwargs: called.append((args, kwargs)))
 
         self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(ROOT, [self.rootdt],
                                                    100, 100)
@@ -2070,8 +2077,8 @@ class TestHandleAqRescanFromScratchOk(TestSyncDelta):
         self.sync._handle_SV_FILE_DELETED = \
             lambda *args, **kwargs: called.append((args, kwargs))
 
-        self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(ROOT,
-            [self.rootdt, self.filetxtdelta], 100, 100)
+        self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(
+            ROOT, [self.rootdt, self.filetxtdelta], 100, 100)
 
         self.assertEqual(called, [])
 
@@ -2091,8 +2098,8 @@ class TestHandleAqRescanFromScratchOk(TestSyncDelta):
         self.sync._handle_SV_FILE_DELETED = \
             lambda *args, **kwargs: called.append((args, kwargs))
 
-        self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(ROOT,
-            [self.rootdt], 100, 100)
+        self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(
+            ROOT, [self.rootdt], 100, 100)
 
         self.assertEqual(called, [])
 
@@ -2107,12 +2114,11 @@ class TestHandleAqRescanFromScratchOk(TestSyncDelta):
         self.sync._handle_SV_FILE_DELETED = \
             lambda *args: called.append(args)
 
-        self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(ROOT,
-            [self.rootdt], 100, 100)
+        self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(
+            ROOT, [self.rootdt], 100, 100)
 
-        self.assertEqual(called, [
-            (ROOT, dt.node_id, False),
-            (ROOT, self.dirdelta.node_id, True)])
+        self.assertEqual(called, [(ROOT, dt.node_id, False),
+                                  (ROOT, self.dirdelta.node_id, True)])
 
 
 class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
@@ -2121,7 +2127,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
         """Chunked delta handling with a change in the middle."""
         directories = [self.rootdt]
         files = []
-        for i in range(1,5):
+        for i in range(1, 5):
             d = delta.FileInfoDelta(
                 generation=i, is_live=True, file_type=delta.DIRECTORY,
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
@@ -2141,18 +2147,17 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
 
         called = []
         orig__handle_SV_FILE_DELETED = self.sync._handle_SV_FILE_DELETED
-        self.sync._handle_SV_FILE_DELETED = \
-                self.sync._handle_SV_FILE_DELETED = \
-                lambda *args: called.append(args)
+        self.sync._handle_SV_FILE_DELETED = lambda *args: called.append(args)
+        self.sync._handle_SV_FILE_DELETED = lambda *args: called.append(args)
 
         # build a delta with files[3] node missing, caused by a change by other
         # client while building the delta
         fake_delta = directories + files[0:2] + files[3:5]
-        self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(ROOT,
-            fake_delta, files[-1].generation, 100)
+        self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(
+            ROOT, fake_delta, files[-1].generation, 100)
 
-        self.assertEqual(called, [
-            (ROOT, files[2].node_id, False)])
+        self.assertEqual(
+            called, [(ROOT, files[2].node_id, False)])
 
         # call the real delete method.
         orig__handle_SV_FILE_DELETED(*called[0])
@@ -2164,28 +2169,29 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
         changed_file.hash = "hash-1"
 
         called = []
-        self.sync._handle_SV_FILE_DELETED = \
-            lambda *args: called.append(("delete",)+args)
-        self.sync._handle_SV_MOVED = \
-            lambda *args: called.append(("move",)+args)
-        self.sync._handle_SV_HASH_NEW = \
-            lambda *args: called.append(("new_hash",)+args)
-        self.sync._handle_SV_FILE_NEW = \
-            lambda *args: called.append(("new_file",)+args)
-        self.sync._handle_SV_DIR_NEW = \
-            lambda *args: called.append(("new_dir",)+args)
+        self.sync._handle_SV_FILE_DELETED = (
+            lambda *args: called.append(("delete",) + args))
+        self.sync._handle_SV_MOVED = (
+            lambda *args: called.append(("move",) + args))
+        self.sync._handle_SV_HASH_NEW = (
+            lambda *args: called.append(("new_hash",) + args))
+        self.sync._handle_SV_FILE_NEW = (
+            lambda *args: called.append(("new_file",) + args))
+        self.sync._handle_SV_DIR_NEW = (
+            lambda *args: called.append(("new_dir",) + args))
 
-        self.sync.handle_AQ_DELTA_OK(ROOT,
-            [changed_file], changed_file.generation, True, 100)
-        self.assertEqual(called, [
+        self.sync.handle_AQ_DELTA_OK(
+            ROOT, [changed_file], changed_file.generation, True, 100)
+        expected = [
             ("new_file", ROOT, changed_file.node_id, changed_file.parent_id,
-             changed_file.name.encode("utf-8"))])
+             changed_file.name.encode("utf-8"))]
+        self.assertEqual(called, expected)
 
     def test_move_in_the_middle(self):
         """Chunked delta handling with a move in the middle."""
         directories = [self.rootdt]
         files = []
-        for i in range(1,5):
+        for i in range(1, 5):
             d = delta.FileInfoDelta(
                 generation=i, is_live=True, file_type=delta.DIRECTORY,
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
@@ -2205,15 +2211,14 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
 
         called = []
         orig__handle_SV_FILE_DELETED = self.sync._handle_SV_FILE_DELETED
-        self.sync._handle_SV_FILE_DELETED = \
-                self.sync._handle_SV_FILE_DELETED = \
-                lambda *args: called.append(args)
+        self.sync._handle_SV_FILE_DELETED = lambda *args: called.append(args)
+        self.sync._handle_SV_FILE_DELETED = lambda *args: called.append(args)
 
         # build a delta with files[3] node missing, caused by a change by other
         # client while building the delta
         fake_delta = directories + files[0:2] + files[3:5]
-        self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(ROOT,
-            fake_delta, files[-1].generation, 100)
+        self.sync.handle_AQ_RESCAN_FROM_SCRATCH_OK(
+            ROOT, fake_delta, files[-1].generation, 100)
 
         self.assertEqual(called, [
             (ROOT, files[2].node_id, False)])
@@ -2228,22 +2233,23 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
         changed_file.parent_id = directories[1].node_id
 
         called = []
-        self.sync._handle_SV_FILE_DELETED = \
-            lambda *args: called.append(("delete",)+args)
-        self.sync._handle_SV_MOVED = \
-            lambda *args: called.append(("move",)+args)
-        self.sync._handle_SV_HASH_NEW = \
-            lambda *args: called.append(("new_hash",)+args)
-        self.sync._handle_SV_FILE_NEW = \
-            lambda *args: called.append(("new_file",)+args)
-        self.sync._handle_SV_DIR_NEW = \
-            lambda *args: called.append(("new_dir",)+args)
+        self.sync._handle_SV_FILE_DELETED = (
+            lambda *args: called.append(("delete",) + args))
+        self.sync._handle_SV_MOVED = (
+            lambda *args: called.append(("move",) + args))
+        self.sync._handle_SV_HASH_NEW = (
+            lambda *args: called.append(("new_hash",) + args))
+        self.sync._handle_SV_FILE_NEW = (
+            lambda *args: called.append(("new_file",) + args))
+        self.sync._handle_SV_DIR_NEW = (
+            lambda *args: called.append(("new_dir",) + args))
 
-        self.sync.handle_AQ_DELTA_OK(ROOT,
-            [changed_file], changed_file.generation, True, 100)
-        self.assertEqual(called, [
+        self.sync.handle_AQ_DELTA_OK(
+            ROOT, [changed_file], changed_file.generation, True, 100)
+        expected = [
             ("new_file", ROOT, changed_file.node_id, changed_file.parent_id,
-             changed_file.name.encode("utf-8"))])
+             changed_file.name.encode("utf-8"))]
+        self.assertEqual(called, expected)
 
 
 class TestSyncEvents(TestSyncDelta):

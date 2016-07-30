@@ -37,9 +37,9 @@ import socket
 import sys
 
 try:
-    from urllib.parse import parse_qsl, quote, urlencode
+    from urllib.parse import parse_qsl, urlencode
 except ImportError:
-    from urllib import quote, urlencode
+    from urllib import urlencode
     from urlparse import parse_qsl
 
 from twisted.internet.defer import inlineCallbacks, returnValue

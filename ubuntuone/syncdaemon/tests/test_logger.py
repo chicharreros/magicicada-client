@@ -74,38 +74,37 @@ class DebugCaptureTest(unittest.TestCase):
     def test_capture_in_debug_or_lower(self):
         """Test simple capture with the logger in DEBUG level"""
         self.logger.debug('a message')
-        self.assertEquals(1, len(self.handler.records))
+        self.assertEqual(1, len(self.handler.records))
         self.handler.records = []
 
         self.logger.setLevel(TRACE)
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should never reach the handler')
-            self.assertEquals(0, len(dc.records))
+            self.assertEqual(0, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(1, len(self.handler.records), messages)
+        self.assertEqual(1, len(self.handler.records), messages)
         self.handler.records = []
 
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should never reach the handler')
             self.logger.warning('a warning')
             self.logger.debug('another debug message')
-            self.assertEquals(0, len(dc.records))
+            self.assertEqual(0, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(3, len(self.handler.records), messages)
+        self.assertEqual(3, len(self.handler.records), messages)
         self.handler.records = []
 
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should never reach the handler')
             self.logger.info('a info message')
             self.logger.debug('another debug message')
-            self.assertEquals(0, len(dc.records))
+            self.assertEqual(0, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(3, len(self.handler.records), messages)
+        self.assertEqual(3, len(self.handler.records), messages)
 
     def test_capture_non_debug_levels(self):
         """Test debug log capture in levels > DEBUG"""
-        levels = [logging.INFO, logging.ERROR,
-                 NOTE, logging.CRITICAL]
+        levels = [logging.INFO, logging.ERROR, NOTE, logging.CRITICAL]
         for level in levels:
             self.logger.setLevel(level)
             self._test_capture()
@@ -115,32 +114,32 @@ class DebugCaptureTest(unittest.TestCase):
     def _test_capture(self):
         """Tests for simple debug capture in INFO level"""
         self.logger.debug('a message')
-        self.assertEquals(0, len(self.handler.records))
+        self.assertEqual(0, len(self.handler.records))
         self.handler.records = []
 
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should never reach the handler')
-            self.assertEquals(1, len(dc.records))
+            self.assertEqual(1, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(0, len(self.handler.records), messages)
+        self.assertEqual(0, len(self.handler.records), messages)
         self.handler.records = []
 
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should never reach the handler')
             self.logger.warning('a warning')
             self.logger.debug('another debug message')
-            self.assertEquals(2, len(dc.records))
+            self.assertEqual(2, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(1, len(self.handler.records), messages)
+        self.assertEqual(1, len(self.handler.records), messages)
         self.handler.records = []
 
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should never reach the handler')
             self.logger.info('a info message')
             self.logger.debug('another debug message')
-            self.assertEquals(2, len(dc.records))
+            self.assertEqual(2, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(1, len(self.handler.records), messages)
+        self.assertEqual(1, len(self.handler.records), messages)
 
     def test_dump_on_unhandled_error(self):
         """Test that all captured debug info is dumped on a unhandled error and
@@ -149,10 +148,10 @@ class DebugCaptureTest(unittest.TestCase):
         self.logger.setLevel(logging.INFO)
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should go to the handler 1')
-            self.assertEquals(1, len(dc.records))
+            self.assertEqual(1, len(dc.records))
             raise Exception('Expected exception!')
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(2, len(self.handler.records), messages)
+        self.assertEqual(2, len(self.handler.records), messages)
 
     def test_dump_on_unhandled_error_in_DEBUG(self):
         """Test that all captured debug info is dumped on a unhandled error and
@@ -164,10 +163,10 @@ class DebugCaptureTest(unittest.TestCase):
         self.logger.setLevel(logging.INFO)
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should go to the handler 1')
-            self.assertEquals(1, len(dc.records))
+            self.assertEqual(1, len(dc.records))
             raise Exception('Expected exception!')
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(2, len(self.handler.records), messages)
+        self.assertEqual(2, len(self.handler.records), messages)
 
     def test_dump_on_error_log(self):
         """Test that all captured debug info is dumped on ERROR log"""
@@ -175,18 +174,18 @@ class DebugCaptureTest(unittest.TestCase):
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should go to the handler')
             self.logger.error('Oops! an error')
-            self.assertEquals(2, len(dc.records))
+            self.assertEqual(2, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(2, len(self.handler.records), messages)
+        self.assertEqual(2, len(self.handler.records), messages)
         self.handler.records = []
 
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should go to the handler')
             self.logger.error('Oops! an error')
             self.logger.debug('another message')
-            self.assertEquals(3, len(dc.records))
+            self.assertEqual(3, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(3, len(self.handler.records), messages)
+        self.assertEqual(3, len(self.handler.records), messages)
         self.handler.records = []
 
         with DebugCapture(self.logger) as dc:
@@ -194,9 +193,9 @@ class DebugCaptureTest(unittest.TestCase):
             self.logger.error('Oops! an error')
             self.logger.debug('another message')
             self.logger.error('Oh my! another error!')
-            self.assertEquals(4, len(dc.records))
+            self.assertEqual(4, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(4, len(self.handler.records), messages)
+        self.assertEqual(4, len(self.handler.records), messages)
 
     def test_dump_on_error_log_DEBUG(self):
         """Test that all captured debug info is dumped on ERROR log"""
@@ -204,18 +203,18 @@ class DebugCaptureTest(unittest.TestCase):
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should go to the handler')
             self.logger.error('Oops! an error')
-            self.assertEquals(0, len(dc.records))
+            self.assertEqual(0, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(2, len(self.handler.records), messages)
+        self.assertEqual(2, len(self.handler.records), messages)
         self.handler.records = []
 
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should go to the handler')
             self.logger.error('Oops! an error')
             self.logger.debug('another message')
-            self.assertEquals(0, len(dc.records))
+            self.assertEqual(0, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(3, len(self.handler.records), messages)
+        self.assertEqual(3, len(self.handler.records), messages)
         self.handler.records = []
 
         with DebugCapture(self.logger) as dc:
@@ -223,9 +222,9 @@ class DebugCaptureTest(unittest.TestCase):
             self.logger.error('Oops! an error')
             self.logger.debug('another message')
             self.logger.error('Oh my! another error!')
-            self.assertEquals(0, len(dc.records))
+            self.assertEqual(0, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(4, len(self.handler.records), messages)
+        self.assertEqual(4, len(self.handler.records), messages)
 
     def test_dump_on_critical_log(self):
         """Test that the dump also works on levels > ERROR"""
@@ -233,9 +232,9 @@ class DebugCaptureTest(unittest.TestCase):
         with DebugCapture(self.logger) as dc:
             self.logger.debug('a message that should go to the handler')
             self.logger.critical('Oops! an error')
-            self.assertEquals(2, len(dc.records))
+            self.assertEqual(2, len(dc.records))
         messages = [r.getMessage() for r in self.handler.records]
-        self.assertEquals(2, len(self.handler.records), messages)
+        self.assertEqual(2, len(self.handler.records), messages)
 
 
 class FilterTests(unittest.TestCase):
@@ -259,16 +258,17 @@ class FilterTests(unittest.TestCase):
 
         self.addCleanup(self.handler.close)
 
-    @skipIfOS('win32', 'There is not filesystem_logger implementation in '\
-                       'windows yet, see bug #823316.')
+    @skipIfOS('win32', 'There is not filesystem_logger implementation in '
+              'windows yet, see bug #823316.')
     def test_multiple_filters(self):
         """Tests logging with more than one filter."""
         test_logger = logging.getLogger('ubuntuone.SyncDaemon.FilterTest')
         test_logger.debug('debug info 0')
-        self.assertEquals(1, len(self.handler.records))
-        self.handler.addFilter(MultiFilter(['ubuntuone.SyncDaemon', 'twisted', 'pyinotify']))
+        self.assertEqual(1, len(self.handler.records))
+        self.handler.addFilter(
+            MultiFilter(['ubuntuone.SyncDaemon', 'twisted', 'pyinotify']))
         test_logger.debug('debug info 1')
-        self.assertEquals(2, len(self.handler.records))
+        self.assertEqual(2, len(self.handler.records))
 
 
 class MultiFilterTest(unittest.TestCase):
@@ -295,27 +295,27 @@ class MultiFilterTest(unittest.TestCase):
         """Tests filtering without any filter in self.filters."""
         self.handler.addFilter(MultiFilter())
         self.logger.debug('this msg should be logged')
-        self.assertEquals(1, len(self.handler.records))
+        self.assertEqual(1, len(self.handler.records))
 
     def test_single_filter(self):
         """Tests filtering with one filter."""
         self.handler.addFilter(MultiFilter([self.__class__.__name__]))
         self.logger.debug('this msg should be logged')
-        self.assertEquals(1, len(self.handler.records))
+        self.assertEqual(1, len(self.handler.records))
         other_logger = logging.getLogger("NO_LOG."+self.__class__.__name__)
         other_logger.debug('this msg shouldn\'t be logged')
-        self.assertEquals(1, len(self.handler.records))
+        self.assertEqual(1, len(self.handler.records))
 
     def test_multiple_filters(self):
         """Tests filtering with more than one filter."""
-        self.handler.addFilter(MultiFilter([self.__class__.__name__,
-                                        self.__class__.__name__ + ".child"]))
+        self.handler.addFilter(
+            MultiFilter([self.__class__.__name__,
+                         self.__class__.__name__ + ".child"]))
         no_logger = logging.getLogger("NO_LOG."+self.__class__.__name__)
         yes_logger = logging.getLogger(self.__class__.__name__ + '.child')
         self.logger.debug('this msg should be logged')
-        self.assertEquals(1, len(self.handler.records))
+        self.assertEqual(1, len(self.handler.records))
         no_logger.debug('this msg shouldn\'t be logged')
-        self.assertEquals(1, len(self.handler.records))
+        self.assertEqual(1, len(self.handler.records))
         yes_logger.debug('this msg from a child logger should be logged')
-        self.assertEquals(2, len(self.handler.records))
-
+        self.assertEqual(2, len(self.handler.records))

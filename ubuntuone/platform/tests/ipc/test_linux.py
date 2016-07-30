@@ -55,8 +55,6 @@ from ubuntuone.platform.ipc.linux import (
     DBUS_IFACE_FOLDERS_NAME,
     DBUS_IFACE_PUBLIC_FILES_NAME,
     DBUS_IFACE_LAUNCHER_NAME,
-#    NM_STATE_CONNECTED_GLOBAL,
-#    NM_STATE_DISCONNECTED,
 )
 from ubuntuone.platform.tools.linux import DBusClient
 
@@ -71,8 +69,8 @@ class FakeNetworkManager(DBusExposedObject):
         """ Creates the instance. """
         self.bus = bus
         self.bus.request_name('org.freedesktop.NetworkManager',
-                              flags=dbus.bus.NAME_FLAG_REPLACE_EXISTING | \
-                              dbus.bus.NAME_FLAG_DO_NOT_QUEUE | \
+                              flags=dbus.bus.NAME_FLAG_REPLACE_EXISTING |
+                              dbus.bus.NAME_FLAG_DO_NOT_QUEUE |
                               dbus.bus.NAME_FLAG_ALLOW_REPLACEMENT)
         self.busName = dbus.service.BusName('org.freedesktop.NetworkManager',
                                             bus=self.bus)
@@ -120,8 +118,8 @@ class IPCTestCase(FakeMainTestCase, DBusTestCase):
     path = None
     iface = None
     client_name = None  # parity with other platform's tests
-    signal_mapping = []  # a list of tuples (signal_name, signal_signature) to
-                         # be used in test_remote_signals
+    # a list of tuples (name, signature) to be used in test_remote_signals
+    signal_mapping = []
 
     @defer.inlineCallbacks
     def setUp(self):
@@ -292,12 +290,12 @@ class LauncherTests(IPCTestCase):
         def launcher_factory():
             return service
 
-        self.patch(dbus_interface, 'Launcher', launcher_factory)
+        self.patch(dbus_interface.launcher, 'Launcher', launcher_factory)
         client = self.get_client()
         yield client.call_method('unset_urgency')
         self.assertEqual(service._called, {'set_urgent': [((False,), {})]})
-        self.assert_remote_method('unset_urgency',
-            in_signature=None, out_signature=None)
+        self.assert_remote_method(
+            'unset_urgency', in_signature=None, out_signature=None)
 
 
 class TestDBusRestart(DBusTwistedTestCase):

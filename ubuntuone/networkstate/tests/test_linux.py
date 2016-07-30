@@ -161,18 +161,18 @@ class TestConnection(TestCase):
 
         nms.find_online_state()
 
-        self.nm_interface.emit_signal('StateChanged',
-            NM_STATE_CONNECTED_GLOBAL)
+        self.nm_interface.emit_signal(
+            'StateChanged', NM_STATE_CONNECTED_GLOBAL)
         self.nm_interface.emit_signal('StateChanged', NM_STATE_DISCONNECTED)
-        self.nm_interface.emit_signal('StateChanged',
-            NM_STATE_CONNECTED_GLOBAL)
+        self.nm_interface.emit_signal(
+            'StateChanged', NM_STATE_CONNECTED_GLOBAL)
 
         self.assertEqual(nms.state_signal.name, "StateChanged")
         self.assertEqual(nms.state_signal.callback, nms.state_changed)
-        self.assertEqual(nms.state_signal.interface,
-            "org.freedesktop.NetworkManager")
-        self.assertEqual(self.network_changes,
-            [ONLINE, ONLINE, OFFLINE, ONLINE])
+        self.assertEqual(
+            nms.state_signal.interface, "org.freedesktop.NetworkManager")
+        self.assertEqual(
+            self.network_changes, [ONLINE, ONLINE, OFFLINE, ONLINE])
         self.assertFalse(nms.state_signal.removed)
 
     @inlineCallbacks
@@ -245,15 +245,15 @@ class NetworkManagerBaseTestCase(MockerTestCase):
 
     def assertOnline(self, state):
         """Check that the state given is ONLINE."""
-        self.assertEquals(state, ONLINE)
+        self.assertEqual(state, ONLINE)
 
     def assertOffline(self, state):
         """Check that the state given is OFFLINE."""
-        self.assertEquals(state, OFFLINE)
+        self.assertEqual(state, OFFLINE)
 
     def assertUnknown(self, state):
         """Check that the state was UNKNOWN."""
-        self.assertEquals(state, UNKNOWN)
+        self.assertEqual(state, UNKNOWN)
 
     def get_nms(self, callback):
         """Get the NetworkManagerState object."""

@@ -53,19 +53,19 @@ class MuteFilterTests(unittest.TestCase):
     def test_add_one_withdata(self):
         """Adds one element with data."""
         self.mf.add("foo", bar=3)
-        self.assertEqual(self.mf._cnt, dict(foo=[{'bar':3}]))
+        self.assertEqual(self.mf._cnt, dict(foo=[{'bar': 3}]))
 
     def test_add_two_event_different(self):
         """Adds two elements, different event."""
         self.mf.add("foo", a=1)
         self.mf.add("bar", a=1)
-        self.assertEqual(self.mf._cnt, dict(foo=[{'a':1}], bar=[{'a':1}]))
+        self.assertEqual(self.mf._cnt, dict(foo=[{'a': 1}], bar=[{'a': 1}]))
 
     def test_add_two_data_different(self):
         """Adds two elements, different data."""
         self.mf.add("foo", a=1)
         self.mf.add("foo", b=1)
-        self.assertEqual(self.mf._cnt, dict(foo=[{'a':1}, {'b':1}]))
+        self.assertEqual(self.mf._cnt, dict(foo=[{'a': 1}, {'b': 1}]))
 
     def test_add_two_equal(self):
         """Adds one element twice."""
@@ -78,7 +78,8 @@ class MuteFilterTests(unittest.TestCase):
         self.mf.add("foo")
         self.mf.add("bar", b=3)
         self.mf.add("bar", b=3)
-        self.assertEqual(self.mf._cnt, dict(foo=[{}], bar=[{'b':3}, {'b':3}]))
+        self.assertEqual(
+            self.mf._cnt, dict(foo=[{}], bar=[{'b': 3}, {'b': 3}]))
 
     def test_pop_simple(self):
         """Pops one element."""
@@ -94,21 +95,18 @@ class MuteFilterTests(unittest.TestCase):
         self.mf.add("foo", a=5)
         self.mf.add("bar")
         self.mf.add("bar")
-        self.assertEqual(self.mf._cnt, dict(foo=[{'a':5}], bar=[{}, {}]))
+        self.assertEqual(self.mf._cnt, dict(foo=[{'a': 5}], bar=[{}, {}]))
 
         # clean bar
         self.assertTrue(self.mf.pop("bar"))
-        self.assertEqual(self.mf._cnt, dict(foo=[{'a':5}], bar=[{}]))
+        self.assertEqual(self.mf._cnt, dict(foo=[{'a': 5}], bar=[{}]))
         self.assertTrue(self.mf.pop("bar"))
-        self.assertEqual(self.mf._cnt, dict(foo=[{'a':5}]))
+        self.assertEqual(self.mf._cnt, dict(foo=[{'a': 5}]))
         self.assertFalse(self.mf.pop("bar"))
-        self.assertEqual(self.mf._cnt, dict(foo=[{'a':5}]))
+        self.assertEqual(self.mf._cnt, dict(foo=[{'a': 5}]))
 
         # clean foo
         self.assertTrue(self.mf.pop("foo", a=5))
         self.assertFalse(self.mf._cnt)
         self.assertFalse(self.mf.pop("foo"))
         self.assertFalse(self.mf._cnt)
-
-
-

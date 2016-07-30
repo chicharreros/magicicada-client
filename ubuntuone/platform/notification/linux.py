@@ -26,16 +26,15 @@
 # files in the program, then also delete it here.
 """Module that implements notification of the end user."""
 
-# TODO: We may want to enable different notifiers. When none of them
-# are available, we should fall back to silently discarding
-# notifications.
-USE_NOTIFY = False
 
 try:
     from gi.repository import Notify
     USE_NOTIFY = True
 except ImportError:
-    pass
+    # TODO: We may want to enable different notifiers. When none of them
+    # are available, we should fall back to silently discarding
+    # notifications.
+    USE_NOTIFY = False
 
 from ubuntuone.clientdefs import NAME
 from ubuntuone.status.notification import AbstractNotification

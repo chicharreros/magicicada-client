@@ -75,15 +75,21 @@ import os
 import optparse
 import pprint
 
-if "HAS_OOFFICE" in os.environ:
-    # we have to do this because python-uno breaks mocker
+try:
     import uno
     from com.sun.star.connection import NoConnectException
     from com.sun.star.lang import IndexOutOfBoundsException
     from com.sun.star.container import NoSuchElementException
     from com.sun.star.beans import PropertyValue
     from unohelper import systemPathToFileUrl, absolutize
+except ImportError:
+    has_oo_bindings = False
+else:
+    has_oo_bindings = True
 
+
+if has_oo_bindings:
+    # we have to do this because python-uno breaks mocker
     CONNECT_MSG = """
     Need to start OpenOffice! Use a command like:
         ooffice -accept="socket,host=localhost,port=2002;urp;"
@@ -249,12 +255,14 @@ if "HAS_OOFFICE" in os.environ:
                 vars[rows[2][i]] = value.strip()
             return vars
 
-        build_state_from_row = lambda row: get_var_value_from_row_part(
-            row, state_idx, param_idx)
-        build_params_from_row = lambda row: get_var_value_from_row_part(
-            row, param_idx, action_idx)
-        build_state_out_from_row = lambda row: get_var_value_from_row_part(
-            row, state_out_idx, row_size)
+        def build_state_from_row(row):
+            return get_var_value_from_row_part(row, state_idx, param_idx)
+
+        def build_params_from_row(row):
+            return get_var_value_from_row_part(row, param_idx, action_idx)
+
+        def build_state_out_from_row(row):
+            return get_var_value_from_row_part(row, state_out_idx, row_size)
 
         # generate states_vars
         descs = rows[1][state_idx:param_idx]
@@ -292,29 +300,31 @@ if "HAS_OOFFICE" in os.environ:
         return dict(events=events, state_vars=state_vars,
                     parameters=parameters, invalid=invalid)
 
-    def main():
-        'a simple interface to test the parser'
-        usage = "usage: %prog [options] SPREADSHEET"
 
-        parser = optparse.OptionParser(usage=usage)
-        parser.add_option("-o", "--output", dest="output",
-                          help="write result to FILE", metavar="FILE")
+def main():
+    """A simple interface to test the parser."""
+    usage = "usage: %prog [options] SPREADSHEET"
 
-        (options, args) = parser.parse_args()
-        if len(args) != 1:
-            parser.print_help()
-            print "SPREADSHEET required"
-            return
+    parser = optparse.OptionParser(usage=usage)
+    parser.add_option("-o", "--output", dest="output",
+                      help="write result to FILE", metavar="FILE")
 
-        result = parse(args[0])
-        if options.output:
-            f = open(options.output, "w")
-            data = pprint.pformat(result)
-            f.write("\"\"\"This is a generated python file.\"\"\"\n"
-                    "state_machine = %s""" % data)
-            f.close()
-        else:
-            pprint.pprint(result)
+    (options, args) = parser.parse_args()
+    if len(args) != 1:
+        parser.print_help()
+        print "SPREADSHEET required"
+        return
 
-    if __name__ == "__main__":
-        main()
+    result = parse(args[0])
+    if options.output:
+        f = open(options.output, "w")
+        data = pprint.pformat(result)
+        f.write("\"\"\"This is a generated python file.\"\"\"\n"
+                "state_machine = %s""" % data)
+        f.close()
+    else:
+        pprint.pprint(result)
+
+
+if __name__ == "__main__":
+    main()

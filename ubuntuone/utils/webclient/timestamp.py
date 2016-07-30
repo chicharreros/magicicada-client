@@ -89,5 +89,5 @@ class TimestampChecker(object):
         # delay import, otherwise a default reactor gets installed
         from twisted.web import http
         logger.debug("Using corrected timestamp: %r",
-                  http.datetimeToString(local_time + self.skew))
+                     http.datetimeToString(local_time + self.skew))
         defer.returnValue(int(local_time + self.skew))

@@ -75,8 +75,8 @@ SUBSCRIPTION_NETLOST = ('{45233130-b6c3-44fb-a6af-487c47cee611}',
                         'ConnectionLost')
 
 SUBSCRIPTION_REACH = ('{4c6b2afa-3235-4185-8558-57a7a922ac7b}',
-                       'UbuntuOne Network Reach',
-                       'ConnectionMade')
+                      'UbuntuOne Network Reach',
+                      'ConnectionMade')
 
 SUBSCRIPTION_REACH_NOQOC = ('{db62fa23-4c3e-47a3-aef2-b843016177cf}',
                             'UbuntuOne Network Reach No Info',

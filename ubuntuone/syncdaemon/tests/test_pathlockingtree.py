@@ -610,7 +610,6 @@ class LoggingTests(TwistedTestCase):
         release()
         self.assertTrue(handler.check_debug("releasing"))
 
-
     def test_acquire_single_default(self):
         """Single path, full check."""
         self.plt.acquire('path')

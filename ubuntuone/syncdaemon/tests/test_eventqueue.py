@@ -36,10 +36,14 @@ import logging
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
-from contrib.testing.testcase import (BaseTwistedTestCase,
-                                      FakeMonitor,
-                                      FakeVolumeManager)
-from ubuntuone.platform.filesystem_notifications.monitor import FilesystemMonitor
+from contrib.testing.testcase import (
+    BaseTwistedTestCase,
+    FakeMonitor,
+    FakeVolumeManager,
+)
+from ubuntuone.platform.filesystem_notifications.monitor import (
+    FilesystemMonitor,
+)
 from ubuntuone.syncdaemon import (
     event_queue,
     filesystem_manager,
@@ -49,7 +53,7 @@ from ubuntuone.devtools.handlers import MementoHandler
 
 
 class BaseEQTestCase(BaseTwistedTestCase):
-    """ Setup an EQ for test. """
+    """Setup an EQ for test."""
 
     _monitor_class = FakeMonitor
 
@@ -63,15 +67,14 @@ class BaseEQTestCase(BaseTwistedTestCase):
         self.vm = FakeVolumeManager(self.root_dir)
         self.db = tritcask.Tritcask(self.mktemp('tritcask'))
         self.addCleanup(self.db.shutdown)
-        self.fs = filesystem_manager.FileSystemManager(self.fsmdir,
-                                                       self.partials_dir,
-                                                       self.vm, self.db)
-        self.fs.create(path=self.root_dir,
-                       share_id='', is_dir=True)
-        self.fs.set_by_path(path=self.root_dir,
-                              local_hash=None, server_hash=None)
-        self.eq = event_queue.EventQueue(self.fs,
-                                         monitor_class=self._monitor_class)
+        self.fs = filesystem_manager.FileSystemManager(
+            self.fsmdir, self.partials_dir, self.vm, self.db)
+        self.fs.create(
+            path=self.root_dir, share_id='', is_dir=True)
+        self.fs.set_by_path(
+            path=self.root_dir, local_hash=None, server_hash=None)
+        self.eq = event_queue.EventQueue(
+            self.fs, monitor_class=self._monitor_class)
         self.eq.listener_map = {}
         self.addCleanup(self.eq.shutdown)
         self.fs.register_eq(self.eq)
@@ -110,6 +113,7 @@ class SubscriptionTests(BaseEQTestCase):
 
     def test_subscription_nodefault(self):
         """Don't subscribe if there's no default."""
+
         class Listener(object):
             """Listener."""
 
@@ -129,6 +133,7 @@ class SubscriptionTests(BaseEQTestCase):
 
     def test_subscription_two_listeners(self):
         """Subscribe several listeners."""
+
         class Listener1(object):
             """Listener 1."""
 
@@ -212,8 +217,8 @@ class PushTests(BaseEQTestCase):
 
         # incorrect args, only kwargs supported
         self.assertRaises(TypeError, self.eq.push, "FS_FILE_MOVE", 1)
-        self.assertRaises(TypeError,
-                      self.eq.push, "FS_FILE_MOVE", 1, path_to=2)
+        self.assertRaises(
+            TypeError, self.eq.push, "FS_FILE_MOVE", 1, path_to=2)
 
         # ok: just kwargs
         self.eq.push("FS_FILE_MOVE", path_from=1, path_to=2)
@@ -231,10 +236,12 @@ class PushTests(BaseEQTestCase):
     def test_listened_pushs(self):
         """Push events and listem them."""
 
-        # helper class, pylint: disable-msg=C0111
+        # helper class
         class Create(object):
+
             def __init__(self):
                 self.a = None
+
             def handle_FS_FILE_CREATE(self, path):
                 self.a = path
 
@@ -255,9 +262,10 @@ class PushTests(BaseEQTestCase):
     def test_signatures(self):
         """Check that the handle signatures are forced when passing."""
 
-        # helper class, pylint: disable-msg=C0111
+        # helper class
         class Create(object):
-            def handle_FS_FILE_CREATE(self, notpath): # it should be path here
+
+            def handle_FS_FILE_CREATE(self, notpath):  # it should be path here
                 pass
 
         # it get passed!
@@ -296,16 +304,22 @@ class PushTestsWithCallback(BaseEQTestCase):
     """Test the error handling in the event distribution machinery."""
 
     def test_keep_going(self):
-        """ Check that if a listener raises an Exception or have a
-        wrong signature, the next listeners are called.
+        """Checks.
+
+        If a listener raises an Exception or have a wrong signature, the next
+        listeners are called.
+
         """
         d = defer.Deferred()
-        # helper class, pylint: disable-msg=C0111
+
+        # helper class
         class BadListener(object):
-            def handle_FS_FILE_CREATE(self, notpath): # it should be path here
+
+            def handle_FS_FILE_CREATE(self, notpath):  # it should be path here
                 d.callback(False)
 
         class GoodListener(object):
+
             def handle_FS_FILE_CREATE(self, path):
                 d.callback(path)
 
@@ -315,26 +329,30 @@ class PushTestsWithCallback(BaseEQTestCase):
         self.eq.subscribe(gl)
 
         def cleanup():
-            """ unsubscribe the listeners """
+            """unsubscribe the listeners """
             self.eq.unsubscribe(bl)
             self.eq.unsubscribe(gl)
+
         self.addCleanup(cleanup)
 
         # one listener has a wrong signature
         self.eq.push("FS_FILE_CREATE", path=1)
+
         def callback(result):
-            """ asserts that GoodListener was called. """
+            """Assert that GoodListener was called."""
             self.assertTrue(result)
-            self.assertEquals(1, result)
+            self.assertEqual(1, result)
 
         d.addCallback(callback)
         return d
 
     def test_default_handler(self):
-        """ Check that handler_default is called. """
+        """Check that handler_default is called."""
         d = defer.Deferred()
-        # helper class, pylint: disable-msg=C0111
+
+        # helper class
         class Listener(object):
+
             def handle_default(self, event, **kwargs):
                 d.callback((event, kwargs))
 
@@ -342,17 +360,18 @@ class PushTestsWithCallback(BaseEQTestCase):
         self.eq.subscribe(l)
 
         def cleanup():
-            """ unsubscribe the listeners """
+            """Unsubscribe the listeners."""
             self.eq.unsubscribe(l)
         self.addCleanup(cleanup)
 
         # push some event and expect it'll be handled by handle_default
         self.eq.push("FS_FILE_CREATE", path=1)
+
         def callback(result):
-            """ asserts that GoodListener was called. """
-            self.assertEquals(2, len(result))
-            self.assertEquals('FS_FILE_CREATE', result[0])
-            self.assertEquals({'path': 1}, result[1])
+            """Assert that GoodListener was called."""
+            self.assertEqual(2, len(result))
+            self.assertEqual('FS_FILE_CREATE', result[0])
+            self.assertEqual({'path': 1}, result[1])
 
         d.addCallback(callback)
         return d
@@ -360,8 +379,10 @@ class PushTestsWithCallback(BaseEQTestCase):
     def test_ordered_dispatch(self):
         """Check that the events are pushed to all listeners in order."""
         d = defer.Deferred()
-        # helper class, pylint: disable-msg=C0111
+
+        # helper class
         class Listener(object):
+
             def __init__(self, eq):
                 self.eq = eq
                 self.events = []
@@ -424,7 +445,6 @@ class EventQueueInitTestCase(TestCase):
         """Test the init with a custom monitor."""
         eq = event_queue.EventQueue(None, monitor_class=FakeMonitor)
         self.assertIsInstance(eq.monitor, FakeMonitor)
-
 
 
 class EventQueueShutdownTestCase(TestCase):

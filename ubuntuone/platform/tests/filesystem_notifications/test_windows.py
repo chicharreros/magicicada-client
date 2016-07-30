@@ -101,8 +101,7 @@ class TestWatch(common_tests.TestWatch):
             # group all events in a single lists which is not what the COM API
             # does.
             str_events = [
-                (common.ACTIONS_NAMES[action], path) for action, path in
-                 events]
+                (common.ACTIONS_NAMES[action], p) for action, p in events]
             self.raw_events.append(str_events)
             return events
 
@@ -163,14 +162,14 @@ class TestWatch(common_tests.TestWatch):
     def test_started_property(self):
         """Test that the started property returns the started deferred."""
         watch = Watch(1, self.path, None)
-        self.assertEqual(watch.started,
-            watch.platform_watch._watch_started_deferred)
+        self.assertEqual(
+            watch.started, watch.platform_watch._watch_started_deferred)
 
     def test_stopped_property(self):
         """Test that the stopped property returns the stopped deferred."""
         watch = Watch(1, self.path, None)
-        self.assertEqual(watch.stopped,
-            watch.platform_watch._watch_stopped_deferred)
+        self.assertEqual(
+            watch.stopped, watch.platform_watch._watch_stopped_deferred)
 
     @defer.inlineCallbacks
     def test_start_watching_fails_early_in_thread(self):
@@ -249,7 +248,8 @@ class TestWatchManager(common_tests.TestWatchManager):
         self.assertEqual(1, len(self.manager._wdm))
         self.assertTrue(self.was_called, 'The watch start was not called.')
         self.assertEqual(self.path + os.path.sep, self.manager._wdm[0].path)
-        self.assertEqual(filesystem_notifications.FILESYSTEM_MONITOR_MASK,
+        self.assertEqual(
+            filesystem_notifications.FILESYSTEM_MONITOR_MASK,
             self.manager._wdm[0].platform_watch._mask)
         self.manager._wdm[0].stopped.callback(None)
 
@@ -265,7 +265,6 @@ class TestWatchManager(common_tests.TestWatchManager):
 
         first_watch = Watch(1, self.path, None)
         self.manager._wdm = {1: first_watch}
-        
         second_path = self.parent_path + u"second_path"
         second_watch = Watch(2, second_path, None)
         self.manager._wdm[2] = second_watch

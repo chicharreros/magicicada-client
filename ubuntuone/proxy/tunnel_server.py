@@ -60,10 +60,6 @@ from zope.interface import implements
 
 from ubuntuone.clientdefs import NAME
 from ubuntuone.keyring import Keyring
-try:
-    from ubuntuone.utils.locale import fix_turkish_locale
-except ImportError:
-    fix_turkish_locale = lambda: None
 from ubuntuone.utils.webclient import gsettings
 from ubuntuone.proxy.common import (
     BaseTunnelProtocol,
@@ -73,6 +69,12 @@ from ubuntuone.proxy.common import (
     TUNNEL_PORT_LABEL,
 )
 from ubuntuone.proxy.logger import logger
+try:
+    from ubuntuone.utils.locale import fix_turkish_locale
+except ImportError:
+    def fix_turkish_locale():
+        return None
+
 
 DEFAULT_CODE = 500
 DEFAULT_DESCRIPTION = "Connection error"

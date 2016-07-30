@@ -79,8 +79,8 @@ class VMHelperTest(BaseVolumeManagerTests):
 
     def test_get_udf_suggested_path_expand_user_decode(self):
         """Test for get_udf_suggested_path."""
-        home = os.path.join(self.home_dir.decode('utf-8'),
-            u'雄鳥お人好し ñandú')
+        home = os.path.join(
+            self.home_dir.decode('utf-8'), u'雄鳥お人好し ñandú')
 
         def fake_expand_user(path):
             """Fake expand_user."""

@@ -35,32 +35,36 @@ import os
 
 from ubuntuone.syncdaemon.fsm import fsm
 
+
 def p(name):
-    """make a full path from here."""
+    """Make a full path from here."""
     if "HAS_OOFICE" in os.environ:
         return os.path.join(os.path.dirname(__file__), name+".ods")
     else:
         return os.path.join(os.path.dirname(__file__), name+".py")
 
+
 class TestRun(unittest.TestCase):
-    'Test fsm running'
+    """Test fsm running."""
 
     def test_hello(self):
-        'test running a hello world machine'
+        """Test running a hello world machine."""
         f = fsm.StateMachine(p("test_run_hello"))
         f.validate()
-
         result = []
+
         def make(out, outstates):
-            "make action_func functions"
+            """Make action_func functions."""
+
             def maker(self, event, params):
                 "inner"
                 result.append(out)
                 self.state = outstates[int(params["MV1"])-1]
+
             return maker
 
         class HelloRunner(fsm.StateMachineRunner):
-            "our implementation of the runner"
+            """Our implementation of the runner."""
             state = "H"
             H = make("h", "EEE")
             E = make("e", "LLL")
@@ -72,15 +76,10 @@ class TestRun(unittest.TestCase):
             newline = make("\n", "HHH")
 
             def get_state_values(self):
-                "return the stateval of this fsm."
+                """Return the stateval of this fsm."""
                 return dict(SV1=self.state)
-
 
         runner = HelloRunner(f)
         for i in [1, 1, 1, 2, 1, 2, 2, 3, 3, 1, 1]:
             runner.on_event("EVENT_1", dict(MV1=str(i)))
-        self.assertEquals("helloworld\n", "".join(result))
-
-
-if __name__ == "__main__":
-    unittest.main()
+        self.assertEqual("helloworld\n", "".join(result))

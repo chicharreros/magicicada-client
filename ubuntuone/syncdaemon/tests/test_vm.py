@@ -103,7 +103,8 @@ class BaseVolumeManagerTests(BaseTwistedTestCase):
         self.log = logging.getLogger("ubuntuone.SyncDaemon.TEST")
         self.log.info("starting test %s.%s", self.__class__.__name__,
                       self._testMethodName)
-        self.root_dir = self.mktemp(os.path.join('ubuntuonehacker', 'root_dir'))
+        self.root_dir = self.mktemp(
+            os.path.join('ubuntuonehacker', 'root_dir'))
         self.data_dir = self.mktemp('data_dir')
         self.shares_dir = self.mktemp('shares_dir')
         self.partials_dir = self.mktemp('partials_dir')
@@ -204,10 +205,10 @@ class BaseVolumeManagerTests(BaseTwistedTestCase):
         udf.generation = generation
         return udf
 
-    def _create_share_volume(self, volume_id=None, node_id=None,
-                             name=u'fake_share', generation=None, free_bytes=10,
-                             access_level=ACCESS_LEVEL_RO, accepted=True,
-                             other_visible_name='visible_username'):
+    def _create_share_volume(
+            self, volume_id=None, node_id=None, name=u'fake_share',
+            generation=None, free_bytes=10, access_level=ACCESS_LEVEL_RO,
+            accepted=True, other_visible_name='visible_username'):
         """Return a new ShareVolume."""
         # match protocol expected types
         assert isinstance(name, unicode)
@@ -236,10 +237,11 @@ class BaseVolumeManagerTests(BaseTwistedTestCase):
         # match protocol expected types
         assert isinstance(name, unicode)
 
-        share_volume = self._create_share_volume(volume_id=volume_id,
-             node_id=node_id, name=name, generation=generation,
-             free_bytes=free_bytes, access_level=access_level,
-             accepted=accepted, other_visible_name=other_visible_name)
+        share_volume = self._create_share_volume(
+            volume_id=volume_id, node_id=node_id, name=name,
+            generation=generation, free_bytes=free_bytes,
+            access_level=access_level, accepted=accepted,
+            other_visible_name=other_visible_name)
         dir_name = get_share_dir_name(share_volume)
         share_path = os.path.join(self.shares_dir, dir_name)
         share = Share.from_share_volume(share_volume, share_path)
@@ -418,8 +420,8 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
     @defer.inlineCallbacks
     def test_add_share_modify_scans_share(self):
         """Test that add_share scans the share."""
-        share = self._create_share(access_level=ACCESS_LEVEL_RW,
-            subscribed=True)
+        share = self._create_share(
+            access_level=ACCESS_LEVEL_RW, subscribed=True)
 
         scan_d = defer.Deferred()
 
@@ -595,8 +597,8 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
                       access_level=ACCESS_LEVEL_RO)
         yield self.vm.add_share(share)
         self.vm.handle_SV_SHARE_CHANGED(info=share_holder)
-        self.assertEquals(ACCESS_LEVEL_RW,
-            self.vm.shares[str(share_id)].access_level)
+        self.assertEqual(
+            ACCESS_LEVEL_RW, self.vm.shares[str(share_id)].access_level)
         self.vm.handle_SV_SHARE_DELETED(share_holder.share_id)
         self.assertNotIn('share_id', self.vm.shares)
 
@@ -608,23 +610,19 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         yield self.vm.add_share(share)
         other_vm = VolumeManager(self.main)
         for key in self.vm.shares:
-            self.assertEquals(self.vm.shares[key].__dict__,
-                              other_vm.shares[key].__dict__)
+            self.assertEqual(
+                self.vm.shares[key].__dict__, other_vm.shares[key].__dict__)
 
     def test_handle_AQ_SHARES_LIST_shared(self):
         """test the handling of the AQ_SHARE_LIST event, with a shared dir."""
         share_id = uuid.uuid4()
-        share_response = ShareResponse.from_params(share_id, 'to_me',
-                                                   'fake_share_uuid',
-                                                   'fake_share', 'username',
-                                                   'visible_username', 'yes',
-                                                   ACCESS_LEVEL_RO)
+        share_response = ShareResponse.from_params(
+            share_id, 'to_me', 'fake_share_uuid', 'fake_share', 'username',
+            'visible_username', 'yes', ACCESS_LEVEL_RO)
         shared_id = uuid.uuid4()
-        shared_response = ShareResponse.from_params(shared_id, 'from_me',
-                                                   'shared_uuid',
-                                                   'fake_shared', 'myname',
-                                                   'my_visible_name', 'yes',
-                                                   ACCESS_LEVEL_RW)
+        shared_response = ShareResponse.from_params(
+            shared_id, 'from_me', 'shared_uuid', 'fake_shared', 'myname',
+            'my_visible_name', 'yes', ACCESS_LEVEL_RW)
         # initialize the the root
         self.vm._got_root('root_uuid')
         shared_dir = os.path.join(self.root_dir, 'shared_dir')
@@ -636,10 +634,10 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         self.assertEqual(2, len(self.vm.shares))  # the new share and root
         self.assertEqual(1, len(self.vm.shared))  # the new shared
         shared = self.vm.shared[str(shared_id)]
-        self.assertEquals('fake_shared', shared.name)
+        self.assertEqual('fake_shared', shared.name)
         # check that the uuid is stored in fs
         mdobj = self.main.fs.get_by_path(shared.path)
-        self.assertEquals(shared.node_id, mdobj.node_id)
+        self.assertEqual(shared.node_id, mdobj.node_id)
 
     def test_add_shared(self):
         """ Test VolumeManager.add_shared """
@@ -648,7 +646,6 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         self.main.fs.set_node_id(path, 'node_id')
         self.main.fs.get_by_node_id("", 'node_id')
 
-        # helper method, pylint: disable-msg=C0111
         def fake_create_share(node_id, user, name, access_level, marker, path):
             self.assertIn(marker, self.vm.marker_share_map)
             self.vm.handle_AQ_CREATE_SHARE_OK(share_id='share_id',
@@ -671,19 +668,18 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         self.main.fs.set_node_id(path, 'node_id')
         self.main.fs.get_by_node_id("", 'node_id')
 
-        # helper method, pylint: disable-msg=C0111
         def fake_create_share(node_id, user, name, access_level, marker, path):
-            self.assertEquals('node_id', node_id)
-            self.assertEquals('fake_user', user)
-            self.assertEquals('shared_name', name)
-            self.assertEquals(ACCESS_LEVEL_RO, access_level)
+            self.assertEqual('node_id', node_id)
+            self.assertEqual('fake_user', user)
+            self.assertEqual('shared_name', name)
+            self.assertEqual(ACCESS_LEVEL_RO, access_level)
             self.assertTrue(marker is not None)
             share = self.vm.marker_share_map[marker]
-            self.assertEquals(path, share.path)
-            self.assertEquals(ACCESS_LEVEL_RO, share.access_level)
-            self.assertEquals(marker, share.volume_id)
-            self.assertEquals('fake_user', share.other_username)
-            self.assertEquals('node_id', share.node_id)
+            self.assertEqual(path, share.path)
+            self.assertEqual(ACCESS_LEVEL_RO, share.access_level)
+            self.assertEqual(marker, share.volume_id)
+            self.assertEqual('fake_user', share.other_username)
+            self.assertEqual('node_id', share.node_id)
 
         self.main.action_q.create_share = fake_create_share
         self.vm.create_share(path, 'fake_user', 'shared_name', ACCESS_LEVEL_RO)
@@ -695,7 +691,6 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         self.main.fs.set_node_id(path, 'node_id')
         self.main.fs.get_by_node_id("", 'node_id')
 
-        # helper method, pylint: disable-msg=C0111
         def fake_create_share(node_id, user, name, access_level, marker, path):
             self.vm.handle_AQ_CREATE_SHARE_ERROR(marker, 'a fake error')
 
@@ -710,15 +705,14 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         expected_node_id = uuid.uuid4()
         expected_share_id = uuid.uuid4()
 
-        # helper method, pylint: disable-msg=C0111
         def fake_create_share(node_id, user, name, access_level, marker, path):
             # some sanity checks
             share = self.vm.marker_share_map[marker]
-            self.assertEquals(path, share.path)
-            self.assertEquals(ACCESS_LEVEL_RO, share.access_level)
-            self.assertEquals(marker, share.volume_id)
-            self.assertEquals('fake_user', share.other_username)
-            self.assertEquals(marker, share.node_id)
+            self.assertEqual(path, share.path)
+            self.assertEqual(ACCESS_LEVEL_RO, share.access_level)
+            self.assertEqual(marker, share.volume_id)
+            self.assertEqual('fake_user', share.other_username)
+            self.assertEqual(marker, share.node_id)
             # fake a node_id demark and set the node_id
             self.main.fs.set_node_id(path, str(expected_node_id))
             self.main.event_q.push("AQ_CREATE_SHARE_OK",
@@ -730,7 +724,7 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         self.vm.create_share(path, 'fake_user', 'shared_name', ACCESS_LEVEL_RO)
         yield d
         share = self.vm.shared[str(expected_share_id)]
-        self.assertEquals(str(expected_node_id), share.node_id)
+        self.assertEqual(str(expected_node_id), share.node_id)
 
     @defer.inlineCallbacks
     def test_delete_shared(self):
@@ -786,8 +780,8 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         self._listen_for('VM_SHARE_DELETE_ERROR', d.callback, 1, collect=True)
         self.vm.delete_share('fake_share_id')
         events = yield d
-        self.assertEqual(events[0],
-                         dict(share_id='fake_share_id', error='DOES_NOT_EXIST'))
+        self.assertEqual(
+            events[0], dict(share_id='fake_share_id', error='DOES_NOT_EXIST'))
 
     @defer.inlineCallbacks
     def test_accept_share(self):
@@ -798,18 +792,18 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         share = Share(path=share_path, volume_id='share_id', node_id="node_id")
         yield self.vm.add_share(share)
         self.assertIn(share.volume_id, self.vm.shares)
-        self.assertEquals(False, share.accepted)
-        # helper method, pylint: disable-msg=C0111
+        self.assertEqual(False, share.accepted)
 
         def answer_share(share_id, answer):
             reactor.callLater(0.2, d.callback, (share_id, answer))
             return d
+
         self.main.action_q.answer_share = answer_share
 
         def callback(result):
             share_id, answer = result
-            self.assertEquals(share.volume_id, share_id)
-            self.assertEquals('Yes', answer)
+            self.assertEqual(share.volume_id, share_id)
+            self.assertEqual('Yes', answer)
         d.addCallback(callback)
         self.vm.accept_share(share.volume_id, True)
         yield d
@@ -818,22 +812,20 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         """test the handling of the AQ_SHARE_LIST event, when the md
         isn't there yet.
         """
-        shared_response = ShareResponse.from_params('shared_id', 'from_me',
-                                                   'shared_uuid',
-                                                   'fake_shared', 'myname',
-                                                   'my_visible_name', 'yes',
-                                                   ACCESS_LEVEL_RW)
+        shared_response = ShareResponse.from_params(
+            'shared_id', 'from_me', 'shared_uuid', 'fake_shared', 'myname',
+            'my_visible_name', 'yes', ACCESS_LEVEL_RW)
         # initialize the the root
         self.vm._got_root('root_uuid')
         response = ListShares(None)
         response.shares = [shared_response]
         self.vm.handle_AQ_SHARES_LIST(response)
-        self.assertEquals(1, len(self.vm.shared))  # the new shares and root
+        self.assertEqual(1, len(self.vm.shared))  # the new shares and root
         shared = self.vm.shared['shared_id']
-        self.assertEquals('fake_shared', shared.name)
+        self.assertEqual('fake_shared', shared.name)
         # check that the uuid is stored in fs
-        self.assertEquals(shared_response.subtree, shared.node_id)
-        self.assertEquals(None, shared.path)
+        self.assertEqual(shared_response.subtree, shared.node_id)
+        self.assertEqual(None, shared.path)
 
     @defer.inlineCallbacks
     def test_handle_SV_SHARE_ANSWERED(self):
@@ -845,13 +837,13 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         # initialize the the root
         self.vm._got_root('root_uuid')
         # add the shared folder
-        share = Share(path=path, volume_id='share_id',
-            access_level=ACCESS_LEVEL_RO)
+        share = Share(
+            path=path, volume_id='share_id', access_level=ACCESS_LEVEL_RO)
         yield self.vm.add_shared(share)
-        self.assertEquals(False, self.vm.shared['share_id'].accepted)
+        self.assertEqual(False, self.vm.shared['share_id'].accepted)
         # check that a answer notify of a missing share don't blowup
         self.vm.handle_SV_SHARE_ANSWERED('share_id', 'Yes')
-        self.assertEquals(True, self.vm.shared['share_id'].accepted)
+        self.assertEqual(True, self.vm.shared['share_id'].accepted)
 
     def test_handle_SV_SHARE_ANSWERED_missing(self):
         """ test the handling of the AQ_SHARE_ANSWERED. """
@@ -868,31 +860,27 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
 
     def test_delete_share(self):
         """Test the deletion of a share and if it's removed from the MD."""
-        share_response = ShareResponse.from_params('share_id', 'to_me',
-                                                   'fake_share_uuid',
-                                                   'fake_share', 'username',
-                                                   'visible_username', False,
-                                                   ACCESS_LEVEL_RO)
-        share_response_1 = ShareResponse.from_params('share_id_1', 'to_me',
-                                                   'fake_share_uuid_1',
-                                                   'fake_share_1', 'username',
-                                                   'visible_username', False,
-                                                   ACCESS_LEVEL_RO)
+        share_response = ShareResponse.from_params(
+            'share_id', 'to_me', 'fake_share_uuid', 'fake_share', 'username',
+            'visible_username', False, ACCESS_LEVEL_RO)
+        share_response_1 = ShareResponse.from_params(
+            'share_id_1', 'to_me', 'fake_share_uuid_1', 'fake_share_1',
+            'username', 'visible_username', False, ACCESS_LEVEL_RO)
         # initialize the the root
         self.vm._got_root('root_uuid')
         response = ListShares(None)
         response.shares = [share_response, share_response_1]
         self.vm.handle_AQ_SHARES_LIST(response)
-        self.assertEquals(3, len(self.vm.shares))  # the new shares and root
+        self.assertEqual(3, len(self.vm.shares))  # the new shares and root
         # check that the share is in the shares dict
         self.assertIn('share_id', self.vm.shares)
         self.assertIn('share_id_1', self.vm.shares)
         share = self.vm.shares['share_id']
-        self.assertEquals('fake_share', share.name)
-        self.assertEquals('fake_share_uuid', share.node_id)
+        self.assertEqual('fake_share', share.name)
+        self.assertEqual('fake_share_uuid', share.node_id)
         share = self.vm.shares['share_id_1']
-        self.assertEquals('fake_share_1', share.name)
-        self.assertEquals('fake_share_uuid_1', share.node_id)
+        self.assertEqual('fake_share_1', share.name)
+        self.assertEqual('fake_share_uuid_1', share.node_id)
         # inject a new ListShares response
         new_response = ListShares(None)
         new_response.shares = [share_response]
@@ -901,9 +889,9 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         self.assertIn('share_id', self.vm.shares)
         self.assertFalse('share_id_1' in self.vm.shares)
         share = self.vm.shares['share_id']
-        self.assertEquals('fake_share', share.name)
-        self.assertEquals('fake_share_uuid', share.node_id)
-        self.assertEquals(None, self.vm.shares.get('share_id_1'))
+        self.assertEqual('fake_share', share.name)
+        self.assertEqual('fake_share_uuid', share.node_id)
+        self.assertEqual(None, self.vm.shares.get('share_id_1'))
 
     @defer.inlineCallbacks
     def test_remove_watch(self):
@@ -1045,7 +1033,7 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
 
         def fake_rescan_from_scratch(volume_id):
             """A fake get_delta that check the arguments."""
-            self.assertEquals(share.volume_id, volume_id)
+            self.assertEqual(share.volume_id, volume_id)
             scratch_d.callback(None)
         self.main.action_q.rescan_from_scratch = fake_rescan_from_scratch
 
@@ -1134,8 +1122,8 @@ class ViewSharesSubscriptionTests(BaseVolumeManagerTests):
         try:
             yield self.vm.subscribe_share('invalid_share_id')
         except VolumeDoesNotExist, e:
-            self.assertEquals('DOES_NOT_EXIST', e.args[0])
-            self.assertEquals('invalid_share_id', e.args[1])
+            self.assertEqual('DOES_NOT_EXIST', e.args[0])
+            self.assertEqual('invalid_share_id', e.args[1])
         else:
             self.fail('Must get a VolumeDoesNotExist!')
 
@@ -1181,18 +1169,18 @@ class ViewSharesSubscriptionTests(BaseVolumeManagerTests):
             self.main.fs.create(path, share.volume_id)
             self.main.fs.set_node_id(path, 'file_node_id' + str(i))
         paths = self.main.fs.get_paths_starting_with(share.path)
-        self.assertEquals(len(paths), len(dirs + files) + 1)
+        self.assertEqual(len(paths), len(dirs + files) + 1)
 
         # unsubscribe from it
         self.vm.unsubscribe_share(share.volume_id)
 
-        self.assertEquals(2, len(self.vm.shares))  # share and root
+        self.assertEqual(2, len(self.vm.shares))  # share and root
         self.assertFalse(self.vm.shares[share.volume_id].subscribed)
         # check that the share is in the fsm metadata
         self.assertTrue(self.main.fs.get_by_path(share.path))
         # get the childs (should be an empty list)
         paths = list(self.main.fs.get_paths_starting_with(share.path))
-        self.assertEquals(len(dirs + files) + 1, len(paths))
+        self.assertEqual(len(dirs + files) + 1, len(paths))
         # check that there isn't a watch in the share
         self.assertNotIn(share.path, self.watches,
                          'watch for %r should not be present.' % share.path)
@@ -1209,7 +1197,7 @@ class ViewSharesSubscriptionTests(BaseVolumeManagerTests):
 
         def fake_rescan_from_scratch(volume_id):
             """A fake rescan_from_scratch that check the arguments."""
-            self.assertEquals(share.volume_id, volume_id)
+            self.assertEqual(share.volume_id, volume_id)
             scratch_d.callback(None)
         self.main.action_q.rescan_from_scratch = fake_rescan_from_scratch
         # subscribe to it
@@ -1298,12 +1286,12 @@ class ModifySharesSubscriptionTests(ViewSharesSubscriptionTests):
         for path, is_dir in paths:
             if is_dir:
                 yield self.vm._add_watch(path)
-        self.assertEquals(len(paths), len(dirs + files) + 1, paths)
+        self.assertEqual(len(paths), len(dirs + files) + 1, paths)
 
         # unsubscribe from it
         self.vm.unsubscribe_share(share.volume_id)
 
-        self.assertEquals(2, len(self.vm.shares))  # share and root
+        self.assertEqual(2, len(self.vm.shares))  # share and root
         self.assertFalse(self.vm.shares[share.volume_id].subscribed)
         # check that the share is in the fsm metadata
         self.assertTrue(self.main.fs.get_by_path(share.path))
@@ -1317,13 +1305,13 @@ class ModifySharesSubscriptionTests(ViewSharesSubscriptionTests):
                                  'watch for %r should not be present.' % path)
         # check the childs
         paths = self.main.fs.get_paths_starting_with(share.path)
-        self.assertEquals(len(dirs + files) + 1, len(paths))
+        self.assertEqual(len(dirs + files) + 1, len(paths))
         # resubscribe to it
         yield self.vm.subscribe_share(share.volume_id)
         paths = list(self.main.fs.get_paths_starting_with(share.path))
         # we should only have the dirs, as the files metadata is
         # delete by local rescan (both hashes are '')
-        self.assertEquals(len(dirs) + 1, len(paths))
+        self.assertEqual(len(dirs) + 1, len(paths))
         # check that there is a watch in the share
         self.assertIn(share.path, self.watches,
                       'watch for %r should be present.' % share.path)
@@ -1370,7 +1358,7 @@ class VolumeManagerUnicodeTests(BaseVolumeManagerTests):
         share = self.vm.shares['share_id']
         shouldbe_dir = os.path.join(self.shares_dir,
                                     get_share_dir_name(share_response))
-        self.assertEquals(shouldbe_dir, share.path)
+        self.assertEqual(shouldbe_dir, share.path)
 
     def test_handle_SHARES_visible_username(self):
         """test the handling of AQ_SHARE_LIST with non-ascii visible uname."""
@@ -1389,33 +1377,29 @@ class VolumeManagerUnicodeTests(BaseVolumeManagerTests):
         share = self.vm.shares['share_id']
         shouldbe_dir = os.path.join(self.shares_dir,
                                     get_share_dir_name(share_response))
-        self.assertEquals(shouldbe_dir, share.path)
+        self.assertEqual(shouldbe_dir, share.path)
 
     def test_handle_SV_SHARE_CHANGED_sharename(self):
         """test the handling of SV_SHARE_CHANGED for non-ascii share name."""
-        share_holder = NotifyShareHolder.from_params('share_id', None,
-                                                     u'año',
-                                                     'test_username',
-                                                     'visible', ACCESS_LEVEL_RW)
+        share_holder = NotifyShareHolder.from_params(
+            'share_id', None, u'año', 'test_username', 'visible',
+            ACCESS_LEVEL_RW)
         self.vm._got_root('root_uuid')
         self.vm.handle_SV_SHARE_CHANGED(info=share_holder)
         shouldbe_dir = os.path.join(self.shares_dir,
                                     get_share_dir_name(share_holder))
-        self.assertEquals(shouldbe_dir,
-                          self.vm.shares['share_id'].path)
+        self.assertEqual(shouldbe_dir, self.vm.shares['share_id'].path)
 
     def test_handle_SV_SHARE_CHANGED_visible(self):
         """test the handling of SV_SHARE_CHANGED for non-ascii visible name."""
-        share_holder = NotifyShareHolder.from_params('share_id', None,
-                                                     'share',
-                                                     'test_username',
-                                                     u'Ramón', ACCESS_LEVEL_RW)
+        share_holder = NotifyShareHolder.from_params(
+            'share_id', None, 'share', 'test_username', u'Ramón',
+            ACCESS_LEVEL_RW)
         self.vm._got_root('root_uuid')
         self.vm.handle_SV_SHARE_CHANGED(info=share_holder)
         shouldbe_dir = os.path.join(self.shares_dir,
                                     get_share_dir_name(share_holder))
-        self.assertEquals(shouldbe_dir,
-                          self.vm.shares['share_id'].path)
+        self.assertEqual(shouldbe_dir, self.vm.shares['share_id'].path)
 
 
 class VolumeManagerVolumesTests(BaseVolumeManagerTests):
@@ -1427,22 +1411,22 @@ class VolumeManagerVolumesTests(BaseVolumeManagerTests):
         expected = [u'~',
                     os.path.join(u'~', u'Documents'),
                     os.path.join(u'~', u'Documents', u'Reading Años'),
-                    os.path.join(u'~', u'Documents', u'Reading Años', u'Books')]
+                    os.path.join(u'~', u'Documents', u'Reading Años',
+                                 u'Books')]
         expected = [platform.expand_user(p.encode('utf-8')) for p in expected]
 
         udf = self._create_udf(suggested_path=suggested_path)
-        self.assertEquals(expected, udf.ancestors)
+        self.assertEqual(expected, udf.ancestors)
 
     @defer.inlineCallbacks
     def test_add_udf(self):
         """Test for VolumeManager.add_udf."""
         suggested_path = u"~/suggested_path"
-        udf = self._create_udf(suggested_path=suggested_path,
-                               subscribed=False)
+        udf = self._create_udf(suggested_path=suggested_path, subscribed=False)
         yield self.vm.add_udf(udf)
         path = get_udf_path(suggested_path)
-        self.assertEquals(path, udf.path)
-        self.assertEquals(1, len(self.vm.udfs))
+        self.assertEqual(path, udf.path)
+        self.assertEqual(1, len(self.vm.udfs))
         # check that the UDF is in the fsm metadata
         mdobj = self.main.fs.get_by_path(udf.path)
         self.assertEqual(mdobj.node_id, udf.node_id)
@@ -1457,8 +1441,8 @@ class VolumeManagerVolumesTests(BaseVolumeManagerTests):
         udf.subscribed = True
         yield self.vm.add_udf(udf)
         path = get_udf_path(suggested_path)
-        self.assertEquals(path, udf.path)
-        self.assertEquals(1, len(self.vm.udfs))
+        self.assertEqual(path, udf.path)
+        self.assertEqual(1, len(self.vm.udfs))
         # check that the UDF is in the fsm metadata
         mdobj = self.main.fs.get_by_path(udf.path)
         self.assertEqual(mdobj.node_id, udf.node_id)
@@ -1475,14 +1459,14 @@ class VolumeManagerVolumesTests(BaseVolumeManagerTests):
 
         def fake_rescan_from_scratch(volume_id):
             """A fake rescan_from_scratch that check the arguments."""
-            self.assertEquals(udf.volume_id, volume_id)
+            self.assertEqual(udf.volume_id, volume_id)
             scratch_d.callback(None)
         self.main.action_q.rescan_from_scratch = fake_rescan_from_scratch
 
         yield self.vm.add_udf(udf)
         yield scratch_d
 
-        self.assertEquals(1, len(self.vm.udfs))
+        self.assertEqual(1, len(self.vm.udfs))
         # check that the UDF is in the fsm metadata
         mdobj = self.main.fs.get_by_path(udf.path)
         self.assertEqual(mdobj.node_id, udf.node_id)
@@ -1495,9 +1479,9 @@ class VolumeManagerVolumesTests(BaseVolumeManagerTests):
         """Test for VolumeManager.udf_deleted."""
         udf = self._create_udf()
         yield self.vm.add_udf(udf)
-        self.assertEquals(1, len(self.vm.udfs))
+        self.assertEqual(1, len(self.vm.udfs))
         self.vm.udf_deleted(udf.volume_id)
-        self.assertEquals(0, len(self.vm.udfs))
+        self.assertEqual(0, len(self.vm.udfs))
         # check that the UDF isn't in the fsm metadata
         self.assertRaises(KeyError, self.main.fs.get_by_path, udf.path)
         # check that there isn't a watch in the UDF
@@ -1513,7 +1497,7 @@ class VolumeManagerVolumesTests(BaseVolumeManagerTests):
         """
         udf = self._create_udf(subscribed=True)
         yield self.vm.add_udf(udf)
-        self.assertEquals(1, len(self.vm.udfs))
+        self.assertEqual(1, len(self.vm.udfs))
         # create a few files and directories
         dirs = ['dir', os.path.join('dir', 'subdir'),
                 os.path.join('dir', 'empty_dir')]
@@ -1532,9 +1516,9 @@ class VolumeManagerVolumesTests(BaseVolumeManagerTests):
             self.main.fs.create(path, udf.volume_id)
             self.main.fs.set_node_id(path, 'file_node_id' + str(i))
         paths = self.main.fs.get_paths_starting_with(udf.path)
-        self.assertEquals(len(paths), len(dirs + files) + 1)
+        self.assertEqual(len(paths), len(dirs + files) + 1)
         self.vm.udf_deleted(udf.volume_id)
-        self.assertEquals(0, len(self.vm.udfs))
+        self.assertEqual(0, len(self.vm.udfs))
         # check that the UDF isn't in the fsm metadata
         self.assertRaises(KeyError, self.main.fs.get_by_path, udf.path)
         # check that there isn't a watch in the UDF
@@ -1545,7 +1529,7 @@ class VolumeManagerVolumesTests(BaseVolumeManagerTests):
             self.assertRaises(KeyError, self.main.fs.get_by_path, path)
         # get the childs (should be an empty list)
         paths = self.main.fs.get_paths_starting_with(udf.path)
-        self.assertEquals(0, len(paths))
+        self.assertEqual(0, len(paths))
 
     @defer.inlineCallbacks
     def test_get_volume(self):
@@ -1640,15 +1624,15 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
         helper = Helper()
         self.main.action_q = helper
         self.vm.handle_AQ_LIST_VOLUMES_ERROR("ERROR!")
-        self.assertEquals(self.vm.list_volumes_retries, helper.retries)
+        self.assertEqual(self.vm.list_volumes_retries, helper.retries)
         self.vm.handle_AQ_LIST_VOLUMES_ERROR("ERROR!")
-        self.assertEquals(self.vm.list_volumes_retries, helper.retries)
+        self.assertEqual(self.vm.list_volumes_retries, helper.retries)
         # reset the retry counter
         helper.retries = 0
         response = []
         self.vm.handle_AQ_LIST_VOLUMES(response)
-        self.assertEquals(self.vm.list_volumes_retries, helper.retries)
-        self.assertEquals(0, self.vm.list_volumes_retries)
+        self.assertEqual(self.vm.list_volumes_retries, helper.retries)
+        self.assertEqual(0, self.vm.list_volumes_retries)
 
     @defer.inlineCallbacks
     def test_handle_AQ_LIST_VOLUMES_unicode(self):
@@ -1692,7 +1676,7 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
         # check that the root is in the shares dict
         self.assertIn(request.ROOT, self.vm.shares)
         self.assertEqual(self.vm.shares[request.ROOT].node_id,
-                          str(root_volume.node_id))
+                         str(root_volume.node_id))
 
     @defer.inlineCallbacks
     def _test_handle_AQ_LIST_VOLUMES_accepted_share(self, auto_subscribe):
@@ -1705,8 +1689,9 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
         # create a volume list
         root_volume = volumes.RootVolume(uuid.uuid4(), 17, 10)
         share_id = uuid.uuid4()
-        share_volume = self._create_share_volume(volume_id=share_id,
-             node_id='fake_share_uuid', generation=10, accepted=True)
+        share_volume = self._create_share_volume(
+            volume_id=share_id, node_id='fake_share_uuid', generation=10,
+            accepted=True)
         response = [share_volume, root_volume]
 
         share_created_d = defer.Deferred()
@@ -1715,10 +1700,11 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
         # patch aq.rescan_from_scratch in order to intercept the calls
         root_from_scratch_d = defer.Deferred()
         share_from_scratch_d = defer.Deferred()
-        from_scratch_deferreds = {'': root_from_scratch_d,
-                                  str(share_id): share_from_scratch_d}
-        self.patch(self.main.action_q, 'rescan_from_scratch',
-           lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
+        from_scratch_deferreds = {
+            '': root_from_scratch_d, str(share_id): share_from_scratch_d}
+        self.patch(
+            self.main.action_q, 'rescan_from_scratch',
+            lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
 
         self.vm.refresh_volumes = lambda: self.fail('refresh_volumes called!')
         # listen for VM_SHARE_CREATED event for the new share
@@ -1730,8 +1716,8 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
         else:
             expected_events = {'generation': 17, 'volume_id': ''}
             self.patch(self.vm, '_scan_share', lambda *a, **kw: self.fail(a))
-            self._listen_for('SV_VOLUME_NEW_GENERATION',
-                             vol_new_gen_d.callback)
+            self._listen_for(
+                'SV_VOLUME_NEW_GENERATION', vol_new_gen_d.callback)
 
         self.vm.handle_AQ_LIST_VOLUMES(response)
 
@@ -1768,10 +1754,11 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
         # patch aq.rescan_from_scratch in order to intercept the calls
         root_from_scratch_d = defer.Deferred()
         share_from_scratch_d = defer.Deferred()
-        from_scratch_deferreds = {'': root_from_scratch_d,
-                                  str(share_id): share_from_scratch_d}
-        self.patch(self.main.action_q, 'rescan_from_scratch',
-           lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
+        from_scratch_deferreds = {
+            '': root_from_scratch_d, str(share_id): share_from_scratch_d}
+        self.patch(
+            self.main.action_q, 'rescan_from_scratch',
+            lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
 
         self.vm.handle_AQ_LIST_VOLUMES(response)
 
@@ -1815,8 +1802,9 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
         share_from_scratch_d = defer.Deferred()
         from_scratch_deferreds = {'': root_from_scratch_d,
                                   str(udf_id): share_from_scratch_d}
-        self.patch(self.main.action_q, 'rescan_from_scratch',
-           lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
+        self.patch(
+            self.main.action_q, 'rescan_from_scratch',
+            lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
 
         # listen for VM_UDF_CREATED event for the new UDF
         self._listen_for('VM_UDF_CREATED', udf_created_d.callback)
@@ -1827,8 +1815,8 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
         else:
             expected_events = {'generation': 17, 'volume_id': ''}
             self.patch(self.vm, '_scan_udf', self.fail)
-            self._listen_for('SV_VOLUME_NEW_GENERATION',
-                             vol_new_gen_d.callback)
+            self._listen_for(
+                'SV_VOLUME_NEW_GENERATION', vol_new_gen_d.callback)
 
         self.vm.handle_AQ_LIST_VOLUMES(response)
 
@@ -1945,7 +1933,7 @@ class VolumeManagerOpTestsRequiringRealFSMonitor(BaseVolumeManagerTests):
         # create some files inside it
         make_dir(udf.path)
         for i in range(10):
-            with open_file(os.path.join(udf.path, 'file_%d' % (i,)), 'wb') as f:
+            with open_file(os.path.join(udf.path, 'file_%d' % i), 'wb') as f:
                 f.write(os.urandom(10))
         self.assertEqual(len(os.listdir(udf.path)), 10)
         # patch the fake action queue to intercept make_file calls
@@ -1960,7 +1948,7 @@ class VolumeManagerOpTestsRequiringRealFSMonitor(BaseVolumeManagerTests):
         # check that there is a watch in the UDF
         self.assertIn(udf.path, self.watches,
                       'watch for %r should be present.' % udf.path)
-                    
+
 
 class VolumeManagerOperationsTests(BaseVolumeManagerTests):
     """Test UDF/Volumes operations."""
@@ -1993,10 +1981,10 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         def check(info):
             """Check the udf attributes."""
             udf = info['udf']
-            self.assertEquals(udf.path, path)
-            self.assertEquals(udf.volume_id, str(udf_id))
-            self.assertEquals(udf.node_id, str(node_id))
-            self.assertEquals(udf.suggested_path, suggested_path)
+            self.assertEqual(udf.path, path)
+            self.assertEqual(udf.volume_id, str(udf_id))
+            self.assertEqual(udf.node_id, str(node_id))
+            self.assertEqual(udf.suggested_path, suggested_path)
             self.assertTrue(isinstance(udf.suggested_path, unicode),
                             'suggested_path should be unicode')
             self.assertIn(udf.volume_id, self.vm.udfs)
@@ -2051,10 +2039,10 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         def check_udf(info):
             """Check the udf attributes."""
             deleted_udf = info['volume']
-            self.assertEquals(deleted_udf.path, udf.path)
-            self.assertEquals(deleted_udf.volume_id, udf.volume_id)
-            self.assertEquals(deleted_udf.node_id, udf.node_id)
-            self.assertEquals(deleted_udf.suggested_path, udf.suggested_path)
+            self.assertEqual(deleted_udf.path, udf.path)
+            self.assertEqual(deleted_udf.volume_id, udf.volume_id)
+            self.assertEqual(deleted_udf.node_id, udf.node_id)
+            self.assertEqual(deleted_udf.suggested_path, udf.suggested_path)
             self.assertNotIn(deleted_udf.volume_id, self.vm.udfs)
             d = defer.Deferred()
             self._listen_for('VM_VOLUME_DELETED', d.callback)
@@ -2064,9 +2052,9 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         def check_share(info):
             """Check the share attributes."""
             deleted_share = info['volume']
-            self.assertEquals(deleted_share.path, share.path)
-            self.assertEquals(deleted_share.volume_id, share.volume_id)
-            self.assertEquals(deleted_share.node_id, share.node_id)
+            self.assertEqual(deleted_share.path, share.path)
+            self.assertEqual(deleted_share.volume_id, share.volume_id)
+            self.assertEqual(deleted_share.node_id, share.node_id)
             self.assertNotIn(deleted_share.volume_id, self.vm.shares)
 
         self._listen_for('VM_VOLUME_DELETED', d.callback)
@@ -2144,8 +2132,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         try:
             yield self.vm.subscribe_udf('invalid_udf_id')
         except VolumeDoesNotExist, e:
-            self.assertEquals('DOES_NOT_EXIST', e.args[0])
-            self.assertEquals('invalid_udf_id', e.args[1])
+            self.assertEqual('DOES_NOT_EXIST', e.args[0])
+            self.assertEqual('invalid_udf_id', e.args[1])
         else:
             self.fail('Must get a VolumeDoesNotExist!')
 
@@ -2156,7 +2144,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         def fake_rescan_from_scratch(volume_id):
             """A fake rescan_from_scratch that check the arguments."""
-            self.assertEquals(udf.volume_id, volume_id)
+            self.assertEqual(udf.volume_id, volume_id)
             scratch_d.callback(None)
         self.main.action_q.rescan_from_scratch = fake_rescan_from_scratch
         # subscribe to it
@@ -2215,25 +2203,25 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
             # add a inotify watch to the dir
             yield self.vm._add_watch(path)
         files = ['a_file', os.path.join('dir', 'file'),
-                  os.path.join('dir', 'subdir', 'file')]
+                 os.path.join('dir', 'subdir', 'file')]
         for i, file in enumerate(files):
             path = os.path.join(udf.path, file)
             open_file(path, 'w').close()
             self.main.fs.create(path, udf.volume_id)
             self.main.fs.set_node_id(path, 'file_node_id' + str(i))
         paths = self.main.fs.get_paths_starting_with(udf.path)
-        self.assertEquals(len(paths), len(dirs + files) + 1)
+        self.assertEqual(len(paths), len(dirs + files) + 1)
 
         # unsubscribe from it
         self.vm.unsubscribe_udf(udf.volume_id)
 
-        self.assertEquals(1, len(self.vm.udfs))
+        self.assertEqual(1, len(self.vm.udfs))
         self.assertFalse(self.vm.udfs[udf.volume_id].subscribed)
         # check that the UDF is in the fsm metadata
         self.assertTrue(self.main.fs.get_by_path(udf.path))
         # get the childs (should be an empty list)
         paths = list(self.main.fs.get_paths_starting_with(udf.path))
-        self.assertEquals(len(dirs + files) + 1, len(paths))
+        self.assertEqual(len(dirs + files) + 1, len(paths))
         # check that there isn't a watch in the UDF
         self.assertNotIn(udf.path, self.watches,
                          'watch for %r should not be present.' % udf.path)
@@ -2261,7 +2249,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
             self.main.fs.create(path, udf.volume_id, is_dir=True)
             self.main.fs.set_node_id(path, 'dir_node_id' + str(i))
         files = ['a_file', os.path.join('dir', 'file'),
-                  os.path.join('dir', 'subdir', 'file')]
+                 os.path.join('dir', 'subdir', 'file')]
         for i, path in enumerate(files):
             path = os.path.join(udf.path, path)
             open_file(path, 'w').close()
@@ -2272,12 +2260,12 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         for path, is_dir in paths:
             if is_dir:
                 yield self.vm._add_watch(path)
-        self.assertEquals(len(paths), len(dirs + files) + 1, paths)
+        self.assertEqual(len(paths), len(dirs + files) + 1, paths)
 
         # unsubscribe from it
         self.vm.unsubscribe_udf(udf.volume_id)
 
-        self.assertEquals(1, len(self.vm.udfs))
+        self.assertEqual(1, len(self.vm.udfs))
         self.assertFalse(self.vm.udfs[udf.volume_id].subscribed)
         # check that the UDF is in the fsm metadata
         self.assertTrue(self.main.fs.get_by_path(udf.path))
@@ -2291,13 +2279,13 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
                                  'watch for %r should not be present.' % path)
         # check the childs
         paths = self.main.fs.get_paths_starting_with(udf.path)
-        self.assertEquals(len(dirs + files) + 1, len(paths))
+        self.assertEqual(len(dirs + files) + 1, len(paths))
         # resubscribe to it
         yield self.vm.subscribe_udf(udf.volume_id)
         paths = list(self.main.fs.get_paths_starting_with(udf.path))
         # we should only have the dirs, as the files metadata is
         # delete by local rescan (both hashes are '')
-        self.assertEquals(len(dirs) + 1, len(paths))
+        self.assertEqual(len(dirs) + 1, len(paths))
         # check that there is a watch in the UDF
         self.assertIn(udf.path, self.watches,
                       'watch for %r should be present.' % udf.path)
@@ -2415,9 +2403,9 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         def check(info):
             """The callback"""
-            self.assertEquals(info['path'], path)
-            self.assertEquals(info['error'], "ERROR!")
-            self.assertEquals(0, len(self.vm.marker_udf_map))
+            self.assertEqual(info['path'], path)
+            self.assertEqual(info['error'], "ERROR!")
+            self.assertEqual(0, len(self.vm.marker_udf_map))
         d.addCallback(check)
         return d
 
@@ -2437,10 +2425,10 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         def check(info):
             """Check the udf attributes."""
             deleted_udf = info['volume']
-            self.assertEquals(deleted_udf.path, udf.path)
-            self.assertEquals(deleted_udf.volume_id, udf.volume_id)
-            self.assertEquals(deleted_udf.node_id, udf.node_id)
-            self.assertEquals(deleted_udf.suggested_path, udf.suggested_path)
+            self.assertEqual(deleted_udf.path, udf.path)
+            self.assertEqual(deleted_udf.volume_id, udf.volume_id)
+            self.assertEqual(deleted_udf.node_id, udf.node_id)
+            self.assertEqual(deleted_udf.suggested_path, udf.suggested_path)
             self.assertNotIn(deleted_udf.volume_id, self.vm.udfs)
         self._listen_for('VM_VOLUME_DELETED', d.callback)
         d.addCallback(check)
@@ -2464,9 +2452,9 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         def check(info):
             """Check the udf attributes."""
             deleted_udf, error = info['volume_id'], info['error']
-            self.assertEquals(deleted_udf, udf.volume_id)
+            self.assertEqual(deleted_udf, udf.volume_id)
             self.assertIn(deleted_udf, self.vm.udfs)
-            self.assertEquals(error, 'ERROR!')
+            self.assertEqual(error, 'ERROR!')
         self._listen_for('VM_VOLUME_DELETE_ERROR', d.callback)
         d.addCallback(check)
         self.vm.delete_volume(udf.volume_id)
@@ -2513,7 +2501,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         info = yield share_created_d
         share_id = info['share_id']
         share = self.vm.get_volume(share_id)
-        self.assertEquals(share.volume_id, str(share_id))
+        self.assertEqual(share.volume_id, str(share_id))
         self.assertIn(str(share_id), self.vm.shares)
 
         if auto_subscribe:
@@ -2549,13 +2537,13 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         d = defer.Deferred()
         self._listen_for('VM_UDF_CREATED', d.callback)
         rescan_cb = defer.Deferred()
-        self.patch(self.main.action_q, 'rescan_from_scratch',
-            rescan_cb.callback)
+        self.patch(
+            self.main.action_q, 'rescan_from_scratch', rescan_cb.callback)
 
         self.vm.handle_SV_VOLUME_CREATED(udf_volume)
         info = yield d
         udf = info['udf']
-        self.assertEquals(udf.volume_id, str(udf_id))
+        self.assertEqual(udf.volume_id, str(udf_id))
         self.assertIn(str(udf_id), self.vm.udfs)
         if auto_subscribe:
             self.assertTrue(self.vm.udfs[udf.id].subscribed)
@@ -2596,7 +2584,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         info = yield d
 
         udf = info['volume']
-        self.assertEquals(udf.volume_id, str(udf_id))
+        self.assertEqual(udf.volume_id, str(udf_id))
         self.assertNotIn(str(udf_id), self.vm.udfs)
         # subscribe a new listener, for deleting a share.
         share_deferred = defer.Deferred()
@@ -2605,7 +2593,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self.vm.handle_SV_VOLUME_DELETED(share.volume_id)
         share_info = yield share_deferred
         new_share = share_info['volume']
-        self.assertEquals(new_share.volume_id, share.volume_id)
+        self.assertEqual(new_share.volume_id, share.volume_id)
         self.assertNotIn(str(share.volume_id), self.vm.shares)
 
     @defer.inlineCallbacks
@@ -2617,19 +2605,17 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         """
         share_path = os.path.join(self.shares_dir, 'fake_share')
-        share_modify = Share(path=share_path, volume_id='share_id',
-                             node_id=str(uuid.uuid4()),
-                             access_level=ACCESS_LEVEL_RW, accepted=True,
-                             subscribed=True)
+        share_modify = Share(
+            path=share_path, volume_id='share_id', node_id=str(uuid.uuid4()),
+            access_level=ACCESS_LEVEL_RW, accepted=True, subscribed=True)
         share_no_accepted_path = os.path.join(self.shares_dir, 'fake_share')
-        share_no_accepted = Share(path=share_no_accepted_path,
-                               node_id=str(uuid.uuid4()),
-                               volume_id='accepted_share_id',
-                               access_level=ACCESS_LEVEL_RW, accepted=False,
-                               subscribed=True)
-        share_view = Share(path=share_path, volume_id='share_id_view',
-                           access_level=ACCESS_LEVEL_RO, accepted=True,
-                           subscribed=True)
+        share_no_accepted = Share(
+            path=share_no_accepted_path, node_id=str(uuid.uuid4()),
+            volume_id='accepted_share_id', access_level=ACCESS_LEVEL_RW,
+            accepted=False, subscribed=True)
+        share_view = Share(
+            path=share_path, volume_id='share_id_view',
+            access_level=ACCESS_LEVEL_RO, accepted=True, subscribed=True)
         yield self.vm.add_share(share_modify)
         yield self.vm.add_share(share_view)
         yield self.vm.add_share(share_no_accepted)
@@ -2780,8 +2766,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
                                                         (node_id, free_bytes))
         self.main.event_q.push('AQ_LIST_VOLUMES', volumes=[root_volume])
         root_node_id, free_bytes = yield d
-        self.assertEquals(str(root_volume.node_id), root_node_id)
-        self.assertEquals(root_volume.free_bytes, free_bytes)
+        self.assertEqual(str(root_volume.node_id), root_node_id)
+        self.assertEqual(root_volume.free_bytes, free_bytes)
 
     def test_validate_UDF_path_inside_home(self):
         """Test proper validation of path for creating folders."""
@@ -2789,7 +2775,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         result, msg = self.vm.validate_path_for_folder(folder_path)
         self.assertTrue(result)
-        self.assertIs(msg, "",
+        self.assertIs(
+            msg, "",
             '%r must be a valid path for creating a folder.' % folder_path)
 
     def test_validate_UDF_path_if_folder_shares_a_prefix_with_an_udf(self):
@@ -2806,16 +2793,19 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         result, msg = self.vm.validate_path_for_folder(tricky_path)
         self.assertTrue(result)
-        self.assertIs(msg, "",
+        self.assertIs(
+            msg, "",
             '%r must be a valid path for creating a folder.' % tricky_path)
 
     def test_validate_UDF_path_not_valid_if_outside_home(self):
         """A folder outside ~ is not valid."""
-        outside_home = os.path.abspath(os.path.join(self.home_dir, os.path.pardir))
+        outside_home = os.path.abspath(
+            os.path.join(self.home_dir, os.path.pardir))
 
         result, msg = self.vm.validate_path_for_folder(outside_home)
         self.assertFalse(result)
-        self.assertIsNot(msg, "",
+        self.assertIsNot(
+            msg, "",
             '%r must be an invalid path for creating a folder.' % outside_home)
 
     def test_validate_UDF_not_valid_if_folder_inside_root(self):
@@ -2826,7 +2816,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         result, msg = self.vm.validate_path_for_folder(inside_root)
         self.assertFalse(result)
-        self.assertIsNot(msg, "",
+        self.assertIsNot(
+            msg, "",
             '%r must be an invalid path for creating a folder.' % inside_root)
 
     @defer.inlineCallbacks
@@ -2839,7 +2830,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         result, msg = self.vm.validate_path_for_folder(inside_udf)
         self.assertFalse(result)
-        self.assertIsNot(msg, "",
+        self.assertIsNot(
+            msg, "",
             '%r must be an invalid path for creating a folder.' % inside_udf)
 
     @defer.inlineCallbacks
@@ -2848,11 +2840,13 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         udf = self._create_udf(subscribed=True)
         yield self.vm.add_udf(udf)
         # create a valid path that is parent from an existing UDF
-        udf_parent = os.path.abspath(os.path.join(self.home_dir, os.path.pardir))
+        udf_parent = os.path.abspath(
+            os.path.join(self.home_dir, os.path.pardir))
 
         result, msg = self.vm.validate_path_for_folder(udf_parent)
         self.assertFalse(result)
-        self.assertIsNot(msg, "",
+        self.assertIsNot(
+            msg, "",
             '%r must be an invalid path for creating a folder.' % udf_parent)
 
     def test_not_valid_if_folder_is_file(self):
@@ -2863,7 +2857,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         result, msg = self.vm.validate_path_for_folder(path_link)
         self.assertFalse(result)
-        self.assertIsNot(msg, "",
+        self.assertIsNot(
+            msg, "",
             '%r must be an invalid path for creating a folder.' % path_link)
 
     def test_not_valid_if_folder_is_link(self):
@@ -2873,7 +2868,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         result, msg = self.vm.validate_path_for_folder(path_link)
         self.assertFalse(result)
-        self.assertIsNot(msg, "",
+        self.assertIsNot(
+            msg, "",
             '%r must be an invalid path for creating a folder.' % path_link)
 
     @defer.inlineCallbacks
@@ -2883,13 +2879,14 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         # Use a directory surely outside home
         # Drive root on Windows, or root on linux
         outside_path = os.path.splitdrive(udf.path)[0] or "/"
-        # patch FakeAQ
+
         def create_udf(path, name, marker):
             """Fake create_udf"""
             d = dict(volume_id=uuid.uuid4(), node_id=uuid.uuid4(),
                      marker=marker)
             self.main.event_q.push("AQ_CREATE_UDF_OK", **d)
 
+        # patch FakeAQ
         self.main.action_q.create_udf = create_udf
         d = defer.Deferred()
         self._listen_for('VM_UDF_CREATE_ERROR', d.callback)
@@ -2897,8 +2894,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self.vm.create_udf(outside_path)
         result = yield d
         self.assertEqual(1, len(list(self.vm.udfs.keys())))
-        self.assertEqual(result,
-                         dict(path=outside_path, error="UDFs must be within home"))
+        self.assertEqual(
+            result, dict(path=outside_path, error="UDFs must be within home"))
 
     @defer.inlineCallbacks
     def test_no_UDFs_inside_root(self):
@@ -2942,7 +2939,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self._listen_for('VM_UDF_CREATED', lambda r: d.errback(Exception(r)))
         self.vm.create_udf(udf_child)
         result = yield d
-        self.assertEquals(1, len(list(self.vm.udfs.keys())))
+        self.assertEqual(1, len(list(self.vm.udfs.keys())))
         self.assertEqual(result,
                          dict(path=udf_child, error="UDFs can not be nested"))
 
@@ -2964,7 +2961,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self._listen_for('VM_UDF_CREATED', lambda r: d.errback(Exception(r)))
         self.vm.create_udf(udf_parent_path)
         result = yield d
-        self.assertEquals(1, len(list(self.vm.udfs.keys())))
+        self.assertEqual(1, len(list(self.vm.udfs.keys())))
         d = dict(path=udf_parent_path, error="UDFs can not be nested")
         self.assertEqual(result, d)
 
@@ -3025,19 +3022,17 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self._listen_for('VM_UDF_CREATED', d.callback)
         self.vm.handle_AQ_LIST_VOLUMES(response)
         yield d
-        self.assertEquals(2, len(self.vm.shares))  # the new share and root
-        self.assertEquals(1, len(self.vm.udfs))  # the new udf
+        self.assertEqual(2, len(self.vm.shares))  # the new share and root
+        self.assertEqual(1, len(self.vm.udfs))  # the new udf
         shared_id = uuid.uuid4()
-        shared_response = ShareResponse.from_params(shared_id, 'from_me',
-                                                   'fake_share_uuid',
-                                                   'fake_share', 'username',
-                                                   'visible_username', 'yes',
-                                                   ACCESS_LEVEL_RO)
+        shared_response = ShareResponse.from_params(
+            shared_id, 'from_me', 'fake_share_uuid', 'fake_share', 'username',
+            'visible_username', 'yes', ACCESS_LEVEL_RO)
         shares_response = ListShares(None)
         shares_response.shares = [shared_response]
         self.vm.handle_AQ_SHARES_LIST(shares_response)
         # check that all the shares are still there
-        self.assertEquals(2, len(self.vm.shares))  # the new share and root
+        self.assertEqual(2, len(self.vm.shares))  # the new share and root
 
     @defer.inlineCallbacks
     def test_handle_SV_FREE_SPACE(self):
@@ -3064,16 +3059,16 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         assert root.free_bytes is None, 'root free_bytes should be None'
         assert share.free_bytes is None, 'share free_bytes should be None'
         self.vm.handle_SV_FREE_SPACE(root.volume_id, 10)
-        self.assertEquals(10, self.vm.get_free_space(root.volume_id))
+        self.assertEqual(10, self.vm.get_free_space(root.volume_id))
         self.vm.handle_SV_FREE_SPACE(share.volume_id, 20)
-        self.assertEquals(20, self.vm.get_free_space(share.volume_id))
+        self.assertEqual(20, self.vm.get_free_space(share.volume_id))
         self.vm.handle_SV_FREE_SPACE(udf.volume_id, 50)
-        self.assertEquals(50, self.vm.get_free_space(udf.volume_id))
+        self.assertEqual(50, self.vm.get_free_space(udf.volume_id))
         # udf free space is root free space, check it's the same
-        self.assertEquals(50, self.vm.get_free_space(root.volume_id))
+        self.assertEqual(50, self.vm.get_free_space(root.volume_id))
         counter = yield d
         # check that check_conditions was called 3 times
-        self.assertEquals(3, counter)
+        self.assertEqual(3, counter)
 
     @defer.inlineCallbacks
     def test_update_and_get_free_space(self):
@@ -3086,19 +3081,19 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         udf = self._create_udf()
         yield self.vm.add_share(share)
         yield self.vm.add_udf(udf)
-        self.assertEquals(None, self.vm.get_free_space(share.volume_id))
-        self.assertEquals(None, self.vm.get_free_space(udf.volume_id))
-        self.assertEquals(None, self.vm.get_free_space(root.volume_id))
+        self.assertEqual(None, self.vm.get_free_space(share.volume_id))
+        self.assertEqual(None, self.vm.get_free_space(udf.volume_id))
+        self.assertEqual(None, self.vm.get_free_space(root.volume_id))
         self.vm.update_free_space(share.volume_id, 10)
         self.vm.update_free_space(udf.volume_id, 20)
         self.vm.update_free_space('missing_id', 20)
-        self.assertEquals(10, self.vm.get_free_space(share.volume_id))
-        self.assertEquals(20, self.vm.get_free_space(udf.volume_id))
-        self.assertEquals(20, self.vm.get_free_space(root.volume_id))
-        self.assertEquals(0, self.vm.get_free_space('missing_id'))
+        self.assertEqual(10, self.vm.get_free_space(share.volume_id))
+        self.assertEqual(20, self.vm.get_free_space(udf.volume_id))
+        self.assertEqual(20, self.vm.get_free_space(root.volume_id))
+        self.assertEqual(0, self.vm.get_free_space('missing_id'))
         self.vm.update_free_space(root.volume_id, 30)
-        self.assertEquals(30, self.vm.get_free_space(udf.volume_id))
-        self.assertEquals(30, self.vm.get_free_space(root.volume_id))
+        self.assertEqual(30, self.vm.get_free_space(udf.volume_id))
+        self.assertEqual(30, self.vm.get_free_space(root.volume_id))
 
     def test_get_free_space_no_volume(self):
         """Test get_free_space for a volume we don't have."""
@@ -3138,7 +3133,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self._listen_for('VM_UDF_CREATED', lambda r: d.errback(Exception(r)))
         self.vm.create_udf(udf_path)
         result = yield d
-        self.assertEquals(0, len(list(self.vm.udfs.keys())))
+        self.assertEqual(0, len(list(self.vm.udfs.keys())))
         self.assertEqual(result, dict(path=udf_path,
                                       error="UDFs can not be a symlink"))
 
@@ -3164,7 +3159,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self._listen_for('VM_UDF_CREATED', lambda r: d.errback(Exception(r)))
         self.vm.create_udf(udf_path)
         result = yield d
-        self.assertEquals(0, len(list(self.vm.udfs.keys())))
+        self.assertEqual(0, len(list(self.vm.udfs.keys())))
         self.assertEqual(result, dict(path=udf_path,
                                       error="UDFs can not be a symlink"))
 
@@ -3195,7 +3190,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self.assertEqual({'generation': 1, 'volume_id': ''}, events)
 
         expected = list(self.vm.get_volumes(all_volumes=True))
-        self.assertEqual({'volumes' : expected}, vols)
+        self.assertEqual({'volumes': expected}, vols)
 
     @defer.inlineCallbacks
     def test_server_rescan_with_share_autosubscribe(self):
@@ -3207,7 +3202,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         share_volume = self._create_share_volume(volume_id=share_id,
                                                  generation=17)
         udf_id = uuid.uuid4()
-        udf_volume = volumes.UDFVolume(udf_id, 'udf_node_id', 13, 200, u'~/UDF')
+        udf_volume = volumes.UDFVolume(
+            udf_id, 'udf_node_id', 13, 200, u'~/UDF')
         root_id = uuid.uuid4()
         root_volume = volumes.RootVolume(root_id, 1, 500)
         response = [share_volume, udf_volume, root_volume]
@@ -3220,8 +3216,9 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         share_from_scratch_d = defer.Deferred()
         from_scratch_deferreds = {'': root_from_scratch_d,
                                   str(share_id): share_from_scratch_d}
-        self.patch(self.main.action_q, 'rescan_from_scratch',
-           lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
+        self.patch(
+            self.main.action_q, 'rescan_from_scratch',
+            lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
 
         vol_rescan_d = defer.Deferred()
         self._listen_for('SV_VOLUME_NEW_GENERATION',
@@ -3262,8 +3259,9 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         udf_from_scratch_d = defer.Deferred()
         from_scratch_deferreds = {'': root_from_scratch_d,
                                   str(udf_id): udf_from_scratch_d}
-        self.patch(self.main.action_q, 'rescan_from_scratch',
-           lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
+        self.patch(
+            self.main.action_q, 'rescan_from_scratch',
+            lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
 
         # patch LR
         self.patch(self.main.lr, 'scan_dir', lambda *a, **k: None)
@@ -3312,8 +3310,9 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         from_scratch_deferreds = {'': root_from_scratch_d,
                                   str(share_id): share_from_scratch_d,
                                   str(udf_id): udf_from_scratch_d}
-        self.patch(self.main.action_q, 'rescan_from_scratch',
-           lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
+        self.patch(
+            self.main.action_q, 'rescan_from_scratch',
+            lambda vol_id: from_scratch_deferreds.pop(vol_id).callback(vol_id))
 
         # patch LR
         self.patch(self.main.lr, 'scan_dir', lambda *a, **k: None)
@@ -3402,8 +3401,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         yield udf_created_d
         self.assertIn(request.ROOT, self.vm.shares)
         self.assertIn(str(share_volume.volume_id), self.vm.shares)
-        self.assertEquals(1, len(self.vm.udfs))
-        self.assertEquals(2, len(self.vm.shares))
+        self.assertEqual(1, len(self.vm.udfs))
+        self.assertEqual(2, len(self.vm.shares))
         # remove the udf from the response list
         response = [share_volume, root_volume]
         server_rescan_d = defer.Deferred()
@@ -3413,8 +3412,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         self.assertIn(request.ROOT, self.vm.shares)
         self.assertIn(str(share_volume.volume_id), self.vm.shares)
-        self.assertEquals(0, len(self.vm.udfs))
-        self.assertEquals(2, len(self.vm.shares))
+        self.assertEqual(0, len(self.vm.udfs))
+        self.assertEqual(2, len(self.vm.shares))
 
     @defer.inlineCallbacks
     def test_server_rescan_clean_dead_shares(self):
@@ -3444,8 +3443,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         yield udf_created_d
         self.assertIn(request.ROOT, self.vm.shares)
         self.assertIn(str(udf_volume.volume_id), self.vm.udfs)
-        self.assertEquals(1, len(self.vm.udfs))
-        self.assertEquals(2, len(self.vm.shares))
+        self.assertEqual(1, len(self.vm.udfs))
+        self.assertEqual(2, len(self.vm.shares))
         # remove the share from the response list
         response = [udf_volume, root_volume]
         server_rescan_d = defer.Deferred()
@@ -3454,8 +3453,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         yield server_rescan_d
         self.assertIn(request.ROOT, self.vm.shares)
         self.assertIn(str(udf_volume.volume_id), self.vm.udfs)
-        self.assertEquals(1, len(self.vm.udfs))
-        self.assertEquals(1, len(self.vm.shares))
+        self.assertEqual(1, len(self.vm.udfs))
+        self.assertEqual(1, len(self.vm.shares))
 
     @defer.inlineCallbacks
     def test_volumes_rescan_cb(self):
@@ -3539,7 +3538,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         root_id = uuid.uuid4()
         root_volume = volumes.RootVolume(root_id, 1, 500)
         response = [root_volume]
-        self.assertEquals(None, self.vm.root.node_id)
+        self.assertEqual(None, self.vm.root.node_id)
         d = defer.Deferred()
         self._listen_for('SV_VOLUME_NEW_GENERATION', d.callback, 1, True)
         self.vm._volumes_rescan_cb(response)
@@ -3547,7 +3546,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         events_dict = dict((event['volume_id'], event['generation'])
                            for event in events)
         self.assertIn(request.ROOT, events_dict)
-        self.assertEquals(str(root_id), self.vm.root.node_id)
+        self.assertEqual(str(root_id), self.vm.root.node_id)
         self.assertTrue(self.main.fs.get_by_node_id(request.ROOT,
                                                     str(root_id)))
 
@@ -3561,7 +3560,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         root = self.vm.root
         root.node_id = str(root_id)
         self.vm.shares[request.ROOT] = root
-        self.assertEquals(str(root_id), self.vm.root.node_id)
+        self.assertEqual(str(root_id), self.vm.root.node_id)
         d = defer.Deferred()
         self._listen_for('SV_VOLUME_NEW_GENERATION', d.callback, 1, True)
         self.vm._volumes_rescan_cb(response)
@@ -3569,7 +3568,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         events_dict = dict((event['volume_id'], event['generation'])
                            for event in events)
         self.assertIn(request.ROOT, events_dict)
-        self.assertEquals(str(root_id), self.vm.root.node_id)
+        self.assertEqual(str(root_id), self.vm.root.node_id)
         self.assertTrue(self.main.fs.get_by_node_id(request.ROOT,
                                                     str(root_id)))
 
@@ -3620,8 +3619,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         # delete the fsm metadata
         self.main.fs.delete_metadata(udf.path)
         d = defer.Deferred()
-        self._listen_for('SV_VOLUME_NEW_GENERATION', d.callback, 2,
-            collect=True)
+        self._listen_for(
+            'SV_VOLUME_NEW_GENERATION', d.callback, 2, collect=True)
         self.patch(self.vm, '_scan_volume', defer.succeed)
         self.vm._volumes_rescan_cb(response)
         events = yield d
@@ -3632,9 +3631,9 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self.assertIn(request.ROOT, events_dict)
         # check that the fsm metadata is there
         mdobj = self.main.fs.get_by_path(udf.path)
-        self.assertEquals(udf.node_id, mdobj.node_id)
-        self.assertEquals(udf.id, mdobj.share_id)
-        self.assertEquals(udf.path, mdobj.path)
+        self.assertEqual(udf.node_id, mdobj.node_id)
+        self.assertEqual(udf.id, mdobj.share_id)
+        self.assertEqual(udf.path, mdobj.path)
 
     @defer.inlineCallbacks
     def test_volumes_rescan_cb_active_udf(self):
@@ -3694,8 +3693,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         yield self.vm.add_udf(udf)
         self.vm.update_generation(udf.volume_id, 10)
         d = defer.Deferred()
-        self.patch(self.main.action_q, 'get_delta',
-            lambda v, g: d.callback((v, g)))
+        self.patch(
+            self.main.action_q, 'get_delta', lambda v, g: d.callback((v, g)))
         self.main.event_q.push('SV_VOLUME_NEW_GENERATION',
                                volume_id=udf.volume_id, generation=100)
         vol_id, gen = yield d
@@ -3715,7 +3714,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self.main.event_q.push('SV_VOLUME_NEW_GENERATION',
                                volume_id=udf.volume_id, generation=100)
         vol_id = yield d
-        self.assertEquals(vol_id, udf.volume_id)
+        self.assertEqual(vol_id, udf.volume_id)
 
     @defer.inlineCallbacks
     def test_handle_SV_VOLUME_NEW_GENERATION_udf_eq(self):
@@ -3755,8 +3754,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self.vm._got_root('root_node_id')
         self.vm.update_generation(root.volume_id, 10)
         d = defer.Deferred()
-        self.patch(self.main.action_q, 'get_delta',
-            lambda v, g: d.callback((v, g)))
+        self.patch(
+            self.main.action_q, 'get_delta', lambda v, g: d.callback((v, g)))
         self.main.event_q.push('SV_VOLUME_NEW_GENERATION',
                                volume_id=root.volume_id, generation=100)
         vol_id, gen = yield d
@@ -3776,7 +3775,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self.main.event_q.push('SV_VOLUME_NEW_GENERATION',
                                volume_id=root.volume_id, generation=100)
         vol_id = yield d
-        self.assertEquals(vol_id, root.volume_id)
+        self.assertEqual(vol_id, root.volume_id)
 
     def test_handle_SV_VOLUME_NEW_GENERATION_root_eq(self):
         """Test handle_SV_VOLUME_NEW_GENERATION for root share."""
@@ -3787,8 +3786,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self.main.event_q.push('SV_VOLUME_NEW_GENERATION',
                                volume_id=root.volume_id, generation=100)
         self.assertEqual(1, len(self.handler.records))
-        msg = 'Got SV_VOLUME_NEW_GENERATION(%r, %r) but volume' + \
-                ' is at generation: %r'
+        msg = ('Got SV_VOLUME_NEW_GENERATION(%r, %r) but volume'
+               ' is at generation: %r')
         self.assertEqual(msg % (root.volume_id, 100, 100),
                          self.handler.records[0].message)
 
@@ -3799,8 +3798,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         yield self.vm.add_share(share)
         self.vm.update_generation(share.volume_id, 10)
         d = defer.Deferred()
-        self.patch(self.main.action_q, 'get_delta',
-            lambda v, g: d.callback((v, g)))
+        self.patch(
+            self.main.action_q, 'get_delta', lambda v, g: d.callback((v, g)))
         self.main.event_q.push('SV_VOLUME_NEW_GENERATION',
                                volume_id=share.volume_id, generation=100)
         vol_id, gen = yield d
@@ -3819,7 +3818,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self.main.event_q.push('SV_VOLUME_NEW_GENERATION',
                                volume_id=share.volume_id, generation=100)
         vol_id = yield d
-        self.assertEquals(vol_id, share.volume_id)
+        self.assertEqual(vol_id, share.volume_id)
 
     @defer.inlineCallbacks
     def test_handle_SV_VOLUME_NEW_GENERATION_share_eq(self):
@@ -3878,7 +3877,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         self.vm.handle_AQ_DELTA_NOT_POSSIBLE(share_id)
         self.vm.handle_AQ_DELTA_NOT_POSSIBLE(root.volume_id)
         for i, vol in enumerate([udf, share, root]):
-            self.assertEquals(calls[i], str(vol.volume_id))
+            self.assertEqual(calls[i], str(vol.volume_id))
 
     def test_handle_AQ_DELTA_NOT_POSSIBLE_missing_volume(self):
         """Test for handle_AQ_DELTA_NOT_POSSIBLE with an missing volume."""
@@ -3907,14 +3906,14 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         response = ListShares(None)
         response.shares = [share_response]
         self.vm.handle_AQ_SHARES_LIST(response)
-        self.assertEquals(1, len(self.vm.shared))  # the new shares and root
+        self.assertEqual(1, len(self.vm.shared))  # the new shares and root
         # check that the share is in the shares dict
         self.assertIn(str(share_id), self.vm.shared)
         shared = self.vm.shared[str(share_id)]
         # check that path is correctly set
         self.assertEqual(udf.path, shared.path)
-        self.assertEquals('fake_share', shared.name)
-        self.assertEquals(udf.node_id, shared.node_id)
+        self.assertEqual('fake_share', shared.name)
+        self.assertEqual(udf.node_id, shared.node_id)
 
 
 class MetadataTestCase(BaseTwistedTestCase):
@@ -3947,9 +3946,9 @@ class MetadataTestCase(BaseTwistedTestCase):
         yield super(MetadataTestCase, self).tearDown()
 
     def check_version(self):
-        """Check if the current version in the .version file is the last one."""
+        """Check if the current version in the version file is the last one."""
         with open_file(self.version_file, 'r') as fd:
-            self.assertEquals(CURRENT_METADATA_VERSION, fd.read().strip())
+            self.assertEqual(CURRENT_METADATA_VERSION, fd.read().strip())
 
     def set_md_version(self, md_version):
         """Write md_version to the .version file."""
@@ -3999,9 +3998,9 @@ class GenerationsMetadataTestCase(MetadataTestCase):
         legacy_udfs[udf.volume_id] = udf.__dict__
         shares = VMFileShelf(self.share_md_dir)
         udfs = VMFileShelf(self.udfs_md_dir)
-        self.assertEquals(None, shares[share.volume_id].generation)
-        self.assertEquals(None, shares[root.volume_id].generation)
-        self.assertEquals(None, udfs[udf.volume_id].generation)
+        self.assertEqual(None, shares[share.volume_id].generation)
+        self.assertEqual(None, shares[root.volume_id].generation)
+        self.assertEqual(None, udfs[udf.volume_id].generation)
         # add a value to the generation attribute
         share = shares[share.volume_id]
         share.generation = 1
@@ -4017,9 +4016,9 @@ class GenerationsMetadataTestCase(MetadataTestCase):
         del shares._cache[root.volume_id]
         del udfs._cache[udf.volume_id]
         # check again
-        self.assertEquals(1, shares[share.volume_id].generation)
-        self.assertEquals(2, shares[root.volume_id].generation)
-        self.assertEquals(3, udfs[udf.volume_id].generation)
+        self.assertEqual(1, shares[share.volume_id].generation)
+        self.assertEqual(2, shares[root.volume_id].generation)
+        self.assertEqual(3, udfs[udf.volume_id].generation)
 
 
 class MetadataUpgraderTests(MetadataTestCase):
@@ -4042,11 +4041,10 @@ class MetadataUpgraderTests(MetadataTestCase):
         self.addCleanup(self.db.shutdown)
         self.old_get_md_version = MetadataUpgrader._get_md_version
         MetadataUpgrader._get_md_version = lambda _: None
-        self.md_upgrader = MetadataUpgrader(self.vm_data_dir, self.share_md_dir,
-                                            self.shared_md_dir,
-                                            self.udfs_md_dir, self.root_dir,
-                                            self.shares_dir,
-                                            self.shares_dir_link, self.db)
+        self.md_upgrader = MetadataUpgrader(
+            self.vm_data_dir, self.share_md_dir, self.shared_md_dir,
+            self.udfs_md_dir, self.root_dir, self.shares_dir,
+            self.shares_dir_link, self.db)
 
     @defer.inlineCallbacks
     def tearDown(self):
@@ -4071,7 +4069,7 @@ class MetadataUpgraderTests(MetadataTestCase):
         set_dir_readonly(shares_dir)
         self.addCleanup(set_dir_readwrite, shares_dir)
         version = self.md_upgrader._guess_metadata_version()
-        self.assertEquals(None, version)
+        self.assertEqual(None, version)
 
     def test_guess_metadata_version_1_or_2(self):
         """Test _guess_metadata_version method for version 1 or 2."""
@@ -4099,7 +4097,7 @@ class MetadataUpgraderTests(MetadataTestCase):
         remove_link(self.shares_dir_link)
         make_link(self.shares_dir_link, self.shares_dir_link)
         version = self.md_upgrader._guess_metadata_version()
-        self.assertEquals(version, '4')
+        self.assertEqual(version, '4')
 
     def test_guess_metadata_version_5(self):
         """Test _guess_metadata_version method for version 5."""
@@ -4108,7 +4106,7 @@ class MetadataUpgraderTests(MetadataTestCase):
         shelf['foobar'] = _Share(path=os.path.join('foo', 'bar'),
                                  share_id='foobar')
         version = self.md_upgrader._guess_metadata_version()
-        self.assertEquals(version, '5')
+        self.assertEqual(version, '5')
 
     def test_guess_metadata_version_6(self):
         """Test _guess_metadata_version method for version 6."""
@@ -4117,7 +4115,7 @@ class MetadataUpgraderTests(MetadataTestCase):
         shelf['foobar'] = Share(path=os.path.join('foo', 'bar'),
                                 volume_id='foobar')
         version = self.md_upgrader._guess_metadata_version()
-        self.assertEquals(version, '6')
+        self.assertEqual(version, '6')
 
     def test_guess_mixed_metadata_5_and_6(self):
         """Test _guess_metadata_version method for mixed version 5 and 6."""
@@ -4128,7 +4126,7 @@ class MetadataUpgraderTests(MetadataTestCase):
         shelf['new_share'] = Share(path=os.path.join('bar', 'foo'),
                                    volume_id='new_share').__dict__
         version = self.md_upgrader._guess_metadata_version()
-        self.assertEquals(version, '5')
+        self.assertEqual(version, '5')
 
     def test_upgrade_names_metadata_2_no_os_rename(self):
         """Test that when names are upgraded we use the os_helper.rename."""
@@ -4137,7 +4135,10 @@ class MetadataUpgraderTests(MetadataTestCase):
         mocker = Mocker()
         # ensure that we do use the platform method and not the renamed one
         os_helper_rename = mocker.replace('ubuntuone.platform.rename')
-        is_string = lambda x: isinstance(x, str)
+
+        def is_string(x):
+            return isinstance(x, str)
+
         os_helper_rename(MATCH(is_string), MATCH(is_string))
         with mocker:
             self.md_upgrader._upgrade_names(dirpath, files)
@@ -4151,7 +4152,10 @@ class MetadataUpgraderTests(MetadataTestCase):
         # ensure that we do use the platform method and not the renamed one
         self.md_upgrader._upgrade_metadata_6 = mocker.mock()
         os_helper_rename = mocker.replace('ubuntuone.platform.rename')
-        is_string = lambda x: isinstance(x, str)
+
+        def is_string(x):
+            return isinstance(x, str)
+
         os_helper_rename(MATCH(is_string), MATCH(is_string))
         mocker.count(3)
         self.md_upgrader._upgrade_metadata_6(6)

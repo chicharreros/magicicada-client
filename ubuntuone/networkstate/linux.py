@@ -76,8 +76,7 @@ class NetworkManagerState(object):
         """Called by DBus when the state is retrieved from NM."""
         # Assuming since Network Manager is not running,
         # the user has connected in some other way
-        logger.error("Error contacting NetworkManager: %s" %
-                         str(error))
+        logger.error("Error contacting NetworkManager: %s", error)
         self.call_result_cb(ONLINE)
 
     def state_changed(self, state):

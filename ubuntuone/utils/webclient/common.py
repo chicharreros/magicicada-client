@@ -156,7 +156,7 @@ class BaseWebClient(object):
         """Build a new iri signing 'iri' with 'credentials'."""
         uri = self.iri_to_uri(iri)
         timestamp = yield self.get_timestamp()
-        signed_headers = self.build_auth_request(
+        url = self.build_auth_request(
             method='GET', uri=uri, credentials=credentials,
             timestamp=timestamp)
         defer.returnValue(url)

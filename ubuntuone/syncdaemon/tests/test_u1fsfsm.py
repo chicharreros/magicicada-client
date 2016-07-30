@@ -36,9 +36,11 @@ import os
 
 from ubuntuone.syncdaemon.fsm import fsm
 
+
 def p(name):
     """make a full path from here."""
     return os.path.join(os.path.dirname(fsm.__file__), name)
+
 
 class TestParse(unittest.TestCase):
     'Test fsm validation'

@@ -346,14 +346,16 @@ class TestConnectionManager(Base):
     def test_not_working_internal(self):
         """Not working, really! (internal check)."""
         self.cm.working = False
-        self.check('WU_WN', 'SYS_NET_DISCONNECTED', 'WU_WN') # if working, WU_NN
+        # if working, WU_NN
+        self.check('WU_WN', 'SYS_NET_DISCONNECTED', 'WU_WN')
 
     def test_not_working_external(self):
         """Not working, really! (external check)."""
         self.cm.working = False
         self.sm.state = StateManager.STANDOFF
         new_node = self.cm.on_event('SYS_CONNECTION_LOST')
-        self.assertTrue(new_node is None) # if working, it should return a node
+        # if working, it should return a node
+        self.assertTrue(new_node is None)
 
 
 class TestConnectionManagerTimings(Base):
@@ -421,7 +423,7 @@ class StateManagerTransitions(Base):
 
         m = "Bad Event received: Got %r while in %r" % (event, n_from.name)
         self.assertEqual(in_log, self.check_log('warning', m),
-                             "Bad log for %s / %s" % (n_from, event))
+                         "Bad log for %s / %s" % (n_from, event))
 
         # wait state changed only if the before and after nodes are different
         if n_from == n_to:
@@ -524,7 +526,7 @@ class TestStateManagerHighLevelTransitions(StateManagerTransitions):
 
     def test_network_events(self):
         """Don't make transition, and don't log warning."""
-        nodes = ['INIT', 'READY', 'STANDOFF', 'QUEUE_MANAGER'] # examples
+        nodes = ['INIT', 'READY', 'STANDOFF', 'QUEUE_MANAGER']  # examples
         d = []
         for event in ('SYS_QUEUE_WAITING', 'SYS_QUEUE_DONE'):
             node = nodes.pop()
@@ -707,8 +709,9 @@ class TestStateManagerEnterExit(Base):
 
     def test_localrescan_ready_netbad(self):
         """Transition LocalRescan -> Ready with network bad."""
-        for net in (ConnectionManager.WU_NN, ConnectionManager.NU_WN,
-                                                    ConnectionManager.NU_NN):
+        for net in (
+                ConnectionManager.WU_NN, ConnectionManager.NU_WN,
+                ConnectionManager.NU_NN):
             self.sm.connection.state = net
             self.sm.state = StateManager.LOCAL_RESCAN
             self.sm.handle_default('SYS_LOCAL_RESCAN_DONE')
@@ -723,8 +726,9 @@ class TestStateManagerEnterExit(Base):
 
     def test_waiting_ready_netbad(self):
         """Transition LocalRescan -> Ready with network bad."""
-        for net in (ConnectionManager.WU_NN, ConnectionManager.NU_WN,
-                                                    ConnectionManager.NU_NN):
+        for net in (
+                ConnectionManager.WU_NN, ConnectionManager.NU_WN,
+                ConnectionManager.NU_NN):
             self.sm.connection.state = net
             self.sm.state = StateManager.WAITING
             self.sm.handle_default('SYS_CONNECTION_RETRY')
@@ -864,16 +868,17 @@ class TestStateManagerPassToQueueManager(Base):
 
     @defer.inlineCallbacks
     def setUp(self):
-        yield super(TestStateManagerPassToQueueManager,
-                    self).setUp()
+        yield super(TestStateManagerPassToQueueManager, self).setUp()
 
         # put a function in the middle to log calls
         self.called_events = []
         orig_on_event = self.sm.queues.on_event
+
         def fake_on_event(event):
             """Log the call and call original."""
             self.called_events.append(event)
             orig_on_event(event)
+
         self.sm.queues.on_event = fake_on_event
 
     def _test(self, event):

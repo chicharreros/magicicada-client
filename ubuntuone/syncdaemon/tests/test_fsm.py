@@ -191,23 +191,22 @@ class StartupTests(BaseTwistedTestCase):
         path1 = os.path.join(share.path, 'path1')
         fsm.create(path1, "share")
         created_mdid1 = fsm._idx_path[path1]
-        self.assertEqual(fsm._idx_path, {path1:created_mdid1})
+        self.assertEqual(fsm._idx_path, {path1: created_mdid1})
         fsm.set_node_id(path1, "uuid1")
-        self.assertEqual(fsm._idx_node_id, {("share","uuid1"):created_mdid1})
+        self.assertEqual(fsm._idx_node_id, {("share", "uuid1"): created_mdid1})
 
         # ...and one without
         path2 = os.path.join(share.path, 'path2')
         fsm.create(path2, "share")
         created_mdid2 = fsm._idx_path[path2]
         self.assertEqual(fsm._idx_path,
-                         {path1:created_mdid1, path2:created_mdid2})
+                         {path1: created_mdid1, path2: created_mdid2})
 
         # open a second one to see if everything is ok
-        fsm = FileSystemManager(fsmdir, partials_dir,
-                                fsm.vm, db)
+        fsm = FileSystemManager(fsmdir, partials_dir, fsm.vm, db)
         self.assertEqual(fsm._idx_path,
-                         {path1:created_mdid1, path2:created_mdid2})
-        self.assertEqual(fsm._idx_node_id, {("share","uuid1"):created_mdid1})
+                         {path1: created_mdid1, path2: created_mdid2})
+        self.assertEqual(fsm._idx_node_id, {("share", "uuid1"): created_mdid1})
         self.assertTrue(fsm.get_by_mdid(created_mdid1))
         self.assertTrue(fsm.get_by_mdid(created_mdid2))
 
@@ -230,7 +229,7 @@ class CreationTests(FSMTestCase):
         self.assertEqual(mdobj.size, None)
         when = mdobj.info.created
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # set uuid using valid path, but not twice
         self.fsm.set_node_id(path, "uuid")
@@ -238,7 +237,7 @@ class CreationTests(FSMTestCase):
         mdobj = self.fsm.get_by_path(path)
         when = mdobj.info.node_id_assigned
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
     def test_with_node_id(self):
         """Test creation with node_id"""
@@ -256,14 +255,14 @@ class CreationTests(FSMTestCase):
         self.assertEqual(mdobj.size, None)
         when = mdobj.info.created
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # set uuid using valid path, but not twice
         self.assertRaises(ValueError, self.fsm.set_node_id, path, "whatever")
         mdobj = self.fsm.get_by_path(path)
         when = mdobj.info.node_id_assigned
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
     def test_invalid_args(self):
         """Test using invalid args in set_node_id."""
@@ -323,8 +322,8 @@ class CreationTests(FSMTestCase):
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
-                            'Shared With Me')
+        old_shares_path = os.path.join(
+            self.root_dir, 'Magicicada', 'Shared With Me')
         old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
 
@@ -386,8 +385,8 @@ class CreationTests(FSMTestCase):
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
-                            'Shared With Me')
+        old_shares_path = os.path.join(
+            self.root_dir, 'Magicicada', 'Shared With Me')
         old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
 
@@ -447,8 +446,8 @@ class CreationTests(FSMTestCase):
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
-                            'Shared With Me')
+        old_shares_path = os.path.join(
+            self.root_dir, 'Magicicada', 'Shared With Me')
         old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
 
@@ -504,8 +503,8 @@ class CreationTests(FSMTestCase):
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
-                            'Shared With Me')
+        old_shares_path = os.path.join(
+            self.root_dir, 'Magicicada', 'Shared With Me')
         old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
         old_root_path = os.path.join(os.path.dirname(self.root_dir),
@@ -538,8 +537,8 @@ class CreationTests(FSMTestCase):
         md_version = open_file(version_file).read()
         self.assertEqual(md_version, METADATA_VERSION)
         newmdobj = newfsm.get_by_path(other_share.path)
-        self.assertEquals(newmdobj.mdid, share_md['mdid'])
-        self.assertNotEquals(newmdobj.path, share_md['path'])
+        self.assertEqual(newmdobj.mdid, share_md['mdid'])
+        self.assertNotEqual(newmdobj.path, share_md['path'])
 
         root_dir = os.path.dirname(old_root_path)
         rootmdobj = newfsm.get_by_path(root_dir)
@@ -606,15 +605,15 @@ class CreationTests(FSMTestCase):
         self.assertEqual(newmdobj.mdid, mdid)
         self.assertEqual(newmdobj.generation, None)
         # check that the trash is the same:
-        self.assertEqual(self.fsm.trash,
-                         {("share", "uuid_1"):
-                                (mdid_1, "parent", path_1, False)})
+        self.assertEqual(
+            self.fsm.trash,
+            {("share", "uuid_1"): (mdid_1, "parent", path_1, False)})
         self.assertEqual(list(self.fsm.get_iter_trash()),
                          [("share", "uuid_1", "parent", path_1, False)])
         # check the move limbo
         expected = [(("share", "uuid_1"),
                     ("old_parent", "new_parent", "new_name", "pfrom", "pto"))]
-        self.assertEquals(expected, self.fsm.move_limbo.items())
+        self.assertEqual(expected, self.fsm.move_limbo.items())
         r = [("share", "uuid_1", "old_parent", "new_parent",
               "new_name", "pfrom", "pto")]
         self.assertEqual(list(self.fsm.get_iter_move_limbo()), r)
@@ -666,15 +665,15 @@ class CreationTests(FSMTestCase):
         self.assertEqual(newmdobj.mdid, mdid)
         self.assertEqual(newmdobj.generation, None)
         # check that the trash is the same:
-        self.assertEqual(self.fsm.trash,
-                         {("share", "uuid_1"):
-                                (mdid_1, "parent", path_1, False)})
+        self.assertEqual(
+            self.fsm.trash,
+            {("share", "uuid_1"): (mdid_1, "parent", path_1, False)})
         self.assertEqual(list(self.fsm.get_iter_trash()),
                          [("share", "uuid_1", "parent", path_1, False)])
         # check the move limbo
         expected = [(("share", "uuid_1"),
                     ("old_parent", "new_parent", "new_name", "pfrom", "pto"))]
-        self.assertEquals(expected, self.fsm.move_limbo.items())
+        self.assertEqual(expected, self.fsm.move_limbo.items())
         r = [("share", "uuid_1", "old_parent", "new_parent",
               "new_name", "pfrom", "pto")]
         self.assertEqual(list(self.fsm.get_iter_move_limbo()), r)
@@ -702,7 +701,7 @@ class CreationTests(FSMTestCase):
             f.write(BROKEN_PICKLE)
             os.fsync(f.fileno())
 
-        #break the node by creating a 0 byte pickle
+        # break the node by creating a 0 byte pickle
         with open_file(old_fs.key_file(mdid2), 'w') as f:
             os.fsync(f.fileno())
 
@@ -748,7 +747,7 @@ class CreationTests(FSMTestCase):
         with open_file(old_fs.key_file(mdid1), 'w') as f:
             f.write(BROKEN_PICKLE)
             os.fsync(f.fileno())
-        #break the third node by creating a 0 byte pickle
+        # break the third node by creating a 0 byte pickle
         with open_file(old_fs.key_file(mdid2), 'w') as f:
             os.fsync(f.fileno())
 
@@ -805,7 +804,7 @@ class CreationTests(FSMTestCase):
         with open_file(old_fs.key_file(mdid1), 'w') as f:
             f.write(BROKEN_PICKLE)
             os.fsync(f.fileno())
-        #break the third node by creating a 0 byte pickle
+        # break the third node by creating a 0 byte pickle
         with open_file(old_fs.key_file(mdid2), 'w') as f:
             os.fsync(f.fileno())
 
@@ -859,7 +858,7 @@ class CreationTests(FSMTestCase):
             f.write(BROKEN_PICKLE)
             os.fsync(f.fileno())
 
-        #break the node by creating a 0 byte pickle
+        # break the node by creating a 0 byte pickle
         with open_file(old_fs.key_file(mdid2), 'w') as f:
             os.fsync(f.fileno())
 
@@ -878,8 +877,8 @@ class CreationTests(FSMTestCase):
         self.assertEqual(1, len(newfsm._idx_node_id))
         self.assertEqual(3, len(newfsm._idx_path))
         # check that the broken mdid's load the old metadata
-        self.assertEquals(None, newfsm.get_by_mdid(mdid1).node_id)
-        self.assertEquals(None, newfsm.get_by_mdid(mdid2).node_id)
+        self.assertEqual(None, newfsm.get_by_mdid(mdid1).node_id)
+        self.assertEqual(None, newfsm.get_by_mdid(mdid2).node_id)
 
     @skip_if_win32_and_uses_metadata_older_than_5
     def test_old_metadata_1_broken_pickle_with_backup(self):
@@ -919,7 +918,7 @@ class CreationTests(FSMTestCase):
         with open_file(old_fs.key_file(mdid1), 'w') as f:
             f.write(BROKEN_PICKLE)
             os.fsync(f.fileno())
-        #break the third node by creating a 0 byte pickle
+        # break the third node by creating a 0 byte pickle
         with open_file(old_fs.key_file(mdid2), 'w') as f:
             os.fsync(f.fileno())
 
@@ -943,8 +942,8 @@ class CreationTests(FSMTestCase):
         self.assertEqual(1, len(newfsm._idx_node_id))
         self.assertEqual(3, len(newfsm._idx_path))
         # check that the broken mdid's load the old metadata
-        self.assertEquals(None, newfsm.get_by_mdid(mdid1).node_id)
-        self.assertEquals(None, newfsm.get_by_mdid(mdid2).node_id)
+        self.assertEqual(None, newfsm.get_by_mdid(mdid1).node_id)
+        self.assertEqual(None, newfsm.get_by_mdid(mdid2).node_id)
 
     @skip_if_win32_and_uses_metadata_older_than_5
     def test_old_metadata_2_broken_pickle_with_backup(self):
@@ -992,7 +991,7 @@ class CreationTests(FSMTestCase):
         with open_file(old_fs.key_file(mdid1), 'w') as f:
             f.write(BROKEN_PICKLE)
             os.fsync(f.fileno())
-        #break the third node by creating a 0 byte pickle
+        # break the third node by creating a 0 byte pickle
         with open_file(old_fs.key_file(mdid2), 'w') as f:
             os.fsync(f.fileno())
 
@@ -1011,8 +1010,8 @@ class CreationTests(FSMTestCase):
         self.assertEqual(1, len(newfsm._idx_node_id))
         self.assertEqual(3, len(newfsm._idx_path))
         # check that the broken mdid's load the old metadata
-        self.assertEquals(None, newfsm.get_by_mdid(mdid1).node_id)
-        self.assertEquals(None, newfsm.get_by_mdid(mdid2).node_id)
+        self.assertEqual(None, newfsm.get_by_mdid(mdid1).node_id)
+        self.assertEqual(None, newfsm.get_by_mdid(mdid2).node_id)
 
     def test_current_metadata_phantom_node_older(self):
         """Test current metadata with a phantom node."""
@@ -1042,7 +1041,8 @@ class CreationTests(FSMTestCase):
         def rsorted_keys():
             """Custom keys function to sort in reverse order by tstamp."""
             return [k for k, _ in sorted(self.db._keydir.items(),
-                            key=lambda v: v[1].tstamp, reverse=True)]
+                    key=lambda v: v[1].tstamp, reverse=True)]
+
         self.patch(self.db, 'keys', rsorted_keys)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, self.db)
@@ -1085,7 +1085,8 @@ class CreationTests(FSMTestCase):
         def sorted_keys():
             """Custom keys function to sort ordered by tstamp."""
             return [k for k, _ in sorted(self.db._keydir.items(),
-                            key=lambda v: v[1].tstamp, reverse=False)]
+                    key=lambda v: v[1].tstamp, reverse=False)]
+
         self.patch(self.db, 'keys', sorted_keys)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, self.db)
@@ -1362,7 +1363,7 @@ class GetSetTests(FSMTestCase):
 
         # check the path stored in the mdobj
         mdobj = self.fsm.get_by_node_id("share", "uuid")
-        self.assertEquals(self.share_path, mdobj.path)
+        self.assertEqual(self.share_path, mdobj.path)
 
     @defer.inlineCallbacks
     def test_get_all_by_share(self):
@@ -1474,20 +1475,19 @@ class GetSetTests(FSMTestCase):
         # yes, it's a unit test, I access protected members.
         self.fsm._set_node_id(mdobj, "uuid", path)
 
-        self.assertEquals('uuid', mdobj['node_id'])
+        self.assertEqual('uuid', mdobj['node_id'])
         self.fsm.set_node_id(path, "uuid")
         new_mdobj = self.fsm.get_by_node_id('share', 'uuid')
         for k, v in mdobj.items():
             if k == 'info':
                 for k1, v1 in v.items():
-                    self.assertEquals(int(v1),
-                                      int(getattr(new_mdobj.info, k1)))
+                    self.assertEqual(int(v1), int(getattr(new_mdobj.info, k1)))
             else:
-                self.assertEquals(v, getattr(new_mdobj, k))
+                self.assertEqual(v, getattr(new_mdobj, k))
 
         # test using bad uuid
         mdobj = self.fsm.fs[mdid]
-        self.assertEquals('uuid', mdobj['node_id'])
+        self.assertEqual('uuid', mdobj['node_id'])
         self.assertRaises(ValueError,
                           self.fsm._set_node_id, mdobj, 'bad-uuid', path)
 
@@ -1535,11 +1535,13 @@ class GetMDObjectsInDirTests(FSMTestCase):
         """Test just receiving the dir and not the tree."""
         expected = [os.path.join('a', 'b'),
                     os.path.join('a', 'b1'),
-                    os.path.join( 'a', 'b2'),
-                    os.path.join( 'a', 'c'),
-                    os.path.join( 'a', 'x.txt')]
-        actual = sorted([d.path for d in self.fsm.get_mdobjs_in_dir(
-                                    os.path.join(self.share.path, 'a'))])
+                    os.path.join('a', 'b2'),
+                    os.path.join('a', 'c'),
+                    os.path.join('a', 'x.txt')]
+        actual = sorted(
+            d.path for d in
+            self.fsm.get_mdobjs_in_dir(os.path.join(self.share.path, 'a'))
+        )
         self.assertEqual(expected, actual)
 
     def test_similar_paths(self):
@@ -1705,8 +1707,9 @@ class PartialTests(FSMTestCase):
         """Test create .partial for a file."""
         testfile = os.path.join(self.share_path, "path")
         mdid = self.fsm.create(testfile, "share")
-        partial_path = os.path.join(self.fsm.partials_dir,
-                            mdid + ".u1partial." + os.path.basename(testfile))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(testfile))
         self.fsm.set_node_id(testfile, "uuid")
 
         # create partial ok
@@ -1716,7 +1719,7 @@ class PartialTests(FSMTestCase):
         mdobj = self.fsm.get_by_mdid(mdid)
         when = mdobj.info.last_partial_created
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
         self.assertRaises(KeyError, self.fsm.create_partial, "foo", "share")
@@ -1729,8 +1732,9 @@ class PartialTests(FSMTestCase):
         """Test commit the .partial for a file, after a successful download."""
         testfile = os.path.join(self.share_path, "path")
         mdid = self.fsm.create(testfile, "share")
-        partial_path = os.path.join(self.fsm.partials_dir,
-                            mdid + ".u1partial." + os.path.basename(testfile))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(testfile))
         self.fsm.set_node_id(testfile, "uuid")
 
         # create partial
@@ -1742,31 +1746,34 @@ class PartialTests(FSMTestCase):
         # commit partial, and check that the file is moved, and metadata is ok
         self.fsm.commit_partial("uuid", "share", local_hash=9876)
         self.assertFalse(path_exists(partial_path))
+
         with open_file(testfile) as fh:
             in_file = fh.read()
+
         self.assertEqual(in_file, "test info!")
         mdobj = self.fsm.get_by_mdid(mdid)
         self.assertFalse(mdobj.info.is_partial)
         self.assertEqual(mdobj.local_hash, 9876)
         when = mdobj.info.last_downloaded
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
-        self.assertRaises(KeyError, self.fsm.commit_partial,
-                          "foo", "share", 123)
-        self.assertRaises(ValueError, self.fsm.commit_partial,
-                          None, "share", 123)
+        self.assertRaises(
+            KeyError, self.fsm.commit_partial, "foo", "share", 123)
+        self.assertRaises(
+            ValueError, self.fsm.commit_partial, None, "share", 123)
         # it has no partial!
-        self.assertRaises(ValueError, self.fsm.commit_partial,
-                          "uuid", "share", 1)
+        self.assertRaises(
+            ValueError, self.fsm.commit_partial, "uuid", "share", 1)
 
     def test_remove_file(self):
         """Test removing the .partial for a file, because a bad download."""
         testfile = os.path.join(self.share_path, "path")
         mdid = self.fsm.create(testfile, "share")
-        partial_path = os.path.join(self.fsm.partials_dir,
-                            mdid + ".u1partial." + os.path.basename(testfile))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(testfile))
         self.fsm.set_node_id(testfile, "uuid")
 
         # create partial
@@ -1780,14 +1787,16 @@ class PartialTests(FSMTestCase):
         # remove partial, and check that the file is gone, and metadata is ok
         self.fsm.remove_partial("uuid", "share")
         self.assertFalse(path_exists(partial_path))
+
         with open_file(testfile) as fh:
             in_file = fh.read()
+
         self.assertEqual(in_file, "previous stuff!")
         mdobj = self.fsm.get_by_mdid(mdid)
         self.assertFalse(mdobj.info.is_partial)
         when = mdobj.info.last_partial_removed
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
         self.assertRaises(KeyError, self.fsm.remove_partial, "foo", "share")
@@ -1806,13 +1815,14 @@ class PartialTests(FSMTestCase):
         # create partial ok
         self.fsm.create_partial("uuid", "share")
         self.assertTrue(self.fsm.get_by_mdid(mdid).info.is_partial)
-        partial_path = os.path.join(self.fsm.partials_dir,
-                            mdid + ".u1partial." + os.path.basename(testdir))
+        partial_path = os.path.join(
+            self.fsm.partials_dir, mdid + ".u1partial." +
+            os.path.basename(testdir))
         self.assertTrue(path_exists(partial_path))
         mdobj = self.fsm.get_by_mdid(mdid)
         when = mdobj.info.last_partial_created
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
         self.assertRaises(KeyError, self.fsm.create_partial, "foo", "share")
@@ -1830,13 +1840,14 @@ class PartialTests(FSMTestCase):
         self.fsm.create_partial("uuid", "share")
         self.assertTrue(self.fsm.get_by_mdid(mdid).info.is_partial)
         self.assertTrue(path_exists(testdir))
-        partial_path = os.path.join(self.fsm.partials_dir,
-                            mdid + ".u1partial." + os.path.basename(testdir))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(testdir))
         self.assertTrue(path_exists(partial_path))
         mdobj = self.fsm.get_by_mdid(mdid)
         when = mdobj.info.last_partial_created
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
         self.assertRaises(KeyError, self.fsm.create_partial, "foo", "share")
@@ -1855,8 +1866,9 @@ class PartialTests(FSMTestCase):
         self.assertTrue(self.fsm.get_by_mdid(mdid).info.is_partial)
 
         # commit is forbidden for directories
-        self.assertRaises(ValueError, self.fsm.commit_partial, "uuid", "share",
-                          local_hash=9876)
+        self.assertRaises(
+            ValueError, self.fsm.commit_partial, "uuid", "share",
+            local_hash=9876)
 
     def test_remove_dir(self):
         """Test removing the .partial for a dir, because a bad download."""
@@ -1870,14 +1882,15 @@ class PartialTests(FSMTestCase):
 
         # remove partial, and check that the file is gone, and metadata is ok
         self.fsm.remove_partial("uuid", "share")
-        partial_path = os.path.join(self.fsm.partials_dir,
-                            mdid + ".u1partial." + os.path.basename(testdir))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(testdir))
         self.assertFalse(path_exists(partial_path))
         mdobj = self.fsm.get_by_mdid(mdid)
         self.assertFalse(mdobj.info.is_partial)
         when = mdobj.info.last_partial_removed
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
         self.assertRaises(KeyError, self.fsm.remove_partial, "foo", "share")
@@ -2058,7 +2071,7 @@ class FileHandlingTests(FSMTestCase):
         mdobj = self.fsm.get_by_mdid(mdid)
         when = mdobj.info.last_conflicted
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # move second time, start the .N serie
         with open_file(testfile, "w") as fh:
@@ -2132,7 +2145,7 @@ class FileHandlingTests(FSMTestCase):
         self.assertEqual(mdobj.server_hash, 1234567890)
         when = mdobj.info.last_uploaded
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # invalid mdid
         self.assertRaises(KeyError, self.fsm.upload_finished,
@@ -2160,7 +2173,7 @@ class FileHandlingTests(FSMTestCase):
         self.assertEqual(mdobj.info.last_moved_from, testfile)
         when = mdobj.info.last_moved_time
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # move again, to a directory
         from_path = to_path
@@ -2173,12 +2186,12 @@ class FileHandlingTests(FSMTestCase):
         self.assertEqual(in_file, "test!")
 
         # invalid path
-        self.assertRaises(KeyError, self.fsm.move_file,
-                          "share", "no-path", "dest")
+        self.assertRaises(
+            KeyError, self.fsm.move_file, "share", "no-path", "dest")
 
         # other share
-        self.assertRaises(KeyError, self.fsm.move_file,
-                                            "othershare", testfile, to_path)
+        self.assertRaises(
+            KeyError, self.fsm.move_file, "othershare", testfile, to_path)
 
         # invalid args
         self.assertRaises(TypeError, self.fsm.move_file, "one-path")
@@ -2231,7 +2244,7 @@ class FileHandlingTests(FSMTestCase):
         self.assertEqual(mdobj.info.last_moved_from, from_path)
         when = mdobj.info.last_moved_time
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # move again, to a directory
         from_path = to_path
@@ -2244,7 +2257,7 @@ class FileHandlingTests(FSMTestCase):
         self.assertEqual(mdobj.info.last_moved_from, from_path)
         when = mdobj.info.last_moved_time
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
     def test_move_file_withfulldir(self):
         """Test that a dir is moved from even having a file inside."""
@@ -2275,7 +2288,7 @@ class FileHandlingTests(FSMTestCase):
         self.assertEqual(mdobj.info.last_moved_from, from_path)
         when = mdobj.info.last_moved_time
         now = time.time()
-        self.assertTrue(now-3 <= when <= now) # 3 seconds test range
+        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
 
         # check that file inside is ok
         newfilepath = os.path.join(to_path, "file.txt")
@@ -2382,11 +2395,11 @@ class FileHandlingTests(FSMTestCase):
         self.fsm.set_node_id(local_dir, "uuid")
 
         local_file = os.path.join(local_dir, "bar.txt")
-        open_file(local_file, 'w').close() # touch bar.txt so it exists
+        open_file(local_file, 'w').close()  # touch bar.txt so it exists
         mdid_file = self.fsm.create(local_file, "")
         self.fsm.set_node_id(local_file, "uuid_file")
 
-        assert len(listdir(local_dir)) > 0 # local_dir is not empty
+        assert len(listdir(local_dir)) > 0  # local_dir is not empty
         assert not self.fsm.local_changed(path=local_dir)
 
         self.fsm.delete_file(local_dir)
@@ -2431,12 +2444,12 @@ class FileHandlingTests(FSMTestCase):
         self.fsm.set_node_id(local_dir, "uuid")
 
         local_file = os.path.join(local_dir, "bar.txt")
-        open_file(local_file, 'w').close() # touch bar.txt so it exists
+        open_file(local_file, 'w').close()  # touch bar.txt so it exists
         mdid_file = self.fsm.create(local_file, "")
         self.fsm.set_node_id(local_file, "uuid_file")
         self.fsm.set_by_mdid(mdid_file, local_hash=98765)
 
-        assert len(listdir(local_dir)) > 0 # local_dir is not empty
+        assert len(listdir(local_dir)) > 0  # local_dir is not empty
         assert self.fsm.changed(path=local_file) == self.fsm.CHANGED_LOCAL
         self.assertRaises(DirectoryNotRemovable,
                           self.fsm.delete_file, local_dir)
@@ -2451,9 +2464,9 @@ class FileHandlingTests(FSMTestCase):
 
         local_file = os.path.join(local_dir,
                                   "bar.txt" + self.fsm.CONFLICT_SUFFIX)
-        open_file(local_file, 'w').close() # touch bar.txt.u1conflict
+        open_file(local_file, 'w').close()  # touch bar.txt.u1conflict
 
-        assert not local_file in self.fsm._idx_path
+        assert local_file not in self.fsm._idx_path
         self.assertRaises(DirectoryNotRemovable,
                           self.fsm.delete_file, local_dir)
 
@@ -2474,7 +2487,7 @@ class FileHandlingTests(FSMTestCase):
                                     "subdir_bar" + self.fsm.CONFLICT_SUFFIX)
         make_dir(local_subdir)
 
-        assert not local_subdir in self.fsm._idx_path
+        assert local_subdir not in self.fsm._idx_path
         self.assertRaises(DirectoryNotRemovable,
                           self.fsm.delete_file, local_dir)
 
@@ -2491,7 +2504,7 @@ class FileHandlingTests(FSMTestCase):
         self.fsm.set_node_id(local_dir, "uuid")
 
         local_file = os.path.join(local_dir, "bar.txt")
-        open_file(local_file, 'w').close() # touch bar.txt so it exists
+        open_file(local_file, 'w').close()  # touch bar.txt so it exists
         self.fsm.create(local_file, "")
         self.fsm.set_node_id(local_file, "uuid_file")
 
@@ -2499,7 +2512,7 @@ class FileHandlingTests(FSMTestCase):
         self.fsm.delete_file(local_dir)
 
         # no logs were added
-        self.assertEquals(previous, self.handler.records)
+        self.assertEqual(previous, self.handler.records)
 
     def test_warning_on_log_file_when_failing_delete(self):
         """Test that sucessfully deleted dir does not log OSError."""
@@ -2618,9 +2631,9 @@ class LimboTests(FSMTestCase):
         # delete to trash
         self.fsm.delete_to_trash(mdid, "parent")
         self.assertFalse(self.fsm.has_metadata(mdid=mdid))
-        self.assertEqual(self.fsm.trash,
-                         {("share", "uuid"):
-                                (mdid, "parent", testfile, False)})
+        self.assertEqual(
+            self.fsm.trash,
+            {("share", "uuid"): (mdid, "parent", testfile, False)})
         self.assertEqual(list(self.fsm.get_iter_trash()),
                          [("share", "uuid", "parent", testfile, False)])
         self.assertTrue(self.fsm.node_in_trash("share", "uuid"))
@@ -2634,13 +2647,13 @@ class LimboTests(FSMTestCase):
 
     def test_trash_older(self):
         """get_iter_trash supports older trash (no is_dir)."""
-        self.fsm.trash  = {("share", "uuid"): ("mdid", "parent", "path1")}
+        self.fsm.trash = {("share", "uuid"): ("mdid", "parent", "path1")}
         self.assertEqual(list(self.fsm.get_iter_trash()),
                          [("share", "uuid", "parent", "path1", False)])
 
     def test_trash_oldest(self):
         """get_iter_trash supports oldest trash (no is_dir nor path)."""
-        self.fsm.trash  = {("share", "uuid"): ("mdid", "parent")}
+        self.fsm.trash = {("share", "uuid"): ("mdid", "parent")}
         self.assertEqual(list(self.fsm.get_iter_trash()),
                          [("share", "uuid", "parent", "fake_unblocking_path",
                            False)])
@@ -2654,9 +2667,9 @@ class LimboTests(FSMTestCase):
         # delete to trash and check the marker
         self.fsm.delete_to_trash(mdid, "parent")
         marker = MDMarker(mdid)
-        self.assertEqual(self.fsm.trash,
-                         {("share", marker):
-                                (mdid, "parent", testfile, False)})
+        self.assertEqual(
+            self.fsm.trash,
+            {("share", marker): (mdid, "parent", testfile, False)})
 
     def test_dereference_ok_limbos_none(self):
         """Limbos' markers ok dereferencing is fine if no marker at all."""
@@ -2726,7 +2739,8 @@ class LimboTests(FSMTestCase):
         # dereference and test
         self.fsm.dereference_err_limbos("mrkr")
         self.assertFalse(self.fsm.node_in_trash("share", "mrkr"))
-        self.assertTrue(self.handler.check_debug("dereference err trash", "marker"))
+        self.assertTrue(
+            self.handler.check_debug("dereference err trash", "marker"))
 
     def test_dereference_err_trash_parent(self):
         """Dereference with error possible marker in trash, parent."""
@@ -2930,8 +2944,8 @@ class SyntheticInfoTests(FSMTestCase):
         """Test the has_metadata option."""
         # not yet
         self.assertFalse(self.fsm.has_metadata(path="path"))
-        self.assertFalse(self.fsm.has_metadata(node_id="uuid",
-                                                            share_id="share"))
+        self.assertFalse(
+            self.fsm.has_metadata(node_id="uuid", share_id="share"))
         self.assertFalse(self.fsm.has_metadata(mdid="garbage"))
 
         # path created
@@ -2948,8 +2962,8 @@ class SyntheticInfoTests(FSMTestCase):
         self.assertTrue(self.fsm.has_metadata(node_id="uuid",
                                               share_id="share"))
         self.assertTrue(self.fsm.has_metadata(mdid=mdid))
-        self.assertRaises(ValueError, self.fsm.has_metadata, node_id=None,
-                                                             share_id="share")
+        self.assertRaises(
+            ValueError, self.fsm.has_metadata, node_id=None, share_id="share")
 
     def test_is_dir(self):
         """Test the is_directory option."""
@@ -2974,8 +2988,9 @@ class SyntheticInfoTests(FSMTestCase):
         # SERVER means: local_hash != server_hash and is_partial
         testfile = os.path.join(self.share_path, "path")
         mdid = self.fsm.create(testfile, "share")
-        partial_path = os.path.join(self.fsm.partials_dir,
-                            mdid + ".u1partial." + os.path.basename(testfile))
+        partial_path = os.path.join(
+            self.fsm.partials_dir, mdid + ".u1partial." +
+            os.path.basename(testfile))
         self.fsm.set_node_id(testfile, "uuid")
 
         # set conditions and test
@@ -2984,7 +2999,7 @@ class SyntheticInfoTests(FSMTestCase):
         # local_hash is None so far
         self.assertEqual(self.fsm.changed(mdid=mdid), self.fsm.CHANGED_SERVER)
         self.assertEqual(self.fsm.changed(node_id="uuid", share_id="share"),
-                        self.fsm.CHANGED_SERVER)
+                         self.fsm.CHANGED_SERVER)
         self.assertEqual(self.fsm.changed(path=testfile),
                          self.fsm.CHANGED_SERVER)
 
@@ -2998,16 +3013,18 @@ class SyntheticInfoTests(FSMTestCase):
         # NONE means: local_hash == server_hash and is_partial == False
         testfile = os.path.join(self.share_path, "path")
         mdid = self.fsm.create(testfile, "share")
-        partial_path = os.path.join(self.fsm.partials_dir,
-                            mdid + ".u1partial." + os.path.basename(testfile))
+        partial_path = os.path.join(
+            self.fsm.partials_dir, mdid + ".u1partial." +
+            os.path.basename(testfile))
         self.fsm.set_node_id(testfile, "uuid")
 
         # all conditions are set: by default, local_hash and server_hash
         # are both None
         self.assertEqual(self.fsm.changed(mdid=mdid), self.fsm.CHANGED_NONE)
         self.assertEqual(self.fsm.changed(node_id="uuid", share_id="share"),
-                        self.fsm.CHANGED_NONE)
-        self.assertEqual(self.fsm.changed(path=testfile), self.fsm.CHANGED_NONE)
+                         self.fsm.CHANGED_NONE)
+        self.assertEqual(
+            self.fsm.changed(path=testfile), self.fsm.CHANGED_NONE)
 
         # put a .partial by hand, to see it crash
         open_file(partial_path, "w").close()
@@ -3019,8 +3036,9 @@ class SyntheticInfoTests(FSMTestCase):
         # LOCAL means: local_hash != server_hash and is not partial
         testfile = os.path.join(self.share_path, "path")
         mdid = self.fsm.create(testfile, "share")
-        partial_path = os.path.join(self.fsm.partials_dir,
-                            mdid + ".u1partial." + os.path.basename(testfile))
+        partial_path = os.path.join(
+            self.fsm.partials_dir, mdid + ".u1partial." +
+            os.path.basename(testfile))
         self.fsm.set_node_id(testfile, "uuid")
 
         # set conditions and test
@@ -3028,7 +3046,7 @@ class SyntheticInfoTests(FSMTestCase):
         # local_hash is None so far
         self.assertEqual(self.fsm.changed(mdid=mdid), self.fsm.CHANGED_LOCAL)
         self.assertEqual(self.fsm.changed(node_id="uuid", share_id="share"),
-                        self.fsm.CHANGED_LOCAL)
+                         self.fsm.CHANGED_LOCAL)
         self.assertEqual(self.fsm.changed(path=testfile),
                          self.fsm.CHANGED_LOCAL)
 
@@ -3267,8 +3285,8 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_delete_file_ro_share(self):
         """ Test that fsm is able to delete a file in a ro-share. """
-        self.share = yield self.create_share('ro_share', u'ro_share_name',
-                                        access_level=ACCESS_LEVEL_RO)
+        self.share = yield self.create_share(
+            'ro_share', u'ro_share_name', access_level=ACCESS_LEVEL_RO)
         testfile = os.path.join(self.share.path, "a_file")
         self.fsm.create(testfile, self.share.volume_id, is_dir=False)
         self.fsm.set_node_id(testfile, "uuid3")
@@ -3397,10 +3415,10 @@ class TestEnableShareWrite(FSMTestCase):
             self.assertFalse(enabled.ro)
             with open_file(path, 'w') as f:
                 f.write(data)
-        self.assertEquals(data, open_file(path, 'r').read())
+        self.assertEqual(data, open_file(path, 'r').read())
         self.assertTrue(os.access(self.share_path, os.W_OK))
         # check that the parent permissions are ok
-        self.assertEquals(can_write_parent, os.access(self.share_path, os.W_OK))
+        self.assertEqual(can_write_parent, os.access(self.share_path, os.W_OK))
 
 
 class RealVMTestCase(FSMTestCase):
@@ -3445,8 +3463,8 @@ class RealVMTestCase(FSMTestCase):
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
-                            'Shared With Me')
+        old_shares_path = os.path.join(
+            self.root_dir, 'Magicicada', 'Shared With Me')
         old_path = os.path.join(old_shares_path, u'share1_name')
         make_link(self.shares_dir, old_shares_path)
 
@@ -3512,8 +3530,8 @@ class RealVMTestCase(FSMTestCase):
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid3")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
-                            'Shared With Me')
+        old_shares_path = os.path.join(
+            self.root_dir, 'Magicicada', 'Shared With Me')
         old_path = os.path.join(old_shares_path, u'share1_name')
         make_link(self.shares_dir, old_shares_path)
 
@@ -3555,7 +3573,7 @@ class RealVMTestCase(FSMTestCase):
         self.assertEqual(md_version, METADATA_VERSION)
         self.assertEqual(1, len(newfsm._idx_node_id))
         self.assertEqual(2, len(newfsm._idx_path))
-        self.assertEquals('uuid1', newfsm.get_by_mdid(mdid1).node_id)
+        self.assertEqual('uuid1', newfsm.get_by_mdid(mdid1).node_id)
         self.assertRaises(KeyError, newfsm.get_by_mdid, share_mdid)
 
     @skip_if_win32_and_uses_metadata_older_than_5
@@ -3573,8 +3591,8 @@ class RealVMTestCase(FSMTestCase):
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid3")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
-                            'Shared With Me')
+        old_shares_path = os.path.join(
+            self.root_dir, 'Magicicada', 'Shared With Me')
         old_path = os.path.join(old_shares_path, u'share1_name')
         make_link(self.shares_dir, old_shares_path)
 
@@ -3630,8 +3648,8 @@ class RealVMTestCase(FSMTestCase):
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
-        old_shares_path = os.path.join(self.root_dir, 'Magicicada',
-                            'Shared With Me')
+        old_shares_path = os.path.join(
+            self.root_dir, 'Magicicada', 'Shared With Me')
         old_path = os.path.join(old_shares_path, u'share1_name')
         make_link(self.shares_dir, old_shares_path)
         old_root_path = os.path.join(os.path.dirname(self.root_dir),
@@ -3676,8 +3694,9 @@ class RealVMTestCase(FSMTestCase):
         """test loading current metadata that points to a share
         that we don't have
         """
-        md_version = open_file(os.path.join(self.data_dir,
-                                       "metadata_version")).read()
+        with open_file(
+                os.path.join(self.data_dir, "metadata_version")) as f:
+            md_version = f.read()
         self.assertEqual(md_version, METADATA_VERSION)
         path = os.path.join(self.share.path, 'path')
         path1 = os.path.join(self.share.path, 'path1')
@@ -3706,8 +3725,8 @@ class RealVMTestCase(FSMTestCase):
         self.assertEqual(2, len(newfsm._idx_node_id))
         self.assertEqual(3, len(newfsm._idx_path))
         # check that the broken mdid's load the old metadata
-        self.assertEquals('uuid', newfsm.get_by_mdid(mdid).node_id)
-        self.assertEquals('uuid1', newfsm.get_by_mdid(mdid1).node_id)
+        self.assertEqual('uuid', newfsm.get_by_mdid(mdid).node_id)
+        self.assertEqual('uuid1', newfsm.get_by_mdid(mdid1).node_id)
         self.assertRaises(KeyError, newfsm.get_by_mdid, mdid2)
 
 
@@ -3780,7 +3799,7 @@ class ServerRescanDataTestCase(FSMTestCase):
         self.fsm.set_node_id(path2, "uuid2")
         self.fsm.set_node_id(path_out, "uuid3")
         data = list(self.fsm.get_for_server_rescan_by_path(self.share.path))
-        self.assertEquals(len(data), 3)
+        self.assertEqual(len(data), 3)
         self.assertTrue(("share", "uuid1", "") in data)
         self.assertTrue(("share", "uuid2", "") in data)
         self.assertTrue(("share", "share_uuid", "") in data)
@@ -3797,27 +3816,24 @@ class MutingTestCase(FSMTestCase):
         self.muted = []
 
         # in-the-middle add
-        self._orig_add_mute = self.eq.add_to_mute_filter
+        _orig_add_mute = self.eq.add_to_mute_filter
+        # in-the-middle remove
+        _orig_rm_mute = self.eq.rm_from_mute_filter
+
         def _fake_add(event, **data):
             """Store what is added."""
             self.muted.append((event, data))
-            return self._orig_add_mute(event, **data)
-        self.eq.add_to_mute_filter = _fake_add
+            return _orig_add_mute(event, **data)
 
-        # in-the-middle remove
-        self._orig_rm_mute = self.eq.rm_from_mute_filter
         def _fake_rm(event, **data):
             """Store what is deleted."""
             self.muted.remove((event, data))
-            return self._orig_rm_mute(event, **data)
-        self.eq.rm_from_mute_filter = _fake_rm
+            return _orig_rm_mute(event, **data)
 
-    @defer.inlineCallbacks
-    def tearDown(self):
-        """Put original stuff back in."""
-        self.eq.add_to_mute_filter = self._orig_add_mute
-        self.eq.rm_from_mute_filter = self._orig_rm_mute
-        yield super(MutingTestCase, self).tearDown()
+        self.eq.rm_from_mute_filter = _fake_rm
+        self.eq.add_to_mute_filter = _fake_add
+        self.addCleanup(setattr, self.eq, 'add_to_mute_filter', _orig_add_mute)
+        self.addCleanup(setattr, self.eq, 'rm_from_mute_filter', _orig_rm_mute)
 
     def test_movefile_ok(self):
         """Move file adds a mute filter."""
@@ -4089,7 +4105,8 @@ class OsIntegrationTests(FSMTestCase, MockerTestCase):
         self.open_file(path, 'wb')
         self.mocker.result(fd)
         self.mocker.replay()
-        self.assertEqual(fd, self.fsm.get_partial_for_writing(node_id, share_id))
+        self.assertEqual(
+            fd, self.fsm.get_partial_for_writing(node_id, share_id))
 
     def test_get_partial(self):
         """Test that the get partial does use the correct os_helper method."""
@@ -4393,4 +4410,3 @@ class FSMSearchTestCase(BaseTwistedTestCase):
         expected = [self.udfpath1]
         result = self.fsm.get_paths_by_pattern('udf afile')
         self.assertEqual(expected, result)
-

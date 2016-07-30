@@ -88,9 +88,9 @@ class U1SDToolTests(TestToolsBase):
                       other_visible_name=u"ñoño", accepted=False,
                       subscribed=False)
         yield self.main.vm.add_share(share)
-        expected = u"Shares list:\n id=share_id name=\xf1o\xf1o " + \
-                    "accepted=False subscribed=False access_level=View " + \
-                    "from=fake_user\n"
+        expected = (
+            u"Shares list:\n id=share_id name=\xf1o\xf1o accepted=False "
+            u"subscribed=False access_level=View from=fake_user\n")
         result = yield self.tool.get_shares()
         show_shares(result, out)
         self.assertEqual(out.getvalue(), expected)
@@ -115,15 +115,15 @@ class U1SDToolTests(TestToolsBase):
         # helper function, pylint: disable-msg=C0111
 
         def fake_create_share(node_id, user, name, access_level, marker, path):
-            self.main.vm.handle_AQ_CREATE_SHARE_OK(share_id='share_id',
-                                              marker=marker)
+            self.main.vm.handle_AQ_CREATE_SHARE_OK(
+                share_id='share_id', marker=marker)
         self.main.action_q.create_share = fake_create_share
         self.main.vm.create_share(path, 'fake_user', 'shared_name',
                                   ACCESS_LEVEL_RO)
         out = StringIO()
-        expected = u"Shared list:\n  id=share_id name=shared_name " + \
-                "accepted=False access_level=View to=fake_user " + \
-                "path=%s\n" % path.decode('utf-8')
+        expected = (
+            u"Shared list:\n  id=share_id name=shared_name accepted=False "
+            u"access_level=View to=fake_user path=%s\n" % path.decode('utf-8'))
         d = self.tool.list_shared()
         d.addCallback(lambda result: show_shared(result, out))
 
@@ -148,8 +148,7 @@ class U1SDToolTests(TestToolsBase):
         self.fs.set_node_id(path, "uuid1")
         mdobj = self.fs.get_by_mdid(mdid)
         self.fs.create_partial(mdobj.node_id, mdobj.share_id)
-        fh = self.fs.get_partial_for_writing(mdobj.node_id,
-                                                     mdobj.share_id)
+        fh = self.fs.get_partial_for_writing(mdobj.node_id, mdobj.share_id)
         fh.write("foobar")
         fh.close()
         self.fs.commit_partial(mdobj.node_id, mdobj.share_id, "localhash")
@@ -235,10 +234,10 @@ class U1SDToolTests(TestToolsBase):
         self.action_q.queue.waiting.append(fake_upload)
 
         out = StringIO()
-        expected = u"Current uploads:\n  path: up_path\n    " + \
-                "deflated size: 100\n    bytes written: 10\nCurrent " + \
-                "downloads:\n  path: down_path\n    deflated size: " + \
-                "10\n    bytes read: 1\n"
+        expected = (
+            u"Current uploads:\n  path: up_path\n    deflated size: 100\n    "
+            u"bytes written: 10\nCurrent downloads:\n  path: down_path\n    "
+            u"deflated size: 10\n    bytes read: 1\n")
         result = yield self.tool.get_current_uploads()
         show_uploads(result, out)
 
@@ -296,10 +295,10 @@ class U1SDToolTests(TestToolsBase):
 
         out = StringIO()
         expected = (
-            "  FakeCommand(running=True, share_id='', "
-                                    "node_id='node1', path='foo', other='')\n"
-            "  FakeCommand(running=False, share_id='', "
-                                    "node_id='node2', other='')\n"
+            "  FakeCommand(running=True, share_id='', node_id='node1', "
+            "path='foo', other='')\n"
+            "  FakeCommand(running=False, share_id='', node_id='node2', "
+            "other='')\n"
         )
 
         result = yield self.tool.waiting()
@@ -318,9 +317,9 @@ class U1SDToolTests(TestToolsBase):
         expected = (
             "Warning: this option is deprecated! Use '--waiting' instead\n"
             "  FakeCommand(running=True, share_id='', node_id='node1', "
-                           "path='p', other='')\n"
+            "path='p', other='')\n"
             "  FakeCommand(running=True, share_id='', node_id='node2', "
-                           "other='')\n"
+            "other='')\n"
         )
 
         result = yield self.tool.waiting_metadata()
@@ -428,8 +427,9 @@ class U1SDToolTests(TestToolsBase):
         # sort the list
         dirty_nodes.sort(key=itemgetter('mdid'))
         show_dirty_nodes(dirty_nodes, out)
-        node_line_tpl = "mdid: %(mdid)s volume_id: %(share_id)s " + \
-                "node_id: %(node_id)s is_dir: %(is_dir)s path: %(path)s\n"
+        node_line_tpl = (
+            "mdid: %(mdid)s volume_id: %(share_id)s node_id: %(node_id)s "
+            "is_dir: %(is_dir)s path: %(path)s\n")
         if not empty:
             expected = " Dirty nodes:\n%s"
             lines = []

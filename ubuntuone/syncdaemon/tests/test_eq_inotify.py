@@ -312,9 +312,8 @@ class FreezeTests(BaseTwisted):
         testdir = os.path.join(self.root_dir, "foo")
         make_dir(testdir)
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_DIR_DELETE(innerself, path):
                 if path != "foobar":
                     self.finished_error("received a wrong path")
@@ -353,6 +352,7 @@ class FreezeTests(BaseTwisted):
         def freeze_commit():
             """Release and check result."""
             d = self.eq.freeze_commit([("FS_DIR_DELETE", "foobar")])
+
             def check(dirty):
                 """check dirty"""
                 if not dirty:
@@ -379,22 +379,20 @@ class FreezeTests(BaseTwisted):
         testfile = os.path.join(testdir, "bar")
         make_dir(testdir)
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_DIR_DELETE(innerself, path):
                 if path != "foobar":
                     self.finished_error("received a wrong path")
                 else:
                     self.finished_ok()
 
-
         def freeze_rollback():
             """release with handcrafted event and check result."""
             self.eq.freeze_rollback()
             self.eq.freeze_begin(testdir)
-            reactor.callLater(.1,
-                        self.eq.freeze_commit, [("FS_DIR_DELETE", "foobar")])
+            reactor.callLater(
+                .1, self.eq.freeze_commit, [("FS_DIR_DELETE", "foobar")])
 
         # set up everything and freeze
         yield self.eq.add_watch(testdir)
@@ -417,9 +415,8 @@ class FreezeTests(BaseTwisted):
         make_dir(testdir)
         testfile = os.path.join(self.root_dir, "bar")
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def __init__(innerself):
                 innerself.hist = []
 
@@ -833,7 +830,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
 
     def test_move_udf_ancestor(self):
         """UDF is unsubscribed on ancestor move."""
-        path = self.udf.ancestors[-2] # an ancestor common to both UDFs
+        path = self.udf.ancestors[-2]  # an ancestor common to both UDFs
         # generate IN_MOVED_FROM and IN_MOVED_TO
         newpath = path + '.old'  # no unicode, paths are always a byte sequence
 
@@ -845,6 +842,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         assert path_exists(newpath)
 
         unsubscribed = []
+
         def check():
             """Check."""
             self.assertEqual(len(unsubscribed), 2)
@@ -861,9 +859,11 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
             self._deferred.callback(True)
 
         original = self.eq.fs.vm.unsubscribe_udf
+
         def unsubsc(uid):
             original(uid)
             unsubscribed.append(uid)
+
         self.patch(self.eq.fs.vm, 'unsubscribe_udf', unsubsc)
 
         reactor.callLater(.1, check)
@@ -878,18 +878,21 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         assert path_exists(newpath)
 
         unsubscribed = []
+
         def check():
             """Check."""
             self.assertEqual(len(unsubscribed), 1)
             uid = unsubscribed[0]
             self.assertEqual(uid, self.udf.id, "wrong UDF removed!")
-            self.assertNotIn(self.udf.path, self.eq.monitor._ancestors_watchs,
-                             'watch must be removed')
-            self.assertEqual(False,
-                              self.eq.fs.vm.udfs[self.udf.id].subscribed)
+            self.assertNotIn(
+                self.udf.path, self.eq.monitor._ancestors_watchs,
+                'watch must be removed')
+            self.assertEqual(
+                False, self.eq.fs.vm.udfs[self.udf.id].subscribed)
             self._deferred.callback(True)
 
         original = self.eq.fs.vm.unsubscribe_udf
+
         def unsubsc(uid):
             original(uid)
             unsubscribed.append(uid)
@@ -945,6 +948,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         # only the parent, as the other ancestors are shared with other UDFs
         # and should not be removed
         expected = os.path.dirname(self.udf.path)
+
         def check():
             self.assertEqual([expected], removed_watches,
                              "Removed watches don't match the expected")
@@ -958,6 +962,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         """Remove the watches of the ancestors in an unsubscription."""
         removed_watches = []
         original = self.eq.monitor.rm_watch
+
         def remove_watch(path):
             """Store the path."""
             original(path)
@@ -968,6 +973,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         # only the parent, as the other ancestors are shared with other UDFs
         # and should not be removed, and the path of the udf itself
         expected = [os.path.dirname(self.udf.path), self.udf.path]
+
         def check():
             self.assertEqual(sorted(expected), sorted(removed_watches),
                              "Removed watches don't match the expected")
@@ -981,6 +987,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         """Mix of unsubscription and further renaming."""
         removed_watches = []
         original = self.eq.monitor.rm_watch
+
         def remove_watch(path):
             """Store the path."""
             original(path)
@@ -989,14 +996,15 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         self.patch(self.eq.monitor, 'rm_watch', remove_watch)
 
         # all should be removed
-        expected = list(set(self.udf.ancestors) | set(self.udf2.ancestors)) + [
-                            self.udf.path, self.udf2.path]
+        expected = list(set(self.udf.ancestors) | set(self.udf2.ancestors))
+        expected += [self.udf.path, self.udf2.path]
+
         def check():
             self.assertEqual(sorted(expected), sorted(removed_watches),
                              "Removed watches don't match the expected")
             self._deferred.callback(True)
 
-        path = self.udf.ancestors[-2] # an ancestor common to both UDFs
+        path = self.udf.ancestors[-2]  # an ancestor common to both UDFs
 
         rename(self.udf.path, self.udf.path + ".old")
         rename(path, path + ".old")
@@ -1024,10 +1032,10 @@ class NonUTF8NamesTests(BaseTwisted):
 
         yield self.eq.add_watch(self.root_dir)
         should_events = [
-            ('FS_INVALID_NAME', dict(dirname=self.root_dir,
-                                     filename=self.invalid_name)), # open
-            ('FS_INVALID_NAME', dict(dirname=self.root_dir,
-                                     filename=self.invalid_name)), # close no w
+            ('FS_INVALID_NAME',
+             dict(dirname=self.root_dir, filename=self.invalid_name)),  # open
+            ('FS_INVALID_NAME',
+             dict(dirname=self.root_dir, filename=self.invalid_name)),  # close
         ]
         listener = DynamicHitMe(should_events, self)
         self.eq.subscribe(listener)
@@ -1046,8 +1054,8 @@ class NonUTF8NamesTests(BaseTwisted):
 
         yield self.eq.add_watch(self.root_dir)
         should_events = [
-            ('FS_INVALID_NAME', dict(dirname=self.root_dir,
-                                     filename=self.invalid_name)), # close no w
+            ('FS_INVALID_NAME',
+             dict(dirname=self.root_dir, filename=self.invalid_name)),  # close
         ]
         listener = DynamicHitMe(should_events, self)
         self.eq.subscribe(listener)
@@ -1062,12 +1070,12 @@ class NonUTF8NamesTests(BaseTwisted):
         """Test invalid_filename after a create, open and close write."""
         yield self.eq.add_watch(self.root_dir)
         should_events = [
-            ('FS_INVALID_NAME', dict(dirname=self.root_dir,
-                                     filename=self.invalid_name)), # create
-            ('FS_INVALID_NAME', dict(dirname=self.root_dir,
-                                     filename=self.invalid_name)), # open
-            ('FS_INVALID_NAME', dict(dirname=self.root_dir,
-                                     filename=self.invalid_name)), # close w
+            ('FS_INVALID_NAME',
+             dict(dirname=self.root_dir, filename=self.invalid_name)),  # new
+            ('FS_INVALID_NAME',
+             dict(dirname=self.root_dir, filename=self.invalid_name)),  # open
+            ('FS_INVALID_NAME',
+             dict(dirname=self.root_dir, filename=self.invalid_name)),  # close
         ]
         listener = DynamicHitMe(should_events, self)
         self.eq.subscribe(listener)
@@ -1083,8 +1091,8 @@ class NonUTF8NamesTests(BaseTwisted):
         """Test invalid_filename after a dir create."""
         yield self.eq.add_watch(self.root_dir)
         should_events = [
-            ('FS_INVALID_NAME', dict(dirname=self.root_dir,
-                                     filename=self.invalid_name)), # create
+            ('FS_INVALID_NAME',
+             dict(dirname=self.root_dir, filename=self.invalid_name)),  # new
         ]
         listener = DynamicHitMe(should_events, self)
         self.eq.subscribe(listener)
@@ -1102,8 +1110,8 @@ class NonUTF8NamesTests(BaseTwisted):
 
         yield self.eq.add_watch(self.root_dir)
         should_events = [
-            ('FS_INVALID_NAME', dict(dirname=self.root_dir,
-                                     filename=self.invalid_name)), # delete
+            ('FS_INVALID_NAME',
+             dict(dirname=self.root_dir, filename=self.invalid_name)),  # del
         ]
         listener = DynamicHitMe(should_events, self)
         self.eq.subscribe(listener)
@@ -1120,8 +1128,8 @@ class NonUTF8NamesTests(BaseTwisted):
 
         yield self.eq.add_watch(self.root_dir)
         should_events = [
-            ('FS_INVALID_NAME', dict(dirname=self.root_dir,
-                                     filename=self.invalid_name)), # delete
+            ('FS_INVALID_NAME',
+             dict(dirname=self.root_dir, filename=self.invalid_name)),  # del
         ]
         listener = DynamicHitMe(should_events, self)
         self.eq.subscribe(listener)
@@ -1141,8 +1149,8 @@ class NonUTF8NamesTests(BaseTwisted):
 
         yield self.eq.add_watch(destdir)
         should_events = [
-            ('FS_INVALID_NAME', dict(dirname=destdir,
-                                     filename=self.invalid_name)), # move to
+            ('FS_INVALID_NAME',
+             dict(dirname=destdir, filename=self.invalid_name)),  # move to
         ]
         listener = DynamicHitMe(should_events, self)
         self.eq.subscribe(listener)
@@ -1164,8 +1172,8 @@ class NonUTF8NamesTests(BaseTwisted):
 
         yield self.eq.add_watch(fromdir)
         should_events = [
-            ('FS_INVALID_NAME', dict(dirname=fromdir,
-                                     filename=self.invalid_name)), # move from
+            ('FS_INVALID_NAME',
+             dict(dirname=fromdir, filename=self.invalid_name)),  # move from
         ]
         listener = DynamicHitMe(should_events, self)
         self.eq.subscribe(listener)
@@ -1187,9 +1195,8 @@ class SignalingTests(BaseTwisted):
         """Test receiving the open signal on files."""
         testfile = os.path.join(self.root_dir, "foo")
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_FILE_OPEN(innerself, path):
                 if path != testfile:
                     self.finished_error("received a wrong path")
@@ -1211,9 +1218,8 @@ class SignalingTests(BaseTwisted):
         open_file(testfile, "w").close()
         fh = open_file(testfile)
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_FILE_CLOSE_NOWRITE(innerself, path):
                 if path != testfile:
                     self.finished_error("received a wrong path")
@@ -1233,9 +1239,8 @@ class SignalingTests(BaseTwisted):
         """Test receiving the create and close_write signals on files."""
         testfile = os.path.join(self.root_dir, "foo")
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def __init__(innerself):
                 innerself.hist = []
 
@@ -1268,9 +1273,8 @@ class SignalingTests(BaseTwisted):
         """Test receiving the create signal on dirs."""
         testdir = os.path.join(self.root_dir, "foo")
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_DIR_CREATE(innerself, path):
                 if path != testdir:
                     self.finished_error("received a wrong path")
@@ -1291,9 +1295,8 @@ class SignalingTests(BaseTwisted):
         testfile = os.path.join(self.root_dir, "foo")
         open_file(testfile, "w").close()
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_FILE_DELETE(innerself, path):
                 if path != testfile:
                     self.finished_error("received a wrong path")
@@ -1318,9 +1321,8 @@ class SignalingTests(BaseTwisted):
         testdir = os.path.join(self.root_dir, "foo")
         make_dir(testdir)
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_DIR_DELETE(innerself, path):
                 if path != testdir:
                     self.finished_error("received a wrong path")
@@ -1372,9 +1374,8 @@ class SignalingTests(BaseTwisted):
         open_file(fromfile, "w").close()
         make_dir(helpdir)
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_FILE_DELETE(innerself, path):
                 if path != fromfile:
                     self.finished_error("received a wrong path")
@@ -1399,9 +1400,8 @@ class SignalingTests(BaseTwisted):
         make_dir(fromdir)
         make_dir(helpdir)
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_DIR_DELETE(innerself, path):
                 if path != fromdir:
                     self.finished_error("received a wrong path")
@@ -1429,9 +1429,8 @@ class SignalingTests(BaseTwisted):
         make_dir(helpdir)
         open_file(fromfile, "w").close()
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_FILE_CREATE(innerself, path):
                 if path != tofile:
                     self.finished_error("received a wrong path")
@@ -1456,9 +1455,8 @@ class SignalingTests(BaseTwisted):
         make_dir(helpdir)
         make_dir(fromdir)
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_DIR_CREATE(innerself, path):
                 if path != todir:
                     self.finished_error("received a wrong path")
@@ -1611,9 +1609,8 @@ class SignalingTests(BaseTwisted):
         self.fs.set_node_id(tofile, "to_node_id")
         open_file(fromfile, "w").close()
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_FILE_MOVE(innerself, path_from, path_to):
                 if path_from != fromfile:
                     self.finished_error("received a wrong path in from")
@@ -1641,9 +1638,8 @@ class SignalingTests(BaseTwisted):
         self.fs.set_node_id(todir, "to_node_id")
         make_dir(fromdir)
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_DIR_MOVE(innerself, path_from, path_to):
                 if path_from != fromdir:
                     self.finished_error("received a wrong path in from")
@@ -1670,7 +1666,6 @@ class SignalingTests(BaseTwisted):
         self.fs.set_node_id(mypath('foo'), "foo_node_id")
         self.fs.create(mypath('bar'), "")
         self.fs.set_node_id(mypath('bar'), "bar_node_id")
-
 
         yield self.eq.add_watch(self.root_dir)
 
@@ -1718,9 +1713,9 @@ class SignalingTests(BaseTwisted):
         open_file(testfile, 'w').close()
 
         paths = [testdir, testfile]
-        # helper class, pylint: disable-msg=C0111
+
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_DIR_DELETE(innerself, path):
                 expected = paths.pop()
                 if path != expected:
@@ -1748,9 +1743,8 @@ class SignalingTests(BaseTwisted):
         make_dir(testdir)
         newdirname = os.path.join(self.root_dir, "newdir")
 
-        # helper class, pylint: disable-msg=C0111
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
+
             def handle_FS_FILE_CREATE(innerself, path):
                 if path != newfilepath:
                     self.finished_error("received a wrong path")
@@ -1932,13 +1926,16 @@ class SignalingTests(BaseTwisted):
 
         d = self._deferred
         log = self.eq.monitor._processor.log
+
         class Handler(logging.Handler):
             """Handler that trigger the deferred callback."""
+
             def emit(self, record):
                 """Dummy emit."""
                 # cleanup, remove the handler
                 log.removeHandler(self)
                 d.callback(record)
+
         hdlr = Handler()
         hdlr.setLevel(logging.WARNING)
         log.addHandler(hdlr)
@@ -1967,13 +1964,16 @@ class SignalingTests(BaseTwisted):
 
         d = self._deferred
         log = self.eq.monitor._processor.log
+
         class Handler(logging.Handler):
             """Handler that trigger the deferred callback."""
+
             def emit(self, record):
                 """Dummy emit."""
                 # cleanup, remove the handler
                 log.removeHandler(self)
                 d.callback(record)
+
         hdlr = Handler()
         hdlr.setLevel(logging.WARNING)
         log.addHandler(hdlr)

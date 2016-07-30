@@ -90,8 +90,8 @@ class TunnelClientProtocolTestCase(TestCase):
         self.other_proto = SavingProtocol()
         other_factory = protocol.ClientFactory()
         other_factory.buildProtocol = lambda _addr: self.other_proto
-        tunnel_client_factory = tunnel_client.TunnelClientFactory(self.host,
-                                         self.port, other_factory, self.cookie)
+        tunnel_client_factory = tunnel_client.TunnelClientFactory(
+            self.host, self.port, other_factory, self.cookie)
         tunnel_client_proto = tunnel_client_factory.buildProtocol(fake_addr)
         tunnel_client_proto.transport = FakeTransport()
         tunnel_client_proto.connectionMade()
@@ -195,8 +195,8 @@ class TunnelClientTestCase(SquidTestCase):
         self.ws = MockWebServer()
         self.addCleanup(self.ws.stop)
         self.dest_url = self.ws.get_iri().encode("utf-8") + SIMPLERESOURCE
-        self.dest_ssl_url = (self.ws.get_ssl_iri().encode("utf-8") +
-                             SIMPLERESOURCE)
+        self.dest_ssl_url = (
+            self.ws.get_ssl_iri().encode("utf-8") + SIMPLERESOURCE)
         self.cookie = FAKE_COOKIE
         self.tunnel_server = TunnelServer(self.cookie)
         self.addCleanup(self.tunnel_server.shutdown)
@@ -215,8 +215,8 @@ class TunnelClientTestCase(SquidTestCase):
     @defer.inlineCallbacks
     def test_starts_tls_connection(self):
         """TLS is started after connecting; control passed to the client."""
-        tunnel_client = TunnelClient("0.0.0.0", self.tunnel_server.port,
-                                     self.cookie)
+        tunnel_client = TunnelClient(
+            "0.0.0.0", self.tunnel_server.port, self.cookie)
         factory = client.HTTPClientFactory(self.dest_ssl_url)
         scheme, host, port, path = client._parse(self.dest_ssl_url)
         context_factory = ssl.ClientContextFactory()

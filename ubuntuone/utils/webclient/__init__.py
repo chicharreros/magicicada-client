@@ -30,8 +30,6 @@
 
 """A common webclient that can use a QtNetwork or libsoup backend."""
 
-import sys
-
 
 def webclient_module():
     """Choose the module of the web client."""

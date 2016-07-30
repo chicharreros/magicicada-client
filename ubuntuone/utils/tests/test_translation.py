@@ -179,9 +179,9 @@ class TranslationsTestCase(TestCase):
             # Check for lang_rv[:1] (must be a list) because we only
             # send first language, in order to fall back to 'en' even
             # though we don't ship an en.mo
-            expected_arg = ((TEST_DOMAIN, expected_path),
-                              {'languages': lang_rv[:1],
-                               'fallback': True})
+            expected_arg = (
+                (TEST_DOMAIN, expected_path),
+                {'languages': lang_rv[:1], 'fallback': True})
 
             self.assertEqual(self._called, [expected_arg])
 
@@ -203,22 +203,23 @@ class TranslationsTestCase(TestCase):
 
     def test_get_gettext_nonlinux_frozen_py2_enfirst(self):
         """test get_gettext returning nulltranslations when lang[0] = en"""
-        self._call_get_gettext_nonlinux(frozen=True,
-                                        py_version=(2,),
-                                        lang_en_first=True)
+        self._call_get_gettext_nonlinux(
+            frozen=True, py_version=(2,), lang_en_first=True)
 
     def test_get_gettext_darwin_unfrozen_fallback(self):
         """test using fallback path from source"""
         self.patch(translation, '_get_languages', lambda: ['not-en'])
         self._call_get_gettext('darwin', (2,), TEST_FALLBACK_PATH)
-        self.assertEqual(self._called, [((TEST_DOMAIN, TEST_FALLBACK_PATH),
-                                       {'languages': ['not-en'],
-                                        'fallback': True})])
+        self.assertEqual(
+            self._called,
+            [((TEST_DOMAIN, TEST_FALLBACK_PATH),
+              {'languages': ['not-en'], 'fallback': True})])
 
     def test_get_gettext_win32_unfrozen_fallback(self):
         """test using fallback path from source"""
         self.patch(translation, '_get_languages', lambda: ['not-en'])
         self._call_get_gettext('win32', (2,), TEST_FALLBACK_PATH)
-        self.assertEqual(self._called, [((TEST_DOMAIN, TEST_FALLBACK_PATH),
-                                       {'languages': ['not-en'],
-                                        'fallback': True})])
+        self.assertEqual(
+            self._called,
+            [((TEST_DOMAIN, TEST_FALLBACK_PATH),
+              {'languages': ['not-en'], 'fallback': True})])

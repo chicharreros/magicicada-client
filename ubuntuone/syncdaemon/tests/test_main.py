@@ -189,7 +189,7 @@ class MainTests(BaseTwistedTestCase):
         main = self.build_main()
         # check that the shares link is actually a link
         self.assertTrue(is_link(main.shares_dir_link))
-        self.assertEquals(link, main.shares_dir_link)
+        self.assertEqual(link, main.shares_dir_link)
 
     def test_create_dirs_already_exists_symlink_too(self):
         """test that creating a Main instance works as expected."""
@@ -212,7 +212,7 @@ class MainTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(self.root))
         main = self.build_main()
         # check that the shares link is actually a link
-        self.assertEquals(main.shares_dir_link, link)
+        self.assertEqual(main.shares_dir_link, link)
         self.assertFalse(is_link(main.shares_dir_link))
 
     def test_create_dirs_none_exists(self):

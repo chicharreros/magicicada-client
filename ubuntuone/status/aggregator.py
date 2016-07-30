@@ -47,15 +47,15 @@ from ubuntuone.platform import (
 )
 from ubuntuone.platform.launcher import Launcher, DummyLauncher
 
-ONE_DAY = 24 * 60 * 60
-Q_ = lambda string: gettext.dgettext(GETTEXT_PACKAGE, string)
 
-NEW_UDFS_SENDER = Q_("New cloud folder(s) available")
+def Q_(string):
+    return gettext.dgettext(GETTEXT_PACKAGE, string)
+
 FINAL_COMPLETED = Q_("File synchronization completed.")
-
+NEW_UDFS_SENDER = Q_("New cloud folder(s) available")
+ONE_DAY = 24 * 60 * 60
 PROGRESS_COMPLETED = Q_("%(percentage_completed)d%% completed.")
 FILE_SYNC_IN_PROGRESS = Q_("File synchronization in progress")
-
 SHARE_QUOTA_EXCEEDED = Q_(
     'There is no available space on the folder:\n"%s" shared by %s')
 

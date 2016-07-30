@@ -214,46 +214,50 @@ class SyncMenuTestCase(TestCase):
         self.syncdaemon_service = FakeSyncdaemonService()
         self.status_frontend = FakeStatusFrontend()
         self._paused = False
-        self.sync_menu = sync_menu.UbuntuOneSyncMenu(self.status_frontend,
-            self.syncdaemon_service)
+        self.sync_menu = sync_menu.UbuntuOneSyncMenu(
+            self.status_frontend, self.syncdaemon_service)
 
     def test_init(self):
         """Check that the menu is properly initialized."""
-        self.assertIsInstance(FakeSyncMenuApp.data['server'],
-            linux.Dbusmenu.Server)
-        self.assertEqual(self.sync_menu.open_u1.get_parent(),
+        self.assertIsInstance(
+            FakeSyncMenuApp.data['server'], linux.Dbusmenu.Server)
+        self.assertEqual(
+            self.sync_menu.open_u1.get_parent(), self.sync_menu.root_menu)
+        self.assertEqual(
+            self.sync_menu.go_to_web.get_parent(), self.sync_menu.root_menu)
+        self.assertEqual(
+            self.sync_menu.more_storage.get_parent(), self.sync_menu.root_menu)
+        self.assertEqual(
+            self.sync_menu.get_help.get_parent(), self.sync_menu.root_menu)
+        self.assertEqual(
+            self.sync_menu.transfers.get_parent(), self.sync_menu.root_menu)
+        self.assertEqual(
+            self.sync_menu.open_u1_folder.get_parent(),
             self.sync_menu.root_menu)
-        self.assertEqual(self.sync_menu.go_to_web.get_parent(),
-            self.sync_menu.root_menu)
-        self.assertEqual(self.sync_menu.more_storage.get_parent(),
-            self.sync_menu.root_menu)
-        self.assertEqual(self.sync_menu.get_help.get_parent(),
-            self.sync_menu.root_menu)
-        self.assertEqual(self.sync_menu.transfers.get_parent(),
-            self.sync_menu.root_menu)
-        self.assertEqual(self.sync_menu.open_u1_folder.get_parent(),
-            self.sync_menu.root_menu)
-        self.assertEqual(self.sync_menu.share_file.get_parent(),
-            self.sync_menu.root_menu)
+        self.assertEqual(
+            self.sync_menu.share_file.get_parent(), self.sync_menu.root_menu)
 
-        self.assertEqual(self.sync_menu.open_u1.property_get(
-            linux.Dbusmenu.MENUITEM_PROP_LABEL), linux.OPEN_U1)
-        self.assertEqual(self.sync_menu.open_u1_folder.property_get(
-            linux.Dbusmenu.MENUITEM_PROP_LABEL), linux.OPEN_U1_FOLDER)
-        self.assertEqual(self.sync_menu.share_file.property_get(
-            linux.Dbusmenu.MENUITEM_PROP_LABEL), linux.SHARE_A_FILE)
-        self.assertEqual(self.sync_menu.go_to_web.property_get(
-            linux.Dbusmenu.MENUITEM_PROP_LABEL), linux.GO_TO_WEB)
-        self.assertEqual(self.sync_menu.transfers.property_get(
-            linux.Dbusmenu.MENUITEM_PROP_LABEL), linux.TRANSFERS)
-        self.assertEqual(self.sync_menu.more_storage.property_get(
-            linux.Dbusmenu.MENUITEM_PROP_LABEL), linux.MORE_STORAGE)
-        self.assertEqual(self.sync_menu.get_help.property_get(
-            linux.Dbusmenu.MENUITEM_PROP_LABEL), linux.GET_HELP)
+        def get_prop(item):
+            return item.property_get(linux.Dbusmenu.MENUITEM_PROP_LABEL)
+
+        self.assertEqual(
+            get_prop(self.sync_menu.open_u1), linux.OPEN_U1)
+        self.assertEqual(
+            get_prop(self.sync_menu.open_u1_folder), linux.OPEN_U1_FOLDER)
+        self.assertEqual(
+            get_prop(self.sync_menu.share_file), linux.SHARE_A_FILE)
+        self.assertEqual(
+            get_prop(self.sync_menu.go_to_web), linux.GO_TO_WEB)
+        self.assertEqual(
+            get_prop(self.sync_menu.transfers), linux.TRANSFERS)
+        self.assertEqual(
+            get_prop(self.sync_menu.more_storage), linux.MORE_STORAGE)
+        self.assertEqual(
+            get_prop(self.sync_menu.get_help), linux.GET_HELP)
 
         self.sync_menu.transfers.update_progress()
-        self.assertIsInstance(self.sync_menu.transfers.separator,
-            linux.Dbusmenu.Menuitem)
+        self.assertIsInstance(
+            self.sync_menu.transfers.separator, linux.Dbusmenu.Menuitem)
 
     def test_get_launch_context_with_display(self):
         """Check that the proper context is returned."""
@@ -285,7 +289,8 @@ class SyncMenuTestCase(TestCase):
         arg = "--test-arg"
         self.sync_menu._open_control_panel_by_command_line(timestamp, arg)
 
-        self.assertEqual(appinfo.command_line, "%s %s" % (linux.CLIENT_COMMAND_LINE, arg))
+        self.assertEqual(
+            appinfo.command_line, "%s %s" % (linux.CLIENT_COMMAND_LINE, arg))
         self.assertEqual(appinfo.context.timestamp, timestamp)
 
     def test_open_uri(self):
@@ -315,7 +320,9 @@ class SyncMenuTestCase(TestCase):
         timestamp = time.time()
         data = []
 
-        self.patch(self.sync_menu, "_open_control_panel_by_command_line", lambda t, a: data.append((t, a)))
+        self.patch(
+            self.sync_menu, "_open_control_panel_by_command_line",
+            lambda t, a: data.append((t, a)))
         self.sync_menu.open_share_file_tab(timestamp=timestamp)
         self.assertEqual(data, [(timestamp, "--switch-to share_links")])
 
@@ -324,7 +331,8 @@ class SyncMenuTestCase(TestCase):
         timestamp = time.time()
         data = []
 
-        self.patch(self.sync_menu, "_open_uri", lambda u, t: data.append((t, u)))
+        self.patch(
+            self.sync_menu, "_open_uri", lambda u, t: data.append((t, u)))
         self.sync_menu.open_go_to_web(timestamp=timestamp)
         self.assertEqual(data, [(timestamp, linux.DASHBOARD)])
 
@@ -333,16 +341,20 @@ class SyncMenuTestCase(TestCase):
         timestamp = time.time()
         data = []
 
-        self.patch(self.sync_menu, "_open_uri", lambda u, t: data.append((t, u)))
+        self.patch(
+            self.sync_menu, "_open_uri", lambda u, t: data.append((t, u)))
         self.sync_menu.open_ubuntu_one_folder(timestamp=timestamp)
-        self.assertEqual(data, [(timestamp, "file://" + self.syncdaemon_service.fake_root_path)])
+        self.assertEqual(
+            data,
+            [(timestamp, "file://" + self.syncdaemon_service.fake_root_path)])
 
     def test_get_help(self):
         """Check that the proper action is executed."""
         timestamp = time.time()
         data = []
 
-        self.patch(self.sync_menu, "_open_uri", lambda u, t: data.append((t, u)))
+        self.patch(
+            self.sync_menu, "_open_uri", lambda u, t: data.append((t, u)))
         self.sync_menu.open_web_help(timestamp=timestamp)
         self.assertEqual(data, [(timestamp, linux.HELP_LINK)])
 
@@ -351,7 +363,8 @@ class SyncMenuTestCase(TestCase):
         timestamp = time.time()
         data = []
 
-        self.patch(self.sync_menu, "_open_uri", lambda u, t: data.append((t, u)))
+        self.patch(
+            self.sync_menu, "_open_uri", lambda u, t: data.append((t, u)))
         self.sync_menu.open_get_more_storage(timestamp=timestamp)
         self.assertEqual(data, [(timestamp, linux.GET_STORAGE_LINK)])
 
@@ -368,8 +381,8 @@ class SyncMenuTestCase(TestCase):
         self.assertEqual(len(children), 4)
         data.reverse()
         for itemM, itemD in zip(children, data):
-            self.assertEqual(itemM.property_get(
-                linux.Dbusmenu.MENUITEM_PROP_LABEL), itemD)
+            self.assertEqual(
+                itemM.property_get(linux.Dbusmenu.MENUITEM_PROP_LABEL), itemD)
 
     def test_only_progress(self):
         """Check that only progress items are loaded."""

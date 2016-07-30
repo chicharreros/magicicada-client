@@ -2625,8 +2625,8 @@ class Upload(ActionQueueCommand):
         self.log.debug('semaphore acquired')
 
         fsm = self.action_queue.main.fs
-        fileobj_factory = lambda: fsm.open_file(self.mdid)
-        yield self.action_queue.zip_queue.zip(self, fileobj_factory)
+        yield self.action_queue.zip_queue.zip(
+            self, lambda: fsm.open_file(self.mdid))
 
     def finish(self):
         """Release the semaphore if already acquired."""

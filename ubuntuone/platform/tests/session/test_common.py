@@ -43,4 +43,3 @@ class InhibitorTestCase(TestCase):
         inhibitor = Inhibitor()
         result = yield inhibitor.inhibit(INHIBIT_LOGOUT_SUSPEND, 'test')
         self.assertEqual(inhibitor, result)
-

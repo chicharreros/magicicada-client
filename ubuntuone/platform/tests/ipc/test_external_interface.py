@@ -87,8 +87,8 @@ class StatusTests(StatusTestCase):
         result = [{}, STR_STR_DICT]
         yield self.assert_method_called(self.service.status,
                                         'current_uploads', result)
-        self.assert_remote_method('current_uploads',
-            in_signature=None, out_signature='aa{ss}')
+        self.assert_remote_method(
+            'current_uploads', in_signature=None, out_signature='aa{ss}')
 
     @defer.inlineCallbacks
     def test_current_downloads(self):
@@ -96,8 +96,8 @@ class StatusTests(StatusTestCase):
         result = [STR_STR_DICT, {}]
         yield self.assert_method_called(self.service.status,
                                         'current_downloads', result)
-        self.assert_remote_method('current_downloads',
-            in_signature=None, out_signature='aa{ss}')
+        self.assert_remote_method(
+            'current_downloads', in_signature=None, out_signature='aa{ss}')
 
     @defer.inlineCallbacks
     def test_free_space(self):
@@ -106,8 +106,8 @@ class StatusTests(StatusTestCase):
         volume_id = '123-456-789'
         yield self.assert_method_called(self.service.status,
                                         'free_space', result, volume_id)
-        self.assert_remote_method('free_space',
-            in_signature='s', out_signature='t')
+        self.assert_remote_method(
+            'free_space', in_signature='s', out_signature='t')
 
     @defer.inlineCallbacks
     def test_waiting(self):
@@ -115,8 +115,8 @@ class StatusTests(StatusTestCase):
         result = [('foo', 'bar', {'command': 'test'})]
         yield self.assert_method_called(self.service.status,
                                         'waiting', result)
-        self.assert_remote_method('waiting',
-            in_signature=None, out_signature='a(ssa{ss})')
+        self.assert_remote_method(
+            'waiting', in_signature=None, out_signature='a(ssa{ss})')
 
     @defer.inlineCallbacks
     def test_waiting_metadata(self):
@@ -124,8 +124,8 @@ class StatusTests(StatusTestCase):
         result = []
         yield self.assert_method_called(self.service.status,
                                         'waiting_metadata', result)
-        self.assert_remote_method('waiting_metadata',
-            in_signature=None, out_signature='a(sa{ss})')
+        self.assert_remote_method(
+            'waiting_metadata', in_signature=None, out_signature='a(sa{ss})')
 
     @defer.inlineCallbacks
     def test_waiting_content(self):
@@ -133,8 +133,8 @@ class StatusTests(StatusTestCase):
         result = []
         yield self.assert_method_called(self.service.status,
                                         'waiting_content', result)
-        self.assert_remote_method('waiting_metadata',
-            in_signature=None, out_signature='a(sa{ss})')
+        self.assert_remote_method(
+            'waiting_metadata', in_signature=None, out_signature='a(sa{ss})')
 
     @defer.inlineCallbacks
     def test_sync_menu(self):
@@ -143,8 +143,8 @@ class StatusTests(StatusTestCase):
         method = 'sync_menu'
         yield self.assert_method_called(self.service.status,
                                         method, result)
-        self.assert_remote_method(method,
-            in_signature=None, out_signature='a{sv}')
+        self.assert_remote_method(
+            method, in_signature=None, out_signature='a{sv}')
 
 
 class EventsTests(EventsTestCase):
@@ -162,8 +162,8 @@ class EventsTests(EventsTestCase):
         yield self.assert_method_called(self.service.events,
                                         'push_event', result,
                                         event_name, event_args)
-        self.assert_remote_method('push_event',
-            in_signature='sa{ss}', out_signature=None)
+        self.assert_remote_method(
+            'push_event', in_signature='sa{ss}', out_signature=None)
 
 
 class SyncDaemonTests(SyncDaemonTestCase):
@@ -233,8 +233,9 @@ class SyncDaemonTests(SyncDaemonTestCase):
                                         'wait_for_nirvana', result,
                                         last_event_interval)
         async_cb = ('reply_handler', 'error_handler')
-        self.assert_remote_method('wait_for_nirvana',
-            in_signature='d', out_signature='b', async_callbacks=async_cb)
+        self.assert_remote_method(
+            'wait_for_nirvana', in_signature='d', out_signature='b',
+            async_callbacks=async_cb)
 
     @defer.inlineCallbacks
     def test_quit(self):
@@ -253,8 +254,8 @@ class SyncDaemonTests(SyncDaemonTestCase):
         yield self.assert_method_called(self.service.sync,
                                         'rescan_from_scratch', result,
                                         volume_id)
-        self.assert_remote_method('rescan_from_scratch',
-            in_signature='s', out_signature='')
+        self.assert_remote_method(
+            'rescan_from_scratch', in_signature='s', out_signature='')
 
 
 class FileSystemTests(FileSystemTestCase):
@@ -271,8 +272,8 @@ class FileSystemTests(FileSystemTestCase):
         yield self.assert_method_called(self.service.file_system,
                                         'get_metadata', result,
                                         path)
-        self.assert_remote_method('get_metadata',
-            in_signature='s', out_signature='a{ss}')
+        self.assert_remote_method(
+            'get_metadata', in_signature='s', out_signature='a{ss}')
 
     @defer.inlineCallbacks
     def test_search_files(self):
@@ -280,8 +281,8 @@ class FileSystemTests(FileSystemTestCase):
         result = ['path']
         yield self.assert_method_called(self.service.file_system,
                                         'search_files', result, 'file')
-        self.assert_remote_method('search_files',
-            in_signature='s', out_signature='as')
+        self.assert_remote_method(
+            'search_files', in_signature='s', out_signature='as')
 
     @defer.inlineCallbacks
     def test_get_metadata_by_node(self):
@@ -291,8 +292,8 @@ class FileSystemTests(FileSystemTestCase):
         yield self.assert_method_called(self.service.file_system,
                                         'get_metadata_by_node', result,
                                         share_id, node_id)
-        self.assert_remote_method('get_metadata_by_node',
-            in_signature='ss', out_signature='a{ss}')
+        self.assert_remote_method(
+            'get_metadata_by_node', in_signature='ss', out_signature='a{ss}')
 
     @defer.inlineCallbacks
     def test_get_metadata_and_quick_tree_synced(self):
@@ -302,7 +303,8 @@ class FileSystemTests(FileSystemTestCase):
         yield self.assert_method_called(self.service.file_system,
                                         'get_metadata_and_quick_tree_synced',
                                         result, path)
-        self.assert_remote_method('get_metadata_and_quick_tree_synced',
+        self.assert_remote_method(
+            'get_metadata_and_quick_tree_synced',
             in_signature='s', out_signature='a{ss}')
 
     @defer.inlineCallbacks
@@ -311,8 +313,8 @@ class FileSystemTests(FileSystemTestCase):
         result = [{'node_id': 'test'}, {'node_id': 'toast'}]
         yield self.assert_method_called(self.service.file_system,
                                         'get_dirty_nodes', result)
-        self.assert_remote_method('get_dirty_nodes',
-            in_signature='', out_signature='aa{ss}')
+        self.assert_remote_method(
+            'get_dirty_nodes', in_signature='', out_signature='aa{ss}')
 
 
 class SharesTests(SharesTestCase):
@@ -375,8 +377,8 @@ class SharesTests(SharesTestCase):
         share_id = '1234'
         yield self.assert_method_called(self.service.shares,
                                         'subscribe', result, share_id)
-        self.assert_remote_method('subscribe',
-            in_signature='s', out_signature=None)
+        self.assert_remote_method(
+            'subscribe', in_signature='s', out_signature=None)
 
     @defer.inlineCallbacks
     def test_unsubscribe(self):
@@ -385,8 +387,8 @@ class SharesTests(SharesTestCase):
         share_id = '1234'
         yield self.assert_method_called(self.service.shares,
                                         'unsubscribe', result, share_id)
-        self.assert_remote_method('unsubscribe',
-            in_signature='s', out_signature=None)
+        self.assert_remote_method(
+            'unsubscribe', in_signature='s', out_signature=None)
 
     @defer.inlineCallbacks
     def test_create_share(self):
@@ -575,8 +577,8 @@ class FoldersTests(FoldersTestCase):
         path = 'foo'
         yield self.assert_method_called(self.service.folders,
                                         'create', result, path)
-        self.assert_remote_method('create',
-            in_signature='s', out_signature=None)
+        self.assert_remote_method(
+            'create', in_signature='s', out_signature=None)
 
     @defer.inlineCallbacks
     def test_delete(self):
@@ -585,8 +587,8 @@ class FoldersTests(FoldersTestCase):
         folder_id = '1234'
         yield self.assert_method_called(self.service.folders,
                                         'delete', result, folder_id)
-        self.assert_remote_method('delete',
-            in_signature='s', out_signature=None)
+        self.assert_remote_method(
+            'delete', in_signature='s', out_signature=None)
 
     @defer.inlineCallbacks
     def test_validate_path(self):
@@ -595,8 +597,8 @@ class FoldersTests(FoldersTestCase):
         path = 'test'
         yield self.assert_method_called(self.service.folders,
                                         'validate_path', result, path)
-        self.assert_remote_method('validate_path',
-            in_signature='s', out_signature='b')
+        self.assert_remote_method(
+            'validate_path', in_signature='s', out_signature='b')
 
     @defer.inlineCallbacks
     def test_get_folders(self):
@@ -604,8 +606,8 @@ class FoldersTests(FoldersTestCase):
         result = [{'folder_id': '1'}, {'folder_id': '2'}]
         yield self.assert_method_called(self.service.folders,
                                         'get_folders', result)
-        self.assert_remote_method('get_folders',
-            in_signature=None, out_signature='aa{ss}')
+        self.assert_remote_method(
+            'get_folders', in_signature=None, out_signature='aa{ss}')
 
     @defer.inlineCallbacks
     def test_subscribe(self):
@@ -632,8 +634,8 @@ class FoldersTests(FoldersTestCase):
         path = 'yadda'
         yield self.assert_method_called(self.service.folders,
                                         'get_info', result, path)
-        self.assert_remote_method('get_info',
-            in_signature='s', out_signature='a{ss}')
+        self.assert_remote_method(
+            'get_info', in_signature='s', out_signature='a{ss}')
 
     @defer.inlineCallbacks
     def test_refresh_volumes(self):
@@ -672,5 +674,5 @@ class PublicFilesTests(PublicFilesTestCase):
         result = None
         yield self.assert_method_called(self.service.public_files,
                                         'get_public_files', result)
-        self.assert_remote_method('get_public_files',
-            in_signature=None, out_signature=None)
+        self.assert_remote_method(
+            'get_public_files', in_signature=None, out_signature=None)

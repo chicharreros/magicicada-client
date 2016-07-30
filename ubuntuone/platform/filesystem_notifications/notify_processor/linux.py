@@ -33,6 +33,9 @@ import os
 import pyinotify
 from twisted.internet import reactor, error
 
+from ubuntuone.syncdaemon.filesystem_notifications import (
+    GeneralINotifyProcessor,
+)
 
 # translates quickly the event and it's is_dir state to our standard events
 NAME_TRANSLATIONS = {
@@ -64,10 +67,6 @@ INOTIFY_EVENTS_ANCESTORS = (
     pyinotify.IN_MOVED_FROM |
     pyinotify.IN_MOVED_TO |
     pyinotify.IN_MOVE_SELF)
-
-from ubuntuone.syncdaemon.filesystem_notifications import (
-    GeneralINotifyProcessor,
-)
 
 
 def validate_filename(real_func):

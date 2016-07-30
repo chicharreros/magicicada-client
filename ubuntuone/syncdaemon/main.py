@@ -183,16 +183,16 @@ class Main(object):
 
         def callback():
             """Event queue is empty."""
-            if not (self.state_manager.state == StateManager.QUEUE_MANAGER
-                    and self.state_manager.queues.state == QueueManager.IDLE
-                    and not self.action_q.queue
-                    and self.hash_q.empty()):
-                self.logger.debug("I can't attain Nirvana yet. [state: %s; "
-                                  "queue: %d; hash: %d]",
-                                  self.state_manager,
-                                  len(self.action_q.queue),
-                                  len(self.hash_q))
+            state = self.state_manager.state
+            if not (self.state_manager.queues.state == QueueManager.IDLE and
+                    state == StateManager.QUEUE_MANAGER and
+                    not self.action_q.queue and self.hash_q.empty()):
+                self.logger.debug(
+                    "I can't reach Nirvana yet [state: %s queue: %d hash: %d]",
+                    self.state_manager, len(self.action_q.queue),
+                    len(self.hash_q))
                 return
+
             self.logger.debug("Nirvana reached!! I'm a Buddha")
             self.event_q.remove_empty_event_queue_callback(callback)
             d.callback(True)

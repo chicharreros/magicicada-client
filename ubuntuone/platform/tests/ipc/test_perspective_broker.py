@@ -46,9 +46,9 @@ from contrib.testing.testcase import (
     FakeMainTestCase,
 )
 try:
-    from ubuntuone.devtools.testcases import skipTest, skipIf, skipIfOS
+    from ubuntuone.devtools.testcases import skipIf, skipIfOS
 except ImportError:
-    from ubuntuone.devtools.testcase import skipTest, skipIf, skipIfOS
+    from ubuntuone.devtools.testcase import skipIf, skipIfOS
 from ubuntuone.platform.ipc import perspective_broker as ipc
 from ubuntuone.platform.ipc.perspective_broker import (
     Config,
@@ -238,8 +238,8 @@ class TestSignalBroadcaster(MockerTestCase):
         self.mocker.replay()
         signals = ["demo_signal1", "demo_signal2"]
         self.broad_caster.remote_register_to_signals(self.client, signals)
-        for signal in signals:
-            clients = self.broad_caster.clients_per_signal[signal]
+        for sig in signals:
+            clients = self.broad_caster.clients_per_signal[sig]
             self.assertTrue(self.client in clients)
 
     def test_emit_signal(self):
@@ -469,8 +469,11 @@ class IPCTestCase(FakeMainTestCase, TCPPbServerTestCase):
             yield client.register_to_signals()
             # addCleanup support having deferreds as cleanup calls
             self.addCleanup(client.unregister_to_signals)
-            client.call_method = lambda method, *a, **kw: \
-                                 getattr(result, method)(*a, **kw)
+
+            def helper(method, *a, **kw):
+                return getattr(result, method)(*a, **kw)
+
+            client.call_method = helper
             result = client
         else:
             result = root
@@ -709,8 +712,8 @@ class RemoteMetaTestCase(TestCase):
                 return test_token
 
         tc = TestClass()
-        self.assertEquals(tc.test_method(), test_token)
-        self.assertEquals(tc.remote_test_method(), test_token)
+        self.assertEqual(tc.test_method(), test_token)
+        self.assertEqual(tc.remote_test_method(), test_token)
 
     def test_signal_handlers_renamed(self):
         """The signal_handlers are renamed."""
@@ -728,8 +731,8 @@ class RemoteMetaTestCase(TestCase):
                 return test_token
 
         tc = TestClass()
-        self.assertEquals(tc.test_signal_handler(), test_token)
-        self.assertEquals(tc.remote_test_signal_handler(), test_token)
+        self.assertEqual(tc.test_signal_handler(), test_token)
+        self.assertEqual(tc.remote_test_signal_handler(), test_token)
 
 
 class IPCInterfaceTestCase(IPCTestCase):
@@ -758,8 +761,8 @@ class IPCInterfaceTestCase(IPCTestCase):
         """Ensure that a reference object is returned."""
         client = yield self.get_client()
         remote = yield client.callRemote('get_sync_daemon')
-        self.assertNotEqual(remote, None,
-                   'Remote object should not be None')
+        self.assertNotEqual(
+            remote, None, 'Remote object should not be None')
         self.assertIsInstance(remote, RemoteReference)
 
     @defer.inlineCallbacks
@@ -883,8 +886,9 @@ class MultipleConnectionsTestCase(TestCase):
             self.called.append('_request_remote_objects')
             defer.returnValue(True)
 
-        self.patch(ipc_client.UbuntuOneClient, '_request_remote_objects',
-                fake_request_remote_objects)
+        self.patch(
+            ipc_client.UbuntuOneClient, '_request_remote_objects',
+            fake_request_remote_objects)
 
         @defer.inlineCallbacks
         def fake_register_to_signals(my_self):
@@ -893,8 +897,9 @@ class MultipleConnectionsTestCase(TestCase):
             self.called.append('register_to_signals')
             defer.returnValue(True)
 
-        self.patch(ipc_client.UbuntuOneClient, 'register_to_signals',
-                fake_register_to_signals)
+        self.patch(
+            ipc_client.UbuntuOneClient, 'register_to_signals',
+            fake_register_to_signals)
 
     def grouper(self, n, iterable, fillvalue=None):
         "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
@@ -908,8 +913,9 @@ class MultipleConnectionsTestCase(TestCase):
                      self.remote_obj_d, self.register_to_signals_d]
 
         # the order in which the calls are expected
-        expected_calls = ('ipc_client_connect','getRootObject',
-                '_request_remote_objects', 'register_to_signals')
+        expected_calls = (
+            'ipc_client_connect', 'getRootObject',
+            '_request_remote_objects', 'register_to_signals')
 
         clients = []
         while len(clients) < self.num_clients:
@@ -936,13 +942,15 @@ class MultipleConnectionsTestCase(TestCase):
                 step_d.callback(True)
 
             yield defer.gatherResults(connected_d)
+
             # reset all the deferreds for the next round of testing
-            for index, d_name in enumerate(('client_connect_d',
-                    'client_root_obj_d', 'remote_obj_d',
-                    'register_to_signals_d')):
+            methods = enumerate(
+                ('client_connect_d', 'client_root_obj_d', 'remote_obj_d',
+                 'register_to_signals_d'))
+            for i, d_name in methods:
                 new_d = defer.Deferred()
                 setattr(self, d_name, new_d)
-                deferreds[index] = new_d
+                deferreds[i] = new_d
 
             # assert that all connect calls have been done in the correct
             # order

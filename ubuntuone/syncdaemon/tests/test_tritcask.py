@@ -218,9 +218,11 @@ class DataFileTest(BaseTestCase):
             self.assertEqual(entry[6], 'bar%d' % (i,))
         self.assertEqual(10, len(entries))
         self.assertTrue(self.memento.check_warning('Found BadCrc on'))
-        self.assertTrue(self.memento.check_warning(
-            'the rest of the file will be ignored.'))
-        self.assertTrue(db.live_file.has_bad_crc, 'has_bad_crc should be True.')
+        self.assertTrue(
+            self.memento.check_warning('the rest of the file will be ignored.')
+        )
+        self.assertTrue(
+            db.live_file.has_bad_crc, 'has_bad_crc should be True.')
 
     def test_iter_entries_bad_header_unpack(self):
         """Test that unpack error during iter_entries is the same as EOF."""
@@ -230,7 +232,7 @@ class DataFileTest(BaseTestCase):
             db.put(i, 'foo%d' % (i,), 'bar%s' % (i,))
         # truncate the file at the start of the header of the last value.
         curr_pos = db.live_file.fd.tell()
-        db.live_file.fd.seek(curr_pos - header_size+4)
+        db.live_file.fd.seek(curr_pos - header_size + 4)
         db.live_file.fd.truncate()
         entries = []
         for i, entry in enumerate(db.live_file.iter_entries()):
@@ -239,31 +241,34 @@ class DataFileTest(BaseTestCase):
             self.assertEqual(entry[5], 'foo%d' % (i,))
             self.assertEqual(entry[6], 'bar%d' % (i,))
         self.assertEqual(9, len(entries))
-        self.assertTrue(db.live_file.has_bad_data, 'has_bad_data should be True.')
-        self.assertTrue(self.memento.check_warning('Found corrupted header on'))
-        self.assertTrue(self.memento.check_warning(
-            'the rest of the file will be ignored.'))
+        self.assertTrue(
+            db.live_file.has_bad_data, 'has_bad_data should be True.')
+        self.assertTrue(
+            self.memento.check_warning('Found corrupted header on'))
+        self.assertTrue(
+            self.memento.check_warning('the rest of the file will be ignored.')
+        )
 
     def test__getitem__(self):
         """Test our slicing support."""
         data_file = self.file_class(self.base_dir)
-        tstamp, value_pos, value_sz = data_file.write(0, 'foo', 'bar')
-        tstamp1, value1_pos, value1_sz = data_file.write(1, 'foo1', 'bar1')
-        self.assertEqual('bar', data_file[value_pos:value_pos+value_sz])
-        self.assertEqual('bar1', data_file[value1_pos:value1_pos+value1_sz])
+        ts, pos, value_sz = data_file.write(0, 'foo', 'bar')
+        ts1, value1_pos, value1_sz = data_file.write(1, 'foo1', 'bar1')
+        self.assertEqual('bar', data_file[pos:pos + value_sz])
+        self.assertEqual('bar1', data_file[value1_pos:value1_pos + value1_sz])
 
     def test__getitem__no_slice(self):
         """Test that we *only* support slicing."""
         data_file = self.file_class(self.base_dir)
-        tstamp, value_pos, value_sz = data_file.write(0, 'foo', 'bar')
-        self.assertRaises(ValueError, data_file.__getitem__, value_pos)
+        ts, pos, value_sz = data_file.write(0, 'foo', 'bar')
+        self.assertRaises(ValueError, data_file.__getitem__, pos)
 
     def test_write(self):
         """Test for write method."""
         data_file = self.file_class(self.base_dir)
-        tstamp_1, value_1_pos, value_1_sz = data_file.write(0, 'foo', 'bar')
+        ts_1, value_1_pos, value_1_sz = data_file.write(0, 'foo', 'bar')
         self.assertEqual(len('bar'), value_1_sz)
-        tstamp_2, value_2_pos, value_2_sz = data_file.write(1, 'foo1', 'bar1')
+        ts_2, value_2_pos, value_2_sz = data_file.write(1, 'foo1', 'bar1')
         self.assertEqual(len('bar1'), value_2_sz)
         data_file.close()
         # check that the entry is in the file
@@ -271,11 +276,11 @@ class DataFileTest(BaseTestCase):
             raw_data_len = (len('foo') + len('bar') + crc32_size + header_size)
             raw_data = f.read(raw_data_len)
             crc32 = crc32_struct.unpack(raw_data[:crc32_size])[0]
-            raw_header = raw_data[crc32_size:crc32_size+header_size]
+            raw_header = raw_data[crc32_size:crc32_size + header_size]
             header = header_struct.unpack(raw_header)
-            tstamp, key_sz, value_sz, row_type = header
-            value = raw_data[crc32_size+header_size+key_sz:]
-            self.assertEqual(zlib.crc32(raw_header+'foo'+'bar'), crc32)
+            ts, key_sz, value_sz, row_type = header
+            value = raw_data[crc32_size + header_size + key_sz:]
+            self.assertEqual(zlib.crc32(raw_header + 'foo' + 'bar'), crc32)
             self.assertEqual(len('foo'), key_sz)
             self.assertEqual(len('bar'), value_sz)
             self.assertEqual('bar', value)
@@ -284,25 +289,27 @@ class DataFileTest(BaseTestCase):
     def test_read(self):
         """Test for read method."""
         data_file = self.file_class(self.base_dir)
-        orig_tstamp, _, _ = data_file.write(0, 'foo', 'bar')
-        tstamp1, _, _ = data_file.write(1, 'foo1', 'bar1')
+        orig_ts, _, _ = data_file.write(0, 'foo', 'bar')
+        ts1, _, _ = data_file.write(1, 'foo1', 'bar1')
         fmap = mmap.mmap(data_file.fd.fileno(), 0, access=mmap.ACCESS_READ)
         with contextlib.closing(fmap):
             current_pos = 0
-            (crc32, tstamp, key_sz, value_sz, row_type,
-                 key, value, pos), new_pos = data_file.read(fmap, current_pos)
+            res, new_pos = data_file.read(fmap, current_pos)
+            (crc32, ts, key_sz, value_sz, row_type, key, value, pos) = res
             current_pos = new_pos
-            self.assertEqual(crc32_size+header_size+key_sz+value_sz, new_pos)
-            self.assertEqual(orig_tstamp, tstamp)
+            self.assertEqual(
+                crc32_size + header_size + key_sz + value_sz, new_pos)
+            self.assertEqual(orig_ts, ts)
             self.assertEqual(len('foo'), key_sz)
             self.assertEqual(len('bar'), value_sz)
             self.assertEqual('bar', value)
             self.assertEqual(0, row_type)
-            (crc32, tstamp, key_sz, value_sz, row_type,
-                 key, value, pos), new_pos = data_file.read(fmap, current_pos)
+            res, new_pos = data_file.read(fmap, current_pos)
+            (crc32, ts, key_sz, value_sz, row_type, key, value, pos) = res
             self.assertEqual(
-                crc32_size+header_size+key_sz+value_sz+current_pos, new_pos)
-            self.assertEqual(tstamp1, tstamp)
+                crc32_size + header_size + key_sz + value_sz + current_pos,
+                new_pos)
+            self.assertEqual(ts1, ts)
             self.assertEqual(len('foo1'), key_sz)
             self.assertEqual(len('bar1'), value_sz)
             self.assertEqual('bar1', value)
@@ -312,12 +319,12 @@ class DataFileTest(BaseTestCase):
     def test_read_bad_crc(self):
         """Test for read method with a bad crc error."""
         data_file = self.file_class(self.base_dir)
-        orig_tstamp, _, _ = data_file.write(0, 'foo', 'bar')
+        orig_ts, _, _ = data_file.write(0, 'foo', 'bar')
         # mess with the data on disk to make this entry crc32 invalid
-        # seek to the end of crc32+header+key
+        # seek to the end of crc32 + header + key
         data_file.close()
         with open(data_file.filename, 'r+b') as fd:
-            fd.seek(crc32_size+header_size+len('foo'))
+            fd.seek(crc32_size + header_size + len('foo'))
             # write a different value -> random bytes
             fd.write(os.urandom(len('bar')))
             fd.flush()
@@ -328,12 +335,12 @@ class DataFileTest(BaseTestCase):
     def test_read_bad_header(self):
         """Test for read method with a bad header/unpack error."""
         data_file = self.file_class(self.base_dir)
-        orig_tstamp, _, _ = data_file.write(0, 'foo', 'bar')
+        orig_ts, _, _ = data_file.write(0, 'foo', 'bar')
         # mess with the data on disk to make this entry crc32 invalid
-        # seek to the end of crc32+header+key
+        # seek to the end of crc32 + header + key
         data_file.close()
         with open(data_file.filename, 'r+b') as fd:
-            fd.read(crc32_size+4)
+            fd.read(crc32_size + 4)
             fd.truncate()
             # write a different value -> random bytes
             fd.write(os.urandom(header_size/2))
@@ -347,15 +354,15 @@ class DataFileTest(BaseTestCase):
         data1 = os.urandom(200)
         data_file = self.file_class(self.base_dir)
         init_pos = data_file.fd.tell()
-        tstamp_1, value_1_pos, value_1_sz = data_file.write(0, 'foo', data1)
-        header = header_struct.pack(tstamp_1, len('foo'), len(data1), 0)
+        ts_1, value_1_pos, value_1_sz = data_file.write(0, 'foo', data1)
+        header = header_struct.pack(ts_1, len('foo'), len(data1), 0)
         crc32 = crc32_struct.pack(zlib.crc32(header + 'foo' + data1))
         self.assertEqual(init_pos + len(crc32 + header) + len('foo'),
                          value_1_pos)
         init_pos_2 = value_1_pos + len(data1)
         data2 = os.urandom(100)
-        tstamp_2, value_2_pos, value_2_sz = data_file.write(0, 'foo1', data2)
-        header = header_struct.pack(tstamp_2, len('foo1'), len(data2), 0)
+        ts_2, value_2_pos, value_2_sz = data_file.write(0, 'foo1', data2)
+        header = header_struct.pack(ts_2, len('foo1'), len(data2), 0)
         crc32 = crc32_struct.pack(zlib.crc32(header + 'foo1' + data2))
         self.assertEqual(init_pos_2 + len(crc32 + header) + len('foo1'),
                          value_2_pos)
@@ -365,8 +372,8 @@ class DataFileTest(BaseTestCase):
         # now write something else, should end up at the end.
         init_pos_3 = value_2_pos + len(data2)
         data3 = os.urandom(100)
-        tstamp_3, value_3_pos, value_3_sz = data_file.write(0, 'foo2', data3)
-        header = header_struct.pack(tstamp_3, len('foo2'), len(data3), 0)
+        ts_3, value_3_pos, value_3_sz = data_file.write(0, 'foo2', data3)
+        header = header_struct.pack(ts_3, len('foo2'), len(data3), 0)
         crc32 = crc32_struct.pack(zlib.crc32(header + 'foo2' + data3))
         self.assertEqual(init_pos_3 + len(crc32 + header) + len('foo2'),
                          value_3_pos)
@@ -451,7 +458,8 @@ class ImmutableDataFileTest(DataFileTest):
         # write some data
         new_file.fd.write('foo')
         immutable_file = new_file.make_immutable()
-        self.assertRaises(NotImplementedError, immutable_file.write, 0, 'foo', 'bar')
+        self.assertRaises(
+            NotImplementedError, immutable_file.write, 0, 'foo', 'bar')
 
     def test__open(self):
         """Test the _open private method."""
@@ -524,7 +532,7 @@ class ImmutableDataFileTest(DataFileTest):
         for i in range(10):
             db.put(i, 'foo%d' % (i,), 'bar%s' % (i,))
         # truncate the file at the start of the header of the last value.
-        db.live_file.fd.seek(crc32_size+header_size+8+crc32_size+4)
+        db.live_file.fd.seek(crc32_size + header_size + 8 + crc32_size + 4)
         db.live_file.fd.truncate()
         file_id = db.live_file.file_id
         db.rotate()
@@ -538,47 +546,49 @@ class ImmutableDataFileTest(DataFileTest):
             self.assertEqual(entry[5], 'foo%d' % (i,))
             self.assertEqual(entry[6], 'bar%d' % (i,))
         self.assertEqual(1, len(entries))
-        self.assertTrue(db._immutable[file_id].has_bad_data,
-                        'has_bad_data should be True.')
-        self.assertTrue(self.memento.check_warning('Found corrupted header on'))
+        self.assertTrue(
+            db._immutable[file_id].has_bad_data,
+            'has_bad_data should be True.')
+        self.assertTrue(
+            self.memento.check_warning('Found corrupted header on'))
         self.assertTrue(self.memento.check_warning(
             'the rest of the file will be ignored.'))
 
     def test__getitem__(self):
         """Test our slicing support."""
         rw_file = DataFile(self.base_dir)
-        tstamp, value_pos, value_sz = rw_file.write(0, 'foo', 'bar')
-        tstamp1, value1_pos, value1_sz = rw_file.write(1, 'foo1', 'bar1')
+        ts, pos, value_sz = rw_file.write(0, 'foo', 'bar')
+        ts1, value1_pos, value1_sz = rw_file.write(1, 'foo1', 'bar1')
         data_file = rw_file.make_immutable()
-        self.assertEqual('bar', data_file[value_pos:value_pos+value_sz])
-        self.assertEqual('bar1', data_file[value1_pos:value1_pos+value1_sz])
+        self.assertEqual('bar', data_file[pos:pos + value_sz])
+        self.assertEqual('bar1', data_file[value1_pos:value1_pos + value1_sz])
 
     def test__getitem__no_slice(self):
         """Test that we *only* support slicing."""
         rw_file = DataFile(self.base_dir)
-        tstamp, value_pos, value_sz = rw_file.write(0, 'foo', 'bar')
+        ts, pos, value_sz = rw_file.write(0, 'foo', 'bar')
         data_file = rw_file.make_immutable()
-        self.assertRaises(ValueError, data_file.__getitem__, value_pos)
+        self.assertRaises(ValueError, data_file.__getitem__, pos)
 
     def test_exists(self):
         """Tests for exists method."""
         rw_file = DataFile(self.base_dir)
-        tstamp, value_pos, value_sz = rw_file.write(0, 'foo', 'bar')
+        ts, pos, value_sz = rw_file.write(0, 'foo', 'bar')
         data_file = rw_file.make_immutable()
         self.assertTrue(data_file.exists())
 
     def test_size(self):
         """Test the size property."""
         rw_file = DataFile(self.base_dir)
-        tstamp, value_pos, value_sz = rw_file.write(0, 'foo', 'bar')
+        ts, pos, value_sz = rw_file.write(0, 'foo', 'bar')
         data_file = rw_file.make_immutable()
-        self.assertEqual(len('bar')+len('foo')+header_size+crc32_size,
+        self.assertEqual(len('bar') + len('foo') + header_size + crc32_size,
                          data_file.size)
 
     def test_has_hint(self):
         """Test that has_hint works as expetced."""
         rw_file = DataFile(self.base_dir)
-        tstamp, value_pos, value_sz = rw_file.write(0, 'foo', 'bar')
+        ts, pos, value_sz = rw_file.write(0, 'foo', 'bar')
         data_file = rw_file.make_immutable()
         self.assertFalse(data_file.has_hint)
         data_file.get_hint_file().close()
@@ -587,7 +597,7 @@ class ImmutableDataFileTest(DataFileTest):
     def test_hint_size(self):
         """Test that hint_size work as expected."""
         rw_file = DataFile(self.base_dir)
-        tstamp, value_pos, value_sz = rw_file.write(0, 'foo', 'bar')
+        ts, pos, value_sz = rw_file.write(0, 'foo', 'bar')
         data_file = rw_file.make_immutable()
         self.assertEqual(data_file.hint_size, 0)
         hint_file = data_file.get_hint_file()
@@ -604,12 +614,13 @@ class DeadDataFileTest(ImmutableDataFileTest):
     def create_dead_file(self):
         """Helper method to create a dead file."""
         rw_file = DataFile(self.base_dir)
-        tstamp, value_pos, value_sz = rw_file.write(0, 'foo', 'bar')
+        ts, pos, value_sz = rw_file.write(0, 'foo', 'bar')
         immutable_file = rw_file.make_immutable()
         immutable_file.get_hint_file().close()
         data_file = immutable_file.make_zombie()
         data_file.close()
-        return DeadDataFile(self.base_dir, os.path.basename(data_file.filename))
+        return DeadDataFile(
+            self.base_dir, os.path.basename(data_file.filename))
 
     def test_delete(self):
         """Test for delete method."""
@@ -677,7 +688,7 @@ class DeadDataFileTest(ImmutableDataFileTest):
     def test_size(self):
         """Test the size property."""
         dead_file = self.create_dead_file()
-        self.assertEqual(len('bar')+len('foo')+header_size+crc32_size,
+        self.assertEqual(len('bar') + len('foo') + header_size + crc32_size,
                          dead_file.size)
 
 
@@ -734,7 +745,7 @@ class HintFileTest(BaseTestCase):
         db.shutdown()
         Tritcask(self.base_dir).shutdown()
         self.assertTrue(immutable_file.has_hint)
-        #check that the hint matches the contents in the DB
+        # check that the hint matches the contents in the DB
         hint_file = immutable_file.get_hint_file()
         db = Tritcask(self.base_dir)
         self.addCleanup(db.shutdown)
@@ -745,32 +756,32 @@ class HintFileTest(BaseTestCase):
     def test_write(self):
         """Test the write method."""
         hint_file = HintFile(os.path.join(self.base_dir, 'hint_file'))
-        tstamp1 = timestamp()
-        entry = HintEntry(tstamp1, len('foo'), 0, len('bar'), 100, 'foo')
+        ts1 = timestamp()
+        entry = HintEntry(ts1, len('foo'), 0, len('bar'), 100, 'foo')
         hint_file.write(entry)
-        tstamp2 = timestamp()
-        entry2 = HintEntry(tstamp2, len('foo1'), 1, len('bar1'), 100, 'foo1')
+        ts2 = timestamp()
+        entry2 = HintEntry(ts2, len('foo1'), 1, len('bar1'), 100, 'foo1')
         hint_file.write(entry2)
         hint_file.close()
         # check that the entry is in the file
         with open(hint_file.path, 'rb') as f:
             header = hint_header_struct.unpack(f.read(hint_header_size))
-            tstamp, key_sz, row_type, value_sz, value_pos = header
-            self.assertEqual(tstamp1, tstamp)
+            ts, key_sz, row_type, value_sz, pos = header
+            self.assertEqual(ts1, ts)
             self.assertEqual(len('foo'), key_sz)
             self.assertEqual(0, row_type)
             self.assertEqual(len('bar'), value_sz)
-            self.assertEqual(100, value_pos)
+            self.assertEqual(100, pos)
             key = f.read(key_sz)
             self.assertEqual('foo', key)
             # read the second entry
             header = hint_header_struct.unpack(f.read(hint_header_size))
-            tstamp, key_sz, row_type, value_sz, value_pos = header
-            self.assertEqual(tstamp2, tstamp)
+            ts, key_sz, row_type, value_sz, pos = header
+            self.assertEqual(ts2, ts)
             self.assertEqual(len('foo1'), key_sz)
             self.assertEqual(1, row_type)
             self.assertEqual(len('bar1'), value_sz)
-            self.assertEqual(100, value_pos)
+            self.assertEqual(100, pos)
             key = f.read(key_sz)
             self.assertEqual('foo1', key)
 
@@ -780,10 +791,11 @@ class HintEntryTest(BaseTestCase):
 
     def test_header_property(self):
         """Test the header property."""
-        tstamp = timestamp()
-        entry = HintEntry(tstamp, len('foo'), 0, len('bar'), 100, 'foo')
-        self.assertEqual((entry.tstamp, entry.key_sz, entry.row_type,
-                          entry.value_sz, entry.value_pos), entry.header)
+        ts = timestamp()
+        entry = HintEntry(ts, len('foo'), 0, len('bar'), 100, 'foo')
+        header = (entry.tstamp, entry.key_sz, entry.row_type, entry.value_sz,
+                  entry.value_pos)
+        self.assertEqual(header, entry.header)
 
 
 class LowLevelTest(BaseTestCase):
@@ -827,8 +839,9 @@ class LowLevelTest(BaseTestCase):
     def test_get_value(self):
         """Test _get_value method."""
         self.db.put(0, 'foo', 'bar')
-        value = self.db._get_value(self.db.live_file.file_id,
-                               crc32_size+header_size+len('foo'), len('bar'))
+        value = self.db._get_value(
+            self.db.live_file.file_id, crc32_size + header_size + len('foo'),
+            len('bar'))
         self.assertEqual(value, 'bar')
 
     def test_get_value_different_file_ids(self):
@@ -844,11 +857,11 @@ class LowLevelTest(BaseTestCase):
         self.assertEqual(1, len(self.db._immutable))
         # read from the old file
         value = self.db._get_value(
-            old_file_id, crc32_size+header_size+len('foo'), len('bar'))
+            old_file_id, crc32_size + header_size + len('foo'), len('bar'))
         self.assertEqual(value, 'bar')
         # read from the current file
         value = self.db._get_value(self.db.live_file.file_id,
-                                   crc32_size+header_size+len('foo1'),
+                                   crc32_size + header_size + len('foo1'),
                                    len('bar1'))
         self.assertEqual(value, 'bar1')
 
@@ -960,10 +973,12 @@ class InitTest(BaseTestCase):
         data_file.write(0, 'foo_0', 'bar_0')
         immutable_file = data_file.make_immutable()
         immutable_file.close()
-        # patch the open call and make it fail
+
         def fail_open(filename, *a):
             """Always fail."""
             raise IOError("I'm a broken file.")
+
+        # patch the open call and make it fail
         self.patch(ImmutableDataFile, '_open', fail_open)
         db = Tritcask(self.base_dir)
         self.addCleanup(db.shutdown)
@@ -971,10 +986,11 @@ class InitTest(BaseTestCase):
                                               key=attrgetter('filename'))]
         self.assertNotIn(immutable_file.filename, files)
         # check the logs
-        msg = ("Failed to open %s, renaming it to: %s - error: %s" % \
-               (immutable_file.filename,
-                immutable_file.filename.replace(INACTIVE, BROKEN),
-                IOError("I'm a broken file")))
+        msg = (
+            "Failed to open %s, renaming it to: %s - error: %s" %
+            (immutable_file.filename,
+             immutable_file.filename.replace(INACTIVE, BROKEN),
+             IOError("I'm a broken file")))
         self.assertTrue(self.memento.check_warning(msg))
 
     def test_find_data_files_live_open_error(self):
@@ -984,17 +1000,19 @@ class InitTest(BaseTestCase):
         data_file.close()
         # patch the open call and make it fail
         orig_open = DataFile._open
+
         def fail_open(filename, *a):
             """Always fail only once."""
             self.patch(DataFile, '_open', orig_open)
             raise IOError("I'm a broken file.")
+
         self.patch(DataFile, '_open', fail_open)
         db = Tritcask(self.base_dir)
         self.addCleanup(db.shutdown)
         self.assertNotEqual(data_file.filename, db.live_file.filename)
         # check the logs
         self.memento.debug = True
-        msg = ("Failed to open %s, renaming it to: %s - error: %s" % \
+        msg = ("Failed to open %s, renaming it to: %s - error: %s" %
                (data_file.filename,
                 data_file.filename.replace(LIVE, BROKEN),
                 IOError("I'm a broken file")))
@@ -1086,7 +1104,7 @@ class InitTest(BaseTestCase):
         db = Tritcask(self.base_dir)
         self.addCleanup(db.shutdown)
         self.assertTrue(os.path.exists(hint_filename))
-        #check that the hint matches the contents in the DB
+        # check that the hint matches the contents in the DB
         hint_file = HintFile(hint_filename)
         for hint_entry in hint_file.iter_entries():
             self.assertEqual(6, len(hint_entry))
@@ -1108,8 +1126,9 @@ class InitTest(BaseTestCase):
         db = Tritcask(self.base_dir)
         self.addCleanup(db.shutdown)
         self.assertFalse(os.path.exists(db.live_file.hint_filename))
-        self.assertTrue(os.path.exists(hint_filename), os.listdir(db.base_path))
-        #check that the hint matches the contents in the DB
+        self.assertTrue(
+            os.path.exists(hint_filename), os.listdir(db.base_path))
+        # check that the hint matches the contents in the DB
         hint_file = HintFile(hint_filename)
         for hint_entry in hint_file.iter_entries():
             self.assertEqual(6, len(hint_entry))
@@ -1133,7 +1152,8 @@ class InitTest(BaseTestCase):
         # open the tritcask and make sure it regenerates the hint file
         db = Tritcask(self.base_dir)
         self.addCleanup(db.shutdown)
-        self.assertTrue(os.path.exists(hint_filename), os.listdir(db.base_path))
+        self.assertTrue(
+            os.path.exists(hint_filename), os.listdir(db.base_path))
         self.assertEqual(old_keydir, db._keydir)
 
     def test_build_keydir(self):
@@ -1233,7 +1253,7 @@ class InitTest(BaseTestCase):
         # create 10 immutable files
         for j in range(10):
             for i in range(2):
-                db.put(i*j, 'foo%d' % (i*j+i,), 'bar%s' % (i,))
+                db.put(i * j, 'foo%d' % (i * j + i,), 'bar%s' % (i,))
             db.rotate()
         self.assertFalse(db.should_merge(db._immutable))
         # create the 11th immutable file
@@ -1337,9 +1357,10 @@ class BasicTest(BaseTestCase):
             raw_data_len = (len(key) + len(data) + crc32_size + header_size)
             raw_data = f.read(raw_data_len)
             header = header_struct.unpack(
-                raw_data[crc32_size:crc32_size+header_size])
-            tstamp, key_sz, value_sz, row_type = header
-            self.assertEqual(data, raw_data[crc32_size+header_size+key_sz:])
+                raw_data[crc32_size:crc32_size + header_size])
+            ts, key_sz, value_sz, row_type = header
+            self.assertEqual(
+                data, raw_data[crc32_size + header_size + key_sz:])
         self.assertEqual(self.db.get(0, key), data)
         # add new entry and check
         key_1, data_1 = self.build_data()
@@ -1359,7 +1380,7 @@ class BasicTest(BaseTestCase):
             f.seek(-1*raw_data_len, os.SEEK_END)
             raw_data = f.read(raw_data_len)
             self.assertEqual(TOMBSTONE,
-                             raw_data[crc32_size+header_size+len(key):])
+                             raw_data[crc32_size + header_size + len(key):])
 
     def test_delete_stats_updated(self):
         """Test that calling delete update the keydir stats."""
@@ -1456,11 +1477,9 @@ class MergeTests(BaseTestCase):
         # do the merge.
         data_file = db.merge(db._immutable)
         for entry in data_file.iter_entries():
-            (crc32, tstamp, key_sz, value_sz, row_type,
-                key, value, value_pos) = entry
+            (crc32, ts, key_sz, value_sz, row_type, key, value, pos) = entry
             keydir_entry = keydir_to_merge[(row_type, key)]
-            (old_file_id, old_tstamp, old_value_sz, old_value_pos) = \
-                    keydir_entry
+            (old_file_id, old_ts, old_value_sz, old_value_pos) = keydir_entry
             old_value = db._get_value(old_file_id, old_value_pos, old_value_sz)
             self.assertEqual(old_value, value)
         for fname in immutable_fnames:
@@ -1486,11 +1505,9 @@ class MergeTests(BaseTestCase):
         # do the merge.
         data_file = db.merge(db._immutable)
         for entry in data_file.iter_entries():
-            (crc32, tstamp, key_sz, value_sz, row_type,
-                key, value, value_pos) = entry
+            (crc32, ts, key_sz, value_sz, row_type, key, value, pos) = entry
             keydir_entry = keydir_to_merge[(row_type, key)]
-            (old_file_id, old_tstamp, old_value_sz, old_value_pos) = \
-                    keydir_entry
+            (old_file_id, old_ts, old_value_sz, old_value_pos) = keydir_entry
             old_value = db._get_value(old_file_id, old_value_pos, old_value_sz)
             self.assertEqual(old_value, value)
         for fname in immutable_fnames:
@@ -1549,8 +1566,9 @@ class MergeTests(BaseTestCase):
     def test_merge_do_nothing_all_dead_entries_single_file(self):
         """Test possible merge of a immutable file with 100% dead data.
 
-        The expected side effect is that the file should be marked as immutable,
-        then merged and marked as dead. And on the next startup deleted.
+        The expected side effect is that the file should be marked as
+        immutable, then merged and marked as dead. And on the next startup
+        deleted.
         """
         db = Tritcask(self.base_dir)
         self._add_data(db, 100)
@@ -1584,17 +1602,17 @@ class MergeTests(BaseTestCase):
         # start a new Tritcask instance.
         db = Tritcask(self.base_dir)
         try:
-            files = sorted(os.path.join(self.base_dir,f ) \
+            files = sorted(os.path.join(self.base_dir, f)
                            for f in os.listdir(db.base_path))
-            #self.assertIn(imm_file.filename.replace(INACTIVE, DEAD), files)
+            # self.assertIn(imm_file.filename.replace(INACTIVE, DEAD), files)
             # the immutable_file should be dead as there are no live entries
             # there should be only 2 files, the dead and the live
             # dead + dead_hint + live
             files = sorted(os.listdir(db.base_path))
             self.assertEqual(1, len(files), files)
-            #self.assertIn(DEAD, files[0])
-            #self.assertIn(DEAD, files[1])
-            #self.assertIn(HINT, files[1])
+            # self.assertIn(DEAD, files[0])
+            # self.assertIn(DEAD, files[1])
+            # self.assertIn(HINT, files[1])
             self.assertIn(LIVE, files[0])
         finally:
             db.shutdown()
@@ -1624,9 +1642,9 @@ class MergeTests(BaseTestCase):
         finally:
             db.shutdown()
         db = Tritcask(self.base_dir)
-        # the "empty" immutable_file should be dead as there are no live entries
-        # but it's also removed from the _immutable dict
-        files = sorted(os.path.join(self.base_dir,f ) \
+        # the "empty" immutable_file should be dead as there are no live
+        # entries but it's also removed from the _immutable dict
+        files = sorted(os.path.join(self.base_dir, f)
                        for f in os.listdir(db.base_path))
         try:
             self.assertIn(imm_file_1.filename.replace(INACTIVE, DEAD), files)
@@ -1719,12 +1737,12 @@ class KeydirStatsTests(BaseTestCase):
         keydir = Keydir()
         file_id = DataFile._get_next_file_id()
         for i in range(10):
-            keydir[(0, str(uuid.uuid4()))] = KeydirEntry(file_id, timestamp(),
-                                                    len(str(uuid.uuid4())), i+10)
+            keydir[(0, str(uuid.uuid4()))] = KeydirEntry(
+                file_id, timestamp(), len(str(uuid.uuid4())), i + 10)
         file_id_1 = DataFile._get_next_file_id()
         for i in range(20):
-            keydir[(0, str(uuid.uuid4()))] = KeydirEntry(file_id_1, timestamp(),
-                                                    len(str(uuid.uuid4())), i+10)
+            keydir[(0, str(uuid.uuid4()))] = KeydirEntry(
+                file_id_1, timestamp(), len(str(uuid.uuid4())), i + 10)
         entry_size = len(str(uuid.uuid4()))*2 + header_size + crc32_size
         self.assertEqual(entry_size*10, keydir._stats[file_id]['live_bytes'])
         self.assertEqual(entry_size*20, keydir._stats[file_id_1]['live_bytes'])
@@ -1768,14 +1786,14 @@ class KeydirStatsTests(BaseTestCase):
         for i in range(10):
             key = str(uuid.uuid4())
             keydir[(0, key)] = KeydirEntry(file_id, timestamp(),
-                                           len(str(uuid.uuid4())), i+10)
+                                           len(str(uuid.uuid4())), i + 10)
             if i % 2:
                 keydir.remove((0, key))
         file_id_1 = DataFile._get_next_file_id()
         for i in range(20):
             key = str(uuid.uuid4())
             keydir[(0, key)] = KeydirEntry(file_id_1, timestamp(),
-                                           len(str(uuid.uuid4())), i+10)
+                                           len(str(uuid.uuid4())), i + 10)
             if i % 2:
                 keydir.remove((0, key))
         entry_size = len(str(uuid.uuid4()))*2 + header_size + crc32_size
@@ -1798,11 +1816,11 @@ class KeydirStatsTests(BaseTestCase):
         keydir = Keydir()
         file_id = DataFile._get_next_file_id()
         for i in range(10):
-            keydir[(0, str(uuid.uuid4()))] = KeydirEntry(file_id, timestamp(),
-                                                 len(str(uuid.uuid4())), i+10)
+            keydir[(0, str(uuid.uuid4()))] = KeydirEntry(
+                file_id, timestamp(), len(str(uuid.uuid4())), i + 10)
         self.assertEqual(keydir._stats[file_id], keydir.get_stats(file_id))
-        self.assertTrue(keydir._stats[file_id] is not \
-                        keydir.get_stats(file_id))
+        self.assertTrue(
+            keydir._stats[file_id] is not keydir.get_stats(file_id))
 
     def test_get_stats_missing(self):
         """Test get_stats with a missing file_id."""
@@ -1869,6 +1887,7 @@ class TritcaskShelfTests(BaseTestCase):
     def test_custom_serialization(self):
         """Test the _serialize and _deserialize methods."""
         path = os.path.join(self.base_dir, 'shelf_serialization')
+
         class MarshalShelf(TritcaskShelf):
             """A shelf that use marshal for de/serialization."""
 
@@ -1908,6 +1927,7 @@ class TritcaskShelfTests(BaseTestCase):
         self.assertEqual(10, len(shelf))
         shelf['foo_a'] = 'bar_a'
         self.assertEqual(11, len(shelf))
+
 
 class WindowsTimerTests(BaseTwistedTestCase):
     """Tests for the windows timer."""

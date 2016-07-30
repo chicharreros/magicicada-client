@@ -1270,10 +1270,12 @@ class VolumeManager(object):
         Also fire a local and server rescan.
 
         """
+
+        def push_success(volume):
+            return self.m.event_q.push('VM_SHARE_SUBSCRIBED', share=volume)
+
         push_error = functools.partial(
             self.m.event_q.push, 'VM_SHARE_SUBSCRIBE_ERROR', share_id=share_id)
-        push_success = lambda volume: \
-            self.m.event_q.push('VM_SHARE_SUBSCRIBED', share=volume)
         self.log.info('subscribe_share: %r', share_id)
         d = self._subscribe_volume(share_id, push_success, push_error)
         return d
@@ -1284,10 +1286,12 @@ class VolumeManager(object):
         Also fire a local and server rescan.
 
         """
+
+        def push_success(volume):
+            return self.m.event_q.push('VM_UDF_SUBSCRIBED', udf=volume)
+
         push_error = functools.partial(self.m.event_q.push,
                                        'VM_UDF_SUBSCRIBE_ERROR', udf_id=udf_id)
-        push_success = lambda volume: self.m.event_q.push('VM_UDF_SUBSCRIBED',
-                                                          udf=volume)
         self.log.info('subscribe_udf: %r', udf_id)
         d = self._subscribe_volume(udf_id, push_success, push_error)
         return d
@@ -1364,21 +1368,25 @@ class VolumeManager(object):
 
     def unsubscribe_share(self, share_id):
         """Mark the share with share_id as unsubscribed."""
-        self.log.info('unsubscribe_share: %r', share_id)
+
+        def push_success(volume):
+            return self.m.event_q.push('VM_SHARE_UNSUBSCRIBED', share=volume)
+
         push_error = functools.partial(
             self.m.event_q.push, 'VM_SHARE_UNSUBSCRIBE_ERROR',
             share_id=share_id)
-        push_success = lambda volume: \
-            self.m.event_q.push('VM_SHARE_UNSUBSCRIBED', share=volume)
+        self.log.info('unsubscribe_share: %r', share_id)
         self._unsubscribe_volume(share_id, push_success, push_error)
 
     def unsubscribe_udf(self, udf_id):
         """Mark the UDF with udf_id as unsubscribed."""
-        self.log.info('unsubscribe_udf: %r', udf_id)
+
+        def push_success(volume):
+            return self.m.event_q.push('VM_UDF_UNSUBSCRIBED', udf=volume)
+
         push_error = functools.partial(
             self.m.event_q.push, 'VM_UDF_UNSUBSCRIBE_ERROR', udf_id=udf_id)
-        push_success = lambda volume: \
-            self.m.event_q.push('VM_UDF_UNSUBSCRIBED', udf=volume)
+        self.log.info('unsubscribe_udf: %r', udf_id)
         self._unsubscribe_volume(udf_id, push_success, push_error)
 
     def _unsubscribe_volume(self, volume_id, push_success, push_error):
@@ -1551,8 +1559,9 @@ class MetadataUpgrader(object):
                     target = read_link(self._shares_dir_link)
                 except OSError:
                     target = None
-                if (normpath(target) == os.path.abspath(self._shares_dir_link)
-                        and is_link(self._shares_dir_link)):
+                abs_link = os.path.abspath(self._shares_dir_link)
+                if (normpath(target) == abs_link and
+                        is_link(self._shares_dir_link)):
                     # broken symlink, md_version = 4
                     md_version = '4'
                 else:
@@ -1586,10 +1595,18 @@ class MetadataUpgrader(object):
         backup = os.path.join(self._data_dir, '0.bkp')
         if not path_exists(backup):
             make_dir(backup, recursive=True)
-        # filter 'shares' and 'shared' dirs, in case we are in the case of
-        # missing version but existing .version file
-        filter_known_dirs = lambda d: d != os.path.basename(
-            self._shares_md_dir) and d != os.path.basename(self._shared_md_dir)
+
+        def filter_known_dirs(d):
+            """Filter 'shares' and 'shared' dirs.
+
+            In case we are in the case of missing version but existing
+            .version file.
+
+            """
+            shared_to_me = os.path.basename(self._shared_md_dir)
+            shared_from_me = os.path.basename(self._shares_md_dir)
+            return d != shared_from_me and d != shared_to_me
+
         for dirname, dirs, files in walk(self._data_dir):
             if dirname == self._data_dir:
                 for dir in filter(filter_known_dirs, dirs):

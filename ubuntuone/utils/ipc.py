@@ -145,8 +145,8 @@ class SignalBroadcaster(object):
         for current_client in self.clients_per_signal[signal_name]:
             try:
                 d = current_client.callRemote(signal_name, *args, **kwargs)
-                d.addErrback(self._ignore_no_such_method, signal_name,
-                                                          current_client)
+                d.addErrback(
+                    self._ignore_no_such_method, signal_name, current_client)
                 d.addErrback(self._other_failure, signal_name, current_client)
                 result.append(d)
             except DeadReferenceError:
@@ -306,8 +306,8 @@ class RemoteClient(object, Referenceable):
     def register_to_signals(self):
         """Register to the signals."""
         try:
-            result = yield self.remote.callRemote('register_to_signals', self,
-                    self.signal_handlers)
+            result = yield self.remote.callRemote(
+                'register_to_signals', self, self.signal_handlers)
         except DeadReferenceError:
             yield self.base_client.reconnect()
             result = yield self.register_to_signals()

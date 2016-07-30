@@ -169,7 +169,8 @@ class BaseTestCase(FakeMainTestCase):
             # make sure suggested_path is unicode
             assert isinstance(suggested_path, unicode)
         path = get_udf_path(suggested_path)
-        udf = UDF(str(volume_id), str(node_id), suggested_path, path, subscribed)
+        udf = UDF(
+            str(volume_id), str(node_id), suggested_path, path, subscribed)
         return udf
 
 
@@ -451,7 +452,8 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         self.main.fs.create(path, share.volume_id)
         self.main.fs.set_node_id(path, share.node_id)
 
-        result = self.sd_obj.get_metadata_by_node(share.volume_id, share.node_id)
+        result = self.sd_obj.get_metadata_by_node(
+            share.volume_id, share.node_id)
 
         self.assertEqual(path, str(result['path']))
         self.assertEqual(share.volume_id, result['share_id'])
@@ -2143,7 +2145,7 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
 
     @defer.inlineCallbacks
     def test_handle_SYS_QUEUE_REMOVED_content_queue_changed_upload(self):
-        """Test that handle_SYS_QUEUE_REMOVED also calls ContentQueueChanged."""
+        """Test handle_SYS_QUEUE_REMOVED also calls ContentQueueChanged."""
         d = defer.Deferred()
         self.patch(self.sd_obj.interface.status,
                    'RequestQueueRemoved', lambda *a: d.callback(a))
@@ -2156,7 +2158,7 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
 
     @defer.inlineCallbacks
     def test_handle_SYS_QUEUE_REMOVED_content_queue_changed_download(self):
-        """Test that handle_SYS_QUEUE_REMOVED also calls ContentQueueChanged."""
+        """Test handle_SYS_QUEUE_REMOVED also calls ContentQueueChanged."""
         d = defer.Deferred()
         self.patch(self.sd_obj.interface.status,
                    'RequestQueueRemoved', lambda *a: d.callback(a))

@@ -305,8 +305,8 @@ class WatchManager(object):
             path += os.path.sep
         for current_wd in self._wdm:
             watch_path = self._wdm[current_wd].path
-            if ((watch_path == path or watch_path in path)
-                    and path not in self._ignored_paths):
+            if ((watch_path == path or watch_path in path) and
+                    path not in self._ignored_paths):
                 return current_wd
 
     def get_path(self, wd):

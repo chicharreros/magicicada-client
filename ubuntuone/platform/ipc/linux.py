@@ -37,7 +37,7 @@ import dbus.service
 from twisted.internet import defer
 from xml.etree import ElementTree
 
-from ubuntuone.platform.launcher import Launcher
+from ubuntuone.platform import launcher
 from ubuntuone.syncdaemon import (
     RECENT_TRANSFERS,
     UPLOADING,
@@ -814,8 +814,8 @@ class Launcher(DBusExposedObject):
     @dbus.service.method(DBUS_IFACE_LAUNCHER_NAME)
     def unset_urgency(self):
         """Unset urgency on the launcher."""
-        launcher = Launcher()
-        launcher.set_urgent(False)
+        result = launcher.Launcher()
+        result.set_urgent(False)
 
 
 class PublicFiles(DBusExposedObject):

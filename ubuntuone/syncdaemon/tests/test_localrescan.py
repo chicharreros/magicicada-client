@@ -74,6 +74,15 @@ from ubuntuone.syncdaemon.volume_manager import (
 TRACE = logging.getLevelName('TRACE')
 
 
+class Listener(object):
+
+    def __init__(self):
+        self.events = []
+
+    def handle_default(self, *args, **kwargs):
+        self.events.append(args + tuple(kwargs.values()))
+
+
 class FakeEQ(object):
     """Fake EQ"""
     def __init__(self):
@@ -147,8 +156,9 @@ class BaseTestCase(BaseTwistedTestCase):
         self.aq = FakeAQ()
 
     @defer.inlineCallbacks
-    def create_share(self, share_id, share_name,
-                     access_level=ACCESS_LEVEL_RW, accepted=True, subscribed=True):
+    def create_share(
+            self, share_id, share_name, access_level=ACCESS_LEVEL_RW,
+            accepted=True, subscribed=True):
         """Create a share."""
         assert isinstance(share_name, unicode)
 
@@ -211,10 +221,9 @@ class CollectionTests(BaseTestCase):
     def test_empty_ro(self):
         """Test with one empty View share."""
         # create the share
-
         lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
-
         toscan = []
+
         def f():
             """helper"""
             toscan.extend(x[1] for x in lr._queue)
@@ -234,8 +243,8 @@ class CollectionTests(BaseTestCase):
         self.fsm.set_node_id(share.path, "uuid")
 
         lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
-
         toscan = []
+
         def f():
             """helper"""
             toscan.extend(x[1] for x in lr._queue)
@@ -243,7 +252,7 @@ class CollectionTests(BaseTestCase):
 
         lr._queue_scan = f
         lr.start()
-        self.assertEqual(sorted(toscan), [share.path, self.vm.root.path])
+        self.assertItemsEqual(toscan, [share.path, self.vm.root.path])
 
     @defer.inlineCallbacks
     def test_not_empty_rw(self):
@@ -261,8 +270,8 @@ class CollectionTests(BaseTestCase):
         open_file(filepath, "w").close()
 
         lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
-
         toscan = []
+
         def f():
             """helper"""
             toscan.extend(x[1] for x in lr._queue)
@@ -270,7 +279,7 @@ class CollectionTests(BaseTestCase):
 
         lr._queue_scan = f
         lr.start()
-        self.assertEqual(sorted(toscan), [share.path, self.vm.root.path])
+        self.assertItemsEqual(toscan, [share.path, self.vm.root.path])
 
     @defer.inlineCallbacks
     def test_deleted_rw(self):
@@ -285,8 +294,8 @@ class CollectionTests(BaseTestCase):
         remove_tree(share.path)
 
         lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
-
         toscan = []
+
         def f():
             """helper"""
             toscan.extend(x[1] for x in lr._queue)
@@ -299,7 +308,7 @@ class CollectionTests(BaseTestCase):
         lr.start()
         vol_id = yield d
         self.assertEqual(vol_id, share.volume_id)
-        self.assertEqual(sorted(toscan), [self.vm.root.path])
+        self.assertItemsEqual(toscan, [self.vm.root.path])
 
     @defer.inlineCallbacks
     def test_deleted_rw_not_empty(self):
@@ -321,8 +330,8 @@ class CollectionTests(BaseTestCase):
         remove_tree(share.path)
 
         lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
-
         toscan = []
+
         def f():
             """helper"""
             toscan.extend(x[1] for x in lr._queue)
@@ -335,7 +344,7 @@ class CollectionTests(BaseTestCase):
         lr.start()
         vol_id = yield d
         self.assertEqual(vol_id, share.volume_id)
-        self.assertEqual(sorted(toscan), [self.vm.root.path])
+        self.assertItemsEqual(toscan, [self.vm.root.path])
 
     @defer.inlineCallbacks
     def test_deleted_udf(self):
@@ -348,8 +357,8 @@ class CollectionTests(BaseTestCase):
         remove_tree(udf.path)
 
         lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
-
         toscan = []
+
         def f():
             """helper"""
             toscan.extend(x[1] for x in lr._queue)
@@ -362,7 +371,7 @@ class CollectionTests(BaseTestCase):
         lr.start()
         vol_id = yield d
         self.assertEqual(vol_id, udf.volume_id)
-        self.assertEqual(sorted(toscan), [self.vm.root.path])
+        self.assertItemsEqual(toscan, [self.vm.root.path])
 
 
 class VolumeTestCase(BaseTestCase):
@@ -374,9 +383,8 @@ class VolumeTestCase(BaseTestCase):
         yield super(VolumeTestCase, self).setUp()
 
         self.lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
-
         self.volumes = []
-        self.expected = [self.vm.root.path] # root volume has to be scanned
+        self.expected = [self.vm.root.path]  # root volume has to be scanned
         paths = [u'~/Documents', u'~/PDFs', u'~/yadda/yadda/doo']
         for i, suggested_path in enumerate(paths):
             # create UDF
@@ -492,6 +500,7 @@ class VolumeTestCase(BaseTestCase):
         assert unsub_vol.path == unsub_path
         self.fsm.vm.unsubscribe_udf(unsub_vol.volume_id)
         toscan = []
+
         def f():
             """helper"""
             for _, path, _, udfmode in self.lr._queue:
@@ -803,7 +812,7 @@ class ComparationTests(TwistedBase):
 
         # scan!
         yield self.lr.start()
-        self.assertEqual(sorted(self.eq.pushed), [
+        self.assertItemsEqual(self.eq.pushed, [
             ('FS_DIR_CREATE', sh8),
             ('FS_DIR_CREATE', sh7),
             ('FS_DIR_DELETE', sh1),
@@ -841,7 +850,7 @@ class ComparationTests(TwistedBase):
 
         # scan!
         yield self.lr.start()
-        self.assertEqual(sorted(self.eq.pushed), [
+        self.assertItemsEqual(self.eq.pushed, [
             ('FS_FILE_CLOSE_WRITE', sh2),
             ('FS_FILE_CREATE', sh2),
             ('FS_FILE_DELETE', sh1),
@@ -1096,14 +1105,7 @@ class InotifyTests(TwistedBase):
             ('FS_FILE_DELETE', sh2),
         ]
 
-        class HitMe(object):
-            """Class to record the events to compare later."""
-            def __init__(innerself):
-                innerself.hist = []
-            def handle_default(innerself, event_name, path):
-                innerself.hist.append((event_name, path))
-
-        hm = HitMe()
+        hm = Listener()
         self.eq.subscribe(hm)
 
         # we need to intercept compare, as the stat interception needs
@@ -1126,6 +1128,7 @@ class InotifyTests(TwistedBase):
             """Commit that will be delayed until the new file is processed."""
             d = defer.Deferred()
             d.addCallback(real_commit)
+
             def check_events():
                 """Trigger the deferred only if the file was processed."""
                 if events_pushed:
@@ -1155,7 +1158,7 @@ class InotifyTests(TwistedBase):
                    'push_event', fake_pusher)
 
         yield self.lr.start()
-        self.assertEqual(sorted(hm.hist), should_receive_events)
+        self.assertItemsEqual(hm.events, should_receive_events)
 
 
 class QueuingTests(BaseTestCase):
@@ -1213,13 +1216,7 @@ class QueuingTests(BaseTestCase):
             ('FS_FILE_DELETE', sh3),
         ]
 
-        class HitMe(object):
-            def __init__(innerself):
-                innerself.hist = []
-            def handle_default(innerself, event_name, path):
-                innerself.hist.append((event_name, path))
-
-        hm = HitMe()
+        hm = Listener()
         self.eq.subscribe(hm)
 
         # we need to intercept compare, as the stat interception needs
@@ -1245,11 +1242,13 @@ class QueuingTests(BaseTestCase):
         self.lr._compare = middle_compare
 
         yield self.lr.scan_dir("mdid", self.share1.path)
-        self.assertEqual(sorted(hm.hist), should_receive_events)
+        self.assertItemsEqual(hm.events, should_receive_events)
 
 
 class PushTests(TwistedBase):
     """Test LocalRescan pushing events to the EventQueue."""
+
+    maxDiff = None
     timeout = 2
 
     @defer.inlineCallbacks
@@ -1263,12 +1262,6 @@ class PushTests(TwistedBase):
     @defer.inlineCallbacks
     def test_one_dir_create(self):
         """Check that an example dir create is really pushed."""
-        result = []
-
-        class Listener(object):
-            def handle_FS_DIR_CREATE(self, path):
-                result.append(path)
-
         l = Listener()
         self.eq.subscribe(l)
         self.addCleanup(self.eq.unsubscribe, l)
@@ -1278,18 +1271,11 @@ class PushTests(TwistedBase):
         make_dir(filepath)
 
         yield self.lr.start()
-        self.assertEqual(1, len(result))
-        self.assertEqual(filepath, result[0])
+        self.assertItemsEqual(l.events, [('FS_DIR_CREATE', filepath)])
 
     @defer.inlineCallbacks
     def test_one_file_create(self):
         """Check that an example file create is really pushed."""
-        result = []
-
-        class Listener(object):
-            def handle_FS_FILE_CREATE(self, path):
-                result.append(path)
-
         l = Listener()
         self.eq.subscribe(l)
         self.addCleanup(self.eq.unsubscribe, l)
@@ -1299,19 +1285,15 @@ class PushTests(TwistedBase):
         open_file(filepath, "w").close()
 
         yield self.lr.start()
-        self.assertEqual(1, len(result))
-        self.assertEqual(filepath, result[0])
+        expected = [
+            ('FS_FILE_CREATE', filepath),
+            ('FS_FILE_CLOSE_WRITE', filepath),
+        ]
+        self.assertItemsEqual(l.events, expected)
 
     @defer.inlineCallbacks
     def test_one_dir_delete(self):
         """Check that an example dir delete is really pushed."""
-
-        # helper class, pylint: disable=C0111
-        result = []
-        class Listener(object):
-            def handle_FS_DIR_DELETE(self, path):
-                result.append(path)
-
         l = Listener()
         self.eq.subscribe(l)
         self.addCleanup(self.eq.unsubscribe, l)
@@ -1322,18 +1304,11 @@ class PushTests(TwistedBase):
         self.fsm.set_node_id(filepath, "uuid1")
 
         yield self.lr.start()
-        self.assertEqual(1, len(result))
-        self.assertEqual(filepath, result[0])
+        self.assertItemsEqual(l.events, [('FS_DIR_DELETE', filepath)])
 
     @defer.inlineCallbacks
     def test_one_file_delete(self):
         """Check that an example file delete is really pushed."""
-        # helper class, pylint: disable=C0111
-        result = []
-        class Listener(object):
-            def handle_FS_FILE_DELETE(self, path):
-                result.append(path)
-
         l = Listener()
         self.eq.subscribe(l)
         self.addCleanup(self.eq.unsubscribe, l)
@@ -1345,18 +1320,11 @@ class PushTests(TwistedBase):
         self.fsm.set_by_path(filepath, local_hash="hash", server_hash="hash")
 
         yield self.lr.start()
-        self.assertEqual(1, len(result))
-        self.assertEqual(filepath, result[0])
+        self.assertItemsEqual(l.events, [('FS_FILE_DELETE', filepath)])
 
     @defer.inlineCallbacks
     def test_file_changed(self):
         """Check that an example close write is pushed."""
-        # helper class, pylint: disable=C0111
-        result = []
-        class Listener(object):
-            def handle_FS_FILE_CLOSE_WRITE(self, path):
-                result.append(path)
-
         l = Listener()
         self.eq.subscribe(l)
         self.addCleanup(self.eq.unsubscribe, l)
@@ -1369,18 +1337,15 @@ class PushTests(TwistedBase):
             fh.write("foo")
 
         yield self.lr.start()
-        self.assertEqual(1, len(result))
-        self.assertEqual(filepath, result[0])
+        expected = [
+            ('FS_FILE_CREATE', filepath),
+            ('FS_FILE_CLOSE_WRITE', filepath),
+        ]
+        self.assertItemsEqual(l.events, expected)
 
     @defer.inlineCallbacks
     def test_file_changed_in_nestedstruct(self):
         """Check that an example close write is pushed."""
-        # helper class, pylint: disable=C0111
-        result = []
-        class Listener(object):
-            def handle_FS_FILE_CLOSE_WRITE(self, path):
-                result.append(path)
-
         l = Listener()
         self.eq.subscribe(l)
         self.addCleanup(self.eq.unsubscribe, l)
@@ -1404,19 +1369,15 @@ class PushTests(TwistedBase):
             fh.write("foo")
 
         yield self.lr.start()
-        self.assertEqual(1, len(result))
-        self.assertEqual(path, result[0])
+        expected = [
+            ('FS_FILE_CREATE', path),
+            ('FS_FILE_CLOSE_WRITE', path),
+        ]
+        self.assertItemsEqual(l.events, expected)
 
     @defer.inlineCallbacks
     def test_conflict_file(self):
         """Found a .conflict file."""
-        # helper class, pylint: disable=C0111
-        class Listener(object):
-            def __init__(self):
-                self.hit = False
-            def handle_default(self, *args):
-                self.hit = True
-
         listener = Listener()
         self.eq.subscribe(listener)
         self.addCleanup(self.eq.unsubscribe, listener)
@@ -1426,19 +1387,12 @@ class PushTests(TwistedBase):
         open_file(path, "w").close()
 
         yield self.lr.start()
-        self.assertFalse(listener.hit)
+        self.assertFalse(listener.events)
         self.assertTrue(path_exists(path))
 
     @defer.inlineCallbacks
     def test_conflict_dir(self):
         """Found a .conflict dir."""
-        # helper class, pylint: disable=C0111
-        class Listener(object):
-            def __init__(self):
-                self.hit = False
-            def handle_default(self, *args):
-                self.hit = True
-
         listener = Listener()
         self.eq.subscribe(listener)
         self.addCleanup(self.eq.unsubscribe, listener)
@@ -1448,7 +1402,7 @@ class PushTests(TwistedBase):
         make_dir(path)
 
         yield self.lr.start()
-        self.assertFalse(listener.hit)
+        self.assertFalse(listener.events)
         self.assertTrue(path_exists(path))
 
 
@@ -1529,7 +1483,7 @@ class BadStateTests(TwistedBase):
         self.assertEqual(self.aq.uploaded[0][:7],
                          (mdobj.share_id, mdobj.node_id, mdobj.server_hash,
                           mdobj.local_hash, mdobj.crc32, mdobj.size, mdid))
-        self.assertEqual(self.aq.uploaded[1], {'upload_id':None})
+        self.assertEqual(self.aq.uploaded[1], {'upload_id': None})
         self.assertTrue(self.handler.check_debug("resuming upload",
                                                  "interrupted"))
 
@@ -1547,7 +1501,7 @@ class BadStateTests(TwistedBase):
         pathhash = self._hash(path)
         self.fsm.set_by_mdid(mdid, local_hash=pathhash, crc32='foo')
         mdobj = self.fsm.fs[mdid]
-        mdobj["stat"] = None # stat comparison will fail :)
+        mdobj["stat"] = None  # stat comparison will fail :)
         self.fsm.fs[mdid] = mdobj
 
         yield self.lr.start()
@@ -1578,7 +1532,7 @@ class BadStateTests(TwistedBase):
         self.assertEqual(self.aq.uploaded[0][:7],
                          (mdobj.share_id, mdobj.node_id, mdobj.server_hash,
                           mdobj.local_hash, mdobj.crc32, mdobj.size, mdid))
-        self.assertEqual(self.aq.uploaded[1], {'upload_id':'hola'})
+        self.assertEqual(self.aq.uploaded[1], {'upload_id': 'hola'})
         self.assertTrue(self.handler.check_debug("resuming upload",
                                                  "interrupted"))
 
@@ -1589,8 +1543,9 @@ class BadStateTests(TwistedBase):
         path = os.path.join(self.share.path, "a")
         open_file(path, "w").close()
         mdid = self.fsm.create(path, self.share.volume_id, is_dir=False)
-        partial_path = os.path.join(self.fsm.partials_dir,
-                                mdid + ".u1partial." + os.path.basename(path))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(path))
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -1615,8 +1570,9 @@ class BadStateTests(TwistedBase):
         path = os.path.join(self.share.path, "a")
         mdid = self.fsm.create(path, self.share.volume_id, is_dir=False,
                                node_id="uuid")
-        partial_path = os.path.join(self.fsm.partials_dir,
-                                mdid + ".u1partial." + os.path.basename(path))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(path))
 
         # this mimic Sync.get_file
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
@@ -1640,8 +1596,9 @@ class BadStateTests(TwistedBase):
         with open_file(path, 'w') as fh:
             fh.write("previous content")
         mdid = self.fsm.create(path, self.share.volume_id, is_dir=False)
-        partial_path = os.path.join(self.fsm.partials_dir,
-                                mdid + ".u1partial." + os.path.basename(path))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(path))
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -1678,8 +1635,9 @@ class BadStateTests(TwistedBase):
         # create the dir in metadata
         path = os.path.join(self.share.path, "a")
         mdid = self.fsm.create(path, self.share.volume_id, is_dir=True)
-        partial_path = os.path.join(self.fsm.partials_dir,
-                                mdid + ".u1partial." + os.path.basename(path))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(path))
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -1705,13 +1663,14 @@ class BadStateTests(TwistedBase):
         self.assertEqual(self.eq.pushed, [('FS_FILE_CREATE', fpath),
                                           ('FS_FILE_CLOSE_WRITE', fpath)])
         # logged in warning
-        self.assertTrue(self.handler.check_warning(
-                                                "Found a directory in SERVER"))
+        self.assertTrue(
+            self.handler.check_warning("Found a directory in SERVER"))
 
     @defer.inlineCallbacks
     def test_partial_nomd(self):
         """Found a .partial with no metadata at all."""
-        path = os.path.join(self.fsm.partials_dir, 'anduuid' + ".u1partial.foo")
+        path = os.path.join(
+            self.fsm.partials_dir, 'anduuid' + ".u1partial.foo")
         open_file(path, "w").close()
 
         yield self.lr.start()
@@ -1760,7 +1719,6 @@ class BadStateTests(TwistedBase):
                                     mdid + ".u1partial.a")
         self.assertTrue(path_exists(partial_path))
 
-
         # now change the dir for a file, for LR to find it
         remove_dir(path)
         open_file(path, "w").close()
@@ -1798,8 +1756,9 @@ class BadStateTests(TwistedBase):
         # create the file in metadata
         path = os.path.join(self.share.path, "a")
         mdid = self.fsm.create(path, self.share.volume_id, is_dir=False)
-        partial_path = os.path.join(self.fsm.partials_dir,
-                                mdid + ".u1partial." + os.path.basename(path))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(path))
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -1940,8 +1899,9 @@ class BadStateTests(TwistedBase):
         with self.fsm._enable_share_write(ro_share.id, path):
             open_file(path, "w").close()
         mdid = self.fsm.create(path, ro_share.volume_id, is_dir=False)
-        partial_path = os.path.join(self.fsm.partials_dir,
-                                mdid + ".u1partial." + os.path.basename(path))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(path))
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -1973,8 +1933,9 @@ class BadStateTests(TwistedBase):
 
         path = os.path.join(ro_share.path, "a")
         mdid = self.fsm.create(path, ro_share.volume_id, is_dir=True)
-        partial_path = os.path.join(self.fsm.partials_dir,
-                                mdid + ".u1partial." + os.path.basename(path))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(path))
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -2011,8 +1972,9 @@ class RootBadStateTests(TwistedBase):
         """Run the bad state test for a specific volume."""
         path = volume.path
         mdid = self.fsm.get_by_path(path).mdid
-        partial_path = os.path.join(self.fsm.partials_dir,
-                                mdid + ".u1partial." + os.path.basename(path))
+        partial_path = os.path.join(
+            self.fsm.partials_dir,
+            mdid + ".u1partial." + os.path.basename(path))
 
         # start the download, never complete it
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
@@ -2097,7 +2059,7 @@ class LimboTests(TwistedBase):
 
         yield self.lr.start()
         self.assertEqual(self.aq.moved, [])
-        self.assertEqual(sorted(self.aq.unlinked), [
+        self.assertItemsEqual(self.aq.unlinked, [
             (self.share.volume_id, "parent_id", "uuid1", path1, True),
             (self.share.volume_id, "parent_id", "uuid2", path2, False),
         ])
@@ -2166,7 +2128,7 @@ class LimboTests(TwistedBase):
 
         yield self.lr.start()
         self.assertEqual(self.aq.unlinked, [])
-        self.assertEqual(sorted(self.aq.moved), [
+        self.assertItemsEqual(self.aq.moved, [
             ("s1", "u1", "op1", "np1", "n1", "p_from", "p_to"),
             ("s2", "u2", "op2", "np2", "n2", "p_from", "p_to"),
         ])
@@ -2267,10 +2229,9 @@ class ParentWatchForUDFTestCase(BaseTestCase):
         expected = set(self.ancestors)
         actual = set(self.watches)
         difference = expected.symmetric_difference(actual)
-        msg = 'Expected (%s)\n\n' \
-              'Is not subset of real watches (%s).\n\n' \
-              'Set symmetric difference is: %s.' % \
-               (expected, actual, difference)
+        msg = (
+            'Expected (%s)\n\nIs not subset of real watches (%s).\n\nSet '
+            'symmetric difference is: %s.' % (expected, actual, difference))
         self.assertTrue(expected.issubset(actual), msg)
         self.assertTrue(self.handler.check_debug("Adding watch to UDF's",
                                                  repr(self.ancestors[0])))

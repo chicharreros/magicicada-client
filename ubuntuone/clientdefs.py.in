@@ -35,10 +35,7 @@ import os
 import platform
 import urllib
 
-Q_ = lambda string: gettext.dgettext(GETTEXT_PACKAGE, string)
-
 NAME = 'Magicicada'
-
 VERSION = "@VERSION@"
 LOCALEDIR = "@localedir@"
 LIBEXECDIR = "@libexecdir@"
@@ -46,6 +43,10 @@ GETTEXT_PACKAGE = "@GETTEXT_PACKAGE@"
 PROJECT_NAME = "@GETTEXT_PACKAGE@"
 PROJECT_DIR = os.path.join('@prefix@', 'share', PROJECT_NAME)
 BIN_DIR = os.path.join('@prefix@', 'lib', PROJECT_NAME)
+
+
+def Q_(string):
+    return gettext.dgettext(GETTEXT_PACKAGE, string)
 
 
 def platform_data():

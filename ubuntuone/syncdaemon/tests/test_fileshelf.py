@@ -56,22 +56,23 @@ BROKEN_PICKLE = '\axb80\x02}q\x01(U\x01aU\x04testq\x02U\x01bU\x06brokenq\x03u.'
 
 
 class TestFileShelf(BaseTwistedTestCase):
-    """ Test the FileShelf """
+    """Test the FileShelf """
     fileshelf_class = FileShelf
 
     @defer.inlineCallbacks
     def setUp(self):
-        """ Sets up a test. """
+        """Set up a test."""
         yield super(TestFileShelf, self).setUp()
         self.path = self.mktemp('shelf')
         self.shelf = self.fileshelf_class(self.path)
 
     def test_bad_depth(self):
-        """ test that the shelf reject invalid depth at creation time """
-        self.assertRaises(ValueError, self.fileshelf_class, self.path, depth=-1)
+        """Test that the shelf reject invalid depth at creation time """
+        self.assertRaises(
+            ValueError, self.fileshelf_class, self.path, depth=-1)
 
     def test_bad_path(self):
-        """ test that the shelf removes the previous shelve file and create a
+        """Test that the shelf removes the previous shelve file and create a
         directory for the new file based shelf at creation time.
         """
         path = os.path.join(self.path, 'shelf_file')
@@ -80,7 +81,7 @@ class TestFileShelf(BaseTwistedTestCase):
         self.assertTrue(os.path.isdir(path))
 
     def test_different_depth_sizes(self):
-        """ test the basic operations (delitem, getitem, setitem) with
+        """Test the basic operations (delitem, getitem, setitem) with
         depths between 0 and len(hashlib.sha1().hexdigest())
         """
         base_path = os.path.join(self.path, 'shelf_depth-')
@@ -94,29 +95,29 @@ class TestFileShelf(BaseTwistedTestCase):
             key_path = os.path.join(path, *[key[i] for i in xrange(0, idx)])
             self.assertTrue(path_exists(os.path.join(key_path, key)))
             # test __getitem__
-            self.assertEquals('foo', shelf[key])
+            self.assertEqual('foo', shelf[key])
             # test __delitem__
             del shelf[key]
             self.assertRaises(KeyError, shelf.__getitem__, key)
             self.assertFalse(path_exists(os.path.join(key_path, key)))
 
     def test_invalid_keys(self):
-        """ test the exception raised when invalid keys are eused ('', None)"""
+        """Test the exception raised when invalid keys are eused ('', None)"""
         self.assertRaises(ValueError, self.shelf.__setitem__, None, 'foo')
         self.assertRaises(ValueError, self.shelf.__setitem__, '', 'foo')
 
     def test_contains(self):
-        """ test that it behaves with the 'in' """
+        """Test that it behaves with the 'in' """
         path = os.path.join(self.path, 'shelf_depth')
         shelf = self.fileshelf_class(path)
         shelf["foo"] = "bar"
         self.assertTrue("foo" in shelf)
         self.assertFalse("baz" in shelf)
-        self.assertEquals('bar', shelf.get('foo'))
-        self.assertEquals(None, shelf.get('baz', None))
+        self.assertEqual('bar', shelf.get('foo'))
+        self.assertEqual(None, shelf.get('baz', None))
 
     def test_pop(self):
-        """ test that it behaves with the .pop() """
+        """Test that it behaves with the .pop() """
         path = os.path.join(self.path, 'shelf_depth')
         shelf = self.fileshelf_class(path)
         shelf["foo"] = "bar"
@@ -127,26 +128,26 @@ class TestFileShelf(BaseTwistedTestCase):
         self.assertRaises(KeyError, shelf.pop, "no-key")
 
     def test_get(self):
-        """ test that it behaves with the .get(key, default) """
+        """Test that it behaves with the .get(key, default) """
         path = os.path.join(self.path, 'shelf_get')
         shelf = self.fileshelf_class(path)
         shelf["foo"] = "bar"
-        self.assertEquals('bar', shelf.get('foo'))
-        self.assertEquals('bar', shelf.get('foo', None))
-        self.assertEquals(None, shelf.get('baz'))
+        self.assertEqual('bar', shelf.get('foo'))
+        self.assertEqual('bar', shelf.get('foo', None))
+        self.assertEqual(None, shelf.get('baz'))
         self.assertFalse(shelf.get('baz', False))
 
     def test_items(self):
-        """ test that it behaves with the .items() """
+        """Test that it behaves with the .items() """
         path = os.path.join(self.path, 'shelf_get')
         shelf = self.fileshelf_class(path)
         shelf["foo"] = "bar"
-        # k, v are temp variables, pylint: disable-msg=W0631
-        self.assertEquals([('foo', 'bar')],
-                          [(k, v) for k, v in shelf.items()])
+        self.assertEqual([('foo', 'bar')],
+                         [(k, v) for k, v in shelf.items()])
         shelf["foo1"] = "bar1"
-        self.assertTrue(('foo', 'bar') and ('foo1', 'bar1') in \
-                        [(k, v) for k, v in shelf.items()])
+        items = [(k, v) for k, v in shelf.items()]
+        self.assertIn(('foo', 'bar'), items)
+        self.assertIn(('foo1', 'bar1'), items)
 
     def test_broken_metadata_without_backup(self):
         """test the shelf behavior when it hit a broken metadata file without
@@ -165,35 +166,35 @@ class TestFileShelf(BaseTwistedTestCase):
 
     def test_broken_metadata_with_backup(self):
         """test that each time a metadata file is updated a .old is kept"""
-        self.shelf['bad_file'] = {'value':'old'}
+        self.shelf['bad_file'] = {'value': 'old'}
         path = self.shelf.key_file('bad_file')
         self.assertFalse(path_exists(path+'.old'))
-        self.assertEquals({'value':'old'}, self.shelf['bad_file'])
+        self.assertEqual({'value': 'old'}, self.shelf['bad_file'])
         # force the creation of the .old file
-        self.shelf['bad_file'] = {'value':'new'}
+        self.shelf['bad_file'] = {'value': 'new'}
         self.assertTrue(path_exists(path+'.old'))
         # check that the new value is there
-        self.assertEquals({'value':'new'}, self.shelf['bad_file'])
+        self.assertEqual({'value': 'new'}, self.shelf['bad_file'])
         # write the current md file fwith 0 bytes
         open_file(path, 'w').close()
         # test that the old value is retrieved
-        self.assertEquals({'value':'old'}, self.shelf['bad_file'])
+        self.assertEqual({'value': 'old'}, self.shelf['bad_file'])
 
-        self.shelf['broken_pickle'] = {'value':'old'}
+        self.shelf['broken_pickle'] = {'value': 'old'}
         path = self.shelf.key_file('broken_pickle')
         # check that .old don't exist
         self.assertFalse(path_exists(path+'.old'))
         # force the creation of the .old file
-        self.shelf['broken_pickle'] = {'value':'new'}
+        self.shelf['broken_pickle'] = {'value': 'new'}
         # check that .old exists
         self.assertTrue(path_exists(path+'.old'))
         # check that the new value is there
-        self.assertEquals({'value':'new'}, self.shelf['broken_pickle'])
+        self.assertEqual({'value': 'new'}, self.shelf['broken_pickle'])
         # write random bytes to the md file
         with open_file(path, 'w') as f:
             f.write(BROKEN_PICKLE)
         # check that the old value is retrieved
-        self.assertEquals({'value':'old'}, self.shelf['broken_pickle'])
+        self.assertEqual({'value': 'old'}, self.shelf['broken_pickle'])
 
     def test_keys_with_old_and_new(self):
         """test keys() with .old and .new files around"""
@@ -203,7 +204,7 @@ class TestFileShelf(BaseTwistedTestCase):
         open_file(self.shelf.key_file('foo1')+'.old', 'w').close()
         open_file(self.shelf.key_file('foo')+'.new', 'w').close()
         open_file(self.shelf.key_file('foo1')+'.new', 'w').close()
-        self.assertEquals(set(['foo', 'foo1']), set(self.shelf.keys()))
+        self.assertEqual(set(['foo', 'foo1']), set(self.shelf.keys()))
 
     def test_corrupted_backup(self):
         """test getitem if also the .old file is corrupted"""
@@ -221,8 +222,8 @@ class TestFileShelf(BaseTwistedTestCase):
         path = self.shelf.key_file('foo')
         open_file(self.shelf.key_file('foo'), 'w').close()
         for _ in xrange(20):
-            open_file(path+'.old', 'w').close()
-            path=path+'.old'
+            open_file(path + '.old', 'w').close()
+            path += '.old'
         self.assertRaises(KeyError, self.shelf.__getitem__, 'foo')
 
     def test_delete_backups_too(self):
@@ -243,8 +244,10 @@ class TestFileShelf(BaseTwistedTestCase):
     def test_custom_unpickle(self):
         """Test the _pickle and _unpikle methods."""
         self.mktemp('my_shelf')
+
         class InMemoryFileShelf(FileShelf):
             """A in-memory FileShelf."""
+
             values = {}
 
             def key_file(self, key):
@@ -267,17 +270,16 @@ class TestFileShelf(BaseTwistedTestCase):
         shelf = InMemoryFileShelf(self.path)
         shelf['foo'] = 'bar'
         self.assertIn('foo', shelf.values)
-        self.assertEquals(shelf.values['foo'],
-                          cPickle.dumps('bar', protocol=2))
+        self.assertEqual(shelf.values['foo'], cPickle.dumps('bar', protocol=2))
 
     def test_broken_metadata_iteritems(self):
         """Test that broken metadata is ignored during iteritems."""
-        self.shelf['ok_key'] = {'status':'this is valid metadata'}
+        self.shelf['ok_key'] = {'status': 'this is valid metadata'}
         self.shelf['bad_file'] = {}
         path = self.shelf.key_file('bad_file')
         open_file(path, 'w').close()
         self.assertRaises(KeyError, self.shelf.__getitem__, 'bad_file')
-        self.assertEquals(1, len(list(self.shelf.iteritems())))
+        self.assertEqual(1, len(list(self.shelf.iteritems())))
         self.assertFalse(path_exists(path))
 
         self.shelf['broken_pickle'] = {}
@@ -285,17 +287,17 @@ class TestFileShelf(BaseTwistedTestCase):
         with open_file(path, 'w') as f:
             f.write(BROKEN_PICKLE)
         self.assertRaises(KeyError, self.shelf.__getitem__, 'broken_pickle')
-        self.assertEquals(1, len(list(self.shelf.iteritems())))
+        self.assertEqual(1, len(list(self.shelf.iteritems())))
         self.assertFalse(path_exists(path))
 
     def test_broken_metadata_items(self):
         """Test that broken metadata is ignored during iteritems."""
-        self.shelf['ok_key'] = {'status':'this is valid metadata'}
+        self.shelf['ok_key'] = {'status': 'this is valid metadata'}
         self.shelf['bad_file'] = {}
         path = self.shelf.key_file('bad_file')
         open_file(path, 'w').close()
         self.assertRaises(KeyError, self.shelf.__getitem__, 'bad_file')
-        self.assertEquals(1, len(list(self.shelf.items())))
+        self.assertEqual(1, len(list(self.shelf.items())))
         self.assertFalse(path_exists(path))
 
         self.shelf['broken_pickle'] = {}
@@ -303,7 +305,7 @@ class TestFileShelf(BaseTwistedTestCase):
         with open_file(path, 'w') as f:
             f.write(BROKEN_PICKLE)
         self.assertRaises(KeyError, self.shelf.__getitem__, 'broken_pickle')
-        self.assertEquals(1, len(list(self.shelf.items())))
+        self.assertEqual(1, len(list(self.shelf.items())))
         self.assertFalse(path_exists(path))
 
 
@@ -313,51 +315,50 @@ class CachedFileShelfTests(TestFileShelf):
 
     def test_hit_miss_properties(self):
         """test the cache hits/misses properties"""
-        # yes, the statement has some effect, pylint: disable-msg=W0104
         try:
             self.shelf['missingkey']
         except KeyError:
-            self.assertEquals(self.shelf.cache_misses, 1)
+            self.assertEqual(self.shelf.cache_misses, 1)
         else:
             self.fail('We have a key in the shelf, but it should be empty!!')
         self.shelf['realkey'] = 'realvalue'
         self.shelf['realkey']
         self.shelf['realkey']
-        self.assertEquals(self.shelf.cache_hits, 1)
+        self.assertEqual(self.shelf.cache_hits, 1)
 
     def test_broken_metadata_with_backup(self):
         """overrides parent test as we have the value in the cache."""
-        self.shelf['bad_file'] = {'value':'old'}
+        self.shelf['bad_file'] = {'value': 'old'}
         path = self.shelf.key_file('bad_file')
         self.assertFalse(path_exists(path+'.old'))
-        self.assertEquals({'value':'old'}, self.shelf['bad_file'])
+        self.assertEqual({'value': 'old'}, self.shelf['bad_file'])
         # force the creation of the .old file
-        self.shelf['bad_file'] = {'value':'new'}
+        self.shelf['bad_file'] = {'value': 'new'}
         self.assertTrue(path_exists(path+'.old'))
         # check that the new value is there
-        self.assertEquals({'value':'new'}, self.shelf['bad_file'])
+        self.assertEqual({'value': 'new'}, self.shelf['bad_file'])
         # write the current md file fwith 0 bytes
         open_file(path, 'w').close()
         # HERE IS THE DIFFERENCE with the parent tests
         # test that the new value is retrieved from the cache!
-        self.assertEquals({'value':'new'}, self.shelf['bad_file'])
+        self.assertEqual({'value': 'new'}, self.shelf['bad_file'])
 
-        self.shelf['broken_pickle'] = {'value':'old'}
+        self.shelf['broken_pickle'] = {'value': 'old'}
         path = self.shelf.key_file('broken_pickle')
         # check that .old don't exist
         self.assertFalse(path_exists(path+'.old'))
         # force the creation of the .old file
-        self.shelf['broken_pickle'] = {'value':'new'}
+        self.shelf['broken_pickle'] = {'value': 'new'}
         # check that .old exists
         self.assertTrue(path_exists(path+'.old'))
         # check that the new value is there
-        self.assertEquals({'value':'new'}, self.shelf['broken_pickle'])
+        self.assertEqual({'value': 'new'}, self.shelf['broken_pickle'])
         # write random bytes to the md file
         with open_file(path, 'w') as f:
             f.write(BROKEN_PICKLE)
         # HERE IS THE DIFFERENCE with the parent tests
         # test that the new value is retrieved from the cache!
-        self.assertEquals({'value':'new'}, self.shelf['broken_pickle'])
+        self.assertEqual({'value': 'new'}, self.shelf['broken_pickle'])
 
 
 class LRUCacheTests(unittest.TestCase):
@@ -370,8 +371,8 @@ class LRUCacheTests(unittest.TestCase):
         values = [('key'+str(i), i) for i in range(100)]
         for i, j in values:
             cache[i] = j
-        self.assertEquals(len(cache._queue), len(values))
-        self.assertEquals(len(cache._cache), len(values))
+        self.assertEqual(len(cache._queue), len(values))
+        self.assertEqual(len(cache._cache), len(values))
 
     def test_getitem(self):
         """test __delitem__ method"""
@@ -380,11 +381,11 @@ class LRUCacheTests(unittest.TestCase):
         values = [('key'+str(i), i) for i in range(100)]
         for i, j in values:
             cache[i] = j
-        self.assertEquals(len(cache._queue), len(values))
-        self.assertEquals(len(cache._cache), len(values))
+        self.assertEqual(len(cache._queue), len(values))
+        self.assertEqual(len(cache._cache), len(values))
         # compare all the items with the values
         for i, j in values:
-            self.assertEquals(cache[i], j)
+            self.assertEqual(cache[i], j)
 
     def test_delitem(self):
         """test __delitem__ method"""
@@ -392,24 +393,24 @@ class LRUCacheTests(unittest.TestCase):
         values = [('key'+str(i), i) for i in range(100)]
         for i, j in values:
             cache[i] = j
-        self.assertEquals(len(cache._queue), len(values))
-        self.assertEquals(len(cache._cache), len(values))
+        self.assertEqual(len(cache._queue), len(values))
+        self.assertEqual(len(cache._cache), len(values))
         for item in cache._cache.copy():
             del cache[item]
-        self.assertEquals(len(cache._queue), 0)
-        self.assertEquals(len(cache._cache), 0)
+        self.assertEqual(len(cache._queue), 0)
+        self.assertEqual(len(cache._cache), 0)
 
     def test_update(self):
         """test the update method, chacking the refcount and queue."""
         cache = LRUCache(100, 4)
         cache.update('key1')
-        self.assertEquals(len(cache._queue), 1)
-        self.assertEquals(len(cache._refcount), 1)
-        self.assertEquals(cache._refcount['key1'], 1)
+        self.assertEqual(len(cache._queue), 1)
+        self.assertEqual(len(cache._refcount), 1)
+        self.assertEqual(cache._refcount['key1'], 1)
         cache.update('key1')
-        self.assertEquals(len(cache._queue), 2)
-        self.assertEquals(len(cache._refcount), 1)
-        self.assertEquals(cache._refcount['key1'], 2)
+        self.assertEqual(len(cache._queue), 2)
+        self.assertEqual(len(cache._refcount), 1)
+        self.assertEqual(cache._refcount['key1'], 2)
 
     def test_purge(self):
         """Test the queue compact and cache purge"""
@@ -418,24 +419,24 @@ class LRUCacheTests(unittest.TestCase):
         for i, j in values:
             cache[i] = j
         # we hit the limit
-        self.assertEquals(len(cache._queue), 400)
-        self.assertEquals(len(cache._cache), 50)
+        self.assertEqual(len(cache._queue), 400)
+        self.assertEqual(len(cache._cache), 50)
         # insert key1 item to compact the queue
         cache[values[0][0]] = values[0][1]
-        self.assertEquals(len(cache._queue), 50)
-        self.assertEquals(len(cache._cache), 50)
+        self.assertEqual(len(cache._queue), 50)
+        self.assertEqual(len(cache._cache), 50)
 
         # now with a key not present in the cache
         cache = LRUCache(100, 4)
         for i, j in values:
             cache[i] = j
         # we hit the limit
-        self.assertEquals(len(cache._queue), 400)
-        self.assertEquals(len(cache._cache), 50)
+        self.assertEqual(len(cache._queue), 400)
+        self.assertEqual(len(cache._cache), 50)
         # insert key1 item to compact the queue
         cache['non-present-key'] = 'some value'
-        self.assertEquals(len(cache._queue), 51)
-        self.assertEquals(len(cache._cache), 51)
+        self.assertEqual(len(cache._queue), 51)
+        self.assertEqual(len(cache._cache), 51)
 
     def test_statistics(self):
         """Tests if the cache correclty keeps track of misses and hits."""
@@ -444,17 +445,17 @@ class LRUCacheTests(unittest.TestCase):
         values = [('key'+str(i), i) for i in range(10)]
         for i, j in values:
             cache[i] = j
-        self.assertEquals(len(cache._queue), len(values))
-        self.assertEquals(len(cache._cache), len(values))
+        self.assertEqual(len(cache._queue), len(values))
+        self.assertEqual(len(cache._cache), len(values))
         # compare 4 items with the values
         for i, j in values[:4]:
-            self.assertEquals(cache[i], j)
+            self.assertEqual(cache[i], j)
         # check the hits value
-        self.assertEquals(cache.hits, 4)
+        self.assertEqual(cache.hits, 4)
         # try to get items not present in the cache
         for i, j in values[5:10]:
             self.assertRaises(KeyError, cache.__getitem__, i*10)
-        self.assertEquals(cache.misses, 5)
+        self.assertEqual(cache.misses, 5)
 
     def test_inconsistency(self):
         """Test that the consistency checking works as expected"""
@@ -465,7 +466,6 @@ class LRUCacheTests(unittest.TestCase):
         self.assertRaises(CacheInconsistencyError,
                           cache.__setitem__, 'bar', 'foo')
 
-
     def test_delete(self):
         """test the cache consistency after a delete."""
         cache = LRUCache(2, 1)
@@ -475,7 +475,7 @@ class LRUCacheTests(unittest.TestCase):
         # delete the key1, this shouldn't brake the cache._refcount
         del cache['key1']
         # get the key2 two times, in order to trigger the cache compact
-        # sure this statements have an affect, pylint: disable-msg=W0104
+        # sure this statements have an affect
         cache['key2']
         try:
             cache['key2']

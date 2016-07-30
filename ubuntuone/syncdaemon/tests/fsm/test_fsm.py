@@ -35,10 +35,18 @@ import unittest
 
 from ubuntuone.syncdaemon.fsm import fsm
 
+try:
+    import uno
+except ImportError:
+    uno = None
+
+
 def p(name):
     """Make a full path from here."""
     return os.path.join(os.path.dirname(__file__), name)
 
+
+@unittest.skipIf(uno is None, 'python-uno not available')
 class TestParse(unittest.TestCase):
     """Test fsm validation."""
 
@@ -61,26 +69,25 @@ class TestParse(unittest.TestCase):
         """Test error on duplicate transition."""
         f = fsm.StateMachine(p("test_transition_twice.ods"))
         self.assertRaises(fsm.ValidationFailed, f.validate)
-        self.assertEquals(len(f.errors), 1)
+        self.assertEqual(len(f.errors), 1)
 
     def test_missing_source_state(self):
         """Test incomplete state transition coverage."""
         f = fsm.StateMachine(p("test_missing_source_state.ods"))
         self.assertRaises(fsm.ValidationFailed, f.validate)
-        self.assertEquals(len(f.errors), 1)
+        self.assertEqual(len(f.errors), 1)
 
     def test_missing_param_values(self):
         """Test incomplete param transition coverage."""
         f = fsm.StateMachine(p("test_missing_param_values.ods"))
         self.assertRaises(fsm.ValidationFailed, f.validate)
-        self.assertEquals(len(f.errors), 4)
-
+        self.assertEqual(len(f.errors), 4)
 
     def test_two_missing_source_state(self):
         """Test incomplete state transition coverage."""
         f = fsm.StateMachine(p("test_two_missing_source_state.ods"))
         self.assertRaises(fsm.ValidationFailed, f.validate)
-        self.assertEquals(len(f.errors), 2)
+        self.assertEqual(len(f.errors), 2)
 
     def test_star_event(self):
         """Test expansion of one star in event columns."""
@@ -116,7 +123,7 @@ class TestParse(unittest.TestCase):
         """Test expansion of stars that cover too much."""
         f = fsm.StateMachine(p("test_star_event_repeat.ods"))
         self.assertRaises(fsm.ValidationFailed, f.validate)
-        self.assertEquals(len(f.errors), 1)
+        self.assertEqual(len(f.errors), 1)
 
     def test_out_equal(self):
         """Test expansion of "=" in state out."""
@@ -125,7 +132,7 @@ class TestParse(unittest.TestCase):
         for s in f.states.values():
             for t in s.transitions.values():
                 for k in t.source:
-                    self.assertEquals(t.source[k], t.target[k])
+                    self.assertEqual(t.source[k], t.target[k])
 
     def test_out_equal_star(self):
         """Test expansion of "=" in state out."""
@@ -134,8 +141,9 @@ class TestParse(unittest.TestCase):
         for s in f.states.values():
             for t in s.transitions.values():
                 for k in t.source:
-                    self.assertEquals(t.source[k], t.target[k],
-                        "on transition %s target is %s"%(t, t.target))
+                    self.assertEqual(
+                        t.source[k], t.target[k],
+                        "on transition %s target is %s" % (t, t.target))
 
     def test_equal_wrong_places(self):
         """make sure "=" are not allowed on state or params."""
@@ -144,7 +152,7 @@ class TestParse(unittest.TestCase):
         # this should be two errors
         # but more errors happen as there is no clear interpretation of
         # the table in this case
-        self.assertEquals(len(f.errors), 5)
+        self.assertEqual(len(f.errors), 5)
 
     def test_param_na(self):
         """Test that na param columns are ignored."""
@@ -162,13 +170,3 @@ class TestParse(unittest.TestCase):
         # the transition
         t = "EVENT_1", fsm.hash_dict(dict(MV1="T", MV2="T"))
         self.assertFalse(t in s.transitions)
-
-
-def test_suite():
-    if "HAS_OOFFICE" in os.environ:
-        return unittest.TestLoader().loadTestsFromName(__name__)
-    else:
-        return unittest.TestSuite()
-
-if __name__ == "__main__":
-    unittest.main()

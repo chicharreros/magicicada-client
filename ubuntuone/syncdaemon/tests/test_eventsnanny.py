@@ -117,6 +117,7 @@ class DownloadFinishedTests(BaseTwistedTestCase):
         """Inserts something in HQ and waits that thread."""
         d = defer.Deferred()
         self.hq.insert(path, node_id)
+
         def wait():
             """waits for the var to get set"""
             if self.hq.hasher.hashing is None:
@@ -130,6 +131,7 @@ class DownloadFinishedTests(BaseTwistedTestCase):
         """Releases HQ as it finished."""
         d = defer.Deferred()
         self.hq.insert(None, None)
+
         def wait():
             """waits for the var to get set"""
             if self.hq.hasher.hashing is not None:
@@ -138,7 +140,6 @@ class DownloadFinishedTests(BaseTwistedTestCase):
                 d.callback(None)
         reactor.callLater(.1, wait)
         return d
-
 
     def test_forward(self):
         """Forwards the event when file is not blocked."""

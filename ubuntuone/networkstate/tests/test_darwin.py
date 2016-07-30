@@ -81,7 +81,7 @@ class TestFailingSCNRInCallbacks(TestCase):
 
     def expect_unknown(self, state):
         """A convenience callback that fails unless it sees UNKNOWN."""
-        self.assertEquals(state, UNKNOWN)
+        self.assertEqual(state, UNKNOWN)
 
     def test_exc_in_find_online_state(self):
         """Expect UNKNOWN from find_online_state in case of exception."""
@@ -159,11 +159,10 @@ class TestNMSListeningForNWStateChanges(TestCase):
         """Test the changes in the network connection."""
         nms = NetworkManagerState(self._listen_network_changes)
         nms._state_changed(2)
-        nms._state_changed(0)            # 0 or anything other than 2.
+        nms._state_changed(0)  # 0 or anything other than 2
         nms._state_changed(2)
 
-        self.assertEqual(self.network_changes,
-            [ONLINE, OFFLINE, ONLINE])
+        self.assertEqual(self.network_changes, [ONLINE, OFFLINE, ONLINE])
 
 
 class TestIsMachineConnectedFunc(TestCase):

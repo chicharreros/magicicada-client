@@ -60,7 +60,7 @@ from ubuntuone.platform.os_helper import get_os_valid_path
 OP_FLAGS = EventsCodes.FLAG_COLLECTIONS['OP_FLAGS']
 IS_DIR = EventsCodes.FLAG_COLLECTIONS['SPECIAL_FLAGS']['IN_ISDIR']
 
-#create a rever mapping to use it in the tests.
+# create a rever mapping to use it in the tests.
 REVERSE_OS_ACTIONS = {}
 for key, value in ACTIONS.items():
     REVERSE_OS_ACTIONS[value] = key
@@ -180,8 +180,8 @@ class TestWatch(BaseTwistedTestCase):
             os.fsync(fd)
             fd.close()
 
-        events = yield self._perform_operations(self.basedir, self.mask,
-            create_file, 1)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, create_file, 1)
         event = events[0]
         self.assertFalse(event.dir)
         self.assertEqual(OP_FLAGS['IN_CREATE'], event.mask)
@@ -200,8 +200,8 @@ class TestWatch(BaseTwistedTestCase):
             """Action for the test."""
             os.mkdir(dir_name)
 
-        events = yield self._perform_operations(self.basedir, self.mask,
-            create_dir, 1)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, create_dir, 1)
         event = events[0]
         self.assertTrue(event.dir)
         self.assertEqual(OP_FLAGS['IN_CREATE'] | IS_DIR, event.mask)
@@ -261,12 +261,13 @@ class TestWatch(BaseTwistedTestCase):
     @defer.inlineCallbacks
     def test_file_moved_to_watched_dir_same_watcher(self):
         """Test that the correct event is raised when a file is moved."""
-        from_file_name = os.path.join(self.basedir,
-            'test_file_moved_to_watched_dir_same_watcher')
-        to_file_name = os.path.join(self.basedir,
-            'test_file_moved_to_watched_dir_same_watcher_2')
+        from_file_name = os.path.join(
+            self.basedir, 'test_file_moved_to_watched_dir_same_watcher')
+        to_file_name = os.path.join(
+            self.basedir, 'test_file_moved_to_watched_dir_same_watcher_2')
         open(from_file_name, 'w').close()
-        #create file before recording
+
+        # create file before recording
 
         def move_file():
             """Action for the test."""
@@ -283,7 +284,8 @@ class TestWatch(BaseTwistedTestCase):
         self.assertEqual(os.path.split(from_file_name)[1],
                          move_from_event.name)
         self.assertEqual('.', move_from_event.path)
-        self.assertEqual(os.path.join(self.basedir, from_file_name),
+        self.assertEqual(
+            os.path.join(self.basedir, from_file_name),
             move_from_event.pathname)
         self.assertEqual(0, move_from_event.wd)
         # test the move to
@@ -292,10 +294,10 @@ class TestWatch(BaseTwistedTestCase):
         self.assertEqual('IN_MOVED_TO', move_to_event.maskname)
         self.assertEqual(os.path.split(to_file_name)[1], move_to_event.name)
         self.assertEqual('.', move_to_event.path)
-        self.assertEqual(os.path.join(self.basedir, to_file_name),
-            move_to_event.pathname)
-        self.assertEqual(os.path.split(from_file_name)[1],
-            move_to_event.src_pathname)
+        self.assertEqual(
+            os.path.join(self.basedir, to_file_name), move_to_event.pathname)
+        self.assertEqual(
+            os.path.split(from_file_name)[1], move_to_event.src_pathname)
         self.assertEqual(0, move_to_event.wd)
         # assert that both cookies are the same
         self.assertEqual(move_from_event.cookie, move_to_event.cookie)
@@ -303,14 +305,15 @@ class TestWatch(BaseTwistedTestCase):
     @defer.inlineCallbacks
     def test_file_moved_to_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
-        from_file_name = os.path.join(self.basedir,
-            'test_file_moved_to_not_watched_dir')
+        from_file_name = os.path.join(
+            self.basedir, 'test_file_moved_to_not_watched_dir')
         open(from_file_name, 'w').close()
 
         def move_file():
             """Action for the test."""
-            os.rename(from_file_name, os.path.join(tempfile.mkdtemp(),
-                'test_file_moved_to_not_watched_dir'))
+            target = os.path.join(
+                tempfile.mkdtemp(), 'test_file_moved_to_not_watched_dir')
+            os.rename(from_file_name, target)
 
         # while on linux we will have to do some sort of magic like facundo
         # did, on windows we will get a deleted event which is much more
@@ -330,10 +333,10 @@ class TestWatch(BaseTwistedTestCase):
     @defer.inlineCallbacks
     def test_file_move_from_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
-        from_file_name = os.path.join(tempfile.mkdtemp(),
-            'test_file_move_from_not_watched_dir')
-        to_file_name = os.path.join(self.basedir,
-            'test_file_move_from_not_watched_dir')
+        from_file_name = os.path.join(
+            tempfile.mkdtemp(), 'test_file_move_from_not_watched_dir')
+        to_file_name = os.path.join(
+            self.basedir, 'test_file_move_from_not_watched_dir')
         # create file before we record
         open(from_file_name, 'w').close()
 
@@ -351,35 +354,36 @@ class TestWatch(BaseTwistedTestCase):
         self.assertEqual('IN_CREATE', event.maskname)
         self.assertEqual(os.path.split(to_file_name)[1], event.name)
         self.assertEqual('.', event.path)
-        self.assertEqual(os.path.join(self.basedir, to_file_name),
-            event.pathname)
+        self.assertEqual(
+            os.path.join(self.basedir, to_file_name), event.pathname)
         self.assertEqual(0, event.wd)
 
     @defer.inlineCallbacks
     def test_dir_moved_to_watched_dir_same_watcher(self):
         """Test that the correct event is raised when a dir is moved."""
-        from_dir_name = os.path.join(self.basedir,
-            'test_dir_moved_to_watched_dir_same_watcher')
-        to_dir_name = os.path.join(self.basedir,
-            'test_dir_moved_to_watched_dir_same_watcher_2')
+        from_dir_name = os.path.join(
+            self.basedir, 'test_dir_moved_to_watched_dir_same_watcher')
+        to_dir_name = os.path.join(
+            self.basedir, 'test_dir_moved_to_watched_dir_same_watcher_2')
         os.mkdir(from_dir_name)
 
         def move_file():
             """Action for the test."""
             os.rename(from_dir_name, to_dir_name)
 
-        events = yield self._perform_operations(self.basedir,
-            self.mask, move_file, 2)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, move_file, 2)
         move_from_event = events[0]
         move_to_event = events[1]
         # first test the move from
         self.assertTrue(move_from_event.dir)
-        self.assertEqual(OP_FLAGS['IN_MOVED_FROM'] | IS_DIR,
-            move_from_event.mask)
+        self.assertEqual(
+            OP_FLAGS['IN_MOVED_FROM'] | IS_DIR, move_from_event.mask)
         self.assertEqual('IN_MOVED_FROM|IN_ISDIR', move_from_event.maskname)
         self.assertEqual(os.path.split(from_dir_name)[1], move_from_event.name)
         self.assertEqual('.', move_from_event.path)
-        self.assertEqual(os.path.join(self.basedir, from_dir_name),
+        self.assertEqual(
+            os.path.join(self.basedir, from_dir_name),
             move_from_event.pathname)
         self.assertEqual(0, move_from_event.wd)
         # test the move to
@@ -388,10 +392,10 @@ class TestWatch(BaseTwistedTestCase):
         self.assertEqual('IN_MOVED_TO|IN_ISDIR', move_to_event.maskname)
         self.assertEqual(os.path.split(to_dir_name)[1], move_to_event.name)
         self.assertEqual('.', move_to_event.path)
-        self.assertEqual(os.path.join(self.basedir, to_dir_name),
-            move_to_event.pathname)
-        self.assertEqual(os.path.split(from_dir_name)[1],
-                         move_to_event.src_pathname)
+        self.assertEqual(
+            os.path.join(self.basedir, to_dir_name), move_to_event.pathname)
+        self.assertEqual(
+            os.path.split(from_dir_name)[1], move_to_event.src_pathname)
         self.assertEqual(0, move_to_event.wd)
         # assert that both cookies are the same
         self.assertEqual(move_from_event.cookie, move_to_event.cookie)
@@ -399,14 +403,15 @@ class TestWatch(BaseTwistedTestCase):
     @defer.inlineCallbacks
     def test_dir_moved_to_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
-        dir_name = os.path.join(self.basedir,
-            'test_dir_moved_to_not_watched_dir')
+        dir_name = os.path.join(
+            self.basedir, 'test_dir_moved_to_not_watched_dir')
         os.mkdir(dir_name)
 
         def move_dir():
             """Action for the test."""
-            os.rename(dir_name, os.path.join(tempfile.mkdtemp(),
-                'test_dir_moved_to_not_watched_dir'))
+            target = os.path.join(
+                tempfile.mkdtemp(), 'test_dir_moved_to_not_watched_dir')
+            os.rename(dir_name, target)
 
         # on windows a move to outside a watched dir translates to a remove
         events = yield self._perform_operations(self.basedir, self.mask,
@@ -422,10 +427,10 @@ class TestWatch(BaseTwistedTestCase):
     @defer.inlineCallbacks
     def test_dir_move_from_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
-        from_dir_name = os.path.join(tempfile.mkdtemp(),
-            'test_dir_move_from_not_watched_dir')
-        to_dir_name = os.path.join(self.basedir,
-            'test_dir_move_from_not_watched_dir')
+        from_dir_name = os.path.join(
+            tempfile.mkdtemp(), 'test_dir_move_from_not_watched_dir')
+        to_dir_name = os.path.join(
+            self.basedir, 'test_dir_move_from_not_watched_dir')
         # create file before we record
         os.mkdir(from_dir_name)
 
@@ -474,9 +479,9 @@ class TestWatch(BaseTwistedTestCase):
         watch.ignore_path(os.path.join(self.path, child))
         paths_to_ignore = []
         for file_name in 'abcdef':
-            paths_to_ignore.append(
-                self.fake_events_processor.create_fake_event(
-                os.path.join(child, file_name)))
+            fake_event = self.fake_events_processor.create_fake_event(
+                os.path.join(child, file_name))
+            paths_to_ignore.append(fake_event)
         # ensure that the watch is watching
         watch.platform_watch.watching = True
         self.fake_events_processor.custom_process_events(
@@ -589,7 +594,7 @@ class TestWatch(BaseTwistedTestCase):
             watch, paths_not_to_ignore)
         self.assertEqual(len(paths_not_to_ignore), len(events),
                          'All events should have been accepted.')
-        self.assertTrue(all([event in expected_events for event in events]),
+        self.assertTrue(all([e in expected_events for e in events]),
                         'Paths ignored that should have not been ignored.')
 
     def random_error(self, *args):

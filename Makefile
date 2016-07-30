@@ -49,7 +49,7 @@ bootstrap: deps $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol
 lint:
 	virtualenv $(ENV)
 	$(ENV)/bin/pip install flake8
-	$(ENV)/bin/flake8 --filename='*.py' --exclude='u1fsfsm.py' ubuntuone
+	$(ENV)/bin/flake8 --filename='*.py' --exclude='u1fsfsm.py,test_run_hello.py' ubuntuone
 
 test: lint
 	./run-tests

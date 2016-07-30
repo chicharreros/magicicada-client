@@ -55,7 +55,10 @@ from ubuntuone.platform.sync_menu.common import (
 
 logger = logging.getLogger("ubuntuone.platform.SyncMenu")
 
-Q_ = lambda string: gettext.dgettext(GETTEXT_PACKAGE, string)
+
+def Q_(string):
+    return gettext.dgettext(GETTEXT_PACKAGE, string)
+
 
 GET_HELP = Q_("Get Help on the Web")
 GO_TO_WEB = Q_("Go to the main website")

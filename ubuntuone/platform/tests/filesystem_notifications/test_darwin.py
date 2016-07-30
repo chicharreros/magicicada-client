@@ -187,25 +187,29 @@ class TestWatch(common_tests.TestWatch):
 
     def test_not_ignore_path(self):
         """Test that we do get the events when they do not match."""
-        self.patch(filesystem_notifications.reactor, 'callFromThread',
+        self.patch(
+            filesystem_notifications.reactor, 'callFromThread',
             lambda x, e: x(e))
         super(TestWatch, self).test_not_ignore_path()
 
     def test_undo_ignore_path_ignored(self):
         """Test that we do deal with events from and old ignored path."""
-        self.patch(filesystem_notifications.reactor, 'callFromThread',
+        self.patch(
+            filesystem_notifications.reactor, 'callFromThread',
             lambda x, e: x(e))
         super(TestWatch, self).test_not_ignore_path()
 
     def test_undo_ignore_path_other_ignored(self):
         """Test that we can undo and the other path is ignored."""
-        self.patch(filesystem_notifications.reactor, 'callFromThread',
+        self.patch(
+            filesystem_notifications.reactor, 'callFromThread',
             lambda x, e: x(e))
         super(TestWatch, self).test_not_ignore_path()
 
     def test_mixed_ignore_path(self):
         """Test that we do get the correct events."""
-        self.patch(filesystem_notifications.reactor, 'callFromThread',
+        self.patch(
+            filesystem_notifications.reactor, 'callFromThread',
             lambda x, e: x(e))
         super(TestWatch, self).test_mixed_ignore_path()
 
@@ -221,8 +225,8 @@ class TestWatch(common_tests.TestWatch):
             os.fsync(fd)
             fd.close()
 
-        events = yield self._perform_operations(self.basedir, self.mask,
-            create_file, 1)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, create_file, 1)
         event = events[0]
         self.assertFalse(event.dir)
         self.assertEqual(common_tests.OP_FLAGS['IN_CREATE'], event.mask)
@@ -241,11 +245,12 @@ class TestWatch(common_tests.TestWatch):
             """Action for the test."""
             os.mkdir(dir_name)
 
-        events = yield self._perform_operations(self.basedir, self.mask,
-            create_dir, 1)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, create_dir, 1)
         event = events[0]
         self.assertTrue(event.dir)
-        self.assertEqual(common_tests.OP_FLAGS['IN_CREATE'] |
+        self.assertEqual(
+            common_tests.OP_FLAGS['IN_CREATE'] |
             common_tests.IS_DIR, event.mask)
         self.assertEqual('IN_CREATE|IN_ISDIR', event.maskname)
         self.assertEqual(os.path.split(dir_name)[1], event.name)
@@ -290,7 +295,8 @@ class TestWatch(common_tests.TestWatch):
                                                 remove_dir, 1)
         event = events[0]
         self.assertTrue(event.dir)
-        self.assertEqual(common_tests.OP_FLAGS['IN_DELETE'] |
+        self.assertEqual(
+            common_tests.OP_FLAGS['IN_DELETE'] |
             common_tests.IS_DIR, event.mask)
         self.assertEqual('IN_DELETE|IN_ISDIR', event.maskname)
         self.assertEqual('.', event.path)
@@ -325,12 +331,12 @@ class TestWatch(common_tests.TestWatch):
     @defer.inlineCallbacks
     def test_file_moved_to_watched_dir_same_watcher(self):
         """Test that the correct event is raised when a file is moved."""
-        from_file_name = os.path.join(self.basedir,
-            'test_file_moved_to_watched_dir_same_watcher')
-        to_file_name = os.path.join(self.basedir,
-            'test_file_moved_to_watched_dir_same_watcher_2')
+        from_file_name = os.path.join(
+            self.basedir, 'test_file_moved_to_watched_dir_same_watcher')
+        to_file_name = os.path.join(
+            self.basedir, 'test_file_moved_to_watched_dir_same_watcher_2')
         open(from_file_name, 'w').close()
-        #create file before recording
+        # create file before recording
 
         def move_file():
             """Action for the test."""
@@ -342,26 +348,27 @@ class TestWatch(common_tests.TestWatch):
         move_to_event = events[1]
         # first test the move from
         self.assertFalse(move_from_event.dir)
-        self.assertEqual(common_tests.OP_FLAGS['IN_MOVED_FROM'],
-            move_from_event.mask)
+        self.assertEqual(
+            common_tests.OP_FLAGS['IN_MOVED_FROM'], move_from_event.mask)
         self.assertEqual('IN_MOVED_FROM', move_from_event.maskname)
         self.assertEqual(os.path.split(from_file_name)[1],
                          move_from_event.name)
         self.assertEqual('.', move_from_event.path)
-        self.assertEqual(os.path.join(self.basedir, from_file_name),
+        self.assertEqual(
+            os.path.join(self.basedir, from_file_name),
             move_from_event.pathname)
         self.assertEqual(0, move_from_event.wd)
         # test the move to
         self.assertFalse(move_to_event.dir)
-        self.assertEqual(common_tests.OP_FLAGS['IN_MOVED_TO'],
-            move_to_event.mask)
+        self.assertEqual(
+            common_tests.OP_FLAGS['IN_MOVED_TO'], move_to_event.mask)
         self.assertEqual('IN_MOVED_TO', move_to_event.maskname)
         self.assertEqual(os.path.split(to_file_name)[1], move_to_event.name)
         self.assertEqual('.', move_to_event.path)
-        self.assertEqual(os.path.join(self.basedir, to_file_name),
-            move_to_event.pathname)
-        self.assertEqual(os.path.split(from_file_name)[1],
-            move_to_event.src_pathname)
+        self.assertEqual(
+            os.path.join(self.basedir, to_file_name), move_to_event.pathname)
+        self.assertEqual(
+            os.path.split(from_file_name)[1], move_to_event.src_pathname)
         self.assertEqual(0, move_to_event.wd)
         # assert that both cookies are the same
         self.assertEqual(move_from_event.cookie, move_to_event.cookie)
@@ -369,14 +376,15 @@ class TestWatch(common_tests.TestWatch):
     @defer.inlineCallbacks
     def test_file_moved_to_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
-        from_file_name = os.path.join(self.basedir,
-            'test_file_moved_to_not_watched_dir')
+        from_file_name = os.path.join(
+            self.basedir, 'test_file_moved_to_not_watched_dir')
         open(from_file_name, 'w').close()
 
         def move_file():
             """Action for the test."""
-            os.rename(from_file_name, os.path.join(tempfile.mkdtemp(),
-                'test_file_moved_to_not_watched_dir'))
+            target = os.path.join(
+                tempfile.mkdtemp(), 'test_file_moved_to_not_watched_dir')
+            os.rename(from_file_name, target)
 
         # We need to test that we get a delete operation when moving
         # a file to an unwatched folder
@@ -395,10 +403,10 @@ class TestWatch(common_tests.TestWatch):
     @defer.inlineCallbacks
     def test_file_move_from_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
-        from_file_name = os.path.join(tempfile.mkdtemp(),
-            'test_file_move_from_not_watched_dir')
-        to_file_name = os.path.join(self.basedir,
-            'test_file_move_from_not_watched_dir')
+        from_file_name = os.path.join(
+            tempfile.mkdtemp(), 'test_file_move_from_not_watched_dir')
+        to_file_name = os.path.join(
+            self.basedir, 'test_file_move_from_not_watched_dir')
         # create file before we record
         open(from_file_name, 'w').close()
 
@@ -416,47 +424,49 @@ class TestWatch(common_tests.TestWatch):
         self.assertEqual('IN_CREATE', event.maskname)
         self.assertEqual(os.path.split(to_file_name)[1], event.name)
         self.assertEqual('.', event.path)
-        self.assertEqual(os.path.join(self.basedir, to_file_name),
-            event.pathname)
+        self.assertEqual(
+            os.path.join(self.basedir, to_file_name), event.pathname)
         self.assertEqual(0, event.wd)
 
     @defer.inlineCallbacks
     def test_dir_moved_to_watched_dir_same_watcher(self):
         """Test that the correct event is raised when a dir is moved."""
-        from_dir_name = os.path.join(self.basedir,
-            'test_dir_moved_to_watched_dir_same_watcher')
-        to_dir_name = os.path.join(self.basedir,
-            'test_dir_moved_to_watched_dir_same_watcher_2')
+        from_dir_name = os.path.join(
+            self.basedir, 'test_dir_moved_to_watched_dir_same_watcher')
+        to_dir_name = os.path.join(
+            self.basedir, 'test_dir_moved_to_watched_dir_same_watcher_2')
         os.mkdir(from_dir_name)
 
         def move_file():
             """Action for the test."""
             os.rename(from_dir_name, to_dir_name)
 
-        events = yield self._perform_operations(self.basedir,
-            self.mask, move_file, 2)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, move_file, 2)
         move_from_event = events[0]
         move_to_event = events[1]
         # first test the move from
         self.assertTrue(move_from_event.dir)
-        self.assertEqual(common_tests.OP_FLAGS['IN_MOVED_FROM'] |
-            common_tests.IS_DIR,
+        self.assertEqual(
+            common_tests.OP_FLAGS['IN_MOVED_FROM'] | common_tests.IS_DIR,
             move_from_event.mask)
         self.assertEqual('IN_MOVED_FROM|IN_ISDIR', move_from_event.maskname)
         self.assertEqual(os.path.split(from_dir_name)[1], move_from_event.name)
         self.assertEqual('.', move_from_event.path)
-        self.assertEqual(os.path.join(self.basedir, from_dir_name),
+        self.assertEqual(
+            os.path.join(self.basedir, from_dir_name),
             move_from_event.pathname)
         self.assertEqual(0, move_from_event.wd)
         # test the move to
         self.assertTrue(move_to_event.dir)
-        self.assertEqual(common_tests.OP_FLAGS['IN_MOVED_TO'] |
-            common_tests.IS_DIR, move_to_event.mask)
+        self.assertEqual(
+            common_tests.OP_FLAGS['IN_MOVED_TO'] | common_tests.IS_DIR,
+            move_to_event.mask)
         self.assertEqual('IN_MOVED_TO|IN_ISDIR', move_to_event.maskname)
         self.assertEqual(os.path.split(to_dir_name)[1], move_to_event.name)
         self.assertEqual('.', move_to_event.path)
-        self.assertEqual(os.path.join(self.basedir, to_dir_name),
-            move_to_event.pathname)
+        self.assertEqual(
+            os.path.join(self.basedir, to_dir_name), move_to_event.pathname)
         self.assertEqual(os.path.split(from_dir_name)[1],
                          move_to_event.src_pathname)
         self.assertEqual(0, move_to_event.wd)
@@ -466,14 +476,15 @@ class TestWatch(common_tests.TestWatch):
     @defer.inlineCallbacks
     def test_dir_moved_to_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
-        dir_name = os.path.join(self.basedir,
-            'test_dir_moved_to_not_watched_dir')
+        dir_name = os.path.join(
+            self.basedir, 'test_dir_moved_to_not_watched_dir')
         os.mkdir(dir_name)
 
         def move_dir():
             """Action for the test."""
-            os.rename(dir_name, os.path.join(tempfile.mkdtemp(),
-                'test_dir_moved_to_not_watched_dir'))
+            target = os.path.join(
+                tempfile.mkdtemp(), 'test_dir_moved_to_not_watched_dir')
+            os.rename(dir_name, target)
 
         # We need to test that we get a delete operation when moving
         # a file to an unwatched folder
@@ -481,8 +492,9 @@ class TestWatch(common_tests.TestWatch):
                                                 move_dir, 1)
         event = events[0]
         self.assertTrue(event.dir)
-        self.assertEqual(common_tests.OP_FLAGS['IN_DELETE'] |
-            common_tests.IS_DIR, event.mask)
+        self.assertEqual(
+            common_tests.OP_FLAGS['IN_DELETE'] | common_tests.IS_DIR,
+            event.mask)
         self.assertEqual('IN_DELETE|IN_ISDIR', event.maskname)
         self.assertEqual('.', event.path)
         self.assertEqual(os.path.join(self.basedir, dir_name), event.pathname)
@@ -491,10 +503,10 @@ class TestWatch(common_tests.TestWatch):
     @defer.inlineCallbacks
     def test_dir_move_from_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
-        from_dir_name = os.path.join(tempfile.mkdtemp(),
-            'test_dir_move_from_not_watched_dir')
-        to_dir_name = os.path.join(self.basedir,
-            'test_dir_move_from_not_watched_dir')
+        from_dir_name = os.path.join(
+            tempfile.mkdtemp(), 'test_dir_move_from_not_watched_dir')
+        to_dir_name = os.path.join(
+            self.basedir, 'test_dir_move_from_not_watched_dir')
         # create file before we record
         os.mkdir(from_dir_name)
 
@@ -506,8 +518,9 @@ class TestWatch(common_tests.TestWatch):
                                                 move_dir, 1)
         event = events[0]
         self.assertTrue(event.dir)
-        self.assertEqual(common_tests.OP_FLAGS['IN_CREATE'] |
-            common_tests.IS_DIR, event.mask)
+        self.assertEqual(
+            common_tests.OP_FLAGS['IN_CREATE'] | common_tests.IS_DIR,
+            event.mask)
         self.assertEqual('IN_CREATE|IN_ISDIR', event.maskname)
         self.assertEqual(os.path.split(from_dir_name)[1], event.name)
         self.assertEqual('.', event.path)
@@ -521,8 +534,8 @@ class TestWatch(common_tests.TestWatch):
         manager = WatchManager(handler)
         self.addCleanup(manager.stop)
         # add a watch that will always exclude all actions
-        manager.add_watch(self.basedir, self.mask,
-            exclude_filter=lambda x: True)
+        manager.add_watch(
+            self.basedir, self.mask, exclude_filter=lambda x: True)
         # execution the actions
         file_name = os.path.join(self.basedir, 'test_file_create')
         open(file_name, 'w').close()
@@ -537,7 +550,8 @@ class TestWatch(common_tests.TestWatch):
 
         path = '/Users/username/folder/'
         watch = Watch(1, path, None)
-        self.assertEqual(watch.platform_watch._process_events,
+        self.assertEqual(
+            watch.platform_watch._process_events,
             watch.platform_watch.stream.callback)
         self.assertEqual(watch.platform_watch.stream.paths, [path])
         self.assertEqual(watch.platform_watch.stream.file_events, True)
@@ -732,7 +746,8 @@ class TestWatchManager(common_tests.TestWatchManager):
 
     def test_rm_child_path(self):
         """Test the removal of a child path."""
-        self.patch(filesystem_notifications.reactor, 'callFromThread',
+        self.patch(
+            filesystem_notifications.reactor, 'callFromThread',
             lambda x, e: x(e))
         super(TestWatchManager, self).test_rm_child_path()
 

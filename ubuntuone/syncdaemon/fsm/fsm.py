@@ -37,22 +37,6 @@ import itertools
 
 from ubuntuone.syncdaemon import logger
 
-try:
-    product = itertools.product
-except AttributeError:
-    # taken from python docs for 2.6
-
-    def product(*args, **kwds):
-        "cartesian product"
-        # product('ABCD', 'xy') --> Ax Ay Bx By Cx Cy Dx Dy
-        # product(range(2), repeat=3) --> 000 001 010 011 100 101 110 111
-        pools = map(tuple, args) * kwds.get('repeat', 1)
-        result = [[]]
-        for pool in pools:
-            result = [x + [y] for x in result for y in pool]
-        for prod in result:
-            yield tuple(prod)
-
 
 def hash_dict(d):
     "return a hashable representation of the dict"
@@ -86,7 +70,7 @@ def build_combinations_from_varlist(varlist):
     values = [x[1] for x in items]
 
     possible_states = [dict(zip(keys, state))
-                       for state in product(*values)]
+                       for state in itertools.product(*values)]
     return possible_states
 
 

@@ -66,7 +66,7 @@ def _get_dir(dir_name, dir_constant):
     result = os.path.abspath(os.path.join(module, os.path.pardir,
                                           os.path.pardir, dir_name))
     logger.debug('_get_dir: trying use dir at %r (exists? %s)',
-                  result, os.path.exists(result))
+                 result, os.path.exists(result))
     if os.path.exists(result):
         logger.info('_get_dir: returning dir located at %r.', result)
         return result

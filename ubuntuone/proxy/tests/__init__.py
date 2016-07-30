@@ -71,7 +71,6 @@ class BaseMockWebServer(object):
         self.site = SaveSite(self.root)
         application = service.Application('web')
         self.service_collection = service.IServiceCollection(application)
-        #pylint: disable=E1101
         self.tcpserver = internet.TCPServer(0, self.site)
         self.tcpserver.setServiceParent(self.service_collection)
         self.sslserver = internet.SSLServer(0, self.site, self.get_context())
@@ -95,19 +94,16 @@ class BaseMockWebServer(object):
 
     def get_iri(self):
         """Build the iri for this mock server."""
-        #pylint: disable=W0212
         port_num = self.tcpserver._port.getHost().port
         return u"http://0.0.0.0:%d/" % port_num
 
     def get_ssl_iri(self):
         """Build the iri for the ssl mock server."""
-        #pylint: disable=W0212
         port_num = self.sslserver._port.getHost().port
         return u"https://0.0.0.0:%d/" % port_num
 
     def stop(self):
         """Shut it down."""
-        #pylint: disable=E1101
         if self.site.protocol.protocolInstance:
             self.site.protocol.protocolInstance.timeoutConnection()
         return self.service_collection.stopService()

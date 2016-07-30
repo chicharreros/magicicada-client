@@ -120,8 +120,8 @@ class TunnelRunnerTestCase(TestCase):
 
     def test_tunnel_process_is_started(self):
         """The tunnel process is started."""
-        self.assertEqual(len(self.spawned), 1,
-                        "The tunnel process is started.")
+        self.assertEqual(
+            len(self.spawned), 1, "The tunnel process is started.")
 
     def test_system_event_finished(self):
         """An event is added to stop the process with the reactor."""

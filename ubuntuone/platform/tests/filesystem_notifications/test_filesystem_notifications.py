@@ -81,8 +81,8 @@ class IgnoreFileTests(unittest.TestCase):
 
     def test_filter_two_complex(self):
         """Filters stuff that matches (or not) these complex regexes."""
-        p = notify_processor.NotifyProcessor(None,
-                                     ['\A.*foo\Z|\Afoo.*\Z', '\A.*bar\Z'])
+        p = notify_processor.NotifyProcessor(
+            None, ['\A.*foo\Z|\Afoo.*\Z', '\A.*bar\Z'])
         self.assertTrue(p.is_ignored("blah_foo"))
         self.assertTrue(p.is_ignored("blah_bar"))
         self.assertTrue(p.is_ignored("foo_xxx"))
@@ -93,7 +93,10 @@ class IgnoreFileTests(unittest.TestCase):
         """Test that the right access function is called."""
         sample_path = "sample path"
         calls = []
-        store_call = lambda *args: calls.append(args)
+
+        def store_call(*args):
+            return calls.append(args)
+
         self.patch(filesystem_notifications, "access", store_call)
         self.patch(filesystem_notifications, "path_exists", lambda _: True)
         p = notify_processor.NotifyProcessor(None)
@@ -221,6 +224,7 @@ class BaseTwisted(BaseFSMonitorTestCase):
             self.finished_error(exception)
             raise exception
         return first
+
     assertEqual = assertEquals = failUnlessEquals = failUnlessEqual
 
 

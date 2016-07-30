@@ -416,8 +416,8 @@ class FileSystemManager(object):
            base_path.endswith('%s/Shared With Me' % NAME):
             realpath = os.path.realpath(mdobj['path'])
             mdobj['path'] = realpath
-        if (base_path.startswith('/') and base_path.endswith(NAME)
-                and name == 'My Files'):
+        if (base_path.startswith('/') and base_path.endswith(NAME) and
+                name == 'My Files'):
             mdobj['path'] = base_path
 
     def _migrate_trash_to_tritcask(self):

@@ -39,9 +39,11 @@ from contrib.testing import testcase
 from ubuntuone.syncdaemon import volume_manager
 from ubuntuone.platform.filesystem_notifications import notify_processor
 from ubuntuone.platform.filesystem_notifications.monitor import (
-    linux as filesystem_notifications
+    linux as filesystem_notifications,
 )
-from ubuntuone.platform.tests.filesystem_notifications import BaseFSMonitorTestCase
+from ubuntuone.platform.tests.filesystem_notifications import (
+    BaseFSMonitorTestCase,
+)
 
 
 class FakeVolume(object):
@@ -170,8 +172,8 @@ class WatchManagerTests(BaseFSMonitorTestCase):
         self.monitor._general_watchs = {'/path1/foo': 1, '/other': 2}
         self.monitor._ancestors_watchs = {'/foo': 3}
         self.monitor.inotify_watch_fix('/path1/foo', '/path1/new')
-        self.assertEqual(self.monitor._general_watchs,
-            {'/path1/new': 1, '/other': 2})
+        self.assertEqual(
+            self.monitor._general_watchs, {'/path1/new': 1, '/other': 2})
         self.assertEqual(self.monitor._ancestors_watchs, {'/foo': 3})
 
     def test_fix_path_ancestors(self):
@@ -180,8 +182,8 @@ class WatchManagerTests(BaseFSMonitorTestCase):
         self.monitor._ancestors_watchs = {'/oth': 1, '/other': 2}
         self.monitor.inotify_watch_fix('/oth', '/baz')
         self.assertEqual(self.monitor._general_watchs, {'/bar': 3})
-        self.assertEqual(self.monitor._ancestors_watchs,
-            {'/baz': 1, '/other': 2})
+        self.assertEqual(
+            self.monitor._ancestors_watchs, {'/baz': 1, '/other': 2})
 
 
 class DynamicHitMe(object):
@@ -420,7 +422,6 @@ class ECryptFsTestCase(PlainTestCase):
         processor.process_IN_CLOSE_WRITE(fake_event)
 
         self.assertNotIn(fake_event, result)
-
 
     def test_close_write_on_files_is_handled(self):
         """When anything sends CLOSE_WRITE on files, handle it."""

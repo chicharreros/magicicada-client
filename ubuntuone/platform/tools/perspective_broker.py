@@ -107,8 +107,8 @@ class SyncDaemonToolProxy(object):
 
     def _should_wrap(self, attr_name):
         """Check if this attribute should be wrapped."""
-        return not (attr_name in SyncDaemonToolProxy._DONT_VERIFY_CONNECTED
-                    or attr_name.startswith("_"))
+        return not (attr_name in SyncDaemonToolProxy._DONT_VERIFY_CONNECTED or
+                    attr_name.startswith("_"))
 
     def __getattribute__(self, attr_name):
         """If the attribute is not special, verify the ipc connection."""
@@ -191,8 +191,9 @@ class SyncDaemonToolProxy(object):
         client_kind, callback = self._SIGNAL_MAPPING[signal_name]
         client = getattr(self.client, client_kind)
         if len(self.connected_signals[signal_name]) == 0:
-            f = lambda *args, **kw: self._handler(signal_name, *args, **kw)
-            setattr(client, callback, f)
+            setattr(
+                client, callback,
+                lambda *args, **kw: self._handler(signal_name, *args, **kw))
         # do remember the connected signal in case we need to reconnect
         self.connected_signals[signal_name].add(handler)
         return handler
