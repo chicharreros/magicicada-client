@@ -32,13 +32,11 @@ import os
 import sys
 
 try:
-    import DistUtilsExtra.auto
     from DistUtilsExtra.command import build_extra, build_i18n
+    import DistUtilsExtra.auto
 except ImportError:
     print >> sys.stderr, 'To build this program you need '\
                          'https://launchpad.net/python-distutils-extra'
-    with open('/usr/lib/python2.7/dist-packages/DistUtilsExtra/__init__.py') as f:
-        print f.read()
     raise
 assert DistUtilsExtra.auto.__version__ >= '2.18', \
     'needs DistUtilsExtra.auto >= 2.18'
