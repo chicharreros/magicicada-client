@@ -584,16 +584,6 @@ class SyncDaemonTool(object):
         return self.enable_setting('autoconnect', enabled)
 
     @log_call(logger.debug)
-    def is_show_all_notifications_enabled(self):
-        """Check if show_all_notifications is enabled."""
-        return self.is_setting_enabled('show_all_notifications')
-
-    @log_call(logger.debug)
-    def enable_show_all_notifications(self, enabled):
-        """Enable/disable show_all_notifications."""
-        return self.enable_setting('show_all_notifications', enabled)
-
-    @log_call(logger.debug)
     def is_share_autosubscribe_enabled(self):
         """Check if share_autosubscribe is enabled."""
         return self.is_setting_enabled('share_autosubscribe')

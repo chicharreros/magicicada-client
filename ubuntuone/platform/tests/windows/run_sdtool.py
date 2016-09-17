@@ -60,9 +60,6 @@ def print_test():
     is_share_autosubscribe_enabled = (
         yield sdtool.is_share_autosubscribe_enabled())
     print '\tAutosubscribe enabled: %s' % is_share_autosubscribe_enabled
-    is_show_all_notifications_enabled = (
-        yield sdtool.is_show_all_notifications_enabled())
-    print '\tShow all notifications: %s' % is_show_all_notifications_enabled
     reactor.stop()
 
 

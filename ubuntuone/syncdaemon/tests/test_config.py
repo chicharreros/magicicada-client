@@ -382,54 +382,6 @@ class TestConfigBasic(BaseTwistedTestCase):
         conf_1 = config._Config(conf_file)
         self.assertEqual(True, conf_1.get_autoconnect())
 
-    def test_load_show_all_notifications(self):
-        """Test load/set/override of show_all_notifications config value."""
-        conf_file = os.path.join(self.test_root,
-                                 'test_show_all_notifications_config.conf')
-        # ensure that show_all_notifications is True
-        with open_file(conf_file, 'w') as fp:
-            fp.write('[notifications]\n')
-            fp.write('show_all_notifications = True\n')
-
-        # keep a original around
-        conf_orig = config._Config(conf_file)
-
-        # assert default is correct
-        self.assertTrue(conf_orig.get_show_all_notifications(),
-                        'show_all_notifications is True by default.')
-
-        # load the config
-        conf = config._Config(conf_file)
-        self.assertTrue(conf.get_show_all_notifications())
-
-        # change it to False
-        conf.set_show_all_notifications(False)
-        self.assertFalse(conf.get_show_all_notifications())
-
-        # save, load and check
-        conf.save()
-        conf_1 = config._Config(conf_file)
-        self.assertFalse(conf_1.get_show_all_notifications())
-        # change it to True
-        conf.set_show_all_notifications(True)
-        self.assertTrue(conf.get_show_all_notifications())
-        # save, load and check
-        conf.save()
-        conf_1 = config._Config(conf_file)
-        self.assertTrue(conf_1.get_show_all_notifications())
-
-        # load the config, check the override of the value
-        conf = config._Config(conf_file)
-        self.assertTrue(conf.get_show_all_notifications())
-        overridden_opts = [('notifications', 'show_all_notifications', False)]
-        conf.override_options(overridden_opts)
-        self.assertFalse(conf.get_show_all_notifications())
-        self.assertNotEqual(conf.get_show_all_notifications(),
-                            conf_orig.get_show_all_notifications())
-        conf.save()
-        conf_1 = config._Config(conf_file)
-        self.assertEqual(True, conf_1.get_show_all_notifications())
-
     def test_get_simult_transfers(self):
         """Get simult transfers."""
         conf_file = os.path.join(self.test_root, 'test_load_config.conf')

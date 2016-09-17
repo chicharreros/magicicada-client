@@ -663,27 +663,6 @@ class SyncdaemonConfig(SyncdaemonObject):
         user_config.set_autoconnect(False)
         user_config.save()
 
-    @log_call(logger.debug)
-    def show_all_notifications_enabled(self):
-        """Return the show_all_notifications config value."""
-        return config.get_user_config().get_show_all_notifications()
-
-    @log_call(logger.debug)
-    def enable_show_all_notifications(self):
-        """Enable showing all notifications."""
-        user_config = config.get_user_config()
-        user_config.set_show_all_notifications(True)
-        user_config.save()
-        self.main.status_listener.show_all_notifications = True
-
-    @log_call(logger.debug)
-    def disable_show_all_notifications(self):
-        """Disable showing all notifications."""
-        user_config = config.get_user_config()
-        user_config.set_show_all_notifications(False)
-        user_config.save()
-        self.main.status_listener.show_all_notifications = False
-
 
 class SyncdaemonFolders(SyncdaemonObject):
     """A interface to interact with User Defined Folders"""

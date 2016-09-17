@@ -28,7 +28,7 @@
 
 import logging
 
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 
 from contrib.testing import testcase
 from ubuntuone.devtools.handlers import MementoHandler
@@ -63,7 +63,7 @@ class BaseFSMonitorTestCase(testcase.BaseTwistedTestCase):
         class HitMe(object):
             # class-closure, cannot use self, pylint: disable-msg=E0213
             def handle_default(innerself, event, **args):
-                deferred.callback(True)
+                reactor.callLater(.1, deferred.callback, True)
 
         eq.subscribe(HitMe())
         self.monitor = eq.monitor

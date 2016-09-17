@@ -39,8 +39,9 @@ import threading
 import Queue
 import time
 
+from collections import OrderedDict
+
 from twisted.internet import reactor
-from twisted.python.util import OrderedDict as TxOrderedDict
 
 from ubuntuone.storageprotocol.content_hash import \
     content_hash_factory, crc32
@@ -53,32 +54,6 @@ from ubuntuone.platform.constants import HASHQUEUE_DELAY
 
 
 NO_TIMESTAMP = None
-
-
-class FixedOrderedDict(TxOrderedDict):
-    """A t.p.u.OrderedDict that behaves like Python 2.7's OrderedDict."""
-
-    def popitem(self, last=False):
-        """Take out the first or last item, and return it."""
-        index = -1 if last else 0
-        key = self._order[index]
-        value = self[key]
-        del self[key]
-        return (key, value)
-
-    def clear(self):
-        """Remove every item from the dict."""
-        self._order = []
-        TxOrderedDict.clear(self)
-
-
-try:
-    # try to use the OrderedDict from stdlib >= 2.7
-    from collections import OrderedDict as StdlibOrderedDict
-    OrderedDict = StdlibOrderedDict
-except ImportError:
-    # if not available, use the patched one based on twisted
-    OrderedDict = FixedOrderedDict
 
 
 class StopHashing(Exception):

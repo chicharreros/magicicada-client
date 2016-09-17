@@ -691,9 +691,6 @@ class Config(IPCExposedObject):
         'enable_autoconnect',
         'disable_autoconnect',
         'set_autoconnect_enabled',
-        'show_all_notifications_enabled',
-        'enable_show_all_notifications',
-        'disable_show_all_notifications',
     ]
 
     signal_mapping = {}
@@ -796,18 +793,6 @@ class Config(IPCExposedObject):
             self.service.config.enable_autoconnect()
         else:
             self.service.config.disable_autoconnect()
-
-    def show_all_notifications_enabled(self):
-        """Return the show_all_notifications config value."""
-        return self.service.config.show_all_notifications_enabled()
-
-    def enable_show_all_notifications(self):
-        """Enable showing all notifications."""
-        self.service.config.enable_show_all_notifications()
-
-    def disable_show_all_notifications(self):
-        """Disable showing all notifications."""
-        self.service.config.disable_show_all_notifications()
 
 
 class Folders(IPCExposedObject):

@@ -589,20 +589,7 @@ class ConfigClient(RemoteClient):
         """Enable syncdaemon autoconnect.
 
         DEPRECATED.
-
         """
-
-    @remote
-    def show_all_notifications_enabled(self):
-        """Return the show_all_notifications config value."""
-
-    @remote
-    def enable_show_all_notifications(self):
-        """Enable showing all notifications."""
-
-    @remote
-    def disable_show_all_notifications(self):
-        """Disable showing all notifications."""
 
 
 class FoldersClient(RemoteClient, Referenceable):

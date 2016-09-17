@@ -696,24 +696,6 @@ class Config(DBusExposedObject):
         else:
             self.service.config.disable_autoconnect()
 
-    @dbus.service.method(DBUS_IFACE_CONFIG_NAME,
-                         in_signature='', out_signature='b')
-    def show_all_notifications_enabled(self):
-        """Return the show_all_notifications config value."""
-        return self.service.config.show_all_notifications_enabled()
-
-    @dbus.service.method(DBUS_IFACE_CONFIG_NAME,
-                         in_signature='', out_signature='')
-    def enable_show_all_notifications(self):
-        """Enable showing all notifications."""
-        self.service.config.enable_show_all_notifications()
-
-    @dbus.service.method(DBUS_IFACE_CONFIG_NAME,
-                         in_signature='', out_signature='')
-    def disable_show_all_notifications(self):
-        """Disable showing all notifications."""
-        self.service.config.disable_show_all_notifications()
-
 
 class Folders(DBusExposedObject):
     """An interface to interact with User Defined Folders."""

@@ -83,8 +83,6 @@ class MainTests(BaseTwistedTestCase):
         self.partials_dir = self.mktemp('partials_dir')
 
         self.patch(main_mod, 'SyncdaemonService', FakedExternalInterface)
-        # no status listener by default
-        self.patch(main_mod.status_listener, "get_listener", lambda *a: None)
 
         self.handler = MementoHandler()
         self.handler.setLevel(logging.DEBUG)
@@ -254,18 +252,6 @@ class MainTests(BaseTwistedTestCase):
             for x in listener:
                 s.add(x)
         return s
-
-    def test_status_listener_is_installed(self):
-        """The status listener is installed if needed."""
-        self.patch(main_mod.status_listener,
-                   "get_listener", lambda *a: FakeListener())
-        main = self.build_main()
-        self.assertIn(main.status_listener, self._get_listeners(main))
-
-    def test_status_listener_not_installed_when_disabled(self):
-        """The status listener is not started if it's not available."""
-        main = self.build_main()
-        self.assertNotIn(main.status_listener, self._get_listeners(main))
 
     def test_get_homedir(self):
         """The get_homedir returns the root dir."""

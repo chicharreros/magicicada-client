@@ -107,34 +107,6 @@ class FakeReceiver(object):
             self.deferred.callback((event, kwargs))
 
 
-class FixedOrderedDictTestCase(BaseTwistedTestCase):
-    """Tests for the custom OrderedDict based on t.p.u.OrderedDict."""
-
-    def test_popitem_first(self):
-        """The popitem method understands last=False like in 2.7."""
-        od = hash_queue.FixedOrderedDict()
-        for x in range(1, 10):
-            od[x] = x * 2
-        item = od.popitem(last=False)
-        self.assertEqual(item, (1, 2))
-        item = od.popitem(last=True)
-        self.assertEqual(item, (9, 18))
-
-    def test_clear(self):
-        """The clear method resets the order of items."""
-        range1 = range(9, -1, -1)
-        range2 = range(0, 10)
-
-        od = hash_queue.FixedOrderedDict()
-        for x in range1:
-            od[x] = x
-        self.assertEqual(od.keys(), range1)
-        od.clear()
-        for x in range2:
-            od[x] = x
-        self.assertEqual(od.keys(), range2)
-
-
 class HasherTests(BaseTwistedTestCase):
     """Test the whole stuff to receive signals."""
 

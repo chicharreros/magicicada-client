@@ -549,12 +549,6 @@ class AutoconnectConfigTests(ConfigTests):
         self.assertEqual(called, [((), {})])
 
 
-class ShowAllNotificationsConfigTests(ConfigTests):
-    """Basic tests for the show_all_notifications setting."""
-
-    setting_name = 'show_all_notifications'
-
-
 class FoldersTests(FoldersTestCase):
     """Tests for the Folder object."""
 

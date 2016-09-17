@@ -993,26 +993,6 @@ class SyncdaemonConfigTestCase(BaseTestCase):
         self.sd_obj.disable_autoconnect()
         self.assertFalse(config.get_user_config().get_autoconnect())
 
-    def test_show_all_notifications_enabled(self):
-        """Test the show_all_notifications_enabled method."""
-        self.sd_obj.enable_show_all_notifications()
-        result = self.sd_obj.show_all_notifications_enabled()
-        self.assertTrue(result)
-
-        self.sd_obj.disable_show_all_notifications()
-        result = self.sd_obj.show_all_notifications_enabled()
-        self.assertFalse(result)
-
-    def test_enable_show_all_notifications(self):
-        """Test the enable_show_all_notifications method."""
-        self.sd_obj.enable_show_all_notifications()
-        self.assertTrue(config.get_user_config().get_show_all_notifications())
-
-    def test_disable_show_all_notifications(self):
-        """Test the disable_show_all_notifications method."""
-        self.sd_obj.disable_show_all_notifications()
-        self.assertFalse(config.get_user_config().get_show_all_notifications())
-
 
 class SyncdaemonFoldersTestCase(BaseTestCase):
     """Test the SyncdaemonFolders class."""

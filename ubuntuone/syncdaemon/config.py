@@ -76,7 +76,6 @@ CONFIG_LOGS = 'logging.conf'
 
 # sections
 THROTTLING = 'bandwidth_throttling'
-NOTIFICATIONS = 'notifications'
 MAIN = '__main__'
 
 # global logger
@@ -313,7 +312,7 @@ class _Config(SyncDaemonConfigParser):
         from ubuntuone.platform import native_rename
 
         # cleanup empty sections
-        for section in [MAIN, THROTTLING, NOTIFICATIONS]:
+        for section in [MAIN, THROTTLING]:
             if self.has_section(section) and not self.options(section):
                 self.remove_section(section)
         with open(self.config_file + '.new', 'w') as fp:
@@ -443,15 +442,6 @@ class _Config(SyncDaemonConfigParser):
     def set_memory_pool_limit(self, value):
         """Set the memory pool limit."""
         self.set(MAIN, 'memory_pool_limit', str(value))
-
-    @requires_section(NOTIFICATIONS)
-    def set_show_all_notifications(self, enabled):
-        self.set(NOTIFICATIONS, 'show_all_notifications', str(enabled))
-
-    @requires_section(NOTIFICATIONS)
-    def get_show_all_notifications(self):
-        """The value of the show_all_notifications setting."""
-        return self.get_parsed(NOTIFICATIONS, 'show_all_notifications')
 
 
 def configglue(fileobj, *filenames, **kwargs):

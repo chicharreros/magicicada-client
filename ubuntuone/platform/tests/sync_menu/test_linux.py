@@ -58,18 +58,6 @@ class FakeStatusFrontend(object):
         return self.uploading_data
 
 
-class FakeTimer(object):
-    """Fake Timer."""
-
-    def __init__(self, delay):
-        self.delay = delay
-        self.callback = None
-
-    def addCallback(self, callback):
-        """Add callback."""
-        self.callback = callback
-
-
 class FakeAppLaunchContext(object):
     def set_timestamp(self, timestamp):
         self.timestamp = timestamp
@@ -556,7 +544,6 @@ class SyncMenuTestCase(TestCase):
 
     def test_update_transfers_delay(self):
         """Check that the timer is being handle properly."""
-        self.patch(linux.status.aggregator, "Timer", FakeTimer)
         self.sync_menu.next_update = time.time()
         self.sync_menu.update_transfers()
         self.sync_menu.timer = None

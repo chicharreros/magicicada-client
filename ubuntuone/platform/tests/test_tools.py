@@ -895,31 +895,6 @@ class TestToolsSomeMore(TestToolsBase):
         self.assertFalse(enabled)
 
     @defer.inlineCallbacks
-    def test_is_show_all_notifications_enabled(self):
-        """Test for is_show_all_notifications_enabled."""
-        yield self.tool.enable_show_all_notifications(False)
-        enabled = yield self.tool.is_show_all_notifications_enabled()
-        self.assertFalse(enabled)
-
-        yield self.tool.enable_show_all_notifications(True)
-        enabled = yield self.tool.is_show_all_notifications_enabled()
-        self.assertTrue(enabled)
-
-    @defer.inlineCallbacks
-    def test_enable_show_all_notifications(self):
-        """Test for enable_show_all_notifications."""
-        yield self.tool.enable_show_all_notifications(True)
-        enabled = yield self.tool.is_show_all_notifications_enabled()
-        self.assertTrue(enabled)
-
-    @defer.inlineCallbacks
-    def test_disable_show_all_notifications(self):
-        """Test for disable_show_all_notifications."""
-        yield self.tool.enable_show_all_notifications(False)
-        enabled = yield self.tool.is_show_all_notifications_enabled()
-        self.assertFalse(enabled)
-
-    @defer.inlineCallbacks
     def test_is_share_autosubscribe_enabled(self):
         """Test for is_share_autosubscribe_enabled."""
         yield self.tool.enable_share_autosubscribe(False)

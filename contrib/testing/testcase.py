@@ -193,8 +193,6 @@ class FakeActionQueue(object):
 class FakeStatusListener(object):
     """A fake StatusListener."""
 
-    show_all_notifications = True
-
     def menu_data(self):
         """Fake menu_data."""
         return {RECENT_TRANSFERS: [], UPLOADING: []}

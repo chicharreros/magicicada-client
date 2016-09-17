@@ -202,9 +202,9 @@ class BaseTwisted(BaseEQTestCase):
         # create the deferred for the tests
         self._deferred = defer.Deferred()
 
-    def finished_ok(self):
+    def finished_ok(self, data=True):
         """Called to indicate that the tests finished ok."""
-        self._deferred.callback(True)
+        reactor.callLater(.1, self._deferred.callback, data)
 
     def finished_error(self, msg):
         """Called to indicate that the tests finished badly."""
@@ -1403,6 +1403,7 @@ class SignalingTests(BaseTwisted):
         class HitMe(object):
 
             def handle_FS_DIR_DELETE(innerself, path):
+                self.eq.rm_watch(self.root_dir)
                 if path != fromdir:
                     self.finished_error("received a wrong path")
                 else:
@@ -1924,17 +1925,16 @@ class SignalingTests(BaseTwisted):
         self.eq.subscribe(DynamicHitMe(should_events, self))
         yield self.eq.add_watch(self.root_dir)
 
-        d = self._deferred
         log = self.eq.monitor._processor.log
 
         class Handler(logging.Handler):
             """Handler that trigger the deferred callback."""
 
-            def emit(self, record):
+            def emit(innerself, record):
                 """Dummy emit."""
                 # cleanup, remove the handler
-                log.removeHandler(self)
-                d.callback(record)
+                log.removeHandler(innerself)
+                self.finished_ok(record)
 
         hdlr = Handler()
         hdlr.setLevel(logging.WARNING)
@@ -1962,17 +1962,16 @@ class SignalingTests(BaseTwisted):
         self.eq.subscribe(DynamicHitMe(should_events, self))
         yield self.eq.add_watch(self.root_dir)
 
-        d = self._deferred
         log = self.eq.monitor._processor.log
 
         class Handler(logging.Handler):
             """Handler that trigger the deferred callback."""
 
-            def emit(self, record):
+            def emit(innerself, record):
                 """Dummy emit."""
                 # cleanup, remove the handler
-                log.removeHandler(self)
-                d.callback(record)
+                log.removeHandler(innerself)
+                self.finished_ok(record)
 
         hdlr = Handler()
         hdlr.setLevel(logging.WARNING)

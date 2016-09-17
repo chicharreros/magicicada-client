@@ -49,7 +49,6 @@ from ubuntuone.syncdaemon import (
     volume_manager,
 )
 from ubuntuone import syncdaemon, clientdefs
-from ubuntuone.syncdaemon import status_listener
 from ubuntuone.syncdaemon.interaction_interfaces import SyncdaemonService
 from ubuntuone.syncdaemon.states import StateManager, QueueManager
 
@@ -147,19 +146,8 @@ class Main(object):
         if user_config.get_autoconnect():
             self.external.connect(autoconnecting=True)
 
-        self.status_listener = None
-        self.start_status_listener()
-
         self.mark = task.LoopingCall(self.log_mark)
         self.mark.start(mark_interval)
-
-    def start_status_listener(self):
-        """Start the status listener if it is configured to start."""
-        self.status_listener = status_listener.get_listener(
-            self.fs, self.vm, self.external)
-        # subscribe to EQ, to be unsubscribed in shutdown
-        if self.status_listener:
-            self.event_q.subscribe(self.status_listener)
 
     def log_mark(self):
         """Log a "mark" that includes the current AQ state and queue size."""
@@ -216,10 +204,7 @@ class Main(object):
         """Shutdown the daemon; optionally restart it."""
         self.event_q.push('SYS_USER_DISCONNECT')
         self.event_q.push('SYS_QUIT')
-
         self.event_q.unsubscribe(self.vm)
-        if getattr(self, 'status_listener', None) is not None:
-            self.event_q.unsubscribe(self.status_listener)
 
         # shutdown these before event_q so the listeners are unsubscribed
         self.state_manager.shutdown()

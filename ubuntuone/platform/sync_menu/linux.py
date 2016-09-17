@@ -47,7 +47,6 @@ except:
     use_syncmenu = False
 
 from ubuntuone.clientdefs import GETTEXT_PACKAGE, NAME
-from ubuntuone import status
 from ubuntuone.platform.sync_menu.common import (
     UbuntuOneSyncMenu as DummySyncMenu,
 )
@@ -236,16 +235,13 @@ class UbuntuOneSyncMenuLinux(object):
         """The aggregating timer has expired, so update the UI."""
         self.next_update = int(time.time()) + DELAY_BETWEEN_UPDATES
         self.transfers.update_progress()
-        self.timer = None
 
     def update_transfers(self):
-        """Set up a timer if there isn't one ticking and update the ui."""
-        if not self.timer:
-            logger.debug("Updating Transfers.")
-            delay = int(max(0, min(DELAY_BETWEEN_UPDATES,
-                                   self.next_update - time.time())))
-            self.timer = status.aggregator.Timer(delay)
-            self.timer.addCallback(self._timeout)
+        """Set up a timer if there isn't one ticking and update the ui.
+
+        NOOP. Left behind for API compatibility, will be removed later when
+        all interaction with old syncmeny and desktop GUIs go away.
+        """
 
 
 class TransfersMenu(Dbusmenu.Menuitem if use_syncmenu else object):
