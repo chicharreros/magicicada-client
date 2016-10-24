@@ -1,7 +1,0 @@
-contrib/testing/testcase.py
-tests/platform/linux/test_tools.py
-tests/syncdaemon/test_hashqueue.py
-tests/syncdaemon/test_vm.py
-ubuntuone/__init__.py
-ubuntuone/clientdefs.py
-windows/clientdefs.py

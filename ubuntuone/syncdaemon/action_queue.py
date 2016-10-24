@@ -2660,9 +2660,10 @@ class Upload(ActionQueueCommand):
         self.upload_req = req
         return req.deferred
 
-    def _upload_id_cb(self, upload_id):
+    def _upload_id_cb(self, upload_id, offset):
         """Handle the received upload_id, save it in the metadata."""
-        self.log.debug("got upload_id from server: %s", upload_id)
+        self.log.debug("got from server: upload_id=%s offset=%s",
+                       upload_id, offset)
         self.action_queue.main.fs.set_by_node_id(
             self.node_id, self.share_id, upload_id=upload_id)
         self.upload_id = upload_id

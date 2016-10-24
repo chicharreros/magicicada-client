@@ -3663,10 +3663,12 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.main.fs.create(path=path, share_id=self.command.share_id,
                             is_dir=False)
         self.main.fs.set_node_id(path, self.command.node_id)
-        self.command._upload_id_cb('hola')
+        self.command._upload_id_cb('hola', 1234)
         mdobj = self.main.fs.get_by_node_id(self.command.share_id,
                                             self.command.node_id)
         self.assertEqual('hola', mdobj.upload_id)
+        self.assertTrue(self.handler.check_debug(
+            'upload_id', 'hola', 'offset', '1234'))
 
     def test_start_paused_use_upload_id(self):
         """Test that starting a paused command make use of the upload_id."""
@@ -3690,7 +3692,7 @@ class UploadTestCase(ConnectedBaseTestCase):
         upload_id = self.command.action_queue.client.called[0][2]['upload_id']
         self.assertEqual(upload_id, None)
         # set the upload id via the callback
-        self.command._upload_id_cb('hola')
+        self.command._upload_id_cb('hola', 1234)
         # pause it
         self.command.pause()
         # make it run again
