@@ -29,22 +29,19 @@
 # files in the program, then also delete it here.
 """Queue and execute operations on the server."""
 
-import base64
 import inspect
 import logging
 import os
 import random
 import re
-import json
 import tempfile
 import traceback
-import uuid
 import zlib
 
 from collections import deque, defaultdict
 from functools import partial
 from urllib import urlencode
-from urlparse import urljoin, urlparse
+from urlparse import urlparse
 
 import OpenSSL.SSL
 
@@ -2241,68 +2238,28 @@ class ChangePublicAccess(ActionQueueCommand):
         self.node_id = node_id
         self.is_public = is_public
 
-    @defer.inlineCallbacks
-    def _change_public_access_http(self):
-        """Change public access using the HTTP Web API method."""
-
-        # Construct the node key.
-        node_key = base64.urlsafe_b64encode(self.node_id.bytes).strip("=")
-        if self.share_id is not None:
-            node_key = "%s:%s" % (
-                base64.urlsafe_b64encode(self.share_id.bytes).strip("="),
-                node_key)
-
-        iri = u"https://one.ubuntu.com/files/api/set_public/%s" % (node_key,)
-        data = dict(is_public=bool(self.is_public))
-        pdata = urlencode(data)
-        response = yield self.action_queue.webcall(iri, method="POST",
-                                                   post_content=pdata)
-        defer.returnValue(json.loads(response.content))
-
     def _run(self):
-        """See ActionQueueCommand."""
-        return self._change_public_access_http()
+        """Do the actual running."""
+        return self.action_queue.client.change_public_access(
+            self.share_id, self.node_id, self.is_public)
 
-    def handle_success(self, success):
-        """See ActionQueueCommand."""
-        self.action_queue.event_queue.push('AQ_CHANGE_PUBLIC_ACCESS_OK',
-                                           share_id=self.share_id,
-                                           node_id=self.node_id,
-                                           is_public=success['is_public'],
-                                           public_url=success['public_url'])
+    def handle_success(self, request):
+        """It worked! Push the event."""
+        d = dict(share_id=self.share_id, node_id=self.node_id,
+                 is_public=request.is_public, public_url=request.public_url)
+        self.action_queue.event_queue.push('AQ_CHANGE_PUBLIC_ACCESS_OK', **d)
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""
-        self.action_queue.event_queue.push('AQ_CHANGE_PUBLIC_ACCESS_ERROR',
-                                           share_id=self.share_id,
-                                           node_id=self.node_id,
-                                           error=failure.value[1])
+        self.action_queue.event_queue.push(
+            'AQ_CHANGE_PUBLIC_ACCESS_ERROR', share_id=self.share_id,
+            node_id=self.node_id, error=failure.getErrorMessage())
 
 
 class GetPublicFiles(ActionQueueCommand):
     """Get the list of public files."""
 
-    __slots__ = ('_iri',)
-    logged_attrs = ActionQueueCommand.logged_attrs + __slots__
-
-    def __init__(self, request_queue, base_iri=u'https://one.ubuntu.com'):
-        super(GetPublicFiles, self).__init__(request_queue)
-        self._iri = urljoin(base_iri, u'files/api/public_files')
-
-    @defer.inlineCallbacks
-    def _get_public_files_http(self):
-        """Get public files list using the HTTP Web API method."""
-
-        response = yield self.action_queue.webcall(self._iri, method="GET")
-
-        files = json.loads(response.content)
-        # translate nodekeys to (volume_id, node_id)
-        for pf in files:
-            _, node_id = self.split_nodekey(pf.pop('nodekey'))
-            volume_id = pf['volume_id']
-            pf['volume_id'] = '' if volume_id is None else volume_id
-            pf['node_id'] = node_id
-        defer.returnValue(files)
+    __slots__ = ()
 
     @property
     def uniqueness(self):
@@ -2315,40 +2272,17 @@ class GetPublicFiles(ActionQueueCommand):
 
     def _run(self):
         """See ActionQueueCommand."""
-        return self._get_public_files_http()
+        return self.action_queue.client.list_public_files()
 
-    def handle_success(self, success):
+    def handle_success(self, request):
         """See ActionQueueCommand."""
         self.action_queue.event_queue.push('AQ_PUBLIC_FILES_LIST_OK',
-                                           public_files=success)
+                                           public_files=request.public_files)
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""
         self.action_queue.event_queue.push('AQ_PUBLIC_FILES_LIST_ERROR',
-                                           error=failure.value[1])
-
-    def split_nodekey(self, nodekey):
-        """Split a node key into a share_id, node_id."""
-        if nodekey is None:
-            return None, None
-        if ":" in nodekey:
-            parts = nodekey.split(":")
-            return self.decode_uuid(parts[0]), self.decode_uuid(parts[1])
-        else:
-            return '', self.decode_uuid(nodekey)
-
-    def decode_uuid(self, encoded):
-        """Return a uuid from the encoded value.
-
-        If the value isn't UUID, just return the decoded value
-        """
-        if encoded:
-            data = str(encoded) + '=' * (len(encoded) % 4)
-            value = base64.urlsafe_b64decode(data)
-        try:
-            return str(uuid.UUID(bytes=value))
-        except ValueError:
-            return value
+                                           error=failure.getErrorMessage())
 
 
 class Download(ActionQueueCommand):

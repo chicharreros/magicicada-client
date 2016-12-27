@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
+# Copyright 2016 Chicharreros
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -30,7 +31,6 @@
 
 from __future__ import with_statement
 
-import base64
 import collections
 import inspect
 import logging
@@ -2617,9 +2617,29 @@ class ChangePublicAccessTests(ConnectedBaseTestCase):
     @defer.inlineCallbacks
     def setUp(self):
         yield super(ChangePublicAccessTests, self).setUp()
-        self.user_connect()
-        request_queue = RequestQueue(action_queue=self.action_queue)
+        self.rq = request_queue = RequestQueue(action_queue=self.action_queue)
         self.command = ChangePublicAccess(request_queue, VOLUME, NODE, True)
+
+    def test_run_returns_a_deferred(self):
+        """Test a deferred is returned."""
+        res = self.command._run()
+        self.assertIsInstance(res, defer.Deferred)
+        res.addErrback(self.silent_connection_lost)
+
+    def test_run_calls_protocol(self):
+        """Test protocol's list_public_files is called."""
+        self.called = False
+
+        def check(volume_id, node_id, is_public):
+            """Take control over client's feature."""
+            self.assertEqual(volume_id, VOLUME)
+            self.assertEqual(node_id, NODE)
+            self.assertEqual(is_public, True)
+            self.called = True
+        self.patch(
+            self.command.action_queue.client, 'change_public_access', check)
+        self.command._run()
+        self.assertTrue(self.called, "command wasn't called")
 
     def test_change_public_access(self):
         """Test the change_public_access method.."""
@@ -2635,30 +2655,13 @@ class ChangePublicAccessTests(ConnectedBaseTestCase):
         self.assertEqual(NODE, self.command.node_id)
         self.assertEqual(True, self.command.is_public)
 
-    @defer.inlineCallbacks
-    def test_change_public_access_http(self):
-        """Test the command."""
-
-        def check_webcall(request_iri, method=None, post_content=None):
-            """Check the webcall made by this command."""
-            iri = u'https://one.ubuntu.com/files/api/set_public/%s:%s' % (
-                base64.urlsafe_b64encode(VOLUME.bytes).strip("="),
-                base64.urlsafe_b64encode(NODE.bytes).strip("="))
-            self.assertEqual(iri, request_iri)
-            self.assertEqual("is_public=True", post_content)
-            content = '{"is_public": true, "public_url": "http://example.com"}'
-            response = action_queue.txweb.Response(content)
-            return defer.succeed(response)
-
-        self.patch(self.action_queue, "webcall", check_webcall)
-        res = yield self.command._run()
-        self.assertEqual(
-            {'is_public': True, 'public_url': 'http://example.com'}, res)
-
     def test_handle_success_push_event(self):
         """Test AQ_CHANGE_PUBLIC_ACCESS_OK is pushed on success."""
-        response = {'is_public': True, 'public_url': 'http://example.com'}
-        self.command.handle_success(success=response)
+        request = client.ChangePublicAccess(self.action_queue.client,
+                                            VOLUME, NODE, True)
+        request.public_url = 'http://example.com'
+
+        self.command.handle_success(request)
         event = ('AQ_CHANGE_PUBLIC_ACCESS_OK',
                  {'share_id': VOLUME, 'node_id': NODE, 'is_public': True,
                   'public_url': 'http://example.com'})
@@ -2667,7 +2670,7 @@ class ChangePublicAccessTests(ConnectedBaseTestCase):
     def test_handle_failure_push_event(self):
         """Test AQ_CHANGE_PUBLIC_ACCESS_ERROR is pushed on failure."""
         msg = 'Something went wrong'
-        failure = Failure(action_queue.txweb.WebClientError("Misc Error", msg))
+        failure = Failure(DefaultException(msg))
         self.command.handle_failure(failure=failure)
         event = ('AQ_CHANGE_PUBLIC_ACCESS_ERROR',
                  {'share_id': VOLUME, 'node_id': NODE, 'error': msg})
@@ -2685,22 +2688,28 @@ class GetPublicFilesTestCase(ConnectedBaseTestCase):
     @defer.inlineCallbacks
     def setUp(self):
         yield super(GetPublicFilesTestCase, self).setUp()
-        self.user_connect()
         self.rq = RequestQueue(action_queue=self.action_queue)
         self.command = GetPublicFiles(self.rq)
 
-    def test_init(self):
-        """Test __init__ method."""
-        default_url = 'https://one.ubuntu.com/files/api/public_files'
-        request_queue = RequestQueue(action_queue=self.action_queue)
-        command = GetPublicFiles(request_queue)
-        self.assertEqual(command._iri, default_url)
-        custom_url = 'http://example.com:1234/files/api/public_files'
-        command_2 = GetPublicFiles(request_queue,
-                                   base_iri=u'http://example.com:1234')
-        self.assertEqual(command_2._iri, custom_url)
+    def test_run_returns_a_deferred(self):
+        """Test a deferred is returned."""
+        res = self.command._run()
+        self.assertIsInstance(res, defer.Deferred)
+        res.addErrback(self.silent_connection_lost)
 
-    def test_change_public_access(self):
+    def test_run_calls_protocol(self):
+        """Test protocol's list_public_files is called."""
+        self.called = False
+
+        def check():
+            """Take control over client's feature."""
+            self.called = True
+        self.patch(
+            self.command.action_queue.client, 'list_public_files', check)
+        self.command._run()
+        self.assertTrue(self.called, "command wasn't called")
+
+    def test_get_public_files(self):
         """Test the get_public_files method.."""
         self.action_queue.get_public_files()
 
@@ -2708,51 +2717,20 @@ class GetPublicFilesTestCase(ConnectedBaseTestCase):
         """Test proper inheritance."""
         self.assertTrue(isinstance(self.command, ActionQueueCommand))
 
-    @defer.inlineCallbacks
-    def test_get_public_files_http(self):
-        """Test the _run method of the command."""
-        node_id = uuid.uuid4()
-        nodekey = '%s' % (base64.urlsafe_b64encode(node_id.bytes).strip("="))
-        node_id_2 = uuid.uuid4()
-        nodekey_2 = '%s' % (
-            base64.urlsafe_b64encode(node_id_2.bytes).strip("="))
-        volume_id = uuid.uuid4()
-
-        def check_webcall(request_iri, method=None):
-            """Check the webcall made by this command."""
-            """Check the webcall made by this command."""
-            iri = u'https://one.ubuntu.com/files/api/public_files'
-            self.assertEqual(method.upper(), "GET")
-            self.assertEqual(iri, request_iri)
-            content = (
-                '[{"nodekey": "%s", "volume_id": null,"public_url": '
-                '"http://example.com"}, '
-                '{"nodekey": "%s", "volume_id": "%s", "public_url": '
-                '"http://example.com"}]' % (nodekey, nodekey_2, volume_id))
-            response = action_queue.txweb.Response(content)
-            return defer.succeed(response)
-
-        self.patch(self.action_queue, "webcall", check_webcall)
-        res = yield self.command._run()
-
-        self.assertEqual([{'node_id': str(node_id), 'volume_id': '',
-                          'public_url': 'http://example.com'},
-                          {'node_id': str(node_id_2),
-                           'volume_id': str(volume_id),
-                           'public_url': 'http://example.com'}], res)
-
     def test_handle_success_push_event(self):
         """Test AQ_PUBLIC_FILES_LIST_OK is pushed on success."""
+        request = client.ListPublicFiles(self.action_queue.client)
         response = [{'node_id': uuid.uuid4(), 'volume_id': None,
                     'public_url': 'http://example.com'}]
-        self.command.handle_success(success=response)
+        request.public_files = response
+        self.command.handle_success(request)
         event = ('AQ_PUBLIC_FILES_LIST_OK', {'public_files': response})
         self.assertIn(event, self.command.action_queue.event_queue.events)
 
     def test_handle_failure_push_event(self):
         """Test AQ_PUBLIC_FILES_LIST_ERROR is pushed on failure."""
         msg = 'Something went wrong'
-        failure = Failure(action_queue.txweb.WebClientError("Misc Error", msg))
+        failure = Failure(DefaultException(msg))
         self.command.handle_failure(failure=failure)
         event = ('AQ_PUBLIC_FILES_LIST_ERROR', {'error': msg})
         self.assertIn(event, self.command.action_queue.event_queue.events)
