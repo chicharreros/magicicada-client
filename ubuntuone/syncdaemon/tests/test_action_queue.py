@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
-# Copyright 2016 Chicharreros
+# Copyright 2016-2017 Chicharreros
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -86,10 +86,7 @@ from ubuntuone.syncdaemon.action_queue import (
 from ubuntuone.syncdaemon.event_queue import EventQueue, EVENTS
 from ubuntuone.syncdaemon import offload_queue
 from ubuntuone.syncdaemon.marker import MDMarker
-from ubuntuone.syncdaemon.volume_manager import (
-    ACCESS_LEVEL_RO,
-    ACCESS_LEVEL_RW,
-)
+from ubuntuone.syncdaemon.volume_manager import ACCESS_LEVEL_RO
 
 PATH = os.path.join(u'~', u'Documents', u'pdfs', u'moño', u'')
 NAME = u'UDF-me'
@@ -434,56 +431,6 @@ class BasicTests(BasicTestCase):
                 defined_args = inspect.getargspec(meth)[0]
                 self.assertEqual(defined_args[0], 'self')
                 self.assertEqual(set(defined_args[1:]), set(evtargs))
-
-    @defer.inlineCallbacks
-    def test_get_webclient_called_with_iri(self):
-        """The call to get_webclient includes the iri."""
-        called_args = []
-        real_get_webclient = action_queue.ActionQueue.get_webclient
-
-        def fake_get_webclient(aq, *args):
-            """A fake get_webclient."""
-            called_args.append(args)
-            return real_get_webclient(aq, *args)
-
-        self.patch(action_queue.ActionQueue, "get_webclient",
-                   fake_get_webclient)
-        self.patch(action_queue.txweb.WebClient, "request",
-                   lambda *args, **kwargs: defer.succeed(None))
-
-        yield self.action_queue.webcall(self.fake_iri)
-        self.assertEqual(called_args, [(self.fake_iri,)])
-
-    @defer.inlineCallbacks
-    def test_get_webclient(self):
-        """The webclient is created every time."""
-        webclient1 = yield self.action_queue.get_webclient(self.fake_iri)
-        webclient2 = yield self.action_queue.get_webclient(self.fake_iri)
-        self.assertNotEqual(webclient1, webclient2)
-
-    @defer.inlineCallbacks
-    def test_get_webclient_creates_context_with_host(self):
-        """The ssl context is created with the right host."""
-        used_host = []
-
-        def fake_get_ssl_context(disable_ssl_verify, host):
-            """The host is used to call get_ssl_context."""
-            used_host.append(host)
-
-        self.patch(action_queue, "get_ssl_context", fake_get_ssl_context)
-        yield self.action_queue.get_webclient(self.fake_iri)
-        self.assertEqual(used_host, [self.fake_host])
-
-    @defer.inlineCallbacks
-    def test_get_webclient_uses_just_created_context(self):
-        """The freshly created context is used to create the webclient."""
-        calls = []
-        fake_context = object()
-        self.patch(action_queue, "get_ssl_context", lambda *args: fake_context)
-        self.patch(action_queue.txweb.WebClient, "__init__",
-                   lambda *args, **kwargs: calls.append(kwargs))
-        yield self.action_queue.get_webclient(self.fake_iri)
-        self.assertEqual(calls[1]["context_factory"], fake_context)
 
 
 class TestLoggingStorageClient(TwistedTestCase):
@@ -3716,78 +3663,12 @@ class CreateShareTestCase(ConnectedBaseTestCase):
         yield super(CreateShareTestCase, self).setUp()
         self.request_queue = RequestQueue(action_queue=self.action_queue)
 
-    @defer.inlineCallbacks
-    def test_access_level_modify_http(self):
-        """Test proper handling of the access level in the http case."""
-        # replace _create_share_http with a fake, just to check the args
-        d = defer.Deferred()
-
-        def check_create_http(self, node_id, user, name, read_only):
-            """Fire the deferred with the args."""
-            d.callback((node_id, user, name, read_only))
-
-        self.patch(CreateShare, "_create_share_http", check_create_http)
-        command = CreateShare(self.request_queue, 'node_id',
-                              'share_to@example.com', 'share_name',
-                              ACCESS_LEVEL_RW, 'marker', 'path')
-        self.assertTrue(command.use_http, 'CreateShare should be in http mode')
-
-        command._run()
-        node_id, user, name, read_only = yield d
-        self.assertEqual('node_id', node_id)
-        self.assertEqual('share_to@example.com', user)
-        self.assertEqual('share_name', name)
-        self.assertFalse(read_only)
-
-    @defer.inlineCallbacks
-    def test_access_level_view_http(self):
-        """Test proper handling of the access level in the http case."""
-        # replace _create_share_http with a fake, just to check the args
-        d = defer.Deferred()
-
-        def check_create_http(self, node_id, user, name, read_only):
-            """Fire the deferred with the args."""
-            d.callback((node_id, user, name, read_only))
-
-        self.patch(CreateShare, "_create_share_http", check_create_http)
-        command = CreateShare(self.request_queue, 'node_id',
-                              'share_to@example.com', 'share_name',
-                              ACCESS_LEVEL_RO, 'marker', 'path')
-        self.assertTrue(command.use_http, 'CreateShare should be in http mode')
-        command._run()
-        node_id, user, name, read_only = yield d
-        self.assertEqual('node_id', node_id)
-        self.assertEqual('share_to@example.com', user)
-        self.assertEqual('share_name', name)
-        self.assertTrue(read_only)
-
     def test_possible_markers(self):
         """Test that it returns the correct values."""
         cmd = CreateShare(self.request_queue, 'node_id', 'shareto@example.com',
                           'share_name', ACCESS_LEVEL_RO, 'marker', 'path')
         res = [getattr(cmd, x) for x in cmd.possible_markers]
         self.assertEqual(res, ['node_id'])
-
-    def test_handle_success_sends_invitation(self):
-        """The success handler sends the AQ_SHARE_INVITATION_SENT event."""
-        marker_id = "marker"
-        share_name = "share name"
-        share_to = "share_to@example.com"
-
-        class MockResult(object):
-            """A mock result."""
-            share_id = SHARE
-
-        mock_success = MockResult()
-        cmd = CreateShare(self.request_queue, NODE, share_to,
-                          share_name, ACCESS_LEVEL_RO, marker_id, 'path')
-        cmd.log = cmd.make_logger()
-        cmd.use_http = True
-        cmd.handle_success(mock_success)
-
-        event_params = {'marker': marker_id}
-        events = [('AQ_SHARE_INVITATION_SENT', event_params)]
-        self.assertEqual(events, cmd.action_queue.event_queue.events)
 
     def test_path_locking(self):
         """Test that it acquires correctly the path lock."""

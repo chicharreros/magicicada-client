@@ -4,7 +4,6 @@ python-configglue
 python-dirspec
 python-distutils-extra
 python-gi
-python-httplib2
 python-protobuf
 python-pyinotify
 python-qt4-dbus

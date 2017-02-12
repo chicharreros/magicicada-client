@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2012-2013 Canonical Ltd.
+# Copyright 2015-2017 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -60,7 +61,7 @@ from zope.interface import implements
 
 from ubuntuone.clientdefs import NAME
 from ubuntuone.keyring import Keyring
-from ubuntuone.utils.webclient import gsettings
+from ubuntuone.utils import gsettings
 from ubuntuone.proxy.common import (
     BaseTunnelProtocol,
     CRLF,

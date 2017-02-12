@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2011-2012 Canonical Ltd.
-# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2017 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -46,22 +46,6 @@ from ubuntuone.tests import TestCase
 
 CONSTANTS_MODULE = 'ubuntuone.clientdefs'
 NOT_DEFINED = object()
-
-
-class FakeWebclient(object):
-    """A fake webclient."""
-
-    def __init__(self):
-        self.called = []
-
-    def request(self, *args, **kwargs):
-        """Save a webclient request."""
-        self.called.append((args, kwargs))
-        response = utils.webclient.common.Response(content="response")
-        return response
-
-    def shutdown(self):
-        """Shutdown this fake webclient."""
 
 
 class FakedConstantsModule(object):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
-# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2017 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -33,15 +33,12 @@ import inspect
 import logging
 import os
 import random
-import re
 import tempfile
 import traceback
 import zlib
 
 from collections import deque, defaultdict
 from functools import partial
-from urllib import urlencode
-from urlparse import urlparse
 
 import OpenSSL.SSL
 
@@ -62,18 +59,13 @@ from ubuntuone.storageprotocol.client import (
 from ubuntuone.storageprotocol.context import get_ssl_context
 from ubuntuone.syncdaemon.interfaces import IActionQueue, IMarker
 from ubuntuone.syncdaemon.logger import mklog, TRACE
-from ubuntuone.syncdaemon.volume_manager import ACCESS_LEVEL_RW
 from ubuntuone.syncdaemon import config, offload_queue
 from ubuntuone.syncdaemon import tunnel_runner
-from ubuntuone.utils.webclient import txweb
 
 logger = logging.getLogger("ubuntuone.SyncDaemon.ActionQueue")
 
 # I want something which repr() is "---" *without* the quotes :)
 UNKNOWN = type('', (), {'__repr__': lambda _: '---'})()
-
-# Regular expression to validate an e-mail address
-EREGEX = "^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$"
 
 # progress threshold to emit a download/upload progress event: 64Kb
 TRANSFER_PROGRESS_THRESHOLD = 64 * 1024
@@ -909,27 +901,6 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
             return d
         else:
             return defer.succeed((self.host, self.port))
-
-    @defer.inlineCallbacks
-    def webcall(self, iri, **kwargs):
-        """Perform a web call to the api servers."""
-        webclient = yield self.get_webclient(iri)
-        # FIXME: we need to review these requests after credentials change
-        response = yield webclient.request(
-            iri, auth_credentials=self.credentials, **kwargs)
-        defer.returnValue(response)
-
-    @defer.inlineCallbacks
-    def get_webclient(self, iri):
-        """Get the webclient, creating it if needed."""
-        uri = txweb.WebClient().iri_to_uri(iri)
-        host = urlparse(uri).netloc.split(":")[0]
-        ssl_context = get_ssl_context(self.disable_ssl_verify, host)
-        connector = yield self.tunnel_runner.get_client()
-        webclient = txweb.WebClient(
-            connector=connector, appname=clientdefs.NAME,
-            context_factory=ssl_context)
-        defer.returnValue(webclient)
 
     @defer.inlineCallbacks
     def _make_connection(self, result):
@@ -1892,7 +1863,7 @@ class CreateShare(ActionQueueCommand):
     """Offer a share to somebody."""
 
     __slots__ = ('node_id', 'share_to', 'name', 'access_level',
-                 'marker', 'use_http', 'path')
+                 'marker', 'path')
     possible_markers = 'node_id',
     logged_attrs = ActionQueueCommand.logged_attrs + __slots__
 
@@ -1904,47 +1875,18 @@ class CreateShare(ActionQueueCommand):
         self.name = name
         self.access_level = access_level
         self.marker = marker
-        self.use_http = False
         self.path = path
-
-        if share_to and re.match(EREGEX, share_to):
-            self.use_http = True
-
-    @defer.inlineCallbacks
-    def _create_share_http(self, node_id, user, name, read_only):
-        """Create a share using the HTTP Web API method."""
-
-        iri = u"https://one.ubuntu.com/files/api/offer_share/"
-        data = dict(offer_to_email=user,
-                    read_only=read_only,
-                    node_id=node_id,
-                    share_name=name)
-        pdata = urlencode(data)
-        yield self.action_queue.webcall(iri, method="POST", post_content=pdata)
 
     def _run(self):
         """Do the actual running."""
-        if self.use_http:
-            # External user, do the HTTP REST method
-            return self._create_share_http(
-                self.node_id, self.share_to, self.name,
-                self.access_level != ACCESS_LEVEL_RW)
-        else:
-            return self.action_queue.client.create_share(self.node_id,
-                                                         self.share_to,
-                                                         self.name,
-                                                         self.access_level)
+        return self.action_queue.client.create_share(
+            self.node_id, self.share_to, self.name, self.access_level)
 
     def handle_success(self, success):
         """It worked! Push the event."""
-        # We don't get a share_id back from the HTTP REST method
-        if not self.use_http:
-            self.action_queue.event_queue.push('AQ_CREATE_SHARE_OK',
-                                               share_id=success.share_id,
-                                               marker=self.marker)
-        else:
-            self.action_queue.event_queue.push('AQ_SHARE_INVITATION_SENT',
-                                               marker=self.marker)
+        self.action_queue.event_queue.push(
+            'AQ_CREATE_SHARE_OK', share_id=success.share_id,
+            marker=self.marker)
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""

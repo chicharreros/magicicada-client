@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2011-2012 Canonical Ltd.
-# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2017 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -35,11 +35,41 @@ import logging
 from twisted.trial.unittest import TestCase
 from ubuntuone.devtools.handlers import MementoHandler
 
-from ubuntuone.utils.webclient import gsettings
-from ubuntuone.utils.webclient.tests import (
-    BASE_GSETTINGS_VALUES,
-    TEMPLATE_GSETTINGS_OUTPUT,
-)
+from ubuntuone.utils import gsettings
+
+TEMPLATE_GSETTINGS_OUTPUT = """\
+org.gnome.system.proxy autoconfig-url '{autoconfig_url}'
+org.gnome.system.proxy ignore-hosts {ignore_hosts:s}
+org.gnome.system.proxy mode '{mode}'
+org.gnome.system.proxy.ftp host '{ftp_host}'
+org.gnome.system.proxy.ftp port {ftp_port}
+org.gnome.system.proxy.http authentication-password '{auth_password}'
+org.gnome.system.proxy.http authentication-user '{auth_user}'
+org.gnome.system.proxy.http host '{http_host}'
+org.gnome.system.proxy.http port {http_port}
+org.gnome.system.proxy.http use-authentication {http_use_auth}
+org.gnome.system.proxy.https host '{https_host}'
+org.gnome.system.proxy.https port {https_port}
+org.gnome.system.proxy.socks host '{socks_host}'
+org.gnome.system.proxy.socks port {socks_port}
+"""
+
+BASE_GSETTINGS_VALUES = {
+    "autoconfig_url": "",
+    "ignore_hosts": ["localhost", "127.0.0.0/8"],
+    "mode": "none",
+    "ftp_host": "",
+    "ftp_port": 0,
+    "auth_password": "",
+    "auth_user": "",
+    "http_host": "",
+    "http_port": 0,
+    "http_use_auth": "false",
+    "https_host": "",
+    "https_port": 0,
+    "socks_host": "",
+    "socks_port": 0,
+}
 
 
 class ProxySettingsTestCase(TestCase):

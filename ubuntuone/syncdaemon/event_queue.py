@@ -1,9 +1,5 @@
-# ubuntuone.syncdaemon.event_queue - Event queuing
-#
-# Authors: Facundo Batista <facundo@canonical.com>
-#          Manuel de la Pena <manuel@canonical.com>
-#
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2016-2017 Chicharreros
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -79,7 +75,6 @@ EVENTS = {
     'AQ_UPLOAD_ERROR': ('share_id', 'node_id', 'error', 'hash'),
     'AQ_SHARES_LIST': ('shares_list',),
     'AQ_LIST_SHARES_ERROR': ('error',),
-    'AQ_SHARE_INVITATION_SENT': ('marker',),
     'AQ_CREATE_SHARE_OK': ('share_id', 'marker'),
     'AQ_CREATE_SHARE_ERROR': ('marker', 'error'),
     'AQ_DELETE_SHARE_OK': ('share_id',),
