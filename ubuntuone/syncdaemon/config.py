@@ -1,6 +1,7 @@
 # ubuntuone.syncdaemon.config - SyncDaemon config utilities
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2017 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -128,6 +129,42 @@ def xdg_data_dir_parser(value):
     return result
 
 
+def server_connection_parser(value):
+    """Parser for the server connection info."""
+    results = []
+    for item in value.split(","):
+        ci_parts = item.split(':')
+        if len(ci_parts) == 2:
+            host, port = ci_parts
+            mode = 'ssl'  # default
+        elif len(ci_parts) == 3:
+            host, port, mode = ci_parts
+        else:
+            raise ValueError(
+                "--server info must be HOST:PORT or HOST:PORT:SSL_MODE")
+
+        if mode == 'plain':
+            use_ssl = False
+            disable_ssl_verify = False
+        elif mode == 'ssl':
+            use_ssl = True
+            disable_ssl_verify = False
+        elif mode == 'ssl_noverify':
+            use_ssl = True
+            disable_ssl_verify = True
+        else:
+            raise ValueError(
+                "--server form (HOST:PORT:SSL_MODE) accepts the following"
+                "SSL_MODE options only: 'plain', 'ssl', 'ssl_noverify'")
+        results.append({
+            'host': host,
+            'port': int(port),
+            'use_ssl': use_ssl,
+            'disable_ssl_verify': disable_ssl_verify,
+        })
+    return results
+
+
 def log_level_parser(value):
     """Parser for "logging" module log levels.
 
@@ -157,6 +194,7 @@ def get_parsers():
             ('xdg_cache', xdg_cache_dir_parser),
             ('xdg_data', xdg_data_dir_parser),
             ('log_level', log_level_parser),
+            ('connection', server_connection_parser),
             ('throttling_limit', throttling_limit_parser)]
 
 

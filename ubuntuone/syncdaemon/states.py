@@ -1,8 +1,5 @@
-# ubuntuone.syncdaemon.states.py - States!
-#
-# Author: Facundo Batista <facundo@canonical.com>
-#
 # Copyright 2010-2012 Canonical Ltd.
+# Copyright 2017 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -36,7 +33,7 @@ from twisted.internet import reactor
 
 # the WAITING time will double itself until it gets into
 # these seconds
-MAX_WAITING = 120
+MAX_WAITING = 20
 
 
 class BadEventError(Exception):
@@ -63,7 +60,7 @@ class ConnectionManager(object):
         self.sm = state_manager
         self.eq = state_manager.main.event_q
         self.handshake_timeout = handshake_timeout
-        self.waiting_timeout = 1
+        self.waiting_timeout = .2
         self.state = self.NU_NN
         self.working = True
 

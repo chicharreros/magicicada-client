@@ -30,9 +30,9 @@
 """Queue and execute operations on the server."""
 
 import inspect
+import itertools
 import logging
 import os
-import random
 import tempfile
 import traceback
 import zlib
@@ -45,7 +45,6 @@ import OpenSSL.SSL
 from zope.interface import implements
 from twisted.internet import reactor, defer, task
 from twisted.internet import error as twisted_errors
-from twisted.names import client as dns_client
 from twisted.python.failure import Failure, DefaultException
 
 from ubuntuone import clientdefs
@@ -756,8 +755,7 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
     implements(IActionQueue)
     protocol = ActionQueueProtocol
 
-    def __init__(self, event_queue, main, host, port, dns_srv,
-                 use_ssl=False, disable_ssl_verify=False,
+    def __init__(self, event_queue, main, connection_info,
                  read_limit=None, write_limit=None, throttling_enabled=False,
                  connection_timeout=30):
         ThrottlingStorageClientFactory.__init__(
@@ -765,11 +763,8 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
             throttling_enabled=throttling_enabled)
         self.event_queue = event_queue
         self.main = main
-        self.host = host
-        self.port = port
-        self.dns_srv = dns_srv
-        self.use_ssl = use_ssl
-        self.disable_ssl_verify = disable_ssl_verify
+        self.connection_info = itertools.cycle(connection_info)
+
         self.connection_timeout = connection_timeout
         self.credentials = {}
 
@@ -787,7 +782,6 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         self.zip_queue = ZipQueue()
         self.conditions_locker = ConditionsLocker()
         self.disk_queue = offload_queue.OffloadQueue()
-        self.tunnel_runner = tunnel_runner.TunnelRunner(self.host, self.port)
 
         self.estimated_free_space = {}
         event_queue.subscribe(self)
@@ -862,53 +856,22 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         self.event_queue.push('SV_VOLUME_NEW_GENERATION',
                               volume_id=volume_id, generation=generation)
 
-    def _lookup_srv(self):
-        """Do the SRV lookup.
-
-        Return a deferred whose callback is going to be called with
-        (host, port). If we can't do the lookup, the default host, port
-        is used.
-
-        """
-
-        def on_lookup_ok(results):
-            """Get a random host from the SRV result."""
-            logger.debug('SRV lookup done, choosing a server.')
-            records, auth, add = results
-            if not records:
-                raise ValueError('No available records.')
-            # pick a random server
-            record = random.choice(records)
-            logger.debug('Using record: %r', record)
-            if record.payload:
-                return record.payload.target.name, record.payload.port
-            else:
-                logger.info('Empty SRV record, fallback to %r:%r',
-                            self.host, self.port)
-                return self.host, self.port
-
-        def on_lookup_error(failure):
-            """Return the default host/post on a DNS SRV lookup failure."""
-            logger.info("SRV lookup error, fallback to %r:%r \n%s",
-                        self.host, self.port, failure.getTraceback())
-            return self.host, self.port
-
-        if self.dns_srv:
-            # lookup the DNS SRV records
-            d = dns_client.lookupService(self.dns_srv, timeout=[3, 2])
-            d.addCallback(on_lookup_ok)
-            d.addErrback(on_lookup_error)
-            return d
-        else:
-            return defer.succeed((self.host, self.port))
+    def _get_tunnel_runner(self, host, port):
+        """Build the tunnel runner."""
+        return tunnel_runner.TunnelRunner(host, port)
 
     @defer.inlineCallbacks
-    def _make_connection(self, result):
+    def _make_connection(self):
         """Do the real connect call."""
-        host, port = result
-        ssl_context = get_ssl_context(self.disable_ssl_verify, host)
-        client = yield self.tunnel_runner.get_client()
-        if self.use_ssl:
+        connection_info = self.connection_info.next()
+        logger.info("Attempting connection to %s", connection_info)
+        host = connection_info['host']
+        port = connection_info['port']
+        tunnelrunner = self._get_tunnel_runner(host, port)
+        client = yield tunnelrunner.get_client()
+        if connection_info['use_ssl']:
+            ssl_context = get_ssl_context(
+                connection_info['disable_ssl_verify'], host)
             self.connector = client.connectSSL(
                 host, port, factory=self, contextFactory=ssl_context,
                 timeout=self.connection_timeout)
@@ -925,9 +888,7 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
             return
 
         self.connect_in_progress = True
-        d = self._lookup_srv()
-        # DNS lookup always succeeds, proceed to actually connect
-        d.addCallback(self._make_connection)
+        self._make_connection()
 
     def buildProtocol(self, addr):
         """Build the client and store it. Connect callbacks."""

@@ -5,12 +5,13 @@ or autogen.sh (which calls configure after creating it).
 
 Or you can simply bootstrap and everything will happen automagically:
 
-$: make boostrap
+$: sudo apt-get install make
+$: make bootstrap
 
 After configuring, in order to run the tests, all you need to do is run
-make check.
+make test.
 
-$: make check
+$: make test
 
 
 Magicicada uses branch based development on Launchpad, and bugs to track

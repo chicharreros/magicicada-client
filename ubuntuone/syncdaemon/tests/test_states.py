@@ -34,8 +34,12 @@ from twisted.internet import defer, reactor
 from twisted.trial.unittest import TestCase as TwistedTestCase
 
 from contrib.testing.testcase import FakeLogger
+from ubuntuone.syncdaemon import states
 from ubuntuone.syncdaemon.states import (
-    StateManager, ConnectionManager, QueueManager, Node
+    ConnectionManager,
+    Node,
+    QueueManager,
+    StateManager,
 )
 
 
@@ -398,6 +402,7 @@ class TestConnectionManagerTimings(Base):
 
     def test_waiting_behaviour(self):
         """Check WAITING increases values ok."""
+        self.patch(states, 'MAX_WAITING', 120)
         timeouts = [2, 4, 8, 16, 32, 64, 120, 120, 120]
         self.sm.connection.waiting_timeout = 1
         for t in timeouts:
@@ -831,7 +836,7 @@ class TestStateManagerEnterExit(Base):
                 cnt += 1
                 self.sm.state = node
                 self.sm.handle_default(event)
-                self.assertEqual(self.aq.actions, ['disconnect']*cnt)
+                self.assertEqual(self.aq.actions, ['disconnect'] * cnt)
 
         self.aq.actions[:] = []
         cnt = 0
@@ -888,7 +893,7 @@ class TestStateManagerPassToQueueManager(Base):
             cnt += 1
             self.sm.state = node
             self.sm.handle_default(event)
-            self.assertEqual(self.called_events, [event]*cnt)
+            self.assertEqual(self.called_events, [event] * cnt)
 
     def test_meta_waiting(self):
         """SYS_QUEUE_WAITING should go to QueueMgr no matter where."""

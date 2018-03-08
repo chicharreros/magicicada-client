@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
+# Copyright 2016-2017 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -96,8 +97,7 @@ class MainTests(BaseTwistedTestCase):
                     shares_dir=self.shares,
                     data_dir=self.data,
                     partials_dir=self.partials_dir,
-                    host='localhost', port=0,
-                    dns_srv=False, ssl=False,
+                    connection_info='localhost:0:plain',
                     mark_interval=60,
                     handshake_timeout=2,
                     auth_credentials=FAKED_CREDENTIALS,

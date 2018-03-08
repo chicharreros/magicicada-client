@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
-# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2017 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -83,10 +83,8 @@ class Main(object):
     """The one who executes the syncdaemon."""
 
     def __init__(self, root_dir, shares_dir, data_dir, partials_dir,
-                 host='fs-1.one.ubuntu.com', port=443, dns_srv=None, ssl=True,
-                 disable_ssl_verify=False,
-                 mark_interval=120, broadcast_events=False,
-                 handshake_timeout=30,
+                 connection_info, mark_interval=120,
+                 broadcast_events=False, handshake_timeout=30,
                  shares_symlink_name='Shared With Me',
                  read_limit=None, write_limit=None, throttling_enabled=False,
                  ignore_files=None, auth_credentials=None,
@@ -125,9 +123,7 @@ class Main(object):
 
         # we don't have the auth tokens yet, we 'll get them later
         self.action_q = action_queue.ActionQueue(self.event_q, self,
-                                                 host, port,
-                                                 dns_srv, ssl,
-                                                 disable_ssl_verify,
+                                                 connection_info,
                                                  read_limit, write_limit,
                                                  throttling_enabled)
         self.hash_q = hash_queue.HashQueue(self.event_q)

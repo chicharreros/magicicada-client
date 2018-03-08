@@ -1,6 +1,7 @@
 # encoding: utf-8
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2017 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -493,6 +494,73 @@ class ConfigglueParsersTests(BaseTwistedTestCase):
         self.assertEqual(logging.INFO, parser(good_value))
         self.assertEqual(logging.DEBUG, parser(bad_value))
         self.assertEqual(logging.DEBUG, parser(invalid_value))
+
+    def test_serverconnection_simple_defaultmode(self):
+        results = config.server_connection_parser('test.host:666')
+        self.assertEqual(results, [{
+            'host': 'test.host',
+            'port': 666,
+            'use_ssl': True,
+            'disable_ssl_verify': False,
+        }])
+
+    def test_serverconnection_simple_plain(self):
+        results = config.server_connection_parser('test.host:666:plain')
+        self.assertEqual(results, [{
+            'host': 'test.host',
+            'port': 666,
+            'use_ssl': False,
+            'disable_ssl_verify': False,
+        }])
+
+    def test_serverconnection_simple_ssl(self):
+        results = config.server_connection_parser('test.host:666:ssl')
+        self.assertEqual(results, [{
+            'host': 'test.host',
+            'port': 666,
+            'use_ssl': True,
+            'disable_ssl_verify': False,
+        }])
+
+    def test_serverconnection_simple_noverify(self):
+        results = config.server_connection_parser('test.host:666:ssl_noverify')
+        self.assertEqual(results, [{
+            'host': 'test.host',
+            'port': 666,
+            'use_ssl': True,
+            'disable_ssl_verify': True,
+        }])
+
+    def test_serverconnection_simple_bad_mode(self):
+        self.assertRaises(
+            ValueError, config.server_connection_parser, 'host:666:badmode')
+
+    def test_serverconnection_simple_too_many_parts(self):
+        self.assertRaises(
+            ValueError, config.server_connection_parser, 'host:666:plain:what')
+
+    def test_serverconnection_simple_too_few_parts(self):
+        self.assertRaises(
+            ValueError, config.server_connection_parser, 'test.host')
+
+    def test_serverconnection_simple_port_not_numeric(self):
+        self.assertRaises(
+            ValueError, config.server_connection_parser, 'test.host:port')
+
+    def test_serverconnection_multiple(self):
+        results = config.server_connection_parser(
+            'test.host1:666:plain,host2.com:447')
+        self.assertEqual(results, [{
+            'host': 'test.host1',
+            'port': 666,
+            'use_ssl': False,
+            'disable_ssl_verify': False,
+        }, {
+            'host': 'host2.com',
+            'port': 447,
+            'use_ssl': True,
+            'disable_ssl_verify': False,
+        }])
 
 
 class XdgHomeParsersTests(BaseTwistedTestCase):

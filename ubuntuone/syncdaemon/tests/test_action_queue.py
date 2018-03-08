@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
-# Copyright 2016-2017 Chicharreros
+# Copyright 2016-2017 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -33,6 +33,7 @@ from __future__ import with_statement
 
 import collections
 import inspect
+import itertools
 import logging
 import operator
 import os
@@ -237,9 +238,11 @@ class FakeTunnelClient(object):
 class SavingConnectionTunnelRunner(object):
     """A fake proxy.tunnel_client.TunnelRunner."""
 
-    def __init__(self, *args):
+    def __init__(self, host, port):
         """Fake a proxy tunnel."""
         self.client = FakeTunnelClient()
+        self.host = host
+        self.port = port
 
     def get_client(self):
         """Always return the reactor."""
@@ -287,7 +290,8 @@ class BasicTestCase(BaseTwistedTestCase):
 
         # set up FakeMain to use the testing AQ, the port will be decided later
         self.patch(FakeMain, '_fake_AQ_class', TestActionQueue)
-        self.patch(FakeMain, '_fake_AQ_params', ('127.0.0.1', 0, False))
+        connection_info = [dict(host='127.0.0.1', port=0, use_ssl=False)]
+        self.patch(FakeMain, '_fake_AQ_params', (connection_info,))
         self.patch(offload_queue, "OffloadQueue", FakeOffloadQueue)
 
         self.main = FakeMain(root_dir=self.root, shares_dir=self.shares,
@@ -1130,12 +1134,23 @@ class TestZipQueue(BasicTestCase):
 class FactoryBaseTestCase(BasicTestCase):
     """Helper for by-pass Twisted."""
 
+    def _patch_connection_info(self, **attrvalues):
+        """Helper to patch the ActionQueue connection_info.
+
+        This assumes there is only one item in the connection_info, which
+        is the case for the tests.
+        """
+        connection_info = self.action_queue.connection_info.next()
+        for attr, value in attrvalues.items():
+            connection_info[attr] = value
+        self.action_queue.connection_info = itertools.cycle([connection_info])
+
     def _start_sample_webserver(self):
         """Start a web server serving content at its root"""
         # start listening on `decide yourself` port, and fix AQ with it
         website = server.Site(None)
         webport = reactor.listenTCP(0, website)
-        self.action_queue.port = webport.getHost().port
+        self._patch_connection_info(port=webport.getHost().port)
 
         server_transport_deferred = defer.Deferred()
         transport_class = webport.transport
@@ -1356,8 +1371,9 @@ class ConnectionTestCase(FactoryBaseTestCase):
 
     def test_connection_started_logging(self):
         """Test that the connection started logs connector info, not AQ's."""
-        assert self.action_queue.host == '127.0.0.1'
-        assert self.action_queue.port == 0
+        connection_info = self.action_queue.connection_info.next()
+        assert connection_info['host'] == '127.0.0.1'
+        assert connection_info['port'] == 0
 
         class FakeConnector(object):
             """Fake connector."""
@@ -1368,26 +1384,70 @@ class ConnectionTestCase(FactoryBaseTestCase):
         self.assertTrue(self.handler.check_info("Connection started",
                                                 "host 1.2.3.4", "port 4321"))
 
+    @defer.inlineCallbacks
+    def test_connection_info_rotation(self):
+        """It tries to connect to different servers."""
+
+        multiple_conn = [
+            {'host': 'host1', 'port': 'port1', 'use_ssl': False},
+            {'host': 'host2', 'port': 'port2', 'use_ssl': False},
+        ]
+        self.action_queue.connection_info = itertools.cycle(multiple_conn)
+
+        self.tunnel_runner = None
+
+        def mitm(*args):
+            tunnel_runner = SavingConnectionTunnelRunner(*args)
+            self.tunnel_runner = tunnel_runner
+            return tunnel_runner
+
+        self.action_queue._get_tunnel_runner = mitm
+
+        yield self.action_queue._make_connection()
+        self.assertEqual(self.tunnel_runner.host, 'host1')
+        self.assertEqual(self.tunnel_runner.port, 'port1')
+
+        yield self.action_queue._make_connection()
+        self.assertEqual(self.tunnel_runner.host, 'host2')
+        self.assertEqual(self.tunnel_runner.port, 'port2')
+
+        yield self.action_queue._make_connection()
+        self.assertEqual(self.tunnel_runner.host, 'host1')
+        self.assertEqual(self.tunnel_runner.port, 'port1')
+
 
 class TunnelRunnerTestCase(FactoryBaseTestCase):
     """Tests for the tunnel runner."""
 
     tunnel_runner_class = SavingConnectionTunnelRunner
 
+    def setUp(self):
+        result = super(TunnelRunnerTestCase, self).setUp()
+        self.tunnel_runner = None
+        orig_get_tunnel_runner = self.action_queue._get_tunnel_runner
+
+        def mitm(*args):
+            tunnel_runner = orig_get_tunnel_runner(*args)
+            self.tunnel_runner = tunnel_runner
+            return tunnel_runner
+
+        self.action_queue._get_tunnel_runner = mitm
+        return result
+
     @defer.inlineCallbacks
     def test_make_connection_uses_tunnelrunner_non_ssl(self):
         """Check that _make_connection uses TunnelRunner."""
-        self.action_queue.use_ssl = False
-        yield self.action_queue._make_connection(("127.0.0.1", 1234))
-        self.assertTrue(self.action_queue.tunnel_runner.client.tcp_connected,
+        self._patch_connection_info(use_ssl=False)
+        yield self.action_queue._make_connection()
+        self.assertTrue(self.tunnel_runner.client.tcp_connected,
                         "connectTCP is called on the client.")
 
     @defer.inlineCallbacks
     def test_make_connection_uses_tunnelrunner_ssl(self):
         """Check that _make_connection uses TunnelRunner."""
-        self.action_queue.use_ssl = True
-        yield self.action_queue._make_connection(("127.0.0.1", 1234))
-        self.assertTrue(self.action_queue.tunnel_runner.client.ssl_connected,
+        self._patch_connection_info(use_ssl=True, disable_ssl_verify=False)
+        yield self.action_queue._make_connection()
+        self.assertTrue(self.tunnel_runner.client.ssl_connected,
                         "connectSSL is called on the client.")
 
 
@@ -1400,13 +1460,18 @@ class ContextRequestedWithHost(FactoryBaseTestCase):
     def test_context_request_passes_host(self):
         """The context is requested passing the host."""
         fake_host = "fake_host"
+        fake_disable_ssl_verify = False
 
         def fake_get_ssl_context(disable_ssl_verify, host):
             """The host is used to call get_ssl_context."""
+            self.assertEqual(disable_ssl_verify, fake_disable_ssl_verify)
             self.assertEqual(host, fake_host)
 
         self.patch(action_queue, "get_ssl_context", fake_get_ssl_context)
-        yield self.action_queue._make_connection((fake_host, 1234))
+        self._patch_connection_info(
+            host=fake_host, use_ssl=True,
+            disable_ssl_verify=fake_disable_ssl_verify)
+        yield self.action_queue._make_connection()
 
 
 class ConnectedBaseTestCase(FactoryBaseTestCase):

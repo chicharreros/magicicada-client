@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #
 # Copyright 2009-2015 Canonical Ltd.
+# Copyright 2017 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -218,9 +219,7 @@ def async_main(parser, options, argv):
     monitor_class = yield get_filemonitor_class(options.fs_monitor)
 
     main = Main(options.root_dir, options.shares_dir, options.data_dir,
-                partials_dir, host=options.host, port=int(options.port),
-                dns_srv=options.dns_srv, ssl=True,
-                disable_ssl_verify=options.disable_ssl_verify,
+                partials_dir, options.server,
                 mark_interval=options.mark_interval,
                 broadcast_events=options.send_events_over_dbus,
                 handshake_timeout=options.handshake_timeout,
