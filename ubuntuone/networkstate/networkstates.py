@@ -27,6 +27,7 @@ class NetworkState(object):
     def __repr__(self):
         return "Network state (%s)" % self.label
 
+
 # Values returned by the callback
 (ONLINE, OFFLINE, UNKNOWN) = (NetworkState("online"),
                               NetworkState("offline"),

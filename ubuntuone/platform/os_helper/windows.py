@@ -248,6 +248,7 @@ def get_windows_valid_path(path):
     assert_windows_path(result)
     return result
 
+
 get_os_valid_path = get_windows_valid_path
 
 
@@ -326,6 +327,7 @@ def is_valid_windows_path(path_indexes=None):
 
     """
     return _is_valid_path(assert_windows_path, path_indexes)
+
 
 is_valid_os_path = is_valid_windows_path
 
@@ -412,6 +414,7 @@ def windowspath(path_indexes=None):
 
     """
     return _transform_path(get_windows_valid_path, path_indexes)
+
 
 os_path = windowspath
 
@@ -671,7 +674,7 @@ def make_link(target, destination):
         shortcut.SetWorkingDirectory(target)
         pf = shortcut.QueryInterface(IPersistFile)
         pf.Save(destination, True)
-    except:
+    except Exception:
         logger.exception('make_link could not be completed for target %r, '
                          'destination %r:', target, destination)
         raise

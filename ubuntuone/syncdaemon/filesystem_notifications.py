@@ -151,7 +151,7 @@ class GeneralINotifyProcessor(object):
         # change the pattern IN_CREATE to FS_FILE_CREATE or FS_DIR_CREATE
         try:
             evt_name = self.name_translations[event.mask]
-        except:
+        except Exception:
             self.log.error("Unhandled Event in INotify: %s", event)
             raise KeyError("Unhandled Event in INotify: %s" % event)
         # check if the path is not frozen

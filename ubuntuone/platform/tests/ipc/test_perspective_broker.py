@@ -85,6 +85,7 @@ except ImportError:
 class NoTestCase(object):
     """Dummy class to be used when txsocketserver is not available."""
 
+
 try:
     from ubuntuone.devtools.testcases.txsocketserver import (
         TidyUnixServer,

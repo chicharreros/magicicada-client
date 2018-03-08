@@ -62,6 +62,7 @@ class ScanTransactionDirty(Exception):
 class ScanNoDirectory(Exception):
     """The whole directory went away."""
 
+
 # local rescan logger
 lr_logger = logging.getLogger('ubuntuone.SyncDaemon.local_rescan')
 log_info = functools.partial(lr_logger.log, logging.INFO)

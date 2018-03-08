@@ -276,9 +276,9 @@ class OSWrapperTests(BaseTestCase):
             open_file(os.path.join(self.basedir, extra), 'w').close()
             expected_result.append(extra)
 
-        l = listdir(self.basedir)
-        self.assertEqual(sorted(l), sorted(expected_result))
-        for path in l:
+        dirs = listdir(self.basedir)
+        self.assertEqual(sorted(dirs), sorted(expected_result))
+        for path in dirs:
             self.assertIsInstance(path, type(self.basedir))
 
     def test_access_rw(self):

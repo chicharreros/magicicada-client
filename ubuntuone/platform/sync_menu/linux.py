@@ -43,7 +43,7 @@ try:
         SyncMenu,
     )
     use_syncmenu = True
-except:
+except ImportError:
     use_syncmenu = False
 
 from ubuntuone.clientdefs import GETTEXT_PACKAGE, NAME

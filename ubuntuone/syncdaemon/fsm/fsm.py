@@ -86,9 +86,9 @@ def expand_var_list(varlist, values):
         if str(myvalues[name]) == "*":
             myvalues[name] = varlist[name]
         elif str(myvalues[name])[0] == "!":
-            l = varlist[name].copy()
-            l.remove(myvalues[name][1:])
-            myvalues[name] = l
+            var_list = varlist[name].copy()
+            var_list.remove(myvalues[name][1:])
+            myvalues[name] = var_list
         else:
             myvalues[name] = [myvalues[name]]
     return build_combinations_from_varlist(myvalues)
@@ -509,6 +509,7 @@ class State(object):
     def get_transition(self, event, parameters):
         """Get the transition for this events with these parameters."""
         return self.transitions[event, hash_dict(parameters)]
+
 
 if __name__ == "__main__":
     import sys

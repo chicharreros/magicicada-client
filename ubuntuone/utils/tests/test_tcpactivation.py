@@ -472,5 +472,6 @@ def irl_test():
     else:
         client_test(config)
 
+
 if __name__ == "__main__":
     irl_test()

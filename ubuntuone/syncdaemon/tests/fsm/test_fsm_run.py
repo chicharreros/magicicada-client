@@ -69,7 +69,7 @@ class TestRun(unittest.TestCase):
             H = make("h", "EEE")
             E = make("e", "LLL")
             L = make("l", "LOD")
-            O = make("o", "WRR")
+            O = make("o", "WRR")  # noqa
             W = make("w", "OOO")
             R = make("r", "LLL")
             D = make("d", ["NL"]*3)

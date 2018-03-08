@@ -356,12 +356,12 @@ class PushTestsWithCallback(BaseEQTestCase):
             def handle_default(self, event, **kwargs):
                 d.callback((event, kwargs))
 
-        l = Listener()
-        self.eq.subscribe(l)
+        listener = Listener()
+        self.eq.subscribe(listener)
 
         def cleanup():
             """Unsubscribe the listeners."""
-            self.eq.unsubscribe(l)
+            self.eq.unsubscribe(listener)
         self.addCleanup(cleanup)
 
         # push some event and expect it'll be handled by handle_default
@@ -401,9 +401,9 @@ class PushTestsWithCallback(BaseEQTestCase):
         # create 10 listeners in order to create an event madness
         listeners = []
         for i in xrange(0, 10):
-            l = Listener(self.eq)
-            listeners.append(l)
-            self.eq.subscribe(l)
+            listener = Listener(self.eq)
+            listeners.append(listener)
+            self.eq.subscribe(listener)
 
         # push some events to unleash the event madness
         self.eq.push("FS_FILE_CREATE", path=1)

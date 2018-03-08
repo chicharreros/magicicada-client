@@ -136,6 +136,7 @@ class mklog(object):
             return failure
         return callback, errback
 
+
 LOGFILENAME = os.path.join(ubuntuone_log_dir, 'syncdaemon.log')
 EXLOGFILENAME = os.path.join(ubuntuone_log_dir, 'syncdaemon-exceptions.log')
 INVALIDLOGFILENAME = os.path.join(

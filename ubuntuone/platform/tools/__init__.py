@@ -688,7 +688,7 @@ def show_error(error, out):
     """Format an error when things go wrong"""
     try:
         raise error.value
-    except:
+    except Exception:
         signal, (args, retval) = error.value.args
         msg_template = u"%s: %s (%s)\n"
         fmtd_args = u", ".join("%s=%s" % (k, v) for k, v in args.items())

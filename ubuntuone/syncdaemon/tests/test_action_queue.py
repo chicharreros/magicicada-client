@@ -4960,15 +4960,15 @@ class TestDeltaList(unittest.TestCase):
 
     def test_is_list(self):
         """A DeltaList is a list."""
-        l = [1, 2, 3]
-        a = DeltaList(l)
+        data = [1, 2, 3]
+        a = DeltaList(data)
         self.assertTrue(isinstance(a, list))
 
     def test_is_equal_list(self):
         """A DeltaList is equal to the list it represents."""
-        l = [1, 2, 3]
-        a = DeltaList(l)
-        self.assertEqual(a, l)
+        data = [1, 2, 3]
+        a = DeltaList(data)
+        self.assertEqual(a, data)
 
     def test_repr(self):
         """A DeltaList has a short representation."""

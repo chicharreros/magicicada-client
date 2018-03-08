@@ -65,6 +65,7 @@ class RawOutputFormat:
         """Class name color."""
         return self.format.get('red', '') + self.simple(s, 'bold')
 
+
 output_format = RawOutputFormat()
 
 

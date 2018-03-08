@@ -1262,23 +1262,23 @@ class PushTests(TwistedBase):
     @defer.inlineCallbacks
     def test_one_dir_create(self):
         """Check that an example dir create is really pushed."""
-        l = Listener()
-        self.eq.subscribe(l)
-        self.addCleanup(self.eq.unsubscribe, l)
+        listener = Listener()
+        self.eq.subscribe(listener)
+        self.addCleanup(self.eq.unsubscribe, listener)
 
         # push some event
         filepath = os.path.join(self.share.path, "a")
         make_dir(filepath)
 
         yield self.lr.start()
-        self.assertItemsEqual(l.events, [('FS_DIR_CREATE', filepath)])
+        self.assertItemsEqual(listener.events, [('FS_DIR_CREATE', filepath)])
 
     @defer.inlineCallbacks
     def test_one_file_create(self):
         """Check that an example file create is really pushed."""
-        l = Listener()
-        self.eq.subscribe(l)
-        self.addCleanup(self.eq.unsubscribe, l)
+        listener = Listener()
+        self.eq.subscribe(listener)
+        self.addCleanup(self.eq.unsubscribe, listener)
 
         # push some event
         filepath = os.path.join(self.share.path, "a")
@@ -1289,14 +1289,14 @@ class PushTests(TwistedBase):
             ('FS_FILE_CREATE', filepath),
             ('FS_FILE_CLOSE_WRITE', filepath),
         ]
-        self.assertItemsEqual(l.events, expected)
+        self.assertItemsEqual(listener.events, expected)
 
     @defer.inlineCallbacks
     def test_one_dir_delete(self):
         """Check that an example dir delete is really pushed."""
-        l = Listener()
-        self.eq.subscribe(l)
-        self.addCleanup(self.eq.unsubscribe, l)
+        listener = Listener()
+        self.eq.subscribe(listener)
+        self.addCleanup(self.eq.unsubscribe, listener)
 
         # push some event
         filepath = os.path.join(self.share.path, "a")
@@ -1304,14 +1304,14 @@ class PushTests(TwistedBase):
         self.fsm.set_node_id(filepath, "uuid1")
 
         yield self.lr.start()
-        self.assertItemsEqual(l.events, [('FS_DIR_DELETE', filepath)])
+        self.assertItemsEqual(listener.events, [('FS_DIR_DELETE', filepath)])
 
     @defer.inlineCallbacks
     def test_one_file_delete(self):
         """Check that an example file delete is really pushed."""
-        l = Listener()
-        self.eq.subscribe(l)
-        self.addCleanup(self.eq.unsubscribe, l)
+        listener = Listener()
+        self.eq.subscribe(listener)
+        self.addCleanup(self.eq.unsubscribe, listener)
 
         # push some event
         filepath = os.path.join(self.share.path, "a")
@@ -1320,14 +1320,14 @@ class PushTests(TwistedBase):
         self.fsm.set_by_path(filepath, local_hash="hash", server_hash="hash")
 
         yield self.lr.start()
-        self.assertItemsEqual(l.events, [('FS_FILE_DELETE', filepath)])
+        self.assertItemsEqual(listener.events, [('FS_FILE_DELETE', filepath)])
 
     @defer.inlineCallbacks
     def test_file_changed(self):
         """Check that an example close write is pushed."""
-        l = Listener()
-        self.eq.subscribe(l)
-        self.addCleanup(self.eq.unsubscribe, l)
+        listener = Listener()
+        self.eq.subscribe(listener)
+        self.addCleanup(self.eq.unsubscribe, listener)
 
         # push some event
         filepath = os.path.join(self.share.path, "a")
@@ -1341,14 +1341,14 @@ class PushTests(TwistedBase):
             ('FS_FILE_CREATE', filepath),
             ('FS_FILE_CLOSE_WRITE', filepath),
         ]
-        self.assertItemsEqual(l.events, expected)
+        self.assertItemsEqual(listener.events, expected)
 
     @defer.inlineCallbacks
     def test_file_changed_in_nestedstruct(self):
         """Check that an example close write is pushed."""
-        l = Listener()
-        self.eq.subscribe(l)
-        self.addCleanup(self.eq.unsubscribe, l)
+        listener = Listener()
+        self.eq.subscribe(listener)
+        self.addCleanup(self.eq.unsubscribe, listener)
 
         # create nested struct
         path = os.path.join(self.share.path, "a")
@@ -1373,7 +1373,7 @@ class PushTests(TwistedBase):
             ('FS_FILE_CREATE', path),
             ('FS_FILE_CLOSE_WRITE', path),
         ]
-        self.assertItemsEqual(l.events, expected)
+        self.assertItemsEqual(listener.events, expected)
 
     @defer.inlineCallbacks
     def test_conflict_file(self):
