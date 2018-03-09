@@ -5,4 +5,4 @@ services:
     - docker
 
 script:
-    - docker run -v `$PWD`:/zaraza ubuntu:16.04 /zaraza/do-all
+    - docker run -v /zaraza:`$PWD` ubuntu:16.04 /zaraza/do-all
