@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -265,7 +266,7 @@ class FileLogger(object):
                 path = self.key.safe_get('path')
             extra = dict(message=message,
                          mdid=self.key.safe_get("mdid"),
-                         path=path.replace('%', '%%'),   # escape %
+                         path=path,
                          share_id=self.key.safe_get("share_id") or 'root',
                          node_id=self.key.safe_get("node_id"),
                          hasmd=self.key.has_metadata(),
@@ -280,7 +281,11 @@ class FileLogger(object):
                          isdir="-",
                          changed="-")
             extra.update(self.key.keys)
+
+        # escape any % in the path and build the message
+        extra['path'] = extra['path'].replace('%', '%%')
         message = format % extra
+
         if lvl == -1:
             kwargs.update({'exc_info': exc_info})
             self.logger.error(message, *args, **kwargs)

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -348,6 +349,32 @@ class TestSync(BaseSync):
         self.sync = Sync(main=self.main)
         self.fsm = self.main.fs
         self.handler.setLevel(logging.DEBUG)
+
+    def test_file_logging_having_metadata(self):
+        """Check proper file info was logged, building all info from MD."""
+        # fake method
+        self.patch(SyncStateMachineRunner, 'new_local_file_created',
+                   lambda *a: None)
+
+        # create the node, set it up and send the event
+        somepath = os.path.join(self.root, 'some%path')
+        mdid = self.fsm.create(somepath, '', node_id='node_id')
+        mdobj = self.fsm.get_by_mdid(mdid)
+        self.sync.handle_AQ_FILE_NEW_OK(mdobj.share_id, mdid, 'new_id', 'gen')
+
+        # check logs
+        self.assertTrue(self.handler.check_debug(
+            "some%path", "node_id", "gen", mdid))
+
+    def test_file_logging_no_metadata(self):
+        """Check proper file info was logged, building info from what got."""
+        # create the parent, and call
+        parentpath = os.path.join(self.root, 'some%path')
+        self.fsm.create(parentpath, '', node_id='parent_id')
+        self.sync._handle_SV_FILE_NEW('', 'node_id', 'parent_id', 'name')
+
+        # check logs for the % case
+        self.assertTrue(self.handler.check_debug("some%path"))
 
     def test_handle_AQ_DOWNLOAD_DOES_NOT_EXIST(self):
         """handle_AQ_DOWNLOAD_DOES_NOT_EXIST."""
@@ -1905,7 +1932,7 @@ class TestHandleAqDeltaOk(TestSyncDelta):
         dt2.is_live = False
         kwargs = dict(volume_id=ROOT, delta_content=[dt2], end_generation=11,
                       full=True, free_bytes=10)
-        self.sync._handle_SV_FILE_DELETED = lambda *args, **kwargs: 1/0
+        self.sync._handle_SV_FILE_DELETED = lambda *args, **kwargs: 1 / 0
         handler = MementoHandler()
         handler.setLevel(logging.ERROR)
         self.sync.logger.addHandler(handler)
@@ -1961,7 +1988,7 @@ class TestHandleAqDeltaOk(TestSyncDelta):
         dt2.is_live = False
         kwargs = dict(volume_id=ROOT, delta_content=[dt2], end_generation=11,
                       full=True, free_bytes=10)
-        self.sync._handle_SV_FILE_DELETED = lambda *args, **kwargs: 1/0
+        self.sync._handle_SV_FILE_DELETED = lambda *args, **kwargs: 1 / 0
 
         # send the delta and check
         self.sync.handle_AQ_DELTA_OK(**kwargs)
@@ -2141,7 +2168,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
                 name=u"fileñ.%d.txt" % i, is_public=False, content_hash="hash",
                 crc32=i, size=10, last_modified=0)
-            f.parent_id = directories[i-5].node_id
+            f.parent_id = directories[i - 5].node_id
             self.create_filetxt(dt=f)
             files.append(f)
 
@@ -2165,7 +2192,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
         # now fake the get_delta for the changed node that was missing in the
         # rescan_from_scratch
         changed_file = files[2]
-        changed_file.generation = files[-1].generation+1
+        changed_file.generation = files[-1].generation + 1
         changed_file.hash = "hash-1"
 
         called = []
@@ -2205,7 +2232,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
                 name=u"fileñ.%d.txt" % i, is_public=False, content_hash="hash",
                 crc32=i, size=10, last_modified=0)
-            f.parent_id = directories[i-5].node_id
+            f.parent_id = directories[i - 5].node_id
             self.create_filetxt(dt=f)
             files.append(f)
 
@@ -2229,7 +2256,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
         # now fake the get_delta for the moved node that was missing in the
         # rescan_from_scratch
         changed_file = files[2]
-        changed_file.generation = files[-1].generation+1
+        changed_file.generation = files[-1].generation + 1
         changed_file.parent_id = directories[1].node_id
 
         called = []
