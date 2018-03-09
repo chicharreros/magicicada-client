@@ -5,4 +5,5 @@ services:
     - docker
 
 script:
-    - docker run -v /zaraza:`$PWD` ubuntu:16.04 /zaraza/do-all
+    - docker  run  -v `pwd`:`pwd` -w `pwd` -i -t  ubuntu pwd
+    - docker run -v `$PWD`:/usr/local/magicicada-client ubuntu:16.04 /usr/local/magicicada-client/do-all
