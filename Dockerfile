@@ -7,5 +7,4 @@ ADD . /
 
 RUN make clean
 RUN make bootstrap
-
-CMD make test
+RUN make test
