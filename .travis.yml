@@ -5,8 +5,9 @@ language: bash
 
 before_install:
     - sudo apt-get update
-    - sudo apt install -t trusty-backports lxd lxd-client --yes
+    - sudo apt install -t trusty-backports lxd lxd-client --yes 
     - sudo dpkg-reconfigure -p medium lxd
     - sudo lxd init --auto
+    - sudo cat /etc/default/lxd-bridge
     - sudo lxc launch ubuntu:trusty travis
     - sudo lxc exec travis -- apt-get update --yes
