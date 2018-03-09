@@ -1,15 +1,11 @@
 sudo: required
-dist: trusty
-
 language: bash
 
+services:
+    - docker
+
 before_install:
-    - sudo apt-get update
-    - sudo apt install -t trusty-backports lxd lxd-client --yes 
-    - sudo dpkg-reconfigure -p medium lxd
-    - sudo lxd init --auto
-    - sudo cat /etc/default/lxd-bridge
-    - sudo service lxd-bridge stop
-    - sudo service lxd restart
-    - sudo lxc launch ubuntu:xenial travis
-    - sudo lxc exec travis -- apt-get update --yes
+    - docker pull ubuntu:16.04
+
+script:
+    - docker build .
