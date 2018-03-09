@@ -9,5 +9,7 @@ before_install:
     - sudo dpkg-reconfigure -p medium lxd
     - sudo lxd init --auto
     - sudo cat /etc/default/lxd-bridge
-    - sudo lxc launch ubuntu:trusty travis
+    - sudo service lxd-bridge stop
+    - sudo service lxd restart
+    - sudo lxc launch ubuntu:xenial travis
     - sudo lxc exec travis -- apt-get update --yes
