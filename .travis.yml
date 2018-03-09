@@ -7,7 +7,6 @@ before_install:
     - sudo apt-get update
     - sudo apt install -t trusty-backports lxd lxd-client --yes
     - sudo lxd init --auto
-    - newgrp lxd
-    - lxc launch ubuntu:trusty travis
-    - lxc list
-    - lxc exec travis -- apt-get update --yes
+    - sudo lxc launch ubuntu:trusty travis
+    - sudo lxc list
+    - sudo lxc exec travis -- apt-get update --yes
