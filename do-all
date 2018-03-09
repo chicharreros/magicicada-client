@@ -1,0 +1,8 @@
+#! /bin/bash
+
+apt-get update
+apt-get install -y make
+
+make clean
+make bootstrap
+make test
