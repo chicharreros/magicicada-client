@@ -1,6 +1,11 @@
 sudo: required
+dist: trusty
 
-services:
-    - docker
-
-language: bash
+before_install:
+    - sudo apt-get update
+    - sudo apt install -t trusty-backports lxd lxd-client --yes
+    - newgrp lxd
+    - sudo lxd init --auto
+    - lxc launch ubuntu:trusty travis
+    - lxc list
+    - lxc exec travis -- apt-get update --yes
