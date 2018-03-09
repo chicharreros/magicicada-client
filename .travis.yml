@@ -1,10 +1,4 @@
 sudo: required
 dist: trusty
 
-before_install:
-    - sudo apt-get update
-    - make clean
-    - make bootstrap
-
-script:
-    - make test
+services: [docker]
