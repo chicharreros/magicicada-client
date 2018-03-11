@@ -6,6 +6,7 @@ WORKDIR /home/ubuntu/magicicada-client
 
 RUN apt-get update && apt-get install make -y
 RUN make clean
+RUN make bootstrap
 
 RUN useradd -ms /bin/bash ubuntu
 RUN chown -R ubuntu:ubuntu /home/ubuntu
@@ -13,5 +14,4 @@ RUN chown -R ubuntu:ubuntu /home/ubuntu
 USER ubuntu
 ENV HOME /home/ubuntu
 
-RUN make bootstrap
 RUN make test
