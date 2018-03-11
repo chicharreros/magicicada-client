@@ -7,7 +7,7 @@ RUN chown -R ubuntu:ubuntu /home/ubuntu
 COPY . /home/ubuntu/magicicada-client
 WORKDIR /home/ubuntu/magicicada-client
 
-RUN apt install make -y
+RUN apt-get install make -y
 RUN make clean
 
 USER ubuntu
