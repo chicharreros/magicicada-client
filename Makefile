@@ -32,8 +32,8 @@ PROTOCOL_DIR = $(CURDIR)/.protocol
 PROTOCOL_LINK = ubuntuone/storageprotocol
 
 deps:
-	cat dependencies.txt | xargs apt-get install -y --no-install-recommends
-	cat dependencies-devel.txt | xargs apt-get install -y --no-install-recommends
+	cat dependencies.txt | xargs sudo apt-get install -y --no-install-recommends
+	cat dependencies-devel.txt | xargs sudo apt-get install -y --no-install-recommends
 
 $(PROTOCOL_DIR):
 	bzr branch lp:magicicada-protocol $(PROTOCOL_DIR)
@@ -45,6 +45,11 @@ update-protocol:
 	cd $(PROTOCOL_DIR) && bzr pull && python setup.py build
 
 bootstrap: deps $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol
+
+docker-bootstrap: clean
+	cat dependencies.txt | xargs apt-get install -y --no-install-recommends
+	cat dependencies-devel.txt | xargs apt-get install -y --no-install-recommends
+	$(MAKE) $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol
 
 lint:
 	virtualenv $(ENV)

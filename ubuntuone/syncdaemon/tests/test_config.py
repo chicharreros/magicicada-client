@@ -447,7 +447,7 @@ class UnicodePathsTestCase(TestCase):
     def test_get_config_files_path_encoding(self):
         """Check that get_config_files uses paths in the right encoding."""
         temp = self.mktemp()
-        fake_path = os.path.join(temp, u"Ñandú")
+        fake_path = os.path.join(temp, 'Ñandú')
         os.makedirs(fake_path)
         with open(os.path.join(fake_path, config.CONFIG_FILE), "w") as f:
             f.write("this is a fake config file")
