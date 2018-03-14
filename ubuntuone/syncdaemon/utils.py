@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -42,10 +43,8 @@ except ImportError:
 
 
 SYNCDAEMON_EXECUTABLE = 'ubuntuone-syncdaemon'
-TUNNEL_EXECUTABLE = 'ubuntuone-proxy-tunnel'
 
-DARWIN_APP_NAMES = {SYNCDAEMON_EXECUTABLE: 'UbuntuOne Syncdaemon.app',
-                    TUNNEL_EXECUTABLE: 'UbuntuOne Proxy Tunnel.app'}
+DARWIN_APP_NAMES = {SYNCDAEMON_EXECUTABLE: 'UbuntuOne Syncdaemon.app'}
 
 
 def _get_bin_cmd(exe_name, extra_fallbacks=[]):
@@ -73,9 +72,3 @@ def _get_bin_cmd(exe_name, extra_fallbacks=[]):
 def get_sd_bin_cmd():
     """Get cmd + args to launch syncdaemon executable."""
     return _get_bin_cmd(SYNCDAEMON_EXECUTABLE)
-
-
-def get_tunnel_bin_cmd(extra_fallbacks):
-    """Get cmd + args to launch proxy tunnel."""
-    return _get_bin_cmd(TUNNEL_EXECUTABLE,
-                        extra_fallbacks=extra_fallbacks)

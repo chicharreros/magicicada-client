@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
-# Copyright 2015-2017 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -59,7 +59,6 @@ from ubuntuone.storageprotocol.context import get_ssl_context
 from ubuntuone.syncdaemon.interfaces import IActionQueue, IMarker
 from ubuntuone.syncdaemon.logger import mklog, TRACE
 from ubuntuone.syncdaemon import config, offload_queue
-from ubuntuone.syncdaemon import tunnel_runner
 
 logger = logging.getLogger("ubuntuone.SyncDaemon.ActionQueue")
 
@@ -856,27 +855,20 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         self.event_queue.push('SV_VOLUME_NEW_GENERATION',
                               volume_id=volume_id, generation=generation)
 
-    def _get_tunnel_runner(self, host, port):
-        """Build the tunnel runner."""
-        return tunnel_runner.TunnelRunner(host, port)
-
-    @defer.inlineCallbacks
     def _make_connection(self):
         """Do the real connect call."""
         connection_info = self.connection_info.next()
         logger.info("Attempting connection to %s", connection_info)
         host = connection_info['host']
         port = connection_info['port']
-        tunnelrunner = self._get_tunnel_runner(host, port)
-        client = yield tunnelrunner.get_client()
         if connection_info['use_ssl']:
             ssl_context = get_ssl_context(
                 connection_info['disable_ssl_verify'], host)
-            self.connector = client.connectSSL(
+            self.connector = reactor.connectSSL(
                 host, port, factory=self, contextFactory=ssl_context,
                 timeout=self.connection_timeout)
         else:
-            self.connector = client.connectTCP(
+            self.connector = reactor.connectTCP(
                 host, port, self, timeout=self.connection_timeout)
 
     def connect(self):

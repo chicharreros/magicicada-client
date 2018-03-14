@@ -1,6 +1,7 @@
 #!/usr/bin/python
 #
 # Copyright 2013 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -203,7 +204,6 @@ bin_scripts = [
 ]
 
 libexec_scripts = [
-    'bin/ubuntuone-proxy-tunnel',
     'bin/ubuntuone-syncdaemon',
 ]
 
