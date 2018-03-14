@@ -12,5 +12,3 @@ RUN chown -R ubuntu:ubuntu /home/ubuntu
 
 USER ubuntu
 ENV HOME /home/ubuntu
-
-RUN make test
