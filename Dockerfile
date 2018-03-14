@@ -13,4 +13,5 @@ RUN chown -R ubuntu:ubuntu /home/ubuntu
 USER ubuntu
 ENV HOME /home/ubuntu
 
+RUN echo $LANG
 RUN make test
