@@ -206,11 +206,11 @@ def get_config_files():
     config_files = []
     for xdg_config_dir in load_config_paths('ubuntuone'):
         xdg_config_dir = unicode_path(xdg_config_dir)
-        config_file = os.path.join(xdg_config_dir, CONFIG_FILE)
+        config_file = os.path.join(xdg_config_dir, CONFIG_FILE).encode('utf8')
         if os.path.exists(config_file):
             config_files.append(config_file)
 
-        config_logs = os.path.join(xdg_config_dir, CONFIG_LOGS)
+        config_logs = os.path.join(xdg_config_dir, CONFIG_LOGS).encode('utf8')
         if os.path.exists(config_logs):
             config_files.append(config_logs)
 

@@ -32,8 +32,8 @@ PROTOCOL_DIR = $(CURDIR)/.protocol
 PROTOCOL_LINK = ubuntuone/storageprotocol
 
 deps:
-	cat dependencies.txt | xargs sudo apt-get install -y --no-install-recommends
-	cat dependencies-devel.txt | xargs sudo apt-get install -y --no-install-recommends
+	cat dependencies.txt | sudo xargs apt-get install -y --no-install-recommends
+	cat dependencies-devel.txt | sudo xargs apt-get install -y --no-install-recommends
 
 $(PROTOCOL_DIR):
 	bzr branch lp:magicicada-protocol $(PROTOCOL_DIR)

@@ -447,12 +447,12 @@ class UnicodePathsTestCase(TestCase):
     def test_get_config_files_path_encoding(self):
         """Check that get_config_files uses paths in the right encoding."""
         temp = self.mktemp()
-        fake_path = os.path.join(temp, 'Ñandú')
+        fake_path = os.path.join(temp, u"Ñandú".encode("utf8"))
+        assert isinstance(fake_path, str)
         os.makedirs(fake_path)
         with open(os.path.join(fake_path, config.CONFIG_FILE), "w") as f:
             f.write("this is a fake config file")
-        self.patch(
-            config, "load_config_paths", lambda _: [fake_path.encode("utf8")])
+        self.patch(config, "load_config_paths", lambda _: [fake_path])
         config_files = config.get_config_files()
         branch_config = os.path.join(fake_path, config.CONFIG_FILE)
         self.assertIn(branch_config, config_files)
