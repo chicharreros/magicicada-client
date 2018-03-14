@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
-# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -41,7 +41,7 @@ import sys
 from collections import defaultdict
 from functools import wraps
 
-from twisted.internet import defer, reactor
+from twisted.internet import defer
 from twisted.trial.unittest import TestCase as TwistedTestCase
 from ubuntuone.devtools.testcases import skipIfOS
 from zope.interface import implements
@@ -312,17 +312,6 @@ class FakeMain(main.Main):
         return defer.succeed(True)
 
 
-class FakeTunnelRunner(object):
-    """A fake proxy.tunnel_client.TunnelRunner."""
-
-    def __init__(self, *args):
-        """Fake a proxy tunnel."""
-
-    def get_client(self):
-        """Always return the reactor."""
-        return defer.succeed(reactor)
-
-
 class BaseTwistedTestCase(TwistedTestCase):
     """Base TestCase with helper methods to handle temp dir.
 
@@ -332,7 +321,6 @@ class BaseTwistedTestCase(TwistedTestCase):
         makedirs(path): support read-only shares
     """
     MAX_FILENAME = 32  # some platforms limit lengths of filenames
-    tunnel_runner_class = FakeTunnelRunner
 
     def mktemp(self, name='temp'):
         """ Customized mktemp that accepts an optional name argument. """
@@ -439,8 +427,6 @@ class BaseTwistedTestCase(TwistedTestCase):
         self.log = logging.getLogger("ubuntuone.SyncDaemon.TEST")
         self.log.info("starting test %s.%s", self.__class__.__name__,
                       self._testMethodName)
-        self.patch(action_queue.tunnel_runner, "TunnelRunner",
-                   self.tunnel_runner_class)
 
 
 class FakeMainTestCase(BaseTwistedTestCase):

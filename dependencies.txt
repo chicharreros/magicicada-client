@@ -6,6 +6,4 @@ python-distutils-extra
 python-gi
 python-protobuf
 python-pyinotify
-python-qt4-dbus
-python-qt4reactor
 python-twisted

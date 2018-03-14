@@ -87,8 +87,6 @@ IF %SKIPLINT% == 1 (
 ECHO Performing style checks...
 "%LINTPATH%"
 
-"%PYTHONEXEPATH%" contrib\check-reactor-import
-
 :: if pep8 is not present, move to the end
 IF EXIST "%PEP8PATH%" (
     "%PEP8PATH%" --repeat ubuntuone

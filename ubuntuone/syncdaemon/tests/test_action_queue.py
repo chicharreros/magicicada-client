@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
-# Copyright 2016-2017 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -1384,9 +1384,13 @@ class ConnectionTestCase(FactoryBaseTestCase):
         self.assertTrue(self.handler.check_info("Connection started",
                                                 "host 1.2.3.4", "port 4321"))
 
-    @defer.inlineCallbacks
     def test_connection_info_rotation(self):
         """It tries to connect to different servers."""
+        # store how connectTCP is called
+        called = []
+        self.patch(
+            reactor, 'connectTCP',
+            lambda host, port, *a, **k: called.append((host, port)))
 
         multiple_conn = [
             {'host': 'host1', 'port': 'port1', 'use_ssl': False},
@@ -1394,61 +1398,14 @@ class ConnectionTestCase(FactoryBaseTestCase):
         ]
         self.action_queue.connection_info = itertools.cycle(multiple_conn)
 
-        self.tunnel_runner = None
+        self.action_queue._make_connection()
+        self.assertEqual(called[-1], ('host1', 'port1'))
 
-        def mitm(*args):
-            tunnel_runner = SavingConnectionTunnelRunner(*args)
-            self.tunnel_runner = tunnel_runner
-            return tunnel_runner
+        self.action_queue._make_connection()
+        self.assertEqual(called[-1], ('host2', 'port2'))
 
-        self.action_queue._get_tunnel_runner = mitm
-
-        yield self.action_queue._make_connection()
-        self.assertEqual(self.tunnel_runner.host, 'host1')
-        self.assertEqual(self.tunnel_runner.port, 'port1')
-
-        yield self.action_queue._make_connection()
-        self.assertEqual(self.tunnel_runner.host, 'host2')
-        self.assertEqual(self.tunnel_runner.port, 'port2')
-
-        yield self.action_queue._make_connection()
-        self.assertEqual(self.tunnel_runner.host, 'host1')
-        self.assertEqual(self.tunnel_runner.port, 'port1')
-
-
-class TunnelRunnerTestCase(FactoryBaseTestCase):
-    """Tests for the tunnel runner."""
-
-    tunnel_runner_class = SavingConnectionTunnelRunner
-
-    def setUp(self):
-        result = super(TunnelRunnerTestCase, self).setUp()
-        self.tunnel_runner = None
-        orig_get_tunnel_runner = self.action_queue._get_tunnel_runner
-
-        def mitm(*args):
-            tunnel_runner = orig_get_tunnel_runner(*args)
-            self.tunnel_runner = tunnel_runner
-            return tunnel_runner
-
-        self.action_queue._get_tunnel_runner = mitm
-        return result
-
-    @defer.inlineCallbacks
-    def test_make_connection_uses_tunnelrunner_non_ssl(self):
-        """Check that _make_connection uses TunnelRunner."""
-        self._patch_connection_info(use_ssl=False)
-        yield self.action_queue._make_connection()
-        self.assertTrue(self.tunnel_runner.client.tcp_connected,
-                        "connectTCP is called on the client.")
-
-    @defer.inlineCallbacks
-    def test_make_connection_uses_tunnelrunner_ssl(self):
-        """Check that _make_connection uses TunnelRunner."""
-        self._patch_connection_info(use_ssl=True, disable_ssl_verify=False)
-        yield self.action_queue._make_connection()
-        self.assertTrue(self.tunnel_runner.client.ssl_connected,
-                        "connectSSL is called on the client.")
+        self.action_queue._make_connection()
+        self.assertEqual(called[-1], ('host1', 'port1'))
 
 
 class ContextRequestedWithHost(FactoryBaseTestCase):
@@ -1459,6 +1416,9 @@ class ContextRequestedWithHost(FactoryBaseTestCase):
     @defer.inlineCallbacks
     def test_context_request_passes_host(self):
         """The context is requested passing the host."""
+        # avoid a real connection
+        self.patch(reactor, 'connectSSL', lambda *a, **k: None)
+
         fake_host = "fake_host"
         fake_disable_ssl_verify = False
 
