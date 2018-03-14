@@ -7,7 +7,7 @@ services:
 
 before_install:
     - docker pull ubuntu:16.04
+    - docker build -t magicicada-client-test-run .
 
 script:
-    - docker build -t magicicada-client-test-run .
     - docker run magicicada-client-test-run make test
