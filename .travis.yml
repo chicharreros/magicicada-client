@@ -10,3 +10,4 @@ before_install:
 
 script:
     - docker build .
+    - docker run make test
