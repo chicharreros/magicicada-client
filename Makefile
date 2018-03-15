@@ -46,6 +46,11 @@ update-protocol:
 
 bootstrap: deps $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol
 
+docker-bootstrap: clean
+	cat dependencies.txt | xargs apt-get install -y --no-install-recommends
+	cat dependencies-devel.txt | xargs apt-get install -y --no-install-recommends
+	$(MAKE) $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol
+
 lint:
 	virtualenv $(ENV)
 	$(ENV)/bin/pip install flake8
