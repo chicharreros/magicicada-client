@@ -44,16 +44,19 @@ $(PROTOCOL_LINK): $(PROTOCOL_DIR)
 update-protocol:
 	cd $(PROTOCOL_DIR) && bzr pull && python setup.py build
 
-bootstrap: deps $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol
+bootstrap: deps $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol venv
+	$(ENV)/bin/python setup.py build
 
 docker-bootstrap: clean
 	cat dependencies.txt | xargs apt-get install -y --no-install-recommends
 	cat dependencies-devel.txt | xargs apt-get install -y --no-install-recommends
 	$(MAKE) $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol
 
+venv: 
+	virtualenv --system-site-packages $(ENV)
+	$(ENV)/bin/pip install -r requirements.txt -r requirements-devel.txt
+
 lint:
-	virtualenv $(ENV)
-	$(ENV)/bin/pip install flake8
 	$(ENV)/bin/flake8 --filename='*.py' --exclude='u1fsfsm.py,test_run_hello.py' ubuntuone
 
 test: lint

@@ -29,40 +29,16 @@
 import logging
 import os
 
-try:
-    from gi.repository import Gio as gio
-    GIO_NOT_SUPPORTED = gio.IOErrorEnum.NOT_SUPPORTED
-except ImportError:
-    import gio
-    GIO_NOT_SUPPORTED = gio.ERROR_NOT_SUPPORTED
-
 from twisted.internet import defer
 from ubuntuone.devtools.handlers import MementoHandler
 
 from ubuntuone.platform.tests.os_helper import test_os_helper
+from ubuntuone.platform.os_helper import linux
 from ubuntuone.platform import (
     move_to_trash,
     open_file,
     stat_path,
 )
-
-
-class FakeGIOFile(object):
-    """Fake File for gio."""
-
-    _bad_trash_call = None
-
-    def __init__(self, path):
-        pass
-
-    @classmethod
-    def new_for_path(klass, path):
-        """Fake new_for_path for GI."""
-        return klass(path)
-
-    def trash(self, *args):
-        """Fake trash call."""
-        return self._bad_trash_call
 
 
 class OSWrapperTests(test_os_helper.OSWrapperTests):
@@ -90,50 +66,31 @@ class OSWrapperTests(test_os_helper.OSWrapperTests):
         self.assertNotEqual(os.stat(link).st_ino, stat_path(link).st_ino)
         self.assertEqual(os.lstat(link).st_ino, stat_path(link).st_ino)
 
-    def test_movetotrash_file_bad(self):
-        """Something bad happen when moving to trash, removed anyway."""
-        FakeGIOFile._bad_trash_call = False   # error
-        self.patch(gio, "File", FakeGIOFile)
+    def test_movetotrash_bad(self):
+        """Something bad happen when moving to trash, removed anyway.
+
+        Simulating this as giving a non-existant path to the function, which
+        will make it fail with OSError, which is the exception the send2trash
+        library raises on any problem.
+        """
+        called = []
+        self.patch(linux, '_remove_path', lambda p: called.append(p))
+
+        path = os.path.join(self.basedir, 'non-existant')
+        move_to_trash(path)
+        self.assertEqual(called[0], path)
+        self.assertTrue(self.handler.check_warning(
+            "Problems moving to trash!", "Removing anyway", path))
+
+    def test_remove_path_file(self):
         path = os.path.join(self.basedir, 'foo')
         open_file(path, 'w').close()
-        move_to_trash(path)
+        linux._remove_path(path)
         self.assertFalse(os.path.exists(path))
-        self.assertTrue(self.handler.check_warning("Problems moving to trash!",
-                                                   "Removing anyway", "foo"))
 
-    def test_movetotrash_dir_bad(self):
-        """Something bad happen when moving to trash, removed anyway."""
-        FakeGIOFile._bad_trash_call = False   # error
-        self.patch(gio, "File", FakeGIOFile)
+    def test_remove_path_dir(self):
         path = os.path.join(self.basedir, 'foo')
         os.mkdir(path)
         open_file(os.path.join(path, 'file inside directory'), 'w').close()
-        move_to_trash(path)
+        linux._remove_path(path)
         self.assertFalse(os.path.exists(path))
-        self.assertTrue(self.handler.check_warning("Problems moving to trash!",
-                                                   "Removing anyway", "foo"))
-
-    def test_movetotrash_file_systemnotcapable(self):
-        """The system is not capable of moving into trash."""
-        FakeGIOFile._bad_trash_call = GIO_NOT_SUPPORTED
-        self.patch(gio, "File", FakeGIOFile)
-        path = os.path.join(self.basedir, 'foo')
-        open_file(path, 'w').close()
-        move_to_trash(path)
-        self.assertFalse(os.path.exists(path))
-        self.assertTrue(self.handler.check_warning("Problems moving to trash!",
-                                                   "Removing anyway", "foo",
-                                                   "ERROR_NOT_SUPPORTED"))
-
-    def test_movetotrash_dir_systemnotcapable(self):
-        """The system is not capable of moving into trash."""
-        FakeGIOFile._bad_trash_call = GIO_NOT_SUPPORTED
-        self.patch(gio, "File", FakeGIOFile)
-        path = os.path.join(self.basedir, 'foo')
-        os.mkdir(path)
-        open_file(os.path.join(path, 'file inside directory'), 'w').close()
-        move_to_trash(path)
-        self.assertFalse(os.path.exists(path))
-        self.assertTrue(self.handler.check_warning("Problems moving to trash!",
-                                                   "Removing anyway", "foo",
-                                                   "ERROR_NOT_SUPPORTED"))

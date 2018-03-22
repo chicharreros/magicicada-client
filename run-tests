@@ -28,10 +28,6 @@
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
 
-# Allow alternative python executable via environment variable.  This is
-# useful for virtualenv testing.
-PYTHON=${PYTHON:-'python'}
-
 set -e
 if [ $# -ne 0 ]; then
     # run specific module given by the caller
@@ -42,7 +38,6 @@ else
 fi
 
 SYSNAME=`uname -s`
-
 if [ "$SYSNAME" == "Darwin" ]; then
     IGNORE_FILES="test_linux.py,test_windows.py"
     IGNORE_PATHS="ubuntuone/platform/tests/linux"
@@ -54,8 +49,5 @@ fi
 
 echo "*** Running test suite for ""$MODULE"" ***"
 export SSL_CERTIFICATES_DIR=/etc/ssl/certs
-$PYTHON ./setup.py build
-u1trial -i "$IGNORE_FILES" -p "$IGNORE_PATHS" "$MODULE"
-$PYTHON ./setup.py clean
+.env/bin/python /usr/bin/u1trial -i "$IGNORE_FILES" -p "$IGNORE_PATHS" $MODULE
 rm -rf _trial_temp
-rm -rf build

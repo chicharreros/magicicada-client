@@ -31,17 +31,17 @@ This module has to have all linux specific modules and provide the api required
 to support the linux platform.
 """
 
-import errno
 import logging
 import os
 import shutil
 
 try:
-    from gi.repository import Gio, GLib
+    from gi.repository import GObject
     has_gi = True
 except ImportError:
-    import gio
+    import gobject
     has_gi = False
+from send2trash import send2trash
 
 from ubuntuone.platform.os_helper import unix
 
@@ -50,44 +50,32 @@ platform = "linux2"
 logger = logging.getLogger('ubuntuone.SyncDaemon')
 
 
+def _remove_path(path):
+    """Remove the path, no matter if file or dir structure."""
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+    else:
+        os.remove(path)
+
+
 def move_to_trash(path):
     """Move the file or dir to trash.
 
     If had any error, or the system can't do it, just remove it.
     """
-    if has_gi:
-        not_supported = Gio.IOErrorEnum.NOT_SUPPORTED
-        try:
-            return_code = Gio.File.new_for_path(path).trash(None)
-        except GLib.GError:
-            exc = OSError()
-            exc.errno = errno.ENOENT
-            raise exc
-    else:
-        not_supported = gio.ERROR_NOT_SUPPORTED
-        try:
-            return_code = gio.File(path).trash()
-        except gio.Error:
-            exc = OSError()
-            exc.errno = errno.ENOENT
-            raise exc
-
-    if not return_code or return_code == not_supported:
-        logger.warning("Problems moving to trash! (%s) Removing anyway: %r",
-                       return_code, path)
-        if os.path.isdir(path):
-            shutil.rmtree(path)
-        else:
-            os.remove(path)
+    try:
+        send2trash(path)
+    except OSError as exc:
+        logger.warning(
+            "Problems moving to trash! (%s) Removing anyway: %r", exc, path)
+        _remove_path(path)
 
 
 def set_application_name(app_name):
     """Set the name of the application."""
     if has_gi:
-        from gi.repository import GObject
         GObject.set_application_name(app_name)
     else:
-        import gobject
         gobject.set_application_name(app_name)
 
 
