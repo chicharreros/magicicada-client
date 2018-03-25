@@ -44,8 +44,10 @@ $(PROTOCOL_LINK): $(PROTOCOL_DIR)
 update-protocol:
 	cd $(PROTOCOL_DIR) && bzr pull && python setup.py build
 
-bootstrap: deps $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol venv
+build:
 	$(ENV)/bin/python setup.py build
+
+bootstrap: deps $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol venv build
 
 docker-bootstrap: clean
 	cat dependencies.txt | xargs apt-get install -y --no-install-recommends
