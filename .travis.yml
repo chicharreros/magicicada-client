@@ -10,4 +10,4 @@ before_install:
     - docker build -t magicicada-client-test-run .
 
 script:
-    - docker run magicicada-client-test-run make bootstrap test
+    - docker run magicicada-client-test-run make venv test
