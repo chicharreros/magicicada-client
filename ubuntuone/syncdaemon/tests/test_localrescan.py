@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -34,6 +35,7 @@ import logging
 import os
 import uuid
 
+from magicicadaprotocol import content_hash as storage_hash, volumes
 from twisted.internet import defer, reactor
 from ubuntuone.devtools.handlers import MementoHandler
 from ubuntuone.devtools.testcases import skipIfOS
@@ -62,9 +64,6 @@ from ubuntuone.syncdaemon import (
 )
 from ubuntuone.syncdaemon.marker import MDMarker
 from ubuntuone.syncdaemon.tritcask import Tritcask
-from ubuntuone.storageprotocol import (
-    content_hash as storage_hash, volumes
-)
 from ubuntuone.syncdaemon.volume_manager import (
     ACCESS_LEVEL_RO,
     ACCESS_LEVEL_RW,

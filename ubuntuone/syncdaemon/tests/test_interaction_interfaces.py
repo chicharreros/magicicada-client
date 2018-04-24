@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2011-2015 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -31,15 +32,9 @@
 import logging
 import os
 
+from magicicadaprotocol.protocol_pb2 import AccountInfo
 from twisted.internet import defer
 from ubuntuone.devtools.handlers import MementoHandler
-try:
-    from ubuntuone.networkstate.networkstates import ONLINE
-except ImportError:
-    from ubuntuone.networkstate import ONLINE
-from ubuntuone.platform.tests.ipc.test_perspective_broker import (
-    FakeNetworkManagerState,
-)
 
 from contrib.testing.testcase import (
     FAKED_CREDENTIALS,
@@ -50,8 +45,11 @@ from contrib.testing.testcase import (
     FakeMainTestCase,
     skipIfOS,
 )
+from ubuntuone.networkstate.networkstates import ONLINE
 from ubuntuone.platform import make_dir, make_link
-from ubuntuone.storageprotocol.protocol_pb2 import AccountInfo
+from ubuntuone.platform.tests.ipc.test_perspective_broker import (
+    FakeNetworkManagerState,
+)
 from ubuntuone.syncdaemon import (
     config,
     interaction_interfaces,

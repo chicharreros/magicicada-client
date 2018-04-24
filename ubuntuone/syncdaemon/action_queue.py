@@ -42,20 +42,23 @@ from functools import partial
 
 import OpenSSL.SSL
 
-from zope.interface import implements
-from twisted.internet import reactor, defer, task
-from twisted.internet import error as twisted_errors
-from twisted.python.failure import Failure, DefaultException
-
-from ubuntuone import clientdefs
-from ubuntuone.platform import platform, remove_file
-from ubuntuone.storageprotocol import protocol_pb2, content_hash
-from ubuntuone.storageprotocol import errors as protocol_errors
-from ubuntuone.storageprotocol.client import (
+from magicicadaprotocol import (
+    content_hash,
+    errors as protocol_errors,
+    protocol_pb2,
+)
+from magicicadaprotocol.client import (
     ThrottlingStorageClient,
     ThrottlingStorageClientFactory,
 )
-from ubuntuone.storageprotocol.context import get_ssl_context
+from magicicadaprotocol.context import get_ssl_context
+from twisted.internet import reactor, defer, task
+from twisted.internet import error as twisted_errors
+from twisted.python.failure import Failure, DefaultException
+from zope.interface import implements
+
+from ubuntuone import clientdefs
+from ubuntuone.platform import platform, remove_file
 from ubuntuone.syncdaemon.interfaces import IActionQueue, IMarker
 from ubuntuone.syncdaemon.logger import mklog, TRACE
 from ubuntuone.syncdaemon import config, offload_queue
@@ -884,7 +887,7 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
 
     def buildProtocol(self, addr):
         """Build the client and store it. Connect callbacks."""
-        # XXX: Very Important Note: within the storageprotocol project,
+        # XXX: Very Important Note: within the magicicadaprotocol project,
         # ThrottlingStorageClient.connectionMade sets self.factory.client
         # to self *if* self.factory.client is not None.
         # Since buildProcotol is called before connectionMade, the latter

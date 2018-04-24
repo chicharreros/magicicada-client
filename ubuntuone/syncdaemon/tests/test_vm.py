@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Guillermo Gonzalez <guillermo.gonzalez@canonical.com>
-#
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -40,16 +39,14 @@ import os
 import sys
 import uuid
 
+from magicicadaprotocol import volumes, request
+from magicicadaprotocol.client import ListShares
+from magicicadaprotocol.sharersp import NotifyShareHolder, ShareResponse
+
 from mocker import Mocker, MATCH
 from twisted.internet import defer, reactor
 from ubuntuone.devtools.handlers import MementoHandler
 from ubuntuone.devtools.testcases import skipIfOS
-from ubuntuone.storageprotocol import volumes, request
-from ubuntuone.storageprotocol.client import ListShares
-from ubuntuone.storageprotocol.sharersp import (
-    NotifyShareHolder,
-    ShareResponse,
-)
 
 from contrib.testing.testcase import (
     BaseTwistedTestCase,

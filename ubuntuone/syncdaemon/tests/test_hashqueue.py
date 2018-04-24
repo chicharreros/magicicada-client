@@ -1,8 +1,7 @@
-#
-# Authors: Facundo Batista <facundo@canonical.com>
-#          Alejandro J. Cura <alecu@canonical.com>
+# -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -32,13 +31,14 @@
 
 from __future__ import with_statement
 
+import logging
 import os
 import random
-import time
-import logging
 import threading
-
+import time
 from StringIO import StringIO
+
+from magicicadaprotocol.content_hash import content_hash_factory, crc32
 from twisted.trial.unittest import TestCase as TwistedTestCase
 from twisted.internet import defer, reactor
 from ubuntuone.devtools.handlers import MementoHandler
@@ -48,7 +48,6 @@ from contrib.testing.testcase import BaseTwistedTestCase
 from ubuntuone.platform import open_file, stat_path
 from ubuntuone.syncdaemon import hash_queue
 from ubuntuone.syncdaemon.hash_queue import HASHQUEUE_DELAY
-from ubuntuone.storageprotocol.content_hash import content_hash_factory, crc32
 
 FAKE_TIMESTAMP = 1
 

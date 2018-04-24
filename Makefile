@@ -28,31 +28,19 @@
 # For further info, check  http://launchpad.net/magicicada-client
 
 ENV = $(CURDIR)/.env
-PROTOCOL_DIR = $(CURDIR)/.protocol
-PROTOCOL_LINK = ubuntuone/storageprotocol
 
 deps:
 	cat dependencies.txt | sudo xargs apt-get install -y --no-install-recommends
 	cat dependencies-devel.txt | sudo xargs apt-get install -y --no-install-recommends
 
-$(PROTOCOL_DIR):
-	bzr branch lp:magicicada-protocol $(PROTOCOL_DIR)
-
-$(PROTOCOL_LINK): $(PROTOCOL_DIR)
-	ln -s $(PROTOCOL_DIR)/$(PROTOCOL_LINK) $(PROTOCOL_LINK)
-
-update-protocol:
-	cd $(PROTOCOL_DIR) && bzr pull && python setup.py build
-
 build:
 	$(ENV)/bin/python setup.py build
 
-bootstrap: deps $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol venv build
+bootstrap: deps venv build
 
 docker-bootstrap: clean
 	cat dependencies.txt | xargs apt-get install -y --no-install-recommends
 	cat dependencies-devel.txt | xargs apt-get install -y --no-install-recommends
-	$(MAKE) $(PROTOCOL_DIR) $(PROTOCOL_LINK) update-protocol
 
 venv: 
 	virtualenv --system-site-packages $(ENV)
@@ -65,8 +53,8 @@ test: lint
 	./run-tests
 
 clean:
-	rm -rf build _trial_temp $(PROTOCOL_DIR) $(PROTOCOL_LINK) $(ENV)
+	rm -rf build _trial_temp $(ENV)
 	find -name '*.pyc' -delete
 
 .PHONY:
-	deps update-protocol bootstrap lint test clean
+	deps bootstrap lint test clean

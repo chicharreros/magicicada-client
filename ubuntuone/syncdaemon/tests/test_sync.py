@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
-# Copyright 2015-2018 Chicharreros
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -39,8 +39,11 @@ import os
 import unittest
 import uuid
 
+from magicicadaprotocol import delta
+from magicicadaprotocol.request import ROOT
 from twisted.internet import defer
 from twisted.python.failure import Failure
+from ubuntuone.devtools.handlers import MementoHandler
 from ubuntuone.devtools.testcases import skipIfOS
 
 from contrib.testing.testcase import (
@@ -49,8 +52,6 @@ from contrib.testing.testcase import (
     BaseTwistedTestCase,
     Listener,
 )
-
-from ubuntuone.devtools.handlers import MementoHandler
 from ubuntuone.platform import (
     make_dir,
     open_file,
@@ -63,8 +64,6 @@ from ubuntuone.syncdaemon.fsm import fsm as fsm_module
 from ubuntuone.syncdaemon.sync import FSKey, Sync, SyncStateMachineRunner
 from ubuntuone.syncdaemon.volume_manager import Share
 from ubuntuone.syncdaemon.event_queue import EventQueue, EVENTS
-from ubuntuone.storageprotocol.request import ROOT
-from ubuntuone.storageprotocol import delta
 from ubuntuone.syncdaemon.marker import MDMarker
 
 

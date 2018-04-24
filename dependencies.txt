@@ -1,5 +1,4 @@
 gir1.2-soup-2.4
-protobuf-compiler
 python-configglue
 python-dirspec
 python-distutils-extra

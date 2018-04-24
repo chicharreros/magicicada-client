@@ -1,6 +1,7 @@
-# ubuntuone.syncdaemon.volume_manager - manages volumes
+# -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -41,14 +42,14 @@ import stat
 
 from itertools import ifilter
 
-from twisted.internet import defer
-from ubuntuone.platform import expand_user
-from ubuntuone.storageprotocol import request
-from ubuntuone.storageprotocol.volumes import (
+from magicicadaprotocol import request
+from magicicadaprotocol.volumes import (
     ShareVolume,
     UDFVolume,
     RootVolume,
 )
+from twisted.internet import defer
+from ubuntuone.platform import expand_user
 
 from ubuntuone.syncdaemon.marker import MDMarker
 from ubuntuone.syncdaemon.interfaces import IMarker

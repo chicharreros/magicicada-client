@@ -1,9 +1,5 @@
-In order to run tests in ubuntuone-client, you will need to have a built
-version of ubuntuone-storage-protocol in a tree, or installed. You can
-specify the path to a built tree with the --with-protocol option to configure,
-or autogen.sh (which calls configure after creating it).
-
-Or you can simply bootstrap and everything will happen automagically:
+In order to run tests in ubuntuone-client, you can simply bootstrap and
+everything will be setup automagically:
 
 $: sudo apt-get install make
 $: make bootstrap

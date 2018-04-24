@@ -1,10 +1,7 @@
-# ubuntuone.syncdaemon.hash_queue - hash queues
-#
-# Authors: Facundo Batista <facundo@canonical.com>
-#          Guillermo Gonzalez <guillermo.gonzalez@canonical.com>
-#          Alejandro J. Cura <alecu@canonical.com>
+# -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -41,10 +38,8 @@ import time
 
 from collections import OrderedDict
 
+from magicicadaprotocol.content_hash import content_hash_factory, crc32
 from twisted.internet import reactor
-
-from ubuntuone.storageprotocol.content_hash import \
-    content_hash_factory, crc32
 
 from ubuntuone.platform import (
     open_file,

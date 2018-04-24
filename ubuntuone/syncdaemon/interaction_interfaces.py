@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2011-2015 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -44,17 +45,14 @@ import uuid
 
 from functools import wraps
 
+from magicicadaprotocol import request
 from twisted.internet import defer
 
 from ubuntuone.networkstate import NetworkManagerState
-try:
-    from ubuntuone.networkstate.networkstates import ONLINE
-except ImportError:
-    from ubuntuone.networkstate import ONLINE
+from ubuntuone.networkstate.networkstates import ONLINE
 
 from ubuntuone.logger import log_call
 from ubuntuone.platform import ExternalInterface
-from ubuntuone.storageprotocol import request
 from ubuntuone.syncdaemon import config
 from ubuntuone.syncdaemon.action_queue import Download, Upload
 from ubuntuone.syncdaemon.interfaces import IMarker

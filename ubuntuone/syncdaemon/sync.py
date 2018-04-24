@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
-# Copyright 2015-2018 Chicharreros
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -31,15 +31,15 @@
 
 from __future__ import with_statement
 
-import os
 import logging
-from operator import attrgetter
+import os
 import sys
+from operator import attrgetter
+
+from magicicadaprotocol import delta
 
 from ubuntuone.syncdaemon.marker import MDMarker
-from ubuntuone.storageprotocol import delta
-from ubuntuone.syncdaemon.fsm.fsm import \
-    StateMachineRunner, StateMachine
+from ubuntuone.syncdaemon.fsm.fsm import StateMachineRunner, StateMachine
 from ubuntuone.syncdaemon import u1fsfsm
 from ubuntuone.syncdaemon.logger import DebugCapture
 from ubuntuone.syncdaemon.filesystem_manager import (

@@ -1,1 +1,2 @@
 Send2Trash==1.5.0
+magicicadaprotocol==2.0

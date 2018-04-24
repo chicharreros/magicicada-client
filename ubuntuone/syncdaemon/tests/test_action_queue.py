@@ -45,6 +45,13 @@ from StringIO import StringIO
 
 import OpenSSL.SSL
 
+from magicicadaprotocol import (
+    client,
+    content_hash,
+    errors,
+    protocol_pb2,
+    request,
+)
 from mocker import Mocker, MockerTestCase, ANY, expect
 from twisted.internet import defer, reactor
 from twisted.internet import error as twisted_error
@@ -65,13 +72,6 @@ from ubuntuone.devtools import handlers
 from ubuntuone.devtools.testcases import skipTest
 from ubuntuone import logger, clientdefs
 from ubuntuone.platform import open_file, platform, path_exists
-from ubuntuone.storageprotocol import (
-    client,
-    content_hash,
-    errors,
-    protocol_pb2,
-    request,
-)
 from ubuntuone.syncdaemon import interfaces, config
 from ubuntuone.syncdaemon import action_queue
 from ubuntuone.syncdaemon.action_queue import (
