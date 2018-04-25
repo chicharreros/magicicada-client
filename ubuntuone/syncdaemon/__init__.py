@@ -1,5 +1,5 @@
 # Copyright 2009-2012 Canonical Ltd.
-# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -31,9 +31,3 @@
 REQUIRED_CAPS = frozenset(
     ["no-content", "account-info", "resumable-uploads", "fix462230", "volumes",
      "generations"])
-
-
-# Sync Menu data constants
-RECENT_TRANSFERS = 'recent-transfers'
-UPLOADING = 'uploading'
-DOWNLOADING = 'downloading'

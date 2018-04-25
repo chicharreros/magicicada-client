@@ -304,10 +304,6 @@ class SyncdaemonStatus(SyncdaemonObject):
                 waiting_content.append(data)
         return waiting_content
 
-    def sync_menu(self):
-        """Return the info necessary to construct the menu."""
-        return self.main.status_listener.menu_data()
-
 
 class SyncdaemonFileSystem(SyncdaemonObject):
     """An interface to the FileSystem Manager."""

@@ -1,8 +1,5 @@
-# ubuntuone.clientdefs - Configure-time definitions
-#
-# Author: David Planella <david.planella@ubuntu.com>
-#
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -30,7 +27,6 @@
 # files in the program, then also delete it here.
 """Configure-time definitions for the client."""
 
-import gettext
 import os
 import platform
 import urllib
@@ -39,14 +35,9 @@ NAME = 'Magicicada'
 VERSION = "@VERSION@"
 LOCALEDIR = "@localedir@"
 LIBEXECDIR = "@libexecdir@"
-GETTEXT_PACKAGE = "@GETTEXT_PACKAGE@"
-PROJECT_NAME = "@GETTEXT_PACKAGE@"
+PROJECT_NAME = "@PROJECT_NAME@"
 PROJECT_DIR = os.path.join('@prefix@', 'share', PROJECT_NAME)
 BIN_DIR = os.path.join('@prefix@', 'lib', PROJECT_NAME)
-
-
-def Q_(string):
-    return gettext.dgettext(GETTEXT_PACKAGE, string)
 
 
 def platform_data():

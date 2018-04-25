@@ -71,7 +71,6 @@ def replace_variables(files_to_replace, prefix=None, *args, **kwargs):
             with open(fname, 'w') as out_file:
                 content = content.replace('@VERSION@', VERSION)
                 content = content.replace('@PROJECT_NAME@', PROJECT_NAME)
-                content = content.replace('@GETTEXT_PACKAGE@', PROJECT_NAME)
                 content = content.replace('@LOG_LEVEL@', LOG_LEVEL)
                 content = content.replace('@LOG_FILE_SIZE@', LOG_FILE_SIZE)
                 if prefix is not None:

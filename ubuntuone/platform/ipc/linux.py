@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -38,10 +39,6 @@ from twisted.internet import defer
 from xml.etree import ElementTree
 
 from ubuntuone.platform import launcher
-from ubuntuone.syncdaemon import (
-    RECENT_TRANSFERS,
-    UPLOADING,
-)
 
 # Disable the "Invalid Name" check here, as we have lots of DBus style names
 
@@ -175,35 +172,6 @@ class Status(DBusExposedObject):
         """
         warnings.warn('Use "waiting" method instead.', DeprecationWarning)
         return self.service.status.waiting_content()
-
-    @dbus.service.method(DBUS_IFACE_STATUS_NAME, out_signature='a{sv}')
-    def sync_menu(self):
-        """
-        This method returns a dictionary, with the following keys and values:
-
-        Key: 'recent-transfers'
-        Value: a list of strings (paths), each being the name of a file that
-               was recently transferred.
-
-        Key: 'uploading'
-        Value: a list of tuples, with each tuple having the following items:
-         * str: the path of a file that's currently being uploaded
-         * int: size of the file
-         * int: bytes written
-        """
-        data = self.service.status.sync_menu()
-        uploading = data[UPLOADING]
-        transfers = data[RECENT_TRANSFERS]
-        upload_data = dbus.Array(signature="(sii)")
-        transfer_data = dbus.Array(signature="s")
-        for up in uploading:
-            upload_data.append(dbus.Struct(up, signature="sii"))
-        for transfer in transfers:
-            transfer_data.append(transfer)
-        result = dbus.Dictionary(signature="sv")
-        result[UPLOADING] = upload_data
-        result[RECENT_TRANSFERS] = transfer_data
-        return result
 
     @dbus.service.signal(DBUS_IFACE_STATUS_NAME)
     def DownloadStarted(self, path):

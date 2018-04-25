@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2011-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -40,10 +41,6 @@ from ubuntuone.platform.tests import (
     StatusTestCase,
     SyncDaemonTestCase,
 )
-from ubuntuone.syncdaemon import (
-    RECENT_TRANSFERS,
-    UPLOADING,
-)
 
 STR = 'something'
 STR_STR_DICT = {'foo': 'bar'}
@@ -68,7 +65,7 @@ class StatusTests(StatusTestCase):
         ('ContentQueueChanged', ()),
         ('MetaQueueChanged', ()),
         ('RequestQueueAdded', (STR, STR, STR_STR_DICT)),
-        ('RequestQueueRemoved',  (STR, STR, STR_STR_DICT)),
+        ('RequestQueueRemoved', (STR, STR, STR_STR_DICT)),
     ]
 
     @defer.inlineCallbacks
@@ -135,16 +132,6 @@ class StatusTests(StatusTestCase):
                                         'waiting_content', result)
         self.assert_remote_method(
             'waiting_metadata', in_signature=None, out_signature='a(sa{ss})')
-
-    @defer.inlineCallbacks
-    def test_sync_menu(self):
-        """Test sync_menu."""
-        result = {RECENT_TRANSFERS: [], UPLOADING: []}
-        method = 'sync_menu'
-        yield self.assert_method_called(self.service.status,
-                                        method, result)
-        self.assert_remote_method(
-            method, in_signature=None, out_signature='a{sv}')
 
 
 class EventsTests(EventsTestCase):

@@ -58,8 +58,6 @@ from ubuntuone.syncdaemon import (
     main,
     local_rescan,
     tritcask,
-    RECENT_TRANSFERS,
-    UPLOADING,
 )
 from ubuntuone.syncdaemon import logger
 from ubuntuone import platform
@@ -76,6 +74,10 @@ logger.init()
 
 FAKED_CREDENTIALS = {'username': 'test_username',
                      'password': 'test_password'}
+
+
+def NOOP(*a, **kw):
+    """Do nothing."""
 
 
 @contextlib.contextmanager
@@ -190,14 +192,6 @@ class FakeActionQueue(object):
     node_is_with_queued_move = cleanup = get_public_files = disconnect
 
 
-class FakeStatusListener(object):
-    """A fake StatusListener."""
-
-    def menu_data(self):
-        """Fake menu_data."""
-        return {RECENT_TRANSFERS: [], UPLOADING: []}
-
-
 class FakeMonitor(object):
     """A fake FilesystemMonitor."""
 
@@ -259,8 +253,8 @@ class FakeMain(main.Main):
         self.vm = volume_manager.VolumeManager(self)
         self.fs = fs_manager.FileSystemManager(
             self.data_dir, self.partials_dir, self.vm, self.db)
-        self.event_q = event_queue.EventQueue(self.fs,
-                                              monitor_class=self._monitor_class)
+        self.event_q = event_queue.EventQueue(
+            self.fs, monitor_class=self._monitor_class)
         self.fs.register_eq(self.event_q)
         self.action_q = self._fake_AQ_class(self.event_q, self,
                                             *self._fake_AQ_params)
@@ -274,8 +268,6 @@ class FakeMain(main.Main):
         self.external = FakeExternalInterface()
         self.lr = local_rescan.LocalRescan(self.vm, self.fs,
                                            self.event_q, self.action_q)
-
-        self.status_listener = FakeStatusListener()
 
     def _connect_aq(self, _):
         """Connect the fake action queue."""
@@ -408,9 +400,8 @@ class BaseTwistedTestCase(TwistedTestCase):
         self.patch(platform, "user_home", self.home_dir)
 
         # use the config from the branch
-        new_get_config_files = lambda: [os.path.join(os.environ['ROOTDIR'],
-                                                     'data', 'syncdaemon.conf')]
-        self.patch(config, 'get_config_files', new_get_config_files)
+        self.patch(config, 'get_config_files', lambda: [
+            os.path.join(os.environ['ROOTDIR'], 'data', 'syncdaemon.conf')])
 
         # fake a very basic config file with sane defaults for the tests
         config_dir = self.mktemp('config')
@@ -626,7 +617,7 @@ class FakedObject(object):
         try:
             result = super(FakedObject, self).__getattribute__(attr_name)
         except AttributeError:
-            result = lambda *a, **kw: None
+            result = NOOP
             super(FakedObject, self).__setattr__(attr_name, result)
 
         if attr_name == '_called':

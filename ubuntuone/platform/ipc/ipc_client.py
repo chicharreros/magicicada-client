@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2011-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -196,22 +197,6 @@ class StatusClient(RemoteClient, Referenceable):
     @remote
     def current_uploads(self):
         """Return a list of files with a upload in progress."""
-
-    @remote
-    def sync_menu(self):
-        """
-        This method returns a dictionary, with the following keys and values:
-
-        Key: 'recent-transfers'
-        Value: a list of strings (paths), each being the name of a file that
-               was recently transferred.
-
-        Key: 'uploading'
-        Value: a list of tuples, with each tuple having the following items:
-         * str: the path of a file that's currently being uploaded
-         * int: size of the file
-         * int: bytes written
-        """
 
     @signal
     def on_content_queue_changed(self):

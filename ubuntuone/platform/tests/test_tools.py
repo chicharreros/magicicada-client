@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -44,8 +45,6 @@ from ubuntuone.syncdaemon import (
     interaction_interfaces,
     states,
     volume_manager,
-    RECENT_TRANSFERS,
-    UPLOADING,
 )
 from ubuntuone.platform import tools
 from ubuntuone.platform.tests import IPCTestCase
@@ -252,13 +251,6 @@ class TestToolsBasic(TestToolsBase):
         self.assertEqual('No', result['answer'])
         self.assertEqual('share_id', result['volume_id'])
         self.assertEqual(False, self.main.vm.shares['share_id'].accepted)
-
-    @defer.inlineCallbacks
-    def test_sync_menu(self):
-        """Test accept_share method."""
-        result = yield self.tool.sync_menu()
-        self.assertIn(RECENT_TRANSFERS, result)
-        self.assertIn(UPLOADING, result)
 
 
 class TestWaitForSignals(TestToolsBase):
@@ -496,8 +488,8 @@ class TestToolsSomeMore(TestToolsBase):
         """Test SyncDaemonTool.waiting_metadata."""
         # inject the fake data
         self.action_q.queue.waiting.extend([
-                FakeCommand("node_a_foo", "node_a_bar", path='path'),
-                FakeCommand("node_b_foo", "node_b_bar")])
+            FakeCommand("node_a_foo", "node_a_bar", path='path'),
+            FakeCommand("node_b_foo", "node_b_bar")])
         result = yield self.tool.waiting_metadata()
 
         self.assertEqual(2, len(result))
@@ -521,8 +513,8 @@ class TestToolsSomeMore(TestToolsBase):
 
         # inject the fake data
         self.action_q.queue.waiting.extend([
-                FakeContentCommand("", "node_id", path='/some/path'),
-                FakeContentCommand("", "node_id_1", path='/other/path')])
+            FakeContentCommand("", "node_id", path='/some/path'),
+            FakeContentCommand("", "node_id_1", path='/other/path')])
 
         result = yield self.tool.waiting_content()
 
