@@ -37,9 +37,11 @@ from distutils.spawn import find_executable
 
 SRCDIR = os.environ.get('SRCDIR', os.getcwd())
 
+
 class DBusLaunchError(Exception):
     """Error while launching dbus-daemon"""
     pass
+
 
 class NotFoundError(Exception):
     """Not found error"""
@@ -85,4 +87,3 @@ class DBusRunner(object):
         del os.environ["DBUS_SESSION_BUS_ADDRESS"]
         os.kill(self.dbus_pid, signal.SIGKILL)
         self.running = False
-

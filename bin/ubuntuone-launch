@@ -1,10 +1,9 @@
 #!/usr/bin/python
-
+#
 # Magicicada storage synchronization daemon startup helper
 #
-# Author: John Lenton <john.lenton@canonical.com>
-#
 # Copyright 2010-2012 Canonical Ltd.
+# Copyright 2017-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -30,8 +29,7 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""
-Storage synchronization daemon (syncdaemon) startup helper.
+"""Storage synchronization daemon (syncdaemon) startup helper.
 
 This script decides whether to start and connect syncdaemon.
 
@@ -68,8 +66,8 @@ from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
 from twisted.internet import defer
 
-from ubuntuone.syncdaemon.config import get_user_config
-from ubuntuone.platform.tools import SyncDaemonTool, is_already_running
+from magicicadaclient.syncdaemon.config import get_user_config
+from magicicadaclient.platform.tools import SyncDaemonTool, is_already_running
 
 
 @defer.inlineCallbacks

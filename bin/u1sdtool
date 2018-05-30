@@ -1,6 +1,7 @@
 #! /usr/bin/python
 #
 # Copyright 2009-2013 Canonical Ltd.
+# Copyright 2017-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -51,7 +52,8 @@ from twisted.internet import reactor, defer
 warnings.filterwarnings('ignore', message='.*Config(Option|Section).*',
                         category=DeprecationWarning)
 
-from ubuntuone.platform.tools import (
+from magicicadaclient.clientdefs import VERSION
+from magicicadaclient.platform.tools import (
     SyncDaemonTool,
     is_already_running,
     show_dirty_nodes,
@@ -69,7 +71,6 @@ from ubuntuone.platform.tools import (
     show_waiting_content,
     show_waiting_metadata,
 )
-from ubuntuone.clientdefs import VERSION
 
 
 @defer.inlineCallbacks

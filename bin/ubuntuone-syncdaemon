@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # Copyright 2009-2015 Canonical Ltd.
-# Copyright 2017 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2017-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -41,9 +41,11 @@ if sys.platform not in ('win32', 'darwin'):
 import atexit
 import os
 import signal
-import sys
 
-from ubuntuone.platform import (
+from twisted.internet import reactor, defer
+from dirspec.basedir import xdg_cache_home, xdg_data_home
+
+from magicicadaclient.platform import (
     can_write,
     set_dir_readwrite,
     is_already_running,
@@ -53,22 +55,12 @@ from ubuntuone.platform import (
     recursive_move,
     set_application_name,
 )
-from ubuntuone.platform.filesystem_notifications.monitor import (
+from magicicadaclient.platform.filesystem_notifications.monitor import (
     get_filemonitor_class,
 )
+from magicicadaclient.syncdaemon import logger, config
+from magicicadaclient.syncdaemon.main import Main
 
-from ubuntuone.syncdaemon import logger, config
-from ubuntuone.syncdaemon.config import (
-    get_config_files,
-)
-
-from ubuntuone.syncdaemon.main import Main
-
-from twisted.internet import reactor, defer
-from dirspec.basedir import (
-    xdg_cache_home,
-    xdg_data_home,
-)
 
 
 class DeathException(Exception):
@@ -96,7 +88,7 @@ def main(argv):
     while len(args) > 0 and not args[0].startswith('-'):
         configs.append(args.pop(0))
     if len(configs) == 0:
-        configs.extend(get_config_files())
+        configs.extend(config.get_config_files())
     (parser, options, argv) = config.configglue(file(configs[0]), *configs[1:],
                                                 args=args, usage=usage)
     d = async_main(parser, options, argv)

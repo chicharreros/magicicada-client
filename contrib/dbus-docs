@@ -37,18 +37,12 @@ import dbus
 import shutil
 
 from xml.etree import ElementTree
+from twisted.internet import reactor, defer
 
 sys.path.insert(0, os.path.abspath("."))
 
 from contrib.dbus_util import DBusRunner
-from contrib.testing.testcase import (
-    FakeMain, 
-    DBusGMainLoop, 
-    DBusInterface, 
-    FakeNetworkManager,
-)
-
-from ubuntuone.platform.dbus_interface import (
+from magicicadaclient.platform.dbus_interface import (
     DBUS_IFACE_SYNC_NAME,
     DBUS_IFACE_STATUS_NAME,
     DBUS_IFACE_EVENTS_NAME,
@@ -58,8 +52,13 @@ from ubuntuone.platform.dbus_interface import (
     DBUS_IFACE_FOLDERS_NAME,
     DBUS_IFACE_PUBLIC_FILES_NAME,
 )
-from ubuntuone.platform.tools import DBusClient
-from twisted.internet import reactor, defer
+from magicicadaclient.platform.tools import DBusClient
+from magicicadaclient.testing.testcase import (
+    FakeMain,
+    DBusGMainLoop,
+    DBusInterface,
+    FakeNetworkManager,
+)
 
 
 iface_path = ((DBUS_IFACE_SYNC_NAME, '/'), (DBUS_IFACE_CONFIG_NAME, '/config'),
@@ -206,4 +205,3 @@ if __name__ == '__main__':
             for dir in dirs:
                 os.chmod(os.path.join(dirpath, dir), 0777)
         shutil.rmtree(tmp_dir)
-

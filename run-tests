@@ -34,17 +34,17 @@ if [ $# -ne 0 ]; then
     MODULE="$@"
 else
     # run all tests, useful for tarmac and reviews
-    MODULE="ubuntuone"
+    MODULE="magicicadaclient"
 fi
 
 SYSNAME=`uname -s`
 if [ "$SYSNAME" == "Darwin" ]; then
     IGNORE_FILES="test_linux.py,test_windows.py"
-    IGNORE_PATHS="ubuntuone/platform/tests/linux"
+    IGNORE_PATHS="magicicadaclient/platform/tests/linux"
 else
     # Linux
     IGNORE_FILES="test_darwin.py,test_fsevents_daemon.py,test_windows.py"
-    IGNORE_PATHS="ubuntuone/platform/tests/windows"
+    IGNORE_PATHS="magicicadaclient/platform/tests/windows"
 fi
 
 echo "*** Running test suite for ""$MODULE"" ***"

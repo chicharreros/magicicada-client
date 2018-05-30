@@ -34,11 +34,11 @@
 import tempfile
 import time
 import sys
+import xdot
 
 from gi.repository import Gtk as gtk
 
-import xdot
-from ubuntuone.syncdaemon.fsm import fsm
+from magicicadaclient.syncdaemon.fsm import fsm
 
 
 def dict2label(d):
@@ -113,6 +113,7 @@ def main(filename, debug=False):
     window.set_dotcode(dotcode)
     window.connect('destroy', gtk.main_quit)
     gtk.main()
+
 
 if __name__ == "__main__":
     main(sys.argv[1], True)

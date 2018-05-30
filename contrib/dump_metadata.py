@@ -25,8 +25,8 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""
-Dumps all the metadata.
+
+"""Dump all the metadata.
 
 Usage:
 
@@ -39,14 +39,12 @@ from __future__ import with_statement
 import os
 import sys
 
-from ubuntuone.syncdaemon import (
+from dirspec.basedir import xdg_cache_home, xdg_data_home
+
+from magicicadaclient.syncdaemon import (
     filesystem_manager,
     tritcask,
     volume_manager,
-)
-from dirspec.basedir import (
-    xdg_cache_home,
-    xdg_data_home,
 )
 
 
@@ -68,9 +66,12 @@ class FakeVM(object):
             print "      found:", repr(version_found)
             exit(-1)
 
-        self.shares = volume_manager.VMTritcaskShelf(volume_manager.SHARE_ROW_TYPE, db)
-        self.shared = volume_manager.VMTritcaskShelf(volume_manager.SHARED_ROW_TYPE, db)
-        self.udfs = volume_manager.VMTritcaskShelf(volume_manager.UDF_ROW_TYPE, db)
+        self.shares = volume_manager.VMTritcaskShelf(
+            volume_manager.SHARE_ROW_TYPE, db)
+        self.shared = volume_manager.VMTritcaskShelf(
+            volume_manager.SHARED_ROW_TYPE, db)
+        self.udfs = volume_manager.VMTritcaskShelf(
+            volume_manager.UDF_ROW_TYPE, db)
 
     def get_volume(self, vol_id):
         """Gets the volume."""
@@ -107,12 +108,14 @@ def main(data_dir):
 
         for mdobj in mdobjs:
             filedir = "DIR " if mdobj.is_dir else "FILE"
-            print "  mdid=%r  node_id=%r crc32=%s local_hash=%s server_hash=%s %s  %r" % (
-                mdobj.mdid, mdobj.node_id,
-                getattr(mdobj, 'crc32', '**No crc32**'),
-                getattr(mdobj, 'local_hash', '**No local_hash**'),
-                getattr(mdobj, 'server_hash', '**No server_hash**'),
-                filedir, mdobj.path)
+            print (
+                "  mdid=%r  node_id=%r crc32=%s local_hash=%s server_hash=%s "
+                "%s  %r" % (
+                    mdobj.mdid, mdobj.node_id,
+                    getattr(mdobj, 'crc32', '**No crc32**'),
+                    getattr(mdobj, 'local_hash', '**No local_hash**'),
+                    getattr(mdobj, 'server_hash', '**No server_hash**'),
+                    filedir, mdobj.path))
 
     print "\nShowing Root: %r (id=%r)" % (root.path, root.id)
     show_data(root.id)
@@ -132,7 +135,8 @@ def main(data_dir):
                                                         fsm.trash.iteritems():
         something = True
         print ("  mdid=%r  volume_id=%r  node_id=%r  parent_id=%r  path=%r "
-               "is_dir=%r" % (mdid, share_id, node_id, parent_id, path, is_dir))
+               "is_dir=%r" % (
+                    mdid, share_id, node_id, parent_id, path, is_dir))
     if not something:
         print "  (empty)"
 
