@@ -50,7 +50,7 @@ POT_FILE = 'po/%s.pot' % PROJECT_NAME
 SERVICE_FILES = ['data/com.ubuntuone.Credentials.service',
                  'data/com.ubuntuone.SyncDaemon.service']
 CONFIG_FILES = ['data/logging.conf']
-CLIENTDEFS = 'ubuntuone/clientdefs.py'
+CLIENTDEFS = 'magicicadaclient/clientdefs.py'
 
 BUILD_FILES = [CLIENTDEFS] + CONFIG_FILES
 CLEANFILES = [POT_FILE, 'MANIFEST'] + BUILD_FILES + SERVICE_FILES
