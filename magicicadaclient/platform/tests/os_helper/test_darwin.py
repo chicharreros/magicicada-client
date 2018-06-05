@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
-# tests.platform.os_helper - darwin platform tests
 #
 # Copyright 2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -33,13 +33,9 @@ import logging
 import os
 
 from twisted.internet import defer
-from ubuntuone.devtools.handlers import MementoHandler
 
-from magicicadaclient.platform import (
-    move_to_trash,
-    open_file,
-    stat_path,
-)
+from devtools.handlers import MementoHandler
+from magicicadaclient.platform import move_to_trash, open_file, stat_path
 from magicicadaclient.platform.os_helper import darwin
 from magicicadaclient.platform.tests.os_helper import test_os_helper
 

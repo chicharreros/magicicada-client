@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2011-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -41,14 +42,8 @@ from twisted.spread.pb import (
 )
 from twisted.trial.unittest import TestCase
 
-from magicicadaclient.testing.testcase import (
-    FakedService,
-    FakeMainTestCase,
-)
-try:
-    from ubuntuone.devtools.testcases import skipIf, skipIfOS
-except ImportError:
-    from ubuntuone.devtools.testcase import skipIf, skipIfOS
+from devtools.testcases import skipIf, skipIfOS
+from magicicadaclient.testing.testcase import FakedService, FakeMainTestCase
 from magicicadaclient.platform.ipc import perspective_broker as ipc
 from magicicadaclient.platform.ipc.perspective_broker import (
     Config,

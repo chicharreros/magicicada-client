@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -33,8 +34,8 @@ import os
 
 from twisted.internet import defer, reactor
 from twisted.trial import unittest
-from ubuntuone.devtools.handlers import MementoHandler
 
+from devtools.handlers import MementoHandler
 from magicicadaclient.testing.testcase import (
     BaseTwistedTestCase,
     FakeVolumeManager,

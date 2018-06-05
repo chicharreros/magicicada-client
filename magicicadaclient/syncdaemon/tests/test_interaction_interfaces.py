@@ -34,27 +34,14 @@ import os
 
 from magicicadaprotocol.protocol_pb2 import AccountInfo
 from twisted.internet import defer
-from ubuntuone.devtools.handlers import MementoHandler
 
-from magicicadaclient.testing.testcase import (
-    FAKED_CREDENTIALS,
-    FakeCommand,
-    FakeDownload,
-    FakeUpload,
-    FakedObject,
-    FakeMainTestCase,
-    skipIfOS,
-)
+from devtools.handlers import MementoHandler
 from magicicadaclient.networkstate.networkstates import ONLINE
 from magicicadaclient.platform import make_dir, make_link
 from magicicadaclient.platform.tests.ipc.test_perspective_broker import (
     FakeNetworkManagerState,
 )
-from magicicadaclient.syncdaemon import (
-    config,
-    interaction_interfaces,
-    states,
-)
+from magicicadaclient.syncdaemon import config, interaction_interfaces, states
 from magicicadaclient.syncdaemon.interaction_interfaces import (
     bool_str,
     get_share_dict,
@@ -81,6 +68,15 @@ from magicicadaclient.syncdaemon.volume_manager import (
     Shared,
     UDF,
     VolumeDoesNotExist,
+)
+from magicicadaclient.testing.testcase import (
+    FAKED_CREDENTIALS,
+    FakeCommand,
+    FakeDownload,
+    FakeUpload,
+    FakedObject,
+    FakeMainTestCase,
+    skipIfOS,
 )
 
 

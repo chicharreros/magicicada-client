@@ -1,4 +1,5 @@
 # Copyright 2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -30,10 +31,10 @@ import logging
 
 from twisted.internet import defer, reactor
 
-from magicicadaclient.testing import testcase
-from ubuntuone.devtools.handlers import MementoHandler
+from devtools.handlers import MementoHandler
 from magicicadaclient.syncdaemon import event_queue, filesystem_manager
 from magicicadaclient.syncdaemon.tritcask import Tritcask
+from magicicadaclient.testing import testcase
 
 
 class BaseFSMonitorTestCase(testcase.BaseTwistedTestCase):

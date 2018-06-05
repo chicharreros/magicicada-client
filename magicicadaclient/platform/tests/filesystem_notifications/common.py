@@ -1,8 +1,5 @@
-#
-# Authors: Manuel de la Pena <manuel@canonical.com>
-#          Alejandro J. Cura <alecu@canonical.com>
-#
 # Copyright 2011-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -38,16 +35,18 @@ import time
 import itertools
 
 from twisted.internet import defer
+
+from devtools.handlers import MementoHandler
 from magicicadaclient.testing.testcase import BaseTwistedTestCase
-from ubuntuone.devtools.handlers import MementoHandler
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic import (
-    EventsCodes,
-    ProcessEvent,
-    IN_CLOSE_WRITE,
-    IN_CREATE,
-    IN_DELETE,
-    IN_OPEN,
-)
+from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic \
+    import (
+        EventsCodes,
+        ProcessEvent,
+        IN_CLOSE_WRITE,
+        IN_CREATE,
+        IN_DELETE,
+        IN_OPEN,
+    )
 from magicicadaclient.platform.filesystem_notifications import notify_processor
 from magicicadaclient.platform.filesystem_notifications.monitor.common import (
     FilesystemMonitor,

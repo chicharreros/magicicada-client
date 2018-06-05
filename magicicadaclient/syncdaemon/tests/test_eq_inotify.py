@@ -1,9 +1,5 @@
-# tests.syncdaemon.test_eq_inotify
-#
-# Authors: Facundo Batista <facundo@canonical.com>
-#          Manuel de la Pena <manuel@canonical.com>
-#
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -37,17 +33,9 @@ import os
 import sys
 
 from twisted.internet import defer, reactor
-from ubuntuone.devtools.handlers import MementoHandler
-from ubuntuone.devtools.testcases import skipIfOS, skipIfNotOS
 
-from magicicadaclient.testing.testcase import (
-    BaseTwistedTestCase,
-    FakeMain,
-    Listener,
-    skip_if_darwin_missing_fs_event,
-    skip_if_win32_missing_fs_event,
-)
-from magicicadaclient.syncdaemon.tests.test_eventqueue import BaseEQTestCase
+from devtools.handlers import MementoHandler
+from devtools.testcases import skipIfOS, skipIfNotOS
 from magicicadaclient.platform import (
     make_link,
     make_dir,
@@ -61,6 +49,14 @@ from magicicadaclient.platform import (
     set_dir_readwrite,
 )
 from magicicadaclient.syncdaemon import event_queue, volume_manager
+from magicicadaclient.syncdaemon.tests.test_eventqueue import BaseEQTestCase
+from magicicadaclient.testing.testcase import (
+    BaseTwistedTestCase,
+    FakeMain,
+    Listener,
+    skip_if_darwin_missing_fs_event,
+    skip_if_win32_missing_fs_event,
+)
 
 # our logging level
 TRACE = logging.getLevelName('TRACE')

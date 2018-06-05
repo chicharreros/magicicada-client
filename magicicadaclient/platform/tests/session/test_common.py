@@ -1,5 +1,6 @@
 ﻿#
 # Copyright 2011-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -30,7 +31,7 @@
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
-from ubuntuone.devtools.testcases import skipIfOS
+from devtools.testcases import skipIfOS
 from magicicadaclient.platform.session import Inhibitor, INHIBIT_LOGOUT_SUSPEND
 
 

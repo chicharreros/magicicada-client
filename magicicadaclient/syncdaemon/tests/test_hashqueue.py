@@ -41,13 +41,13 @@ from StringIO import StringIO
 from magicicadaprotocol.content_hash import content_hash_factory, crc32
 from twisted.trial.unittest import TestCase as TwistedTestCase
 from twisted.internet import defer, reactor
-from ubuntuone.devtools.handlers import MementoHandler
-from ubuntuone.devtools.testcases import skipTest
 
-from magicicadaclient.testing.testcase import BaseTwistedTestCase
+from devtools.handlers import MementoHandler
+from devtools.testcases import skipTest
 from magicicadaclient.platform import open_file, stat_path
 from magicicadaclient.syncdaemon import hash_queue
 from magicicadaclient.syncdaemon.hash_queue import HASHQUEUE_DELAY
+from magicicadaclient.testing.testcase import BaseTwistedTestCase
 
 FAKE_TIMESTAMP = 1
 
@@ -244,11 +244,11 @@ class HasherTests(BaseTwistedTestCase):
         should_be = []
         for i in range(10):
             hasher = content_hash_factory()
-            text = "supercalifragilistico"+str(i)
+            text = "supercalifragilistico" + str(i)
             hasher.hash_object.update(text)
-            tfile = os.path.join(self.test_dir, "tfile"+str(i))
+            tfile = os.path.join(self.test_dir, "tfile" + str(i))
             with open_file(tfile, "wb") as fh:
-                fh.write("supercalifragilistico"+str(i))
+                fh.write("supercalifragilistico" + str(i))
             d = dict(path=tfile, hash=hasher.content_hash(),
                      crc32=crc32(text), size=len(text), stat=stat_path(tfile))
             should_be.append(("HQ_HASH_NEW", d))
@@ -262,7 +262,7 @@ class HasherTests(BaseTwistedTestCase):
 
         # send what to hash
         for i in range(10):
-            tfile = os.path.join(self.test_dir, "tfile"+str(i))
+            tfile = os.path.join(self.test_dir, "tfile" + str(i))
             item = ((tfile, "mdid"), FAKE_TIMESTAMP)
             queue.put(item)
 
@@ -554,11 +554,11 @@ class HashQueueTests(BaseTwistedTestCase):
         should_be = []
         for i in range(10):
             hasher = content_hash_factory()
-            text = "supercalifragilistico"+str(i)
+            text = "supercalifragilistico" + str(i)
             hasher.hash_object.update(text)
-            tfile = os.path.join(self.test_dir, "tfile"+str(i))
+            tfile = os.path.join(self.test_dir, "tfile" + str(i))
             with open_file(tfile, "wb") as fh:
-                fh.write("supercalifragilistico"+str(i))
+                fh.write("supercalifragilistico" + str(i))
             d = dict(path=tfile, hash=hasher.content_hash(),
                      crc32=crc32(text), size=len(text), stat=stat_path(tfile))
             should_be.append(("HQ_HASH_NEW", d))
@@ -569,7 +569,7 @@ class HashQueueTests(BaseTwistedTestCase):
 
         # send what to hash
         for i in range(10):
-            tfile = os.path.join(self.test_dir, "tfile"+str(i))
+            tfile = os.path.join(self.test_dir, "tfile" + str(i))
             hq.insert(tfile, "mdid")
 
         # release the processor and check
@@ -583,11 +583,11 @@ class HashQueueTests(BaseTwistedTestCase):
         should_be = []
         for i in range(10):
             hasher = content_hash_factory()
-            text = "supercalifragilistico"+str(i)
+            text = "supercalifragilistico" + str(i)
             hasher.hash_object.update(text)
-            tfile = os.path.join(self.test_dir, "tfile"+str(i))
+            tfile = os.path.join(self.test_dir, "tfile" + str(i))
             with open_file(tfile, "wb") as fh:
-                fh.write("supercalifragilistico"+str(i))
+                fh.write("supercalifragilistico" + str(i))
             d = dict(path=tfile, hash=hasher.content_hash(),
                      crc32=crc32(text), size=len(text), stat=stat_path(tfile))
             should_be.append(("HQ_HASH_NEW", d))
@@ -606,7 +606,7 @@ class HashQueueTests(BaseTwistedTestCase):
 
         # send to hash twice
         for i in range(10):
-            tfile = os.path.join(self.test_dir, "tfile"+str(i))
+            tfile = os.path.join(self.test_dir, "tfile" + str(i))
             hq.insert(tfile, "mdid")
             hq.insert(tfile, "mdid")
         # start the hasher
@@ -615,7 +615,7 @@ class HashQueueTests(BaseTwistedTestCase):
         # insert the last item to check the uniqueness in the queue while
         # the hasher is running
         for i in range(9, 10):
-            tfile = os.path.join(self.test_dir, "tfile"+str(i))
+            tfile = os.path.join(self.test_dir, "tfile" + str(i))
             hq.insert(tfile, "mdid")
 
         # release the processor and check

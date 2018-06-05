@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -47,7 +48,7 @@ from magicicadaclient.testing.testcase import (
     skip_if_win32_and_uses_readonly,
 )
 
-from ubuntuone.devtools.handlers import MementoHandler
+from devtools.handlers import MementoHandler
 from magicicadaclient.platform import (
     listdir,
     make_dir,
@@ -229,7 +230,7 @@ class CreationTests(FSMTestCase):
         self.assertEqual(mdobj.size, None)
         when = mdobj.info.created
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # set uuid using valid path, but not twice
         self.fsm.set_node_id(path, "uuid")
@@ -237,7 +238,7 @@ class CreationTests(FSMTestCase):
         mdobj = self.fsm.get_by_path(path)
         when = mdobj.info.node_id_assigned
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
     def test_with_node_id(self):
         """Test creation with node_id"""
@@ -255,14 +256,14 @@ class CreationTests(FSMTestCase):
         self.assertEqual(mdobj.size, None)
         when = mdobj.info.created
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # set uuid using valid path, but not twice
         self.assertRaises(ValueError, self.fsm.set_node_id, path, "whatever")
         mdobj = self.fsm.get_by_path(path)
         when = mdobj.info.node_id_assigned
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
     def test_invalid_args(self):
         """Test using invalid args in set_node_id."""
@@ -351,7 +352,7 @@ class CreationTests(FSMTestCase):
             old_fs[k] = v
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -417,7 +418,7 @@ class CreationTests(FSMTestCase):
             old_fs[k] = v
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -474,7 +475,7 @@ class CreationTests(FSMTestCase):
             old_fs[k] = v
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -530,7 +531,7 @@ class CreationTests(FSMTestCase):
             old_fs[k] = v
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -595,7 +596,7 @@ class CreationTests(FSMTestCase):
             old_mvlimbo[k] = v
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -654,7 +655,7 @@ class CreationTests(FSMTestCase):
             old_mvlimbo[k] = v
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -710,7 +711,7 @@ class CreationTests(FSMTestCase):
         remove_file(version_file)
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -757,7 +758,7 @@ class CreationTests(FSMTestCase):
             fh.write("1")
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -809,7 +810,7 @@ class CreationTests(FSMTestCase):
             os.fsync(f.fileno())
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -867,7 +868,7 @@ class CreationTests(FSMTestCase):
         remove_file(version_file)
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -928,7 +929,7 @@ class CreationTests(FSMTestCase):
             fh.write("1")
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -996,7 +997,7 @@ class CreationTests(FSMTestCase):
             os.fsync(f.fileno())
 
         # start up again, and check
-        db = Tritcask(self.tritcask_path+'.new')
+        db = Tritcask(self.tritcask_path + '.new')
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
@@ -1548,7 +1549,7 @@ class GetMDObjectsInDirTests(FSMTestCase):
         """Test having similar paths (a/b, a/b1, a/b2)."""
         expected = [os.path.join('a', 'b', 'y.txt')]
         actual = sorted([d.path for d in self.fsm.get_mdobjs_in_dir(
-                                    os.path.join(self.share.path, 'a', 'b'))])
+            os.path.join(self.share.path, 'a', 'b'))])
         self.assertEqual(expected, actual)
 
     @defer.inlineCallbacks
@@ -1719,7 +1720,7 @@ class PartialTests(FSMTestCase):
         mdobj = self.fsm.get_by_mdid(mdid)
         when = mdobj.info.last_partial_created
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
         self.assertRaises(KeyError, self.fsm.create_partial, "foo", "share")
@@ -1756,7 +1757,7 @@ class PartialTests(FSMTestCase):
         self.assertEqual(mdobj.local_hash, 9876)
         when = mdobj.info.last_downloaded
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
         self.assertRaises(
@@ -1796,7 +1797,7 @@ class PartialTests(FSMTestCase):
         self.assertFalse(mdobj.info.is_partial)
         when = mdobj.info.last_partial_removed
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
         self.assertRaises(KeyError, self.fsm.remove_partial, "foo", "share")
@@ -1822,7 +1823,7 @@ class PartialTests(FSMTestCase):
         mdobj = self.fsm.get_by_mdid(mdid)
         when = mdobj.info.last_partial_created
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
         self.assertRaises(KeyError, self.fsm.create_partial, "foo", "share")
@@ -1847,7 +1848,7 @@ class PartialTests(FSMTestCase):
         mdobj = self.fsm.get_by_mdid(mdid)
         when = mdobj.info.last_partial_created
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
         self.assertRaises(KeyError, self.fsm.create_partial, "foo", "share")
@@ -1890,7 +1891,7 @@ class PartialTests(FSMTestCase):
         self.assertFalse(mdobj.info.is_partial)
         when = mdobj.info.last_partial_removed
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # invalid uuid
         self.assertRaises(KeyError, self.fsm.remove_partial, "foo", "share")
@@ -1948,7 +1949,7 @@ class PartialTests(FSMTestCase):
         # find a almost too long file
         repeat = 300
         while True:
-            testfile = os.path.join(self.share_path, "x"*repeat)
+            testfile = os.path.join(self.share_path, "x" * repeat)
             try:
                 fh = open_file(testfile, 'w')
             except IOError, e:
@@ -2071,7 +2072,7 @@ class FileHandlingTests(FSMTestCase):
         mdobj = self.fsm.get_by_mdid(mdid)
         when = mdobj.info.last_conflicted
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # move second time, start the .N serie
         with open_file(testfile, "w") as fh:
@@ -2145,7 +2146,7 @@ class FileHandlingTests(FSMTestCase):
         self.assertEqual(mdobj.server_hash, 1234567890)
         when = mdobj.info.last_uploaded
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # invalid mdid
         self.assertRaises(KeyError, self.fsm.upload_finished,
@@ -2173,7 +2174,7 @@ class FileHandlingTests(FSMTestCase):
         self.assertEqual(mdobj.info.last_moved_from, testfile)
         when = mdobj.info.last_moved_time
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # move again, to a directory
         from_path = to_path
@@ -2244,7 +2245,7 @@ class FileHandlingTests(FSMTestCase):
         self.assertEqual(mdobj.info.last_moved_from, from_path)
         when = mdobj.info.last_moved_time
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # move again, to a directory
         from_path = to_path
@@ -2257,7 +2258,7 @@ class FileHandlingTests(FSMTestCase):
         self.assertEqual(mdobj.info.last_moved_from, from_path)
         when = mdobj.info.last_moved_time
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
     def test_move_file_withfulldir(self):
         """Test that a dir is moved from even having a file inside."""
@@ -2288,7 +2289,7 @@ class FileHandlingTests(FSMTestCase):
         self.assertEqual(mdobj.info.last_moved_from, from_path)
         when = mdobj.info.last_moved_time
         now = time.time()
-        self.assertTrue(now-3 <= when <= now)  # 3 seconds test range
+        self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
 
         # check that file inside is ok
         newfilepath = os.path.join(to_path, "file.txt")
@@ -4086,8 +4087,10 @@ class OsIntegrationTests(FSMTestCase, MockerTestCase):
     def setUp(self):
         """Set up."""
         yield super(OsIntegrationTests, self).setUp()
-        self.open_file = self.mocker.replace('magicicadaclient.platform.open_file')
-        self.normpath = self.mocker.replace('magicicadaclient.platform.normpath')
+        self.open_file = self.mocker.replace(
+            'magicicadaclient.platform.open_file')
+        self.normpath = self.mocker.replace(
+            'magicicadaclient.platform.normpath')
         self.listdir = self.mocker.replace('magicicadaclient.platform.listdir')
 
     def test_get_partial_for_writing(self):

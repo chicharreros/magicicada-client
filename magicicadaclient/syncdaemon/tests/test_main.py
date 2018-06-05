@@ -33,15 +33,12 @@ import logging
 import os
 
 from twisted.internet import defer, reactor
-from ubuntuone.devtools.handlers import MementoHandler
-from magicicadaclient.platform import expand_user
 
-from magicicadaclient.testing.testcase import (
-    BaseTwistedTestCase, FAKED_CREDENTIALS, FakeMonitor
-)
+from devtools.handlers import MementoHandler
 from magicicadaclient.clientdefs import VERSION
 from magicicadaclient.logger import NOTE
 from magicicadaclient.platform import (
+    expand_user,
     is_link,
     make_dir,
     make_link,
@@ -49,6 +46,9 @@ from magicicadaclient.platform import (
     remove_dir,
 )
 from magicicadaclient.syncdaemon import main as main_mod
+from magicicadaclient.testing.testcase import (
+    BaseTwistedTestCase, FAKED_CREDENTIALS, FakeMonitor
+)
 
 
 class FakeListener(object):

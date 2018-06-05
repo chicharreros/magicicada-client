@@ -43,15 +43,9 @@ from magicicadaprotocol import delta
 from magicicadaprotocol.request import ROOT
 from twisted.internet import defer
 from twisted.python.failure import Failure
-from ubuntuone.devtools.handlers import MementoHandler
-from ubuntuone.devtools.testcases import skipIfOS
 
-from magicicadaclient.testing.testcase import (
-    FakeMain,
-    FakeVolumeManager,
-    BaseTwistedTestCase,
-    Listener,
-)
+from devtools.handlers import MementoHandler
+from devtools.testcases import skipIfOS
 from magicicadaclient.platform import (
     make_dir,
     open_file,
@@ -61,10 +55,20 @@ from magicicadaclient.platform import (
 from magicicadaclient.syncdaemon.filesystem_manager import FileSystemManager
 from magicicadaclient.syncdaemon.tritcask import Tritcask
 from magicicadaclient.syncdaemon.fsm import fsm as fsm_module
-from magicicadaclient.syncdaemon.sync import FSKey, Sync, SyncStateMachineRunner
+from magicicadaclient.syncdaemon.sync import (
+    FSKey,
+    Sync,
+    SyncStateMachineRunner,
+)
 from magicicadaclient.syncdaemon.volume_manager import Share
 from magicicadaclient.syncdaemon.event_queue import EventQueue, EVENTS
 from magicicadaclient.syncdaemon.marker import MDMarker
+from magicicadaclient.testing.testcase import (
+    FakeMain,
+    FakeVolumeManager,
+    BaseTwistedTestCase,
+    Listener,
+)
 
 
 class TestSyncClassAPI(unittest.TestCase):

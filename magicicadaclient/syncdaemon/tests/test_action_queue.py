@@ -60,16 +60,8 @@ from twisted.web import server
 from twisted.trial.unittest import TestCase as TwistedTestCase
 from zope.interface.verify import verifyObject, verifyClass
 
-from magicicadaclient.testing.testcase import (
-    BaseTwistedTestCase,
-    DummyClass,
-    FakeActionQueue,
-    FakeCommand,
-    FakeMain,
-    FakeUpload,
-)
-from ubuntuone.devtools import handlers
-from ubuntuone.devtools.testcases import skipTest
+from devtools import handlers
+from devtools.testcases import skipTest
 from magicicadaclient import logger, clientdefs
 from magicicadaclient.platform import open_file, platform, path_exists
 from magicicadaclient.syncdaemon import interfaces, config
@@ -88,6 +80,14 @@ from magicicadaclient.syncdaemon.event_queue import EventQueue, EVENTS
 from magicicadaclient.syncdaemon import offload_queue
 from magicicadaclient.syncdaemon.marker import MDMarker
 from magicicadaclient.syncdaemon.volume_manager import ACCESS_LEVEL_RO
+from magicicadaclient.testing.testcase import (
+    BaseTwistedTestCase,
+    DummyClass,
+    FakeActionQueue,
+    FakeCommand,
+    FakeMain,
+    FakeUpload,
+)
 
 PATH = os.path.join(u'~', u'Documents', u'pdfs', u'moño', u'')
 NAME = u'UDF-me'
@@ -3352,7 +3352,7 @@ class UploadTestCase(ConnectedBaseTestCase):
 
     def test_progress_hook(self):
         """Test the progress hook."""
-        self.command.deflated_size = 2*TRANSFER_PROGRESS_THRESHOLD
+        self.command.deflated_size = 2 * TRANSFER_PROGRESS_THRESHOLD
         self.command.n_bytes_written_last = 0
 
         self.command.n_bytes_written = 5
@@ -3368,8 +3368,8 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.command.n_bytes_written = TRANSFER_PROGRESS_THRESHOLD + 5
         self.command.progress_hook()
         kwargs = {'share_id': self.command.share_id, 'node_id': 'a_node_id',
-                  'deflated_size': 2*TRANSFER_PROGRESS_THRESHOLD,
-                  'n_bytes_written': 5+TRANSFER_PROGRESS_THRESHOLD}
+                  'deflated_size': 2 * TRANSFER_PROGRESS_THRESHOLD,
+                  'n_bytes_written': 5 + TRANSFER_PROGRESS_THRESHOLD}
         events = [('AQ_UPLOAD_FILE_PROGRESS', kwargs)]
         self.assertEqual(events, self.command.action_queue.event_queue.events)
         self.assertEqual(self.command.n_bytes_written_last,
@@ -4932,7 +4932,7 @@ class TestDeltaList(unittest.TestCase):
 
     def test_repr(self):
         """A DeltaList has a short representation."""
-        a = DeltaList(["a"*1000])
+        a = DeltaList(["a" * 1000])
         self.assertTrue(len(repr(a)) < 100)
         self.assertTrue(len(str(a)) < 100)
 

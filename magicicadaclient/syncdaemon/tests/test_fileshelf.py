@@ -1,7 +1,5 @@
-#
-# Author: Guillermo Gonzalez <guillermo.gonzalez@canonical.com>
-#
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -37,19 +35,16 @@ import hashlib
 import unittest
 
 from twisted.internet import defer
-from ubuntuone.devtools.testcases import skipIfOS
 
-from magicicadaclient.testing.testcase import BaseTwistedTestCase
-from magicicadaclient.platform import (
-    open_file,
-    path_exists,
-)
+from devtools.testcases import skipIfOS
+from magicicadaclient.platform import open_file, path_exists
 from magicicadaclient.syncdaemon.file_shelf import (
     FileShelf,
     CachedFileShelf,
     LRUCache,
     CacheInconsistencyError,
 )
+from magicicadaclient.testing.testcase import BaseTwistedTestCase
 
 
 BROKEN_PICKLE = '\axb80\x02}q\x01(U\x01aU\x04testq\x02U\x01bU\x06brokenq\x03u.'
@@ -168,11 +163,11 @@ class TestFileShelf(BaseTwistedTestCase):
         """test that each time a metadata file is updated a .old is kept"""
         self.shelf['bad_file'] = {'value': 'old'}
         path = self.shelf.key_file('bad_file')
-        self.assertFalse(path_exists(path+'.old'))
+        self.assertFalse(path_exists(path + '.old'))
         self.assertEqual({'value': 'old'}, self.shelf['bad_file'])
         # force the creation of the .old file
         self.shelf['bad_file'] = {'value': 'new'}
-        self.assertTrue(path_exists(path+'.old'))
+        self.assertTrue(path_exists(path + '.old'))
         # check that the new value is there
         self.assertEqual({'value': 'new'}, self.shelf['bad_file'])
         # write the current md file fwith 0 bytes
@@ -183,11 +178,11 @@ class TestFileShelf(BaseTwistedTestCase):
         self.shelf['broken_pickle'] = {'value': 'old'}
         path = self.shelf.key_file('broken_pickle')
         # check that .old don't exist
-        self.assertFalse(path_exists(path+'.old'))
+        self.assertFalse(path_exists(path + '.old'))
         # force the creation of the .old file
         self.shelf['broken_pickle'] = {'value': 'new'}
         # check that .old exists
-        self.assertTrue(path_exists(path+'.old'))
+        self.assertTrue(path_exists(path + '.old'))
         # check that the new value is there
         self.assertEqual({'value': 'new'}, self.shelf['broken_pickle'])
         # write random bytes to the md file
@@ -200,10 +195,10 @@ class TestFileShelf(BaseTwistedTestCase):
         """test keys() with .old and .new files around"""
         self.shelf["foo"] = "bar"
         self.shelf["foo1"] = "bar1"
-        open_file(self.shelf.key_file('foo')+'.old', 'w').close()
-        open_file(self.shelf.key_file('foo1')+'.old', 'w').close()
-        open_file(self.shelf.key_file('foo')+'.new', 'w').close()
-        open_file(self.shelf.key_file('foo1')+'.new', 'w').close()
+        open_file(self.shelf.key_file('foo') + '.old', 'w').close()
+        open_file(self.shelf.key_file('foo1') + '.old', 'w').close()
+        open_file(self.shelf.key_file('foo') + '.new', 'w').close()
+        open_file(self.shelf.key_file('foo1') + '.new', 'w').close()
         self.assertEqual(set(['foo', 'foo1']), set(self.shelf.keys()))
 
     def test_corrupted_backup(self):
@@ -212,7 +207,7 @@ class TestFileShelf(BaseTwistedTestCase):
         # create the .old backup
         self.shelf["foo"] = "bar1"
         # write 0 bytes to both
-        open_file(self.shelf.key_file('foo')+'.old', 'w').close()
+        open_file(self.shelf.key_file('foo') + '.old', 'w').close()
         open_file(self.shelf.key_file('foo'), 'w').close()
         self.assertRaises(KeyError, self.shelf.__getitem__, 'foo')
 
@@ -233,12 +228,12 @@ class TestFileShelf(BaseTwistedTestCase):
         self.shelf["foo"] = "bar1"
         path = self.shelf.key_file('foo')
         # create a .new file (a hard reboot during the rename dance)
-        open_file(path+'.new', 'w').close()
+        open_file(path + '.new', 'w').close()
         # write 0 bytes to both
         del self.shelf['foo']
         self.assertFalse(path_exists(path))
-        self.assertFalse(path_exists(path+'.old'), 'there is a .old file!')
-        self.assertFalse(path_exists(path+'.new'), 'there is a .new file!')
+        self.assertFalse(path_exists(path + '.old'), 'there is a .old file!')
+        self.assertFalse(path_exists(path + '.new'), 'there is a .new file!')
 
     @skipIfOS('win32', 'Skipped because code is deprecated on Windows.')
     def test_custom_unpickle(self):
@@ -330,11 +325,11 @@ class CachedFileShelfTests(TestFileShelf):
         """overrides parent test as we have the value in the cache."""
         self.shelf['bad_file'] = {'value': 'old'}
         path = self.shelf.key_file('bad_file')
-        self.assertFalse(path_exists(path+'.old'))
+        self.assertFalse(path_exists(path + '.old'))
         self.assertEqual({'value': 'old'}, self.shelf['bad_file'])
         # force the creation of the .old file
         self.shelf['bad_file'] = {'value': 'new'}
-        self.assertTrue(path_exists(path+'.old'))
+        self.assertTrue(path_exists(path + '.old'))
         # check that the new value is there
         self.assertEqual({'value': 'new'}, self.shelf['bad_file'])
         # write the current md file fwith 0 bytes
@@ -346,11 +341,11 @@ class CachedFileShelfTests(TestFileShelf):
         self.shelf['broken_pickle'] = {'value': 'old'}
         path = self.shelf.key_file('broken_pickle')
         # check that .old don't exist
-        self.assertFalse(path_exists(path+'.old'))
+        self.assertFalse(path_exists(path + '.old'))
         # force the creation of the .old file
         self.shelf['broken_pickle'] = {'value': 'new'}
         # check that .old exists
-        self.assertTrue(path_exists(path+'.old'))
+        self.assertTrue(path_exists(path + '.old'))
         # check that the new value is there
         self.assertEqual({'value': 'new'}, self.shelf['broken_pickle'])
         # write random bytes to the md file
@@ -368,7 +363,7 @@ class LRUCacheTests(unittest.TestCase):
         """test __delitem__ method"""
         cache = LRUCache(100, 4)
         # set some data in the cache
-        values = [('key'+str(i), i) for i in range(100)]
+        values = [('key' + str(i), i) for i in range(100)]
         for i, j in values:
             cache[i] = j
         self.assertEqual(len(cache._queue), len(values))
@@ -378,7 +373,7 @@ class LRUCacheTests(unittest.TestCase):
         """test __delitem__ method"""
         cache = LRUCache(100, 4)
         # set some data in the cache
-        values = [('key'+str(i), i) for i in range(100)]
+        values = [('key' + str(i), i) for i in range(100)]
         for i, j in values:
             cache[i] = j
         self.assertEqual(len(cache._queue), len(values))
@@ -390,7 +385,7 @@ class LRUCacheTests(unittest.TestCase):
     def test_delitem(self):
         """test __delitem__ method"""
         cache = LRUCache(100, 4)
-        values = [('key'+str(i), i) for i in range(100)]
+        values = [('key' + str(i), i) for i in range(100)]
         for i, j in values:
             cache[i] = j
         self.assertEqual(len(cache._queue), len(values))
@@ -415,7 +410,7 @@ class LRUCacheTests(unittest.TestCase):
     def test_purge(self):
         """Test the queue compact and cache purge"""
         cache = LRUCache(100, 4)
-        values = [('key'+str(i), j) for i in range(50) for j in range(8)]
+        values = [('key' + str(i), j) for i in range(50) for j in range(8)]
         for i, j in values:
             cache[i] = j
         # we hit the limit
@@ -442,7 +437,7 @@ class LRUCacheTests(unittest.TestCase):
         """Tests if the cache correclty keeps track of misses and hits."""
         cache = LRUCache(100, 4)
         # set some data in the cache
-        values = [('key'+str(i), i) for i in range(10)]
+        values = [('key' + str(i), i) for i in range(10)]
         for i, j in values:
             cache[i] = j
         self.assertEqual(len(cache._queue), len(values))
@@ -454,7 +449,7 @@ class LRUCacheTests(unittest.TestCase):
         self.assertEqual(cache.hits, 4)
         # try to get items not present in the cache
         for i, j in values[5:10]:
-            self.assertRaises(KeyError, cache.__getitem__, i*10)
+            self.assertRaises(KeyError, cache.__getitem__, i * 10)
         self.assertEqual(cache.misses, 5)
 
     def test_inconsistency(self):

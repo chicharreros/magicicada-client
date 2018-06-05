@@ -32,15 +32,9 @@
 import os
 import sys
 
-try:
-    from DistUtilsExtra.command import build_extra, build_i18n
-    import DistUtilsExtra.auto
-except ImportError:
-    print >> sys.stderr, 'To build this program you need '\
-                         'https://launchpad.net/python-distutils-extra'
-    raise
-assert DistUtilsExtra.auto.__version__ >= '2.18', \
-    'needs DistUtilsExtra.auto >= 2.18'
+from setuptools import setup
+from setuptools.command.install import install
+from distutils.command import build, clean
 
 
 PROJECT_NAME = 'magicicada-client'
@@ -83,7 +77,7 @@ def replace_variables(files_to_replace, prefix=None, *args, **kwargs):
                 out_file.write(content)
 
 
-class Install(DistUtilsExtra.auto.install_auto):
+class Install(install):
     """Class to install proper files."""
 
     def run(self):
@@ -110,7 +104,8 @@ class Install(DistUtilsExtra.auto.install_auto):
         prefix = self.install_data.replace(
             self.root if self.root is not None else '', '')
         replace_variables(SERVICE_FILES, prefix)
-        DistUtilsExtra.auto.install_auto.run(self)
+        install.run(self)
+
         # Replace the CLIENTDEFS paths here, so that we can do it directly in
         # the installed copy, rather than the lcoal copy. This allows us to
         # have a semi-generated version for use in tests, and a full version
@@ -127,7 +122,7 @@ class Install(DistUtilsExtra.auto.install_auto):
                 out_file.write(content)
 
 
-class Build(build_extra.build_extra):
+class Build(build.build):
     """Build PyQt (.ui) files and resources."""
 
     description = "build PyQt GUIs (.ui) and resources (.qrc)"
@@ -135,10 +130,10 @@ class Build(build_extra.build_extra):
     def run(self):
         """Execute the command."""
         replace_variables(BUILD_FILES)
-        build_extra.build_extra.run(self)
+        build.build.run(self)
 
 
-class Clean(DistUtilsExtra.auto.clean_build_tree):
+class Clean(clean.clean):
     """Class to clean up after the build."""
 
     def run(self):
@@ -147,24 +142,7 @@ class Clean(DistUtilsExtra.auto.clean_build_tree):
             if os.path.exists(built_file):
                 os.unlink(built_file)
 
-        DistUtilsExtra.auto.clean_build_tree.run(self)
-
-
-class BuildLocale(build_i18n.build_i18n):
-    """Work around a bug in DistUtilsExtra."""
-
-    def run(self):
-        """Magic."""
-        build_i18n.build_i18n.run(self)
-        i = 0
-        for df in self.distribution.data_files:
-            if df[0].startswith('etc/xdg/'):
-                if sys.platform not in ('darwin', 'win32'):
-                    new_df = (df[0].replace('etc/xdg/', '/etc/xdg/'), df[1])
-                    self.distribution.data_files[i] = new_df
-                else:
-                    self.distribution.data_files.pop(i)
-            i += 1
+        clean.clean.run(self)
 
 
 def set_py2exe_paths():
@@ -191,10 +169,9 @@ def set_py2exe_paths():
 
 
 cmdclass = {
-    'install': Install,
     'build': Build,
     'clean': Clean,
-    'build_i18n': BuildLocale,
+    'install': Install,
 }
 
 bin_scripts = [
@@ -236,7 +213,7 @@ else:
     scripts.extend(bin_scripts)
     extra = {}
 
-DistUtilsExtra.auto.setup(
+setup(
     name=PROJECT_NAME,
     version=VERSION,
     license='GPL v3',

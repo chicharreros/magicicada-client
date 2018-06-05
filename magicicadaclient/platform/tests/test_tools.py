@@ -30,15 +30,15 @@
 """Tests for the syncdaemon tools module."""
 
 import os
-
 from collections import defaultdict
 
 from twisted.internet import defer, reactor
-from ubuntuone.devtools.handlers import MementoHandler
-from ubuntuone.devtools.testcases import skipTest, skipIfNotOS
 
+from devtools.handlers import MementoHandler
+from devtools.testcases import skipTest, skipIfNotOS
 from magicicadaclient.testing.testcase import FakeCommand
-
+from magicicadaclient.platform import tools
+from magicicadaclient.platform.tests import IPCTestCase
 from magicicadaclient.syncdaemon import (
     action_queue,
     event_queue,
@@ -46,8 +46,6 @@ from magicicadaclient.syncdaemon import (
     states,
     volume_manager,
 )
-from magicicadaclient.platform import tools
-from magicicadaclient.platform.tests import IPCTestCase
 
 
 SOME_ERROR = 'CRASH BOOM BANG'

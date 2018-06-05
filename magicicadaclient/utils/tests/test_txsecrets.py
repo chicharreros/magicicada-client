@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2010-2012 Canonical Ltd.
-# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -36,8 +36,8 @@ import uuid
 import dbus.service
 
 from twisted.internet.defer import inlineCallbacks, returnValue
-from ubuntuone.devtools.testcases.dbus import DBusTestCase
 
+from devtools.testcases.dbus import DBusTestCase
 from magicicadaclient.utils import txsecrets
 
 KEY_TYPE_ATTR = {"key-type": "Foo credentials"}

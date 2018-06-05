@@ -45,15 +45,16 @@ from magicicadaprotocol.sharersp import NotifyShareHolder, ShareResponse
 
 from mocker import Mocker, MATCH
 from twisted.internet import defer, reactor
-from ubuntuone.devtools.handlers import MementoHandler
-from ubuntuone.devtools.testcases import skipIfOS
 
-from magicicadaclient.testing.testcase import (
-    BaseTwistedTestCase,
-    FakeMain,
-)
+from devtools.handlers import MementoHandler
+from devtools.testcases import skipIfOS
 from magicicadaclient import platform
-from magicicadaclient.syncdaemon import config, event_queue, tritcask, volume_manager
+from magicicadaclient.syncdaemon import (
+    config,
+    event_queue,
+    tritcask,
+    volume_manager,
+)
 from magicicadaclient.syncdaemon.volume_manager import (
     ACCESS_LEVEL_RO,
     ACCESS_LEVEL_RW,
@@ -83,6 +84,7 @@ from magicicadaclient.platform import (
     set_dir_readonly,
     set_dir_readwrite,
 )
+from magicicadaclient.testing.testcase import BaseTwistedTestCase, FakeMain
 
 # grab the metadata version before tests fiddle with it
 CURRENT_METADATA_VERSION = VolumeManager.METADATA_VERSION
@@ -2760,7 +2762,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         root_volume = volumes.RootVolume(uuid.uuid4(), None, 10)
         d = defer.Deferred()
         self.vm._got_root = lambda node_id, free_bytes: d.callback(
-                                                        (node_id, free_bytes))
+            (node_id, free_bytes))
         self.main.event_q.push('AQ_LIST_VOLUMES', volumes=[root_volume])
         root_node_id, free_bytes = yield d
         self.assertEqual(str(root_volume.node_id), root_node_id)
@@ -4172,7 +4174,7 @@ class MetadataVersionFileTestCase(MetadataTestCase):
         self.patch(VolumeManager, "METADATA_VERSION", self.fake_version)
         self.temp_dir = os.path.join(self.mktemp(), u"Ñandú")
         self.version_file = os.path.join(self.temp_dir, ".version").encode(
-                                                 sys.getfilesystemencoding())
+            sys.getfilesystemencoding())
         self.md_upgrader = MetadataUpgrader(self.temp_dir.encode("utf-8"),
                                             "", "", "", "", "", "", None)
 

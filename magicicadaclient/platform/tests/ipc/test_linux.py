@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -33,11 +34,8 @@ import logging
 import dbus
 
 from twisted.internet import defer
-try:
-    from ubuntuone.devtools.testcases.dbus import DBusTestCase
-except ImportError:
-    from ubuntuone.devtools.testcase import DBusTestCase
 
+from devtools.testcases.dbus import DBusTestCase
 from magicicadaclient.testing.testcase import (
     FakeMainTestCase,
     FakedService,

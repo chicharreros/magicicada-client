@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2011-2012 Canonical Ltd.
-# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -36,11 +36,8 @@ import twisted.internet
 from twisted.internet import defer, protocol, task
 from twisted.trial.unittest import TestCase
 
-from ubuntuone.devtools.testcases.txsocketserver import (
-    ServerTestCase,
-    TidyTCPServer,
-)
 
+from devtools.testcases.txsocketserver import ServerTestCase, TidyTCPServer
 from magicicadaclient.utils import tcpactivation
 from magicicadaclient.utils.tcpactivation import (
     ActivationClient,

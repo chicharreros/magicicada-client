@@ -1,8 +1,5 @@
-gir1.2-soup-2.4
-python-configglue
-python-dirspec
-python-distutils-extra
-python-gi
-python-protobuf
-python-pyinotify
-python-twisted
+libgirepository1.0-dev
+libgtk2.0-dev
+pkg-config
+python-dev
+virtualenv

@@ -73,8 +73,8 @@ def _get_dir(dir_name, dir_constant):
 
     # otherwise, try to load 'dir_constant' from installation path
     try:
-        __import__('ubuntuone.clientdefs', None, None, [''])
-        module = sys.modules.get('ubuntuone.clientdefs')
+        __import__('magicicadaclient.clientdefs', None, None, [''])
+        module = sys.modules.get('magicicadaclient.clientdefs')
         return getattr(module, dir_constant)
     except (ImportError, AttributeError):
         msg = '_get_dir: can not build a valid path. Giving up. ' \
@@ -135,8 +135,7 @@ def get_cert_dir():
 
     if getattr(sys, "frozen", None) is not None:
         if sys.platform == "win32":
-            ssl_cert_location = list(load_config_paths(
-                    "ubuntuone"))[1]
+            ssl_cert_location = list(load_config_paths("ubuntuone"))[1]
         elif sys.platform == "darwin":
                 main_app_dir = "".join(__file__.partition(".app")[:-1])
                 main_app_resources_dir = os.path.join(main_app_dir,

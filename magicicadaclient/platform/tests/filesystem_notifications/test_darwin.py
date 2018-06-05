@@ -1,6 +1,7 @@
 # -*- coding: utf-8 *-*
 #
 # Copyright 2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -38,9 +39,8 @@ from twisted.internet import defer
 
 import fsevents
 
+from devtools.handlers import MementoHandler
 from magicicadaclient.testing.testcase import BaseTwistedTestCase
-
-from ubuntuone.devtools.handlers import MementoHandler
 from magicicadaclient.platform.filesystem_notifications.monitor import (
     common,
 )
@@ -52,13 +52,14 @@ from magicicadaclient.platform.filesystem_notifications.monitor.common import (
     Watch,
     WatchManager,
 )
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic import (
-    ProcessEvent,
-    IN_CLOSE_WRITE,
-    IN_CREATE,
-    IN_DELETE,
-    IN_OPEN,
-)
+from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic \
+    import (
+        ProcessEvent,
+        IN_CLOSE_WRITE,
+        IN_CREATE,
+        IN_DELETE,
+        IN_OPEN,
+    )
 from magicicadaclient.platform.tests.filesystem_notifications import (
     BaseFSMonitorTestCase,
     common as common_tests,

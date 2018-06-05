@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Author: Guillermo Gonzalez <guillermo.gonzalez@canonical.com>
-#
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -37,9 +36,8 @@ import logging
 from twisted.internet import defer
 from twisted.trial import unittest
 
-from ubuntuone.devtools.handlers import MementoHandler
-from ubuntuone.devtools.testcases import skipIfOS
-
+from devtools.handlers import MementoHandler
+from devtools.testcases import skipIfOS
 from magicicadaclient.syncdaemon.logger import (
     DebugCapture,
     NOTE,
@@ -302,7 +300,7 @@ class MultiFilterTest(unittest.TestCase):
         self.handler.addFilter(MultiFilter([self.__class__.__name__]))
         self.logger.debug('this msg should be logged')
         self.assertEqual(1, len(self.handler.records))
-        other_logger = logging.getLogger("NO_LOG."+self.__class__.__name__)
+        other_logger = logging.getLogger("NO_LOG." + self.__class__.__name__)
         other_logger.debug('this msg shouldn\'t be logged')
         self.assertEqual(1, len(self.handler.records))
 
@@ -311,7 +309,7 @@ class MultiFilterTest(unittest.TestCase):
         self.handler.addFilter(
             MultiFilter([self.__class__.__name__,
                          self.__class__.__name__ + ".child"]))
-        no_logger = logging.getLogger("NO_LOG."+self.__class__.__name__)
+        no_logger = logging.getLogger("NO_LOG." + self.__class__.__name__)
         yes_logger = logging.getLogger(self.__class__.__name__ + '.child')
         self.logger.debug('this msg should be logged')
         self.assertEqual(1, len(self.handler.records))

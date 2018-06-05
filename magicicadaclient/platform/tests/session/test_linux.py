@@ -1,8 +1,5 @@
-# tests.platform.linux.test_session
-#
-# Author: Alejandro J. Cura <alecu@canonical.com>
-#
 # Copyright 2011-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -30,15 +27,13 @@
 # files in the program, then also delete it here.
 """Tests for the session inhibition DBus client."""
 
-import dbus
 import operator
 
+import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 from twisted.internet.defer import inlineCallbacks
-try:
-    from ubuntuone.devtools.testcases.dbus import DBusTestCase
-except ImportError:
-    from ubuntuone.devtools.testcase import DBusTestCase
+
+from devtools.testcases.dbus import DBusTestCase
 from magicicadaclient.platform import session
 
 INHIBIT_ALL = (session.INHIBIT_LOGGING_OUT |
@@ -137,9 +132,8 @@ class SessionDBusClientTestCase(DBusTestCase):
     def test_uninhibit_call(self):
         """Test the uninhibit call."""
         fakeinhibitor = self.register_fakeserver(
-                                             session.SESSION_MANAGER_BUSNAME,
-                                             session.SESSION_MANAGER_PATH,
-                                             FakeGnomeSessionManagerInhibitor)
+            session.SESSION_MANAGER_BUSNAME, session.SESSION_MANAGER_PATH,
+            FakeGnomeSessionManagerInhibitor)
         i = yield session.inhibit_logout_suspend("fake reason")
         yield i.cancel()
         result = fakeinhibitor.IsInhibited(session.INHIBIT_LOGGING_OUT)

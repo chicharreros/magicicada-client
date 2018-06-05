@@ -37,14 +37,9 @@ import uuid
 
 from magicicadaprotocol import content_hash as storage_hash, volumes
 from twisted.internet import defer, reactor
-from ubuntuone.devtools.handlers import MementoHandler
-from ubuntuone.devtools.testcases import skipIfOS
 
-from magicicadaclient.testing.testcase import (
-    BaseTwistedTestCase,
-    FakeVolumeManager,
-    skip_if_win32_and_uses_readonly,
-)
+from devtools.handlers import MementoHandler
+from devtools.testcases import skipIfOS
 from magicicadaclient.platform import (
     make_dir,
     make_link,
@@ -67,6 +62,11 @@ from magicicadaclient.syncdaemon.tritcask import Tritcask
 from magicicadaclient.syncdaemon.volume_manager import (
     ACCESS_LEVEL_RO,
     ACCESS_LEVEL_RW,
+)
+from magicicadaclient.testing.testcase import (
+    BaseTwistedTestCase,
+    FakeVolumeManager,
+    skip_if_win32_and_uses_readonly,
 )
 
 # our logging level
@@ -829,7 +829,7 @@ class ComparationTests(TwistedBase):
         """Lot of files in a dir, and lots of dirs."""
         # almost all known, to force the system to go deep
         dirs = "abcdefghijklmnopq" * 20
-        for i in range(1, len(dirs)+1):
+        for i in range(1, len(dirs) + 1):
             dirpath = os.path.join(*dirs[:i])
             self.create_node(dirpath, is_dir=True)
         basedir = os.path.join(*dirs)
@@ -840,11 +840,11 @@ class ComparationTests(TwistedBase):
         # some files in some dirs
         files = "rstuvwxyz"
         for f in files:
-            path = os.path.join(*dirs[:3]+f)
+            path = os.path.join(*dirs[:3] + f)
             self.create_node(path, is_dir=False)
-            path = os.path.join(*dirs[:6]+f)
+            path = os.path.join(*dirs[:6] + f)
             self.create_node(path, is_dir=False)
-        sh2 = os.path.join(self.share.path, *dirs[:6]+"q")
+        sh2 = os.path.join(self.share.path, *dirs[:6] + "q")
         open_file(sh2, "w").close()
 
         # scan!
@@ -1953,7 +1953,7 @@ class BadStateTests(TwistedBase):
         self.assertFalse(path_exists(partial_path))
         # logged in warning
         self.assertTrue(self.handler.check_warning(
-                                                "Found a directory in SERVER"))
+            "Found a directory in SERVER"))
 
     def test_check_stat_None(self):
         """Test check_stat with oldstat = None."""
@@ -2041,7 +2041,7 @@ class LimboTests(TwistedBase):
         self.assertEqual(self.aq.unlinked, [(self.share.volume_id,
                                              "parent_id", "uuid", path, True)])
         self.assertTrue(self.handler.check_info(
-                         "generating Unlink from trash"))
+            "generating Unlink from trash"))
 
     @defer.inlineCallbacks
     def test_trash_two(self):

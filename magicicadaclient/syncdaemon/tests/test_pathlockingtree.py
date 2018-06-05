@@ -1,8 +1,5 @@
-# ubuntuone.syncdaemon.tests.test_pathlockingtree - PathLockingTree tests
-#
-# Author: Facundo Batista <facundo@canonical.com>
-#
 # Copyright 2011-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -35,7 +32,7 @@ import logging
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase as TwistedTestCase
 
-from ubuntuone.devtools.handlers import MementoHandler
+from devtools.handlers import MementoHandler
 from magicicadaclient.syncdaemon.action_queue import PathLockingTree
 
 

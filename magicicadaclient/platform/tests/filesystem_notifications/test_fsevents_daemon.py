@@ -1,6 +1,7 @@
 # -*- coding: utf-8 *-*
 #
 # Copyright 2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -32,24 +33,20 @@ import os
 
 from twisted.internet import defer, protocol
 
+from devtools.testcases.txsocketserver import TidyUnixServer
 from magicicadaclient.testing.testcase import BaseTwistedTestCase
 from magicicadaclient import fseventsd
-try:
-    from ubuntuone.devtools.testcases import skipIf
-    from ubuntuone.devtools.testcases.txsocketserver import TidyUnixServer
-except ImportError:
-    from ubuntuone.devtools.testcase import skipIf
-    TidyUnixServer = None
 from magicicadaclient.platform.filesystem_notifications.monitor.darwin import (
     fsevents_daemon,
 )
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic import (
-    IN_CREATE,
-    IN_DELETE,
-    IN_MODIFY,
-    IN_MOVED_FROM,
-    IN_MOVED_TO,
-)
+from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic \
+    import (
+        IN_CREATE,
+        IN_DELETE,
+        IN_MODIFY,
+        IN_MOVED_FROM,
+        IN_MOVED_TO,
+    )
 
 
 class FakeServerProtocol(protocol.Protocol):
@@ -469,8 +466,6 @@ class FilesystemMonitorTestCase(BaseTwistedTestCase):
         yield self.monitor.add_watch(dirpath)
         self.assertNotIn('add_path', self.protocol.called)
 
-    @skipIf(TidyUnixServer is None,
-            'Testcases from txsocketserver not availble.')
     @defer.inlineCallbacks
     def test_is_available_monitor_running(self):
         """Test the method when it is indeed running."""

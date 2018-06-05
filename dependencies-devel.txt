@@ -1,5 +1,2 @@
 bzr
 make
-python-mocker
-ubuntuone-dev-tools
-virtualenv

@@ -43,10 +43,10 @@ from functools import wraps
 
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase as TwistedTestCase
-from ubuntuone.devtools.testcases import skipIfOS
 from zope.interface import implements
 from zope.interface.verify import verifyObject
 
+from devtools.testcases import skipIfOS
 from magicicadaclient.syncdaemon import (
     config,
     action_queue,

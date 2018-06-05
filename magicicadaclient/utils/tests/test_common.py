@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2011-2012 Canonical Ltd.
-# Copyright 2015-2017 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -38,13 +38,13 @@ import os
 
 from twisted.internet import defer
 from twisted.web import resource
-from ubuntuone.devtools.handlers import MementoHandler
-from ubuntuone.devtools.testing.txwebserver import HTTPWebServer
 
+from devtools.handlers import MementoHandler
+from devtools.testing.txwebserver import HTTPWebServer
 from magicicadaclient import utils
 from magicicadaclient.tests import TestCase
 
-CONSTANTS_MODULE = 'ubuntuone.clientdefs'
+CONSTANTS_MODULE = 'magicicadaclient.clientdefs'
 NOT_DEFINED = object()
 
 

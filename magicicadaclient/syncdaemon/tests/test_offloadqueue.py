@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -36,10 +37,10 @@ import tempfile
 
 from twisted.trial.unittest import TestCase as TwistedTestCase
 
-from ubuntuone.devtools.handlers import MementoHandler
-from magicicadaclient.syncdaemon.offload_queue import OffloadQueue, STRUCT_SIZE
+from devtools.handlers import MementoHandler
 from magicicadaclient.syncdaemon.interfaces import IMarker
 from magicicadaclient.syncdaemon.marker import MDMarker
+from magicicadaclient.syncdaemon.offload_queue import OffloadQueue, STRUCT_SIZE
 
 
 class OffloadQueueTestCase(TwistedTestCase):

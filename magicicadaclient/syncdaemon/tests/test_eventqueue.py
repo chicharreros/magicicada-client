@@ -1,9 +1,5 @@
-#
-# Author: Facundo Batista <facundo@canonical.com>
-#
-# Author: Guillermo Gonzalez <guillermo.gonzalez@canonical.com>
-#
 # Copyright 2009-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -36,6 +32,7 @@ import logging
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
+from devtools.handlers import MementoHandler
 from magicicadaclient.testing.testcase import (
     BaseTwistedTestCase,
     FakeMonitor,
@@ -49,7 +46,6 @@ from magicicadaclient.syncdaemon import (
     filesystem_manager,
     tritcask,
 )
-from ubuntuone.devtools.handlers import MementoHandler
 
 
 class BaseEQTestCase(BaseTwistedTestCase):

@@ -1,4 +1,5 @@
 # Copyright 2010-2013 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -30,15 +31,11 @@ import logging
 import os
 
 from twisted.internet import defer
-from ubuntuone.devtools.handlers import MementoHandler
 
+from devtools.handlers import MementoHandler
+from magicicadaclient.platform import move_to_trash, open_file, stat_path
 from magicicadaclient.platform.tests.os_helper import test_os_helper
 from magicicadaclient.platform.os_helper import linux
-from magicicadaclient.platform import (
-    move_to_trash,
-    open_file,
-    stat_path,
-)
 
 
 class OSWrapperTests(test_os_helper.OSWrapperTests):

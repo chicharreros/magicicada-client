@@ -1,8 +1,5 @@
-# tests.syncdaemon.test_tritcask - tritcask tests
-#
-# Author: Guillermo Gonzalez <guillermo.gonzalez@canonical.com>
-#
 # Copyright 2010-2012 Canonical Ltd.
+# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -42,8 +39,8 @@ import zlib
 from operator import attrgetter
 from twisted.internet import defer
 
+from devtools.handlers import MementoHandler
 from magicicadaclient.testing.testcase import BaseTwistedTestCase
-from ubuntuone.devtools.handlers import MementoHandler
 from magicicadaclient.syncdaemon import tritcask
 from magicicadaclient.syncdaemon.tritcask import (
     TOMBSTONE,
@@ -343,7 +340,7 @@ class DataFileTest(BaseTestCase):
             fd.read(crc32_size + 4)
             fd.truncate()
             # write a different value -> random bytes
-            fd.write(os.urandom(header_size/2))
+            fd.write(os.urandom(header_size / 2))
             fd.flush()
             fmap = mmap.mmap(fd.fileno(), 0, access=mmap.ACCESS_READ)
             with contextlib.closing(fmap):
@@ -1377,7 +1374,7 @@ class BasicTest(BaseTestCase):
         # check that the TOMBSTONE is there for these keys
         with open(self.db.live_file.filename, 'r+b') as f:
             raw_data_len = len(key) + len(TOMBSTONE) + crc32_size + header_size
-            f.seek(-1*raw_data_len, os.SEEK_END)
+            f.seek(-1 * raw_data_len, os.SEEK_END)
             raw_data = f.read(raw_data_len)
             self.assertEqual(TOMBSTONE,
                              raw_data[crc32_size + header_size + len(key):])
@@ -1743,9 +1740,10 @@ class KeydirStatsTests(BaseTestCase):
         for i in range(20):
             keydir[(0, str(uuid.uuid4()))] = KeydirEntry(
                 file_id_1, timestamp(), len(str(uuid.uuid4())), i + 10)
-        entry_size = len(str(uuid.uuid4()))*2 + header_size + crc32_size
-        self.assertEqual(entry_size*10, keydir._stats[file_id]['live_bytes'])
-        self.assertEqual(entry_size*20, keydir._stats[file_id_1]['live_bytes'])
+        entry_size = len(str(uuid.uuid4())) * 2 + header_size + crc32_size
+        self.assertEqual(entry_size * 10, keydir._stats[file_id]['live_bytes'])
+        self.assertEqual(
+            entry_size * 20, keydir._stats[file_id_1]['live_bytes'])
 
     def test_update_entry(self):
         """Test that __setitem__ updates the stats for an entry."""
@@ -1796,10 +1794,10 @@ class KeydirStatsTests(BaseTestCase):
                                            len(str(uuid.uuid4())), i + 10)
             if i % 2:
                 keydir.remove((0, key))
-        entry_size = len(str(uuid.uuid4()))*2 + header_size + crc32_size
-        self.assertEqual(entry_size*(10/2),
+        entry_size = len(str(uuid.uuid4())) * 2 + header_size + crc32_size
+        self.assertEqual(entry_size * (10 / 2),
                          keydir._stats[file_id]['live_bytes'])
-        self.assertEqual(entry_size*(20/2),
+        self.assertEqual(entry_size * (20 / 2),
                          keydir._stats[file_id_1]['live_bytes'])
 
     def test_remove_missing_key(self):

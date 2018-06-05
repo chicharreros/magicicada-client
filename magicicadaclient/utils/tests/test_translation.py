@@ -34,8 +34,8 @@ import os
 import sys
 
 from twisted.internet import defer
-from ubuntuone.devtools.testcases import TestCase, skipIfNotOS
 
+from devtools.testcases import TestCase, skipIfNotOS
 from magicicadaclient.utils import translation
 
 TEST_DOMAIN = 'test-domain'
