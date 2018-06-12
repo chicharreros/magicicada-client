@@ -1,3 +1,4 @@
+dbus
 libdbus-1-dev
 libgirepository1.0-dev
 libgtk2.0-dev
