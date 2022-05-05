@@ -43,7 +43,7 @@ docker-bootstrap: clean
 	cat dependencies-devel.txt | xargs apt-get install -y --no-install-recommends
 
 venv: 
-	virtualenv $(ENV)
+	virtualenv -p python2 $(ENV)
 	$(ENV)/bin/pip install -r requirements.txt -r requirements-devel.txt
 
 lint:

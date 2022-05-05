@@ -1,4 +1,4 @@
-configglue==1.1.3.post0
+configglue==1.1.3
 dbus-python==1.2.8
 magicicadaprotocol==2.0
 PyGObject==3.28.2
