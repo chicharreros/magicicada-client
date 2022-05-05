@@ -24,7 +24,6 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install Dependencies
       run: |
-        apt get update
         apt install make
         make bootstrap
     - name: Run Tests
