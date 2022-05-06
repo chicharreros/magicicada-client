@@ -101,16 +101,7 @@ def main(argv):
     else:
         logger.root_logger.info('not starting twisted.manhole')
 
-    if options.debug_lsprof_file:
-        try:
-            from bzrlib.lsprof import profile
-            ret, stats = profile(reactor.run)
-            stats.save(options.debug_lsprof_file)
-        except ImportError:
-            logger.root_logger.warning('bzrlib.lsprof not available')
-            reactor.run()
-    else:
-        reactor.run()
+    reactor.run()
 
 
 def startManhole():
