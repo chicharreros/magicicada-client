@@ -31,7 +31,6 @@ ENV = $(CURDIR)/.env
 
 deps:
 	cat dependencies.txt | sudo xargs apt-get install -y --no-install-recommends
-	cat dependencies-devel.txt | sudo xargs apt-get install -y --no-install-recommends
 
 build:
 	$(ENV)/bin/python setup.py build
@@ -40,10 +39,10 @@ bootstrap: deps venv build
 
 docker-bootstrap: clean
 	cat dependencies.txt | xargs apt-get install -y --no-install-recommends
-	cat dependencies-devel.txt | xargs apt-get install -y --no-install-recommends
 
 venv: 
 	virtualenv -p python2 $(ENV)
+	$(ENV)/bin/pip install -U pip
 	$(ENV)/bin/pip install -r requirements.txt -r requirements-devel.txt
 
 lint:
