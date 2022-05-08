@@ -42,7 +42,7 @@ docker-bootstrap: clean
 
 venv: 
 	virtualenv -p python2 $(ENV)
-	$(ENV)/bin/pip install -U pip
+	$(ENV)/bin/pip install -U pip setuptools
 	$(ENV)/bin/pip install -r requirements.txt -r requirements-devel.txt
 
 lint:
