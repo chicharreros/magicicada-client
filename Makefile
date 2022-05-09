@@ -1,4 +1,4 @@
-# Copyright 2015 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -36,9 +36,6 @@ build:
 	$(ENV)/bin/python setup.py build
 
 bootstrap: deps venv build
-
-docker-bootstrap: clean
-	cat dependencies.txt | xargs apt-get install -y --no-install-recommends
 
 venv: 
 	virtualenv -p python2 $(ENV)

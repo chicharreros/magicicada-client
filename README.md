@@ -1,3 +1,14 @@
+Magicicada Client
+=================
+
+![tests](https://github.com/chicharreros/magicicada-client/actions/workflows/tests.yml/badge.svg)
+
+This project is a fork of the Ubuntu One client project.
+
+
+Details
+-------
+
 In order to run tests in ubuntuone-client, you can simply bootstrap and
 everything will be setup automagically:
 
