@@ -12,13 +12,18 @@ Details
 In order to run tests in ubuntuone-client, you can simply bootstrap and
 everything will be setup automagically:
 
-$: sudo apt-get install make
-$: make bootstrap
+```console
+$ sudo apt-get install make
+$ make bootstrap
+```
+
 
 After configuring, in order to run the tests, all you need to do is run
 make test.
 
-$: make test
+```console
+$ make test
+```
 
 
 Magicicada uses branch based development on Github, and bugs to track
