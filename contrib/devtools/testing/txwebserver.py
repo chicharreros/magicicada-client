@@ -28,8 +28,6 @@
 
 """A tx based web server."""
 
-from __future__ import unicode_literals
-
 from twisted.internet import defer, reactor, ssl
 from twisted.protocols.policies import WrappingFactory
 from twisted.web import server
@@ -79,7 +77,7 @@ class BaseWebServer(object):
         """Shut it down."""
         if self.port:
             self.wrapper._disconnecting = True
-            connected = self.wrapper.protocols.keys()
+            connected = list(self.wrapper.protocols.keys())
             if connected:
                 for con in connected:
                     con.transport.loseConnection()

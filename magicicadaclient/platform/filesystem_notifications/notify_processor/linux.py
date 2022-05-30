@@ -69,24 +69,6 @@ INOTIFY_EVENTS_ANCESTORS = (
     pyinotify.IN_MOVE_SELF)
 
 
-def validate_filename(real_func):
-    """Decorator that validates the filename."""
-    def func(self, event):
-        """If valid, executes original function."""
-        try:
-            # validate UTF-8
-            event.name.decode("utf8")
-        except UnicodeDecodeError:
-            dirname = event.path.decode("utf8")
-            self.general_processor.invnames_log.info(
-                "%s in %r: path %r", event.maskname, dirname, event.name)
-            self.general_processor.monitor.eq.push(
-                'FS_INVALID_NAME', dirname=dirname, filename=event.name)
-        else:
-            real_func(self, event)
-    return func
-
-
 class NotifyProcessor(pyinotify.ProcessEvent):
     """inotify's processor when a general event happens.
 
@@ -130,19 +112,16 @@ class NotifyProcessor(pyinotify.ProcessEvent):
         self.general_processor.push_event(self.held_event)
         self.held_event = None
 
-    @validate_filename
     def process_IN_OPEN(self, event):
         """Filter IN_OPEN to make it happen only in files."""
         if not (event.mask & pyinotify.IN_ISDIR):
             self.general_processor.push_event(event)
 
-    @validate_filename
     def process_IN_CLOSE_NOWRITE(self, event):
         """Filter IN_CLOSE_NOWRITE to make it happen only in files."""
         if not (event.mask & pyinotify.IN_ISDIR):
             self.general_processor.push_event(event)
 
-    @validate_filename
     def process_IN_CLOSE_WRITE(self, event):
         """Filter IN_CLOSE_WRITE to make it happen only in files.
 
@@ -160,7 +139,6 @@ class NotifyProcessor(pyinotify.ProcessEvent):
 
         """
 
-    @validate_filename
     def process_IN_MOVED_FROM(self, event):
         """Capture the MOVED_FROM to maybe syntethize FILE_MOVED."""
         if self.held_event is not None:
@@ -180,7 +158,6 @@ class NotifyProcessor(pyinotify.ProcessEvent):
         """Should we ignore this path?"""
         return self.general_processor.is_ignored(path)
 
-    @validate_filename
     def process_IN_MOVED_TO(self, event):
         """Capture the MOVED_TO to maybe syntethize FILE_MOVED."""
         if self.held_event is not None:
@@ -262,7 +239,6 @@ class NotifyProcessor(pyinotify.ProcessEvent):
                 self.general_processor.eq_push(
                     'FS_FILE_CLOSE_WRITE', path=t_path)
 
-    @validate_filename
     def process_default(self, event):
         """Push the event into the EventQueue."""
         if self.held_event is not None:

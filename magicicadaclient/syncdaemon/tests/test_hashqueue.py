@@ -34,8 +34,8 @@ import random
 import threading
 import time
 from io import StringIO
+from unittest import mock
 
-import mock
 from magicicadaprotocol.content_hash import content_hash_factory, crc32
 from twisted.trial.unittest import TestCase as TwistedTestCase
 from twisted.internet import defer, reactor

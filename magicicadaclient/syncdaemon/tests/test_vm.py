@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2009-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -31,21 +29,19 @@
 """Tests for the Volume Manager."""
 
 import collections
-import cPickle as pickle
 import inspect
 import logging
 import os
-import sys
+import pickle
 import uuid
+from unittest import mock
 
-import mock
 from magicicadaprotocol import volumes, request
 from magicicadaprotocol.client import ListShares
 from magicicadaprotocol.sharersp import NotifyShareHolder, ShareResponse
 from twisted.internet import defer, reactor
 
 from devtools.handlers import MementoHandler
-from devtools.testcases import skipIfOS
 from magicicadaclient import platform
 from magicicadaclient.syncdaemon import (
     config,
@@ -160,11 +156,11 @@ class BaseVolumeManagerTests(BaseTwistedTestCase):
         return listener
 
     def _create_udf_volume(self, volume_id=None, node_id=None,
-                           suggested_path=u'~/Documents',
+                           suggested_path='~/Documents',
                            generation=None, free_bytes=100):
         """Return a new UDFVolume."""
         # match protocol expected types
-        assert isinstance(suggested_path, unicode)
+        assert isinstance(suggested_path, str)
 
         if volume_id is None:
             volume_id = str(uuid.uuid4())
@@ -178,11 +174,11 @@ class BaseVolumeManagerTests(BaseTwistedTestCase):
         return volume
 
     def _create_udf(self, volume_id=None, node_id=None,
-                    suggested_path=u'~/Documents',
+                    suggested_path='~/Documents',
                     subscribed=True, generation=None, free_bytes=100):
         """Create an UDF and returns it and the volume"""
         # match protocol expected types
-        assert isinstance(suggested_path, unicode)
+        assert isinstance(suggested_path, str)
 
         volume = self._create_udf_volume(volume_id=volume_id, node_id=node_id,
                                          suggested_path=suggested_path,
@@ -195,12 +191,12 @@ class BaseVolumeManagerTests(BaseTwistedTestCase):
         return udf
 
     def _create_share_volume(
-            self, volume_id=None, node_id=None, name=u'fake_share',
+            self, volume_id=None, node_id=None, name='fake_share',
             generation=None, free_bytes=10, access_level=ACCESS_LEVEL_RO,
             accepted=True, other_visible_name='visible_username'):
         """Return a new ShareVolume."""
         # match protocol expected types
-        assert isinstance(name, unicode)
+        assert isinstance(name, str)
 
         if volume_id is None:
             volume_id = str(uuid.uuid4())
@@ -217,14 +213,14 @@ class BaseVolumeManagerTests(BaseTwistedTestCase):
                                      access_level=access_level)
         return volume
 
-    def _create_share(self, volume_id=None, node_id=None, name=u'fake_share',
+    def _create_share(self, volume_id=None, node_id=None, name='fake_share',
                       generation=None, free_bytes=1024,
                       access_level=ACCESS_LEVEL_RO,
                       accepted=True, subscribed=False,
                       other_visible_name='visible_username'):
         """Return a new Share."""
         # match protocol expected types
-        assert isinstance(name, unicode)
+        assert isinstance(name, str)
 
         share_volume = self._create_share_volume(
             volume_id=volume_id, node_id=node_id, name=name,
@@ -1334,7 +1330,7 @@ class VolumeManagerStringManagementTests(BaseVolumeManagerTests):
         """test the handling of AQ_SHARE_LIST with non-ascii share name."""
         share_response = ShareResponse.from_params('share_id', 'to_me',
                                                    'fake_share_uuid',
-                                                   u'montón', 'username',
+                                                   'montón', 'username',
                                                    'visible', 'yes',
                                                    ACCESS_LEVEL_RO)
         # initialize the the root
@@ -1354,7 +1350,7 @@ class VolumeManagerStringManagementTests(BaseVolumeManagerTests):
         share_response = ShareResponse.from_params('share_id', 'to_me',
                                                    'fake_share_uuid',
                                                    'sharename', 'username',
-                                                   u'Darío Toño', 'yes',
+                                                   'Darío Toño', 'yes',
                                                    ACCESS_LEVEL_RO)
         # initialize the the root
         self.vm._got_root('root_uuid')
@@ -1371,7 +1367,7 @@ class VolumeManagerStringManagementTests(BaseVolumeManagerTests):
     def test_handle_SV_SHARE_CHANGED_sharename(self):
         """test the handling of SV_SHARE_CHANGED for non-ascii share name."""
         share_holder = NotifyShareHolder.from_params(
-            'share_id', None, u'año', 'test_username', 'visible',
+            'share_id', None, 'año', 'test_username', 'visible',
             ACCESS_LEVEL_RW)
         self.vm._got_root('root_uuid')
         self.vm.handle_SV_SHARE_CHANGED(info=share_holder)
@@ -1382,7 +1378,7 @@ class VolumeManagerStringManagementTests(BaseVolumeManagerTests):
     def test_handle_SV_SHARE_CHANGED_visible(self):
         """test the handling of SV_SHARE_CHANGED for non-ascii visible name."""
         share_holder = NotifyShareHolder.from_params(
-            'share_id', None, 'share', 'test_username', u'Ramón',
+            'share_id', None, 'share', 'test_username', 'Ramón',
             ACCESS_LEVEL_RW)
         self.vm._got_root('root_uuid')
         self.vm.handle_SV_SHARE_CHANGED(info=share_holder)
@@ -1396,12 +1392,12 @@ class VolumeManagerVolumesTests(BaseVolumeManagerTests):
 
     def test_udf_ancestors(self):
         """UDF's ancestors are correctly returned."""
-        suggested_path = u'~/Documents/Reading Años/Books/PDFs'
-        expected = [u'~',
-                    os.path.join(u'~', u'Documents'),
-                    os.path.join(u'~', u'Documents', u'Reading Años'),
-                    os.path.join(u'~', u'Documents', u'Reading Años',
-                                 u'Books')]
+        suggested_path = '~/Documents/Reading Años/Books/PDFs'
+        expected = ['~',
+                    os.path.join('~', 'Documents'),
+                    os.path.join('~', 'Documents', 'Reading Años'),
+                    os.path.join('~', 'Documents', 'Reading Años',
+                                 'Books')]
         expected = [platform.expand_user(p.encode('utf-8')) for p in expected]
 
         udf = self._create_udf(suggested_path=suggested_path)
@@ -1410,7 +1406,7 @@ class VolumeManagerVolumesTests(BaseVolumeManagerTests):
     @defer.inlineCallbacks
     def test_add_udf(self):
         """Test for VolumeManager.add_udf."""
-        suggested_path = u"~/suggested_path"
+        suggested_path = "~/suggested_path"
         udf = self._create_udf(suggested_path=suggested_path, subscribed=False)
         yield self.vm.add_udf(udf)
         path = get_udf_path(suggested_path)
@@ -1554,14 +1550,14 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
     def test_handle_AQ_LIST_VOLUMES(self):
         """Test the handling of the AQ_LIST_VOLUMES event."""
         share_id = uuid.uuid4()
-        share_name = u'a share name'
+        share_name = 'a share name'
         share_node_id = 'something'
         share_volume = self._create_share_volume(volume_id=share_id,
                                                  name=share_name,
                                                  node_id=share_node_id)
         udf_id = uuid.uuid4()
         udf_node_id = 'yadda-yadda'
-        suggested_path = u'~/UDF'
+        suggested_path = '~/UDF'
         udf_path = get_udf_path(suggested_path)
         udf_volume = self._create_udf_volume(volume_id=udf_id,
                                              node_id=udf_node_id,
@@ -1629,14 +1625,14 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
     def test_handle_AQ_LIST_VOLUMES_non_ascii(self):
         """Test the handling of the AQ_LIST_VOLUMES event."""
         share_id = uuid.uuid4()
-        name = u'ñoño'
+        name = 'ñoño'
         share_volume = self._create_share_volume(volume_id=share_id, name=name,
                                                  node_id='fake_share_uuid')
         udf_id = uuid.uuid4()
         udf_volume = self._create_udf_volume(volume_id=udf_id,
                                              node_id='udf_uuid',
                                              generation=None, free_bytes=10,
-                                             suggested_path=u'~/ñoño')
+                                             suggested_path='~/ñoño')
         # initialize the the root
         self.vm._got_root('root_uuid')
         response = [share_volume, udf_volume]
@@ -1779,7 +1775,7 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
 
         # create a volume list
         udf_id = uuid.uuid4()
-        udf_volume = volumes.UDFVolume(udf_id, 'udf_uuid', 23, 100, u'~/UDF')
+        udf_volume = volumes.UDFVolume(udf_id, 'udf_uuid', 23, 100, '~/UDF')
         root_volume = volumes.RootVolume(uuid.uuid4(), 17, 10)
         response = [udf_volume, root_volume]
 
@@ -1917,7 +1913,7 @@ class VolumeManagerOpTestsRequiringRealFSMonitor(BaseVolumeManagerTests):
         # create a sync instance
         from magicicadaclient.syncdaemon import sync
         sync = sync.Sync(self.main)
-        suggested_path = u"~/suggested_path"
+        suggested_path = "~/suggested_path"
         udf = self._create_udf(suggested_path=suggested_path,
                                subscribed=True)
         # create some files inside it
@@ -1956,7 +1952,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         """
         d = defer.Deferred()
-        suggested_path = u"~/MyUDF"
+        suggested_path = "~/MyUDF"
         path = get_udf_path(suggested_path)
         udf_id = uuid.uuid4()
         node_id = uuid.uuid4()
@@ -1975,7 +1971,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
             self.assertEqual(udf.volume_id, str(udf_id))
             self.assertEqual(udf.node_id, str(node_id))
             self.assertEqual(udf.suggested_path, suggested_path)
-            self.assertIsInstance(udf.suggested_path, unicode)
+            self.assertIsInstance(udf.suggested_path, str)
             self.assertIn(udf.volume_id, self.vm.udfs)
 
         self._listen_for('VM_UDF_CREATED', d.callback)
@@ -1990,7 +1986,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         Check that VM calls AQ.create_udf with non-ascii strings.
         """
         d = defer.Deferred()
-        path = get_udf_path(u"~/ñoño/mirá que lindo mi udf")
+        path = get_udf_path("~/ñoño/mirá que lindo mi udf")
         # patch AQ.create_udf
 
         def create_udf(path, name, marker):
@@ -2002,9 +1998,9 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         path, name = yield d
         self.assertIsInstance(
-            name, unicode, 'name should be unicode but is: %s' % type(name))
+            name, str, 'name should be unicode but is: %s' % type(name))
         self.assertIsInstance(
-            path, unicode, 'path should be unicode but is: %s' % type(path))
+            path, str, 'path should be unicode but is: %s' % type(path))
 
     @defer.inlineCallbacks
     def test_delete_volume(self):
@@ -2350,7 +2346,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
     def test_handle_AQ_CREATE_UDF_OK(self):
         """Test AQ_CREATE_UDF_OK. The UDF is always subscribed."""
         d = defer.Deferred()
-        path = get_udf_path(u'~/ñoño')
+        path = get_udf_path('~/ñoño')
         udf_id = uuid.uuid4()
         node_id = uuid.uuid4()
         # patch AQ.create_udf
@@ -2378,7 +2374,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
     def test_handle_AQ_CREATE_UDF_ERROR(self):
         """Test for handle_AQ_CREATE_UDF_ERROR."""
         d = defer.Deferred()
-        path = get_udf_path(u'~/ñoño')
+        path = get_udf_path('~/ñoño')
         # patch AQ.create_udf
 
         def create_udf(path, name, marker):
@@ -2519,7 +2515,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         user_conf.set_udf_autosubscribe(auto_subscribe)
         # start the test
         udf_id = uuid.uuid4()
-        udf_volume = volumes.UDFVolume(udf_id, 'udf_uuid', None, 10, u'~/ñoño')
+        udf_volume = volumes.UDFVolume(udf_id, 'udf_uuid', None, 10, '~/ñoño')
         # initialize the the root
         self.vm._got_root('root_uuid')
 
@@ -2557,7 +2553,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         """Test for handle_SV_VOLUME_DELETED."""
         share = self._create_share()
         # create a UDF
-        suggested_path = u'~/ñoño'
+        suggested_path = '~/ñoño'
         path = get_udf_path(suggested_path)
         udf_id = uuid.uuid4()
         udf_volume = volumes.UDFVolume(udf_id, 'udf_uuid', None, 10,
@@ -2732,19 +2728,19 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
     def test_udf_from_udf_volume(self):
         """Test for UDF.from_udf_volume."""
-        suggested_path = u'~/foo/bar'
+        suggested_path = '~/foo/bar'
         path = get_udf_path(suggested_path)
         volume = volumes.UDFVolume(uuid.uuid4(), uuid.uuid4(), None,
                                    10, suggested_path)
         udf = UDF.from_udf_volume(volume, path)
-        self.assertIsInstance(udf.id, basestring)
-        self.assertIsInstance(udf.node_id, basestring)
+        self.assertIsInstance(udf.id, str)
+        self.assertIsInstance(udf.node_id, str)
 
     def test_share_from_share_volume(self):
         """Test for Share.from_share_volume."""
         share = self._create_share()
-        self.assertIsInstance(share.id, basestring)
-        self.assertIsInstance(share.node_id, basestring)
+        self.assertIsInstance(share.id, str)
+        self.assertIsInstance(share.node_id, str)
 
     @defer.inlineCallbacks
     def test_volumes_list_args_as_AQ_wants(self):
@@ -3003,7 +2999,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         share_volume = self._create_share_volume()
         udf_id = uuid.uuid4()
-        udf_volume = volumes.UDFVolume(udf_id, 'udf_uuid', None, 10, u'~/UDF')
+        udf_volume = volumes.UDFVolume(udf_id, 'udf_uuid', None, 10, '~/UDF')
         root_volume = volumes.RootVolume(uuid.uuid4(), None, 10)
         response = [share_volume, udf_volume, root_volume]
         d = defer.Deferred()
@@ -3158,7 +3154,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         """Test the server_rescan method."""
         share_volume = self._create_share_volume()
         udf_id = uuid.uuid4()
-        udf_volume = volumes.UDFVolume(udf_id, 'udf_node_id', 1, 200, u'~/UDF')
+        udf_volume = volumes.UDFVolume(udf_id, 'udf_node_id', 1, 200, '~/UDF')
         root_id = uuid.uuid4()
         root_volume = volumes.RootVolume(root_id, 1, 500)
         response = [share_volume, udf_volume, root_volume]
@@ -3193,7 +3189,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
                                                  generation=17)
         udf_id = uuid.uuid4()
         udf_volume = volumes.UDFVolume(
-            udf_id, 'udf_node_id', 13, 200, u'~/UDF')
+            udf_id, 'udf_node_id', 13, 200, '~/UDF')
         root_id = uuid.uuid4()
         root_volume = volumes.RootVolume(root_id, 1, 500)
         response = [share_volume, udf_volume, root_volume]
@@ -3236,7 +3232,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         share_volume = self._create_share_volume()
         udf_id = uuid.uuid4()
         udf_volume = volumes.UDFVolume(udf_id, 'udf_node_id', 13, 200,
-                                       u'~/UDF')
+                                       '~/UDF')
         root_id = uuid.uuid4()
         root_volume = volumes.RootVolume(root_id, 1, 500)
         response = [share_volume, udf_volume, root_volume]
@@ -3285,7 +3281,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
                                                  generation=17)
         udf_id = uuid.uuid4()
         udf_volume = volumes.UDFVolume(udf_id, 'udf_node_id', 13, 200,
-                                       u'~/UDF')
+                                       '~/UDF')
         root_id = uuid.uuid4()
         root_volume = volumes.RootVolume(root_id, 1, 500)
         response = [share_volume, udf_volume, root_volume]
@@ -3375,7 +3371,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         share_volume = self._create_share_volume()
         udf_id = uuid.uuid4()
         udf_volume = volumes.UDFVolume(udf_id, 'udf_node_id', 1, 200,
-                                       u'~/UDF')
+                                       '~/UDF')
         root_id = uuid.uuid4()
         root_volume = volumes.RootVolume(root_id, 1, 500)
         response = [share_volume, udf_volume, root_volume]
@@ -3414,7 +3410,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         share_volume = self._create_share_volume()
         udf_id = uuid.uuid4()
         udf_volume = volumes.UDFVolume(udf_id, 'udf_node_id', 1, 200,
-                                       u'~/UDF')
+                                       '~/UDF')
         root_id = uuid.uuid4()
         root_volume = volumes.RootVolume(root_id, 1, 500)
         response = [share_volume, udf_volume, root_volume]
@@ -3458,7 +3454,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         share_volume = self._create_share_volume(volume_id=share_id,
                                                  generation=1)
         udf_id = uuid.uuid4()
-        udf_volume = volumes.UDFVolume(udf_id, 'udf_node_id', 1, 200, u'~/UDF')
+        udf_volume = volumes.UDFVolume(udf_id, 'udf_node_id', 1, 200, '~/UDF')
         root_id = uuid.uuid4()
         root_volume = volumes.RootVolume(root_id, 1, 500)
         response = [share_volume, udf_volume, root_volume]
@@ -3565,7 +3561,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
     @defer.inlineCallbacks
     def test_volumes_rescan_cb_inactive_volume(self):
         """Test _volumes_rescan_cb with inactive volume."""
-        suggested_path = u'~/ñoño/ñandú'
+        suggested_path = '~/ñoño/ñandú'
         path = get_udf_path(suggested_path)
         udf_id = uuid.uuid4()
         udf_volume = volumes.UDFVolume(udf_id, uuid.uuid4(), 10, 100,
@@ -3594,7 +3590,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         user_conf.set_udf_autosubscribe(True)
 
         # create a UDF
-        suggested_path = u'~/ñoño/ñandú'
+        suggested_path = '~/ñoño/ñandú'
         path = get_udf_path(suggested_path)
         udf_id = uuid.uuid4()
         udf_volume = volumes.UDFVolume(udf_id, 'udf_uuid', 10, 100,
@@ -3629,7 +3625,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
     def test_volumes_rescan_cb_active_udf(self):
         """Test _volumes_rescan_cb with an active UDF and no-autosubscribe."""
         # create a UDF
-        suggested_path = u'~/ñoño/ñandú'
+        suggested_path = '~/ñoño/ñandú'
         path = get_udf_path(suggested_path)
         udf_id = uuid.uuid4()
         udf_volume = volumes.UDFVolume(udf_id, 'udf_uuid', None, 10,
@@ -4152,7 +4148,6 @@ class MetadataUpgraderTests(MetadataTestCase):
         self.md_upgrader._upgrade_metadata_6.assert_called_once_with(6)
 
 
-@skipIfOS('linux2', 'On linux paths are bytes so this tests do not apply')
 class MetadataVersionFileTestCase(MetadataTestCase):
     """Check that the metadata version file can have non ascii characters."""
 
@@ -4162,11 +4157,10 @@ class MetadataVersionFileTestCase(MetadataTestCase):
         yield super(MetadataVersionFileTestCase, self).setUp()
         self.fake_version = "FAKE"
         self.patch(VolumeManager, "METADATA_VERSION", self.fake_version)
-        self.temp_dir = os.path.join(self.mktemp(), u"Ñandú")
-        self.version_file = os.path.join(self.temp_dir, ".version").encode(
-            sys.getfilesystemencoding())
-        self.md_upgrader = MetadataUpgrader(self.temp_dir.encode("utf-8"),
-                                            "", "", "", "", "", "", None)
+        self.temp_dir = os.path.join(self.mktemp(), "Ñandú")
+        self.version_file = os.path.join(self.temp_dir, ".version")
+        self.md_upgrader = MetadataUpgrader(
+            self.temp_dir, "", "", "", "", "", "", None)
 
     def test_metadata_version_write(self):
         """The metadata .version file is written on unicode paths."""

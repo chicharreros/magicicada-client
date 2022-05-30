@@ -35,7 +35,7 @@ import sys
 
 from twisted.internet import defer, reactor
 
-from devtools.testcases import skipIfOS, skipIfNotOS
+from devtools.testcases import skipIfNotOS
 from magicicadaclient.platform import (
     make_link,
     make_dir,
@@ -644,7 +644,7 @@ class MutedSignalsTests(BaseTwisted):
         yield self._deferred
 
 
-@skipIfNotOS('linux2', "Only Linux watches UDF ancestors")
+@skipIfNotOS('linux', 'Only Linux watches UDF ancestors')
 class AncestorsUDFTestCase(BaseTwistedTestCase):
     """Events over UDF's ancestor are properly handled."""
 
@@ -669,7 +669,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         self.addCleanup(self.eq.unsubscribe, self.listener)
 
         # create UDF
-        suggested_path = u'~/Documents/Reading/Books/PDFs'
+        suggested_path = '~/Documents/Reading/Books/PDFs'
         udf_id, node_id = 'udf_id', 'node_id'
         path = volume_manager.get_udf_path(suggested_path)
         self.udf = volume_manager.UDF(udf_id, node_id,
@@ -678,7 +678,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         yield self.eq.fs.vm.add_udf(self.udf)
 
         # create a second UDF
-        suggested_path = u'~/Documents/Reading/Magazines/Text'
+        suggested_path = '~/Documents/Reading/Magazines/Text'
         udf_id2, node_id2 = 'udf_id_2', 'node_id_2'
         path = volume_manager.get_udf_path(suggested_path)
         self.udf2 = volume_manager.UDF(udf_id2, node_id2,
@@ -814,7 +814,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         """UDF is unsubscribed on ancestor move."""
         path = self.udf.ancestors[-2]  # an ancestor common to both UDFs
         # generate IN_MOVED_FROM and IN_MOVED_TO
-        newpath = path + '.old'  # no unicode, paths are always a byte sequence
+        newpath = path + '.old'
 
         # nessita: shouldn't this rename fails in windows since we lock the
         # path by having a watch inside 'path'?
@@ -992,179 +992,6 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         rename(path, path + ".old")
         reactor.callLater(.1, check)
         return self._deferred
-
-
-@skipIfOS('win32', "we can't create files with invalid utf8 byte sequences.")
-@skipIfOS('darwin', "fsevents daemon ignores events with invalid filenames")
-class NonUTF8NamesTests(BaseTwisted):
-    """Test the non-utf8 name handling."""
-
-    invalid_name = "invalid \xff\xff name"
-
-    @defer.inlineCallbacks
-    def setUp(self):
-        yield super(NonUTF8NamesTests, self).setUp()
-        self.invalid_path = os.path.join(self.root_dir, self.invalid_name)
-
-    @defer.inlineCallbacks
-    def test_file_open(self):
-        """Test invalid_filename after open a file."""
-        open_file(self.invalid_path, "w").close()
-        self.addCleanup(remove_file, self.invalid_path)
-
-        yield self.eq.add_watch(self.root_dir)
-        should_events = [
-            ('FS_INVALID_NAME',
-             dict(dirname=self.root_dir, filename=self.invalid_name)),  # open
-            ('FS_INVALID_NAME',
-             dict(dirname=self.root_dir, filename=self.invalid_name)),  # close
-        ]
-        listener = DynamicHitMe(should_events, self)
-        self.eq.subscribe(listener)
-        self.addCleanup(self.eq.unsubscribe, listener)
-
-        # generate the event
-        open_file(self.invalid_path)
-        yield self._deferred
-
-    @defer.inlineCallbacks
-    def test_file_close_nowrite(self):
-        """Test invalid_filename after a close no write."""
-        open_file(self.invalid_path, "w").close()
-        self.addCleanup(remove_file, self.invalid_path)
-        fh = open_file(self.invalid_path)
-
-        yield self.eq.add_watch(self.root_dir)
-        should_events = [
-            ('FS_INVALID_NAME',
-             dict(dirname=self.root_dir, filename=self.invalid_name)),  # close
-        ]
-        listener = DynamicHitMe(should_events, self)
-        self.eq.subscribe(listener)
-        self.addCleanup(self.eq.unsubscribe, listener)
-
-        # generate the event
-        fh.close()
-        yield self._deferred
-
-    @defer.inlineCallbacks
-    def test_file_create_close_write(self):
-        """Test invalid_filename after a create, open and close write."""
-        yield self.eq.add_watch(self.root_dir)
-        should_events = [
-            ('FS_INVALID_NAME',
-             dict(dirname=self.root_dir, filename=self.invalid_name)),  # new
-            ('FS_INVALID_NAME',
-             dict(dirname=self.root_dir, filename=self.invalid_name)),  # open
-            ('FS_INVALID_NAME',
-             dict(dirname=self.root_dir, filename=self.invalid_name)),  # close
-        ]
-        listener = DynamicHitMe(should_events, self)
-        self.eq.subscribe(listener)
-        self.addCleanup(self.eq.unsubscribe, listener)
-
-        # generate the event
-        open_file(self.invalid_path, "w").close()
-        self.addCleanup(remove_file, self.invalid_path)
-        yield self._deferred
-
-    @defer.inlineCallbacks
-    def test_dir_create(self):
-        """Test invalid_filename after a dir create."""
-        yield self.eq.add_watch(self.root_dir)
-        should_events = [
-            ('FS_INVALID_NAME',
-             dict(dirname=self.root_dir, filename=self.invalid_name)),  # new
-        ]
-        listener = DynamicHitMe(should_events, self)
-        self.eq.subscribe(listener)
-        self.addCleanup(self.eq.unsubscribe, listener)
-
-        # generate the event
-        make_dir(self.invalid_path)
-        self.addCleanup(remove_dir, self.invalid_path)
-        yield self._deferred
-
-    @defer.inlineCallbacks
-    def test_file_delete(self):
-        """Test invalid_filename after a file delete."""
-        open_file(self.invalid_path, "w").close()
-
-        yield self.eq.add_watch(self.root_dir)
-        should_events = [
-            ('FS_INVALID_NAME',
-             dict(dirname=self.root_dir, filename=self.invalid_name)),  # del
-        ]
-        listener = DynamicHitMe(should_events, self)
-        self.eq.subscribe(listener)
-        self.addCleanup(self.eq.unsubscribe, listener)
-
-        # generate the event
-        remove_file(self.invalid_path)
-        yield self._deferred
-
-    @defer.inlineCallbacks
-    def test_dir_delete(self):
-        """Test invalid_filename after a dir delete."""
-        make_dir(self.invalid_path)
-
-        yield self.eq.add_watch(self.root_dir)
-        should_events = [
-            ('FS_INVALID_NAME',
-             dict(dirname=self.root_dir, filename=self.invalid_name)),  # del
-        ]
-        listener = DynamicHitMe(should_events, self)
-        self.eq.subscribe(listener)
-        self.addCleanup(self.eq.unsubscribe, listener)
-
-        # generate the event
-        remove_dir(self.invalid_path)
-        yield self._deferred
-
-    @defer.inlineCallbacks
-    def test_file_move_to(self):
-        """Test invalid_filename after moving a file into a watched dir."""
-        open_file(self.invalid_path, "w").close()
-        destdir = os.path.join(self.root_dir, "watched_dir")
-        make_dir(destdir)
-        destfile = os.path.join(destdir, self.invalid_name)
-
-        yield self.eq.add_watch(destdir)
-        should_events = [
-            ('FS_INVALID_NAME',
-             dict(dirname=destdir, filename=self.invalid_name)),  # move to
-        ]
-        listener = DynamicHitMe(should_events, self)
-        self.eq.subscribe(listener)
-        self.addCleanup(self.eq.unsubscribe, listener)
-
-        # generate the event
-        rename(self.invalid_path, destfile)
-        self.addCleanup(remove_file, destfile)
-        yield self._deferred
-
-    @defer.inlineCallbacks
-    def test_file_move_from(self):
-        """Test invalid_filename after moving a file from a watched dir."""
-        fromdir = os.path.join(self.root_dir, "watched_dir")
-        make_dir(fromdir)
-        fromfile = os.path.join(fromdir, self.invalid_name)
-        open_file(fromfile, "w").close()
-        destfile = os.path.join(self.root_dir, self.invalid_name)
-
-        yield self.eq.add_watch(fromdir)
-        should_events = [
-            ('FS_INVALID_NAME',
-             dict(dirname=fromdir, filename=self.invalid_name)),  # move from
-        ]
-        listener = DynamicHitMe(should_events, self)
-        self.eq.subscribe(listener)
-        self.addCleanup(self.eq.unsubscribe, listener)
-
-        # generate the event
-        rename(fromfile, destfile)
-        self.addCleanup(remove_file, destfile)
-        yield self._deferred
 
 
 @skip_if_win32_missing_fs_event
@@ -1975,8 +1802,7 @@ class SignalingTests(BaseTwisted):
     def _create_udf(self, vol_id, path):
         """Create an UDF and returns it and the volume"""
         make_dir(path, recursive=True)
-        udf = volume_manager.UDF(vol_id, "node_id", path.decode('utf-8'),
-                                 path, True)
+        udf = volume_manager.UDF(vol_id, "node_id", path, path, True)
         yield self.vm.add_udf(udf)
 
     @defer.inlineCallbacks

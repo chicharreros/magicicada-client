@@ -28,10 +28,10 @@
 
 """An offloaded (to disk) FIFO queue."""
 
-import cPickle as pickle
-import cStringIO
+import io
 import logging
 import os
+import pickle
 import struct
 import tempfile
 
@@ -99,7 +99,7 @@ class OffloadQueue(object):
         # rotate to memory
         self._tempfile.seek(self._pos)
         data_to_rotate = self._tempfile.read()
-        new_file = cStringIO.StringIO()
+        new_file = io.StringIO()
         new_file.write(data_to_rotate)
         new_file.write(data)
         self._tempfile_name = None
@@ -155,7 +155,7 @@ class OffloadQueue(object):
             new_file = os.fdopen(fd, 'w+b')
         except Exception:
             self.log.exception("Crashed while getting new file to rotate")
-            new_file = cStringIO.StringIO()
+            new_file = io.StringIO()
             new_name = None
             self._in_memory = True
 

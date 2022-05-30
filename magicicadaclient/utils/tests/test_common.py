@@ -28,8 +28,6 @@
 
 """Tests for the common helper functions."""
 
-from __future__ import unicode_literals
-
 import logging
 import sys
 import os

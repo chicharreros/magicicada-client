@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2009-2015 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -38,10 +36,9 @@ import operator
 import os
 import uuid
 from functools import wraps
-from StringIO import StringIO
-from unittest import TestCase
+from io import StringIO
+from unittest import TestCase, mock
 
-import mock
 import OpenSSL.SSL
 
 from magicicadaprotocol import (
@@ -89,11 +86,11 @@ from magicicadaclient.testing.testcase import (
     FakeUpload,
 )
 
-PATH = os.path.join(u'~', u'Documents', u'pdfs', u'moño', u'')
-NAME = u'UDF-me'
+PATH = os.path.join('~', 'Documents', 'pdfs', 'moño', '')
+NAME = 'UDF-me'
 VOLUME = uuid.UUID('12345678-1234-1234-1234-123456789abc')
 NODE = uuid.UUID('FEDCBA98-7654-3211-2345-6789ABCDEF12')
-USER = u'Dude'
+USER = 'Dude'
 SHARE = uuid.uuid4()
 
 
@@ -335,7 +332,7 @@ class BasicTestCase(BaseTwistedTestCase):
 class BasicTests(BasicTestCase):
     """Basic tests to check ActionQueue."""
     fake_host = "fake_host"
-    fake_iri = u"http://%s/" % fake_host
+    fake_iri = "http://%s/" % fake_host
 
     def test_implements_interface(self):
         """Verify ActionQueue and FakeActionQueue interface."""
@@ -1121,7 +1118,8 @@ class TestZipQueue(BasicTestCase):
         d = defer.Deferred()
         # patch NamedTemporaryFile so we can query status over it
         tempfile = FakeTempFile(self.tmpdir)
-        self.patch(action_queue, 'NamedTemporaryFile', lambda: tempfile)
+        self.patch(
+            action_queue.tempfile, 'NamedTemporaryFile', lambda: tempfile)
         # since fileobj is None, the try-except block will trigger an exception
         reactor.callInThread(self.zq._compress, d, upload, None)
         yield self.assertFailure(d, AttributeError)
@@ -1140,7 +1138,7 @@ class FactoryBaseTestCase(BasicTestCase):
         This assumes there is only one item in the connection_info, which
         is the case for the tests.
         """
-        connection_info = self.action_queue.connection_info.next()
+        connection_info = next(self.action_queue.connection_info)
         for attr, value in attrvalues.items():
             connection_info[attr] = value
         self.action_queue.connection_info = itertools.cycle([connection_info])
@@ -1368,7 +1366,7 @@ class ConnectionTestCase(FactoryBaseTestCase):
 
     def test_connection_started_logging(self):
         """Test that the connection started logs connector info, not AQ's."""
-        connection_info = self.action_queue.connection_info.next()
+        connection_info = next(self.action_queue.connection_info)
         assert connection_info['host'] == '127.0.0.1'
         assert connection_info['port'] == 0
 
@@ -1543,7 +1541,7 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
             logged_attrs = ('a', 'b', 'c', 'd')
             a = 3
             b = 'foo'
-            c = u'año'
+            c = 'año'
 
             def _run(self):
                 return defer.succeed(True)
@@ -1569,7 +1567,7 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
     def test_dump_to_dict(self):
         """Test to dict dumping."""
         d = self.cmd.to_dict()
-        self.assertEqual(d, dict(a=3, b='foo', c=u'año', d=None))
+        self.assertEqual(d, dict(a=3, b='foo', c='año', d=None))
 
     @defer.inlineCallbacks
     def test_demark_not_marker(self):

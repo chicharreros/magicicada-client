@@ -75,7 +75,7 @@ from magicicadaclient.platform.tests.os_helper.test_os_helper import (
 
 
 def _build_invalid_windows_bytes_name():
-    invalid_unicodes = u''.join(WINDOWS_ILLEGAL_CHARS_MAP)
+    invalid_unicodes = ''.join(WINDOWS_ILLEGAL_CHARS_MAP)
     invalid_filename = 'test_file' + invalid_unicodes.encode('utf8')
     return invalid_filename
 
@@ -321,56 +321,56 @@ class DecoratorsTestCase(TestCase):
 
     def test_assert_windows_path_slash(self):
         """A path with a / is invalid."""
-        path = LONG_PATH_PREFIX + u'/a/b/'
+        path = LONG_PATH_PREFIX + '/a/b/'
         self.assert_error_raised(path)
 
     def test_assert_windows_method_name_path_slash(self):
         """A path with a / is invalid."""
-        path = LONG_PATH_PREFIX + u'/a/b/'
+        path = LONG_PATH_PREFIX + '/a/b/'
         method_name = 'method_name'
         self.assert_error_raised(path, method_name)
 
     def test_assert_windows_path_non_unicode(self):
         """A non-unicode path is invalid."""
-        path = (LONG_PATH_PREFIX + u'C:\\Yadda').encode('utf8')
+        path = (LONG_PATH_PREFIX + 'C:\\Yadda').encode('utf8')
         self.assert_error_raised(path)
 
     def test_assert_windows_method_name_path_non_unicode(self):
         """A non-unicode path is invalid."""
-        path = (LONG_PATH_PREFIX + u'C:\\Yadda').encode('utf8')
+        path = (LONG_PATH_PREFIX + 'C:\\Yadda').encode('utf8')
         method_name = 'method_name'
         self.assert_error_raised(path, method_name)
 
     def test_assert_windows_path_non_literal(self):
         """A non-literal path is invalid."""
-        path = u'C:\\Yadda'
+        path = 'C:\\Yadda'
         self.assert_error_raised(path)
 
     def test_assert_windows_method_name_path_non_literal(self):
         """A non-literal path is invalid."""
-        path = u'C:\\Yadda'
+        path = 'C:\\Yadda'
         method_name = 'method_name'
         self.assert_error_raised(path, method_name)
 
     def test_assert_windows_path_non_absolute(self):
         """A non-absolute path is invalid."""
-        path = u'./yadda'
+        path = './yadda'
         self.assert_error_raised(path)
 
     def test_assert_windows_method_name_path_non_absolute(self):
         """A non-absolute path is invalid."""
-        path = u'./yadda'
+        path = './yadda'
         method_name = 'method_name'
         self.assert_error_raised(path, method_name)
 
     def test_assert_windows_path_with_illegal_chars(self):
         """A path with illegal chars is invalid."""
-        path = u'./yadda' + u''.join(WINDOWS_ILLEGAL_CHARS_MAP)
+        path = './yadda' + ''.join(WINDOWS_ILLEGAL_CHARS_MAP)
         self.assert_error_raised(path)
 
     def test_assert_windows_method_name_path_with_illegal_chars(self):
         """A path with illegal chars is invalid."""
-        path = u'./yadda' + u''.join(WINDOWS_ILLEGAL_CHARS_MAP)
+        path = './yadda' + ''.join(WINDOWS_ILLEGAL_CHARS_MAP)
         method_name = 'method_name'
         self.assert_error_raised(path, method_name)
 

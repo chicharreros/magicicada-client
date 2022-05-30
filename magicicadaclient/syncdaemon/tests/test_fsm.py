@@ -31,8 +31,8 @@
 import errno
 import os
 import time
+from unittest import mock
 
-import mock
 from twisted.internet import defer
 
 from magicicadaclient.testing.testcase import (
@@ -88,7 +88,7 @@ BROKEN_PICKLE = '\axb80\x02}q\x01(U\x01aU\x04testq\x02U\x01bU\x06brokenq\x03u.'
 def _create_share(share_id, share_name, fsm, shares_dir,
                   access_level=ACCESS_LEVEL_RW):
     """Create a share."""
-    assert isinstance(share_name, unicode)
+    assert isinstance(share_name, str)
     share_path = os.path.join(shares_dir, share_name.encode('utf-8'))
     make_dir(share_path, recursive=True)
     share = Share(path=share_path, volume_id=share_id,
@@ -117,7 +117,7 @@ class FSMTestCase(BaseTwistedTestCase):
         self.eq = EventQueue(self.fsm, monitor_class=FakeMonitor)
         self.addCleanup(self.eq.shutdown)
         self.fsm.register_eq(self.eq)
-        self.share = yield self.create_share('share', u'share_name')
+        self.share = yield self.create_share('share', 'share_name')
         self.share_path = self.share.path
         config.get_user_config().set_use_trash(True)
 
@@ -131,7 +131,7 @@ class FSMTestCase(BaseTwistedTestCase):
     def create_share(self, share_id, share_name, fsm=None, shares_dir=None,
                      access_level=ACCESS_LEVEL_RW):
         """Create a share."""
-        assert isinstance(share_name, unicode)
+        assert isinstance(share_name, str)
         if fsm is None:
             fsm = self.fsm
         if shares_dir is None:
@@ -180,7 +180,7 @@ class StartupTests(BaseTwistedTestCase):
         self.addCleanup(db.shutdown)
         fsm = FileSystemManager(fsmdir, partials_dir,
                                 FakeVolumeManager(fsmdir), db)
-        share = yield _create_share('share', u'share_name',
+        share = yield _create_share('share', 'share_name',
                                     fsm=fsm, shares_dir=fsmdir)
         self.assertEqual(fsm._idx_path, {})
         self.assertEqual(fsm._idx_node_id, {})
@@ -316,7 +316,7 @@ class CreationTests(FSMTestCase):
         mdid = self.fsm.create(path, "share")
         self.fsm.set_node_id(path, "uuid")
         # create a path with the old layout
-        other_share = yield self.create_share('share1', u'share1_name')
+        other_share = yield self.create_share('share1', 'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
@@ -334,7 +334,7 @@ class CreationTests(FSMTestCase):
         real_mdobj = self.fsm.fs[mdid]
         del real_mdobj["stat"]
         del real_mdobj["generation"]
-        real_mdobj["path"] = unicode(real_mdobj["path"])
+        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj
@@ -380,7 +380,7 @@ class CreationTests(FSMTestCase):
         self.fsm.set_node_id(path2, "uuid2")
 
         # create a path with the old layout
-        other_share = yield self.create_share('share1', u'share1_name')
+        other_share = yield self.create_share('share1', 'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
@@ -396,7 +396,7 @@ class CreationTests(FSMTestCase):
 
         # break the node on purpose, with valid and not valid paths
         real_mdobj = self.fsm.fs[mdid1]
-        real_mdobj["path"] = unicode(real_mdobj["path"])
+        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         del real_mdobj["generation"]
@@ -442,7 +442,7 @@ class CreationTests(FSMTestCase):
         mdid = self.fsm.create(path, "share")
         self.fsm.set_node_id(path, "uuid")
         # create a path with the old layout
-        other_share = yield self.create_share('share1', u'share1_name')
+        other_share = yield self.create_share('share1', 'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
@@ -499,7 +499,7 @@ class CreationTests(FSMTestCase):
         root_mdid = self.fsm.create(self.root_dir, "")
         self.fsm.set_node_id(self.root_dir, "uuid")
         # a share
-        other_share = yield self.create_share('share1', u'share1_name')
+        other_share = yield self.create_share('share1', 'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
@@ -733,7 +733,7 @@ class CreationTests(FSMTestCase):
 
         # break the node on purpose
         real_mdobj = self.fsm.fs[mdid]
-        real_mdobj["path"] = unicode(real_mdobj["path"])
+        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj
@@ -896,7 +896,7 @@ class CreationTests(FSMTestCase):
 
         # break the node on purpose
         real_mdobj = self.fsm.fs[mdid]
-        real_mdobj["path"] = unicode(real_mdobj["path"])
+        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj
@@ -1369,9 +1369,9 @@ class GetSetTests(FSMTestCase):
     def test_get_all_by_share(self):
         """ Test that it returns all the mdids in a share. """
         # create the shares
-        share1 = yield self.create_share('share_id1', u'share_name1',
+        share1 = yield self.create_share('share_id1', 'share_name1',
                                          access_level=ACCESS_LEVEL_RO)
-        share2 = yield self.create_share('share_id2', u'share_name2',
+        share2 = yield self.create_share('share_id2', 'share_name2',
                                          access_level=ACCESS_LEVEL_RO)
         self.fsm.create(share1.path, "share_id1", is_dir=True)
         self.fsm.set_node_id(share1.path, "uuid1")
@@ -1443,7 +1443,7 @@ class GetSetTests(FSMTestCase):
     def test_get_all_by_share_mixed(self):
         """Test that it returns all the mdids in a share with mixed nodes."""
         # create the shares
-        share = yield self.create_share('share_id', u'sharetest',
+        share = yield self.create_share('share_id', 'sharetest',
                                         access_level=ACCESS_LEVEL_RO)
         self.fsm.create(share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(share.path, "uuid")
@@ -1554,7 +1554,7 @@ class GetMDObjectsInDirTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_with_two_shares(self):
         """Test having 2 shares."""
-        second_share = yield self.create_share('second_share', u'the_second')
+        second_share = yield self.create_share('second_share', 'the_second')
         self.create_some_contents(second_share)
 
         expected = ['a']
@@ -1565,7 +1565,7 @@ class GetMDObjectsInDirTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_both_shares(self):
         """Test having 2 shares and asking for mdobjs in shares_dir."""
-        second_share = yield self.create_share('second_share', u'the_second')
+        second_share = yield self.create_share('second_share', 'the_second')
         self.create_some_contents(second_share)
 
         expected = []
@@ -1904,7 +1904,7 @@ class PartialTests(FSMTestCase):
 
         It should leave the partials dir permissions intact.
         """
-        share = yield self.create_share('ro_share', u'ro_share_name',
+        share = yield self.create_share('ro_share', 'ro_share_name',
                                         access_level=ACCESS_LEVEL_RO)
         testdir = os.path.join(share.path, "path")
         mdid = self.fsm.create(testdir, share.volume_id, is_dir=False)
@@ -2908,7 +2908,7 @@ class LimboTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_make_dir_in_ro_share(self):
         """Also works in a read only share."""
-        share = yield self.create_share('ro_share_id', u'ro',
+        share = yield self.create_share('ro_share_id', 'ro',
                                         access_level=ACCESS_LEVEL_RO)
         testdir = os.path.join(share.path, "foo")
         mdid = self.fsm.create(testdir, 'ro_share_id', is_dir=True)
@@ -2927,7 +2927,7 @@ class LimboTests(FSMTestCase):
 
         self.eq.add_watch = add_watch
         self.eq.add_to_mute_filter = lambda *a: called.append(a)
-        share = yield self.create_share('ro_share_id', u'ro',
+        share = yield self.create_share('ro_share_id', 'ro',
                                         access_level=ACCESS_LEVEL_RO)
         testdir = os.path.join(share.path, "foo")
         mdid = self.fsm.create(testdir, 'ro_share_id', is_dir=True)
@@ -3133,7 +3133,7 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_file_ro_share_fail(self):
         """ Test that manual creation of a file, fails on a ro-share. """
-        share = yield self.create_share('ro_share', u'ro_share_name',
+        share = yield self.create_share('ro_share', 'ro_share_name',
                                         access_level=ACCESS_LEVEL_RO)
         testfile = os.path.join(share.path, "a_file")
         self.assertRaises(IOError, open_file, testfile, 'w')
@@ -3141,7 +3141,7 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_dir_ro_share(self):
         """ Test that the creation of a file using fsm, works on a ro-share."""
-        share = yield self.create_share('ro_share', u'ro_share_name',
+        share = yield self.create_share('ro_share', 'ro_share_name',
                                         access_level=ACCESS_LEVEL_RO)
         testdir = os.path.join(share.path, "path2")
         self.fsm.create(testdir, share.volume_id, is_dir=True)
@@ -3155,7 +3155,7 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_file_ro_share(self):
         """ Test that the creation of a file using fsm, works on a ro-share."""
-        self.share = yield self.create_share('ro_share', u'ro_share_name',
+        self.share = yield self.create_share('ro_share', 'ro_share_name',
                                              access_level=ACCESS_LEVEL_RO)
         testfile = os.path.join(self.share.path, "a_file")
         self.fsm.create(testfile, self.share.volume_id, is_dir=False)
@@ -3170,7 +3170,7 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_delete_dir_ro_share(self):
         """ Test that fsm is able to delete a dir in a ro.share. """
-        share = yield self.create_share('ro_share', u'ro_share_name',
+        share = yield self.create_share('ro_share', 'ro_share_name',
                                         access_level=ACCESS_LEVEL_RO)
         testdir = os.path.join(share.path, "path2")
         self.fsm.create(testdir, share.volume_id, is_dir=True)
@@ -3187,7 +3187,7 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_delete_non_empty_dir_ro_share(self):
         """Test that fsm is able to delete a non-empty dir in a ro.share."""
-        share = yield self.create_share('ro_share', u'ro_share_name',
+        share = yield self.create_share('ro_share', 'ro_share_name',
                                         access_level=ACCESS_LEVEL_RO)
         testdir = os.path.join(share.path, "path2")
         mdid = self.fsm.create(testdir, share.volume_id, is_dir=True)
@@ -3217,7 +3217,7 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_delete_non_empty_dir_rw_share(self):
         """Test that fsm is able to delete a non-empty dir in a rw.share."""
-        share = yield self.create_share('rw_share', u'rw_share_name',
+        share = yield self.create_share('rw_share', 'rw_share_name',
                                         access_level=ACCESS_LEVEL_RW)
         testdir = os.path.join(share.path, "path2")
         mdid = self.fsm.create(testdir, share.volume_id, is_dir=True)
@@ -3248,7 +3248,7 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_delete_non_empty_dir_bad_perms_rw_share(self):
         """Test that fsm is able to delete a non-empty dir in a rw.share."""
-        share = yield self.create_share('rw_share', u'rw_share_name',
+        share = yield self.create_share('rw_share', 'rw_share_name',
                                         access_level=ACCESS_LEVEL_RW)
         testdir = os.path.join(share.path, "path2")
         mdid = self.fsm.create(testdir, share.volume_id, is_dir=True)
@@ -3286,7 +3286,7 @@ class SharesTests(FSMTestCase):
     def test_delete_file_ro_share(self):
         """ Test that fsm is able to delete a file in a ro-share. """
         self.share = yield self.create_share(
-            'ro_share', u'ro_share_name', access_level=ACCESS_LEVEL_RO)
+            'ro_share', 'ro_share_name', access_level=ACCESS_LEVEL_RO)
         testfile = os.path.join(self.share.path, "a_file")
         self.fsm.create(testfile, self.share.volume_id, is_dir=False)
         self.fsm.set_node_id(testfile, "uuid3")
@@ -3302,7 +3302,7 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_move_to_conflict_ro_share(self):
         """ Test that fsm is able to handle move_to_conflict in a ro-share. """
-        self.share = yield self.create_share('ro_share', u'ro_share_name',
+        self.share = yield self.create_share('ro_share', 'ro_share_name',
                                              access_level=ACCESS_LEVEL_RO)
         testfile = os.path.join(self.share.path, "a_file")
         file_mdid = self.fsm.create(testfile, self.share.volume_id,
@@ -3320,7 +3320,7 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_file_rw_share_no_fail(self):
         """ Test that manual creation of a file, ona  rw-share. """
-        share = yield self.create_share('ro_share', u'ro_share_name')
+        share = yield self.create_share('ro_share', 'ro_share_name')
         testfile = os.path.join(share.path, "a_file")
         open_file(testfile, 'w').close()
         self.assertTrue(path_exists(testfile))
@@ -3328,7 +3328,7 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_dir_rw_share(self):
         """ Test that the creation of a file using fsm, works on a rw-share."""
-        share = yield self.create_share('ro_share', u'ro_share_name')
+        share = yield self.create_share('ro_share', 'ro_share_name')
         testdir = os.path.join(share.path, "path2")
         self.fsm.create(testdir, share.volume_id, is_dir=True)
         self.fsm.set_node_id(testdir, "uuid2")
@@ -3341,7 +3341,7 @@ class SharesTests(FSMTestCase):
     @defer.inlineCallbacks
     def test_file_rw_share(self):
         """Test that the creation of a file using fsm, works on a rw-share."""
-        self.share = yield self.create_share('ro_share', u'ro_share_name')
+        self.share = yield self.create_share('ro_share', 'ro_share_name')
         testfile = os.path.join(self.share.path, "a_file")
         self.fsm.create(testfile, self.share.volume_id, is_dir=False)
         self.fsm.set_node_id(testfile, "uuid3")
@@ -3382,7 +3382,7 @@ class TestEnableShareWrite(FSMTestCase):
         """Test setup"""
         yield super(TestEnableShareWrite, self).setUp()
         # create a ro share
-        self.share_ro = yield self.create_share('share_ro', u'share_ro_name',
+        self.share_ro = yield self.create_share('share_ro', 'share_ro_name',
                                                 access_level=ACCESS_LEVEL_RO)
         self.share_ro_path = self.share_ro.path
 
@@ -3435,7 +3435,7 @@ class RealVMTestCase(FSMTestCase):
                              self.data_dir, self.partials_dir)
         self.addCleanup(self.main.shutdown)
         self.fsm = self.main.fs
-        self.share = yield self.create_share('share', u'share_name')
+        self.share = yield self.create_share('share', 'share_name')
         self.share_path = self.share.path
 
     @defer.inlineCallbacks
@@ -3459,13 +3459,13 @@ class RealVMTestCase(FSMTestCase):
         mdid = self.fsm.create(path, "share")
         self.fsm.set_node_id(path, "uuid")
         # create a path with the old layout
-        other_share = yield self.create_share('share1', u'share1_name')
+        other_share = yield self.create_share('share1', 'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
         old_shares_path = os.path.join(
             self.root_dir, 'Magicicada', 'Shared With Me')
-        old_path = os.path.join(old_shares_path, u'share1_name')
+        old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
 
         # put the old path in the mdobj
@@ -3476,7 +3476,7 @@ class RealVMTestCase(FSMTestCase):
         # break the node on purpose
         real_mdobj = self.fsm.fs[mdid]
         del real_mdobj["stat"]
-        real_mdobj["path"] = unicode(real_mdobj["path"])
+        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj
@@ -3524,13 +3524,13 @@ class RealVMTestCase(FSMTestCase):
         self.fsm.set_node_id(path2, "uuid2")
 
         # create a path with the old layout
-        other_share = yield self.create_share('share1', u'share1_name')
+        other_share = yield self.create_share('share1', 'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid3")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
         old_shares_path = os.path.join(
             self.root_dir, 'Magicicada', 'Shared With Me')
-        old_path = os.path.join(old_shares_path, u'share1_name')
+        old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
 
         # put the old path in the mdobj
@@ -3540,7 +3540,7 @@ class RealVMTestCase(FSMTestCase):
 
         # break the node on purpose, with valid and not valid paths
         real_mdobj = self.fsm.fs[mdid1]
-        real_mdobj["path"] = unicode(real_mdobj["path"])
+        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid1] = real_mdobj
@@ -3585,13 +3585,13 @@ class RealVMTestCase(FSMTestCase):
         mdid = self.fsm.create(path, "share")
         self.fsm.set_node_id(path, "uuid")
         # create a path with the old layout
-        other_share = yield self.create_share('share1', u'share1_name')
+        other_share = yield self.create_share('share1', 'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid3")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
         old_shares_path = os.path.join(
             self.root_dir, 'Magicicada', 'Shared With Me')
-        old_path = os.path.join(old_shares_path, u'share1_name')
+        old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
 
         # put the old path in the mdobj
@@ -3642,13 +3642,13 @@ class RealVMTestCase(FSMTestCase):
         root_mdid = self.fsm.get_by_path(self.root_dir).mdid
         self.fsm.set_node_id(self.root_dir, "uuid")
         # a share
-        other_share = yield self.create_share('share1', u'share1_name')
+        other_share = yield self.create_share('share1', 'share1_name')
         share_mdid = self.fsm.create(other_share.path, "share1")
         self.fsm.set_node_id(other_share.path, "uuid1")
         make_dir(os.path.join(self.root_dir, 'Magicicada'), recursive=True)
         old_shares_path = os.path.join(
             self.root_dir, 'Magicicada', 'Shared With Me')
-        old_path = os.path.join(old_shares_path, u'share1_name')
+        old_path = os.path.join(old_shares_path, 'share1_name')
         make_link(self.shares_dir, old_shares_path)
         old_root_path = os.path.join(os.path.dirname(self.root_dir),
                                      'Magicicada', 'My Files')
@@ -3698,7 +3698,7 @@ class RealVMTestCase(FSMTestCase):
         self.assertEqual(md_version, METADATA_VERSION)
         path = os.path.join(self.share.path, 'path')
         path1 = os.path.join(self.share.path, 'path1')
-        other_share = yield self.create_share('share1', u'share1_name')
+        other_share = yield self.create_share('share1', 'share1_name')
 
         path2 = os.path.join(other_share.path, 'broken_path2')
         for p in [path, path1, path2]:

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2011-2015 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -160,10 +158,10 @@ class BaseTestCase(FakeMainTestCase):
         if node_id is None:
             node_id = 'node_id'
         if suggested_path is None:
-            suggested_path = u'~/ñoño'
+            suggested_path = '~/ñoño'
         else:
             # make sure suggested_path is unicode
-            assert isinstance(suggested_path, unicode)
+            assert isinstance(suggested_path, str)
         path = get_udf_path(suggested_path)
         udf = UDF(
             str(volume_id), str(node_id), suggested_path, path, subscribed)
@@ -333,7 +331,7 @@ class SyncdaemonStatusTestCase(BaseTestCase):
     def test_waiting_metadata(self):
         """Test the waiting_metadata method."""
         self.action_q.queue.waiting.extend([
-            FakeCommand("share_id", "node_id_b", u"moño"),
+            FakeCommand("share_id", "node_id_b", "moño"),
             FakeCommand("share_id", "node_id_c", path='/some/path'),
             FakeCommand("share_id", "node_id_d"),
         ])
@@ -343,7 +341,7 @@ class SyncdaemonStatusTestCase(BaseTestCase):
         self.assertEqual(len(result), 3)
 
         pl = dict(share_id='share_id', node_id='node_id_b',
-                  other=u'moño', running='True')
+                  other='moño', running='True')
         self.assertEqual(result[0], ('FakeCommand', pl))
 
         pl = dict(share_id='share_id', node_id='node_id_c',
@@ -429,13 +427,13 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         """Test the get_metadata method, getting MD by non-ascii path."""
         share = self._create_share()
         yield self.main.vm.add_share(share)
-        path = os.path.join(share.path, u'ñoño'.encode('utf-8'))
+        path = os.path.join(share.path, 'ñoño'.encode('utf-8'))
         self.main.fs.create(path, share.volume_id)
         self.main.fs.set_node_id(path, share.node_id)
 
         result = self.sd_obj.get_metadata(path)
 
-        self.assertEqual(path.decode('utf-8'), unicode(result['path']))
+        self.assertEqual(path.decode('utf-8'), str(result['path']))
         self.assertEqual(share.volume_id, result['share_id'])
         self.assertEqual(share.node_id, result['node_id'])
 
@@ -460,7 +458,7 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         """Test the get_metadata_and_quick_tree_synced method."""
         share = self._create_share()
         yield self.main.vm.add_share(share)
-        path = os.path.join(share.path, u'ñoño'.encode('utf-8'))
+        path = os.path.join(share.path, 'ñoño'.encode('utf-8'))
         self.main.fs.create(path, share.volume_id)
         self.main.fs.set_node_id(path, share.node_id)
 
@@ -480,7 +478,7 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         """Test the get_metadata_and_quick_tree_synced method."""
         share = self._create_share()
         yield self.main.vm.add_share(share)
-        path = os.path.join(share.path, u'ñoño'.encode('utf-8'))
+        path = os.path.join(share.path, 'ñoño'.encode('utf-8'))
         self.main.fs.create(path, share.volume_id)
         self.main.fs.set_node_id(path, share.node_id)
 
@@ -491,7 +489,7 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
 
         result = self.sd_obj.get_metadata_and_quick_tree_synced(path)
 
-        self.assertEqual(path.decode('utf-8'), unicode(result['path']))
+        self.assertEqual(path.decode('utf-8'), str(result['path']))
         self.assertEqual(share.volume_id, result['share_id'])
         self.assertEqual(share.node_id, result['node_id'])
         self.assertEqual('synced', result['quick_tree_synced'])
@@ -501,7 +499,7 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         """Test the get_metadata_and_quick_tree_synced method."""
         share = self._create_share()
         yield self.main.vm.add_share(share)
-        path = os.path.join(share.path, u'ñoño'.encode('utf-8'))
+        path = os.path.join(share.path, 'ñoño'.encode('utf-8'))
         self.main.fs.create(path, share.volume_id)
         self.main.fs.set_node_id(path, share.node_id)
 
@@ -511,7 +509,7 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
 
         result = self.sd_obj.get_metadata_and_quick_tree_synced(path)
 
-        self.assertEqual(path.decode('utf-8'), unicode(result['path']))
+        self.assertEqual(path.decode('utf-8'), str(result['path']))
         self.assertEqual(share.volume_id, result['share_id'])
         self.assertEqual(share.node_id, result['node_id'])
         self.assertEqual('', result['quick_tree_synced'])
@@ -521,7 +519,7 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         """Test the get_metadata_and_quick_tree_synced method."""
         share = self._create_share()
         yield self.main.vm.add_share(share)
-        path = os.path.join(share.path, u'ñoño'.encode('utf-8'))
+        path = os.path.join(share.path, 'ñoño'.encode('utf-8'))
         self.main.fs.create(path, share.volume_id)
         self.main.fs.set_node_id(path, share.node_id)
 
@@ -539,7 +537,7 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         """Test the get_metadata_and_quick_tree_synced method."""
         share = self._create_share()
         yield self.main.vm.add_share(share)
-        path = os.path.join(share.path, u'ñoño'.encode('utf-8'))
+        path = os.path.join(share.path, 'ñoño'.encode('utf-8'))
         self.main.fs.create(path, share.volume_id)
         self.main.fs.set_node_id(path, share.node_id)
         symlink_path = os.path.join(self.shares_dir, "share_symlink")
@@ -553,7 +551,7 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         result = self.sd_obj.get_metadata_and_quick_tree_synced(expected_path)
 
         self.assertEqual(expected_path.decode('utf-8'),
-                         unicode(result['path']))
+                         str(result['path']))
         self.assertEqual(share.volume_id, result['share_id'])
         self.assertEqual(share.node_id, result['node_id'])
         self.assertEqual('synced', result['quick_tree_synced'])
@@ -561,9 +559,9 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
     def test_get_dirty_nodes(self):
         """Test the get_dirty_nodes method."""
         # create some nodes
-        path1 = os.path.join(self.root_dir, u'ñoño-1'.encode('utf-8'))
+        path1 = os.path.join(self.root_dir, 'ñoño-1'.encode('utf-8'))
         mdid1 = self.main.fs.create(path1, "")
-        path2 = os.path.join(self.root_dir, u'ñoño-2'.encode('utf-8'))
+        path2 = os.path.join(self.root_dir, 'ñoño-2'.encode('utf-8'))
         mdid2 = self.main.fs.create(path2, "")
         path3 = os.path.join(self.root_dir, "path3")
         mdid3 = self.main.fs.create(path3, "")
@@ -709,11 +707,11 @@ class SyncdaemonSharesTestCase(BaseTestCase):
     def test_create_share_non_ascii(self):
         """Test the create_share method using a non-ascii path."""
         self.patch(self.main.vm, 'create_share', self._set_called)
-        a_dir = os.path.join(self.root_dir, u'ñoño'.encode('utf-8'))
+        a_dir = os.path.join(self.root_dir, 'ñoño'.encode('utf-8'))
         self.main.fs.create(a_dir, "", is_dir=True)
         self.main.fs.set_node_id(a_dir, "node_id")
 
-        args = (u'test_user', u'share_ñoño', ACCESS_LEVEL_RO)
+        args = ('test_user', 'share_ñoño', ACCESS_LEVEL_RO)
         # ipc layer will send the path as unicode
         self.sd_obj.create_share(a_dir.decode('utf-8'), *args)
 
@@ -798,12 +796,12 @@ class SyncdaemonSharesTestCase(BaseTestCase):
     @defer.inlineCallbacks
     def test_get_shared_non_ascii(self):
         """Test the get_shared method, but with non-ascii path."""
-        a_dir = os.path.join(self.root_dir, u'ñoño'.encode('utf-8'))
+        a_dir = os.path.join(self.root_dir, 'ñoño'.encode('utf-8'))
         self.main.fs.create(a_dir, "", is_dir=True)
         self.main.fs.set_node_id(a_dir, "node_id")
-        share = Shared(path=a_dir, volume_id='shared_id', name=u'ñoño_shared',
+        share = Shared(path=a_dir, volume_id='shared_id', name='ñoño_shared',
                        access_level=ACCESS_LEVEL_RO,
-                       other_username=u'test_username', node_id='node_id')
+                       other_username='test_username', node_id='node_id')
         yield self.main.vm.add_shared(share)
 
         result = self.sd_obj.get_shared()
@@ -998,7 +996,7 @@ class SyncdaemonFoldersTestCase(BaseTestCase):
     def test_create(self):
         """Test the create method."""
         self.patch(self.main.vm, 'create_udf', self._set_called)
-        path = u'foo/bar/ñandú'
+        path = 'foo/bar/ñandú'
         self.sd_obj.create(path)
 
         self.assertEqual(self._called, ((path.encode('utf-8'),), {}))
@@ -1016,7 +1014,7 @@ class SyncdaemonFoldersTestCase(BaseTestCase):
         # Use a lambda instead of _set_called since we need to return a tuple.
         self.patch(self.main.vm, 'validate_path_for_folder',
                    lambda arg: (True, arg))
-        path = u'this/is/a/test'
+        path = 'this/is/a/test'
         rv = self.sd_obj.validate_path(path)
 
         self.assertTrue(rv)
@@ -1030,7 +1028,7 @@ class SyncdaemonFoldersTestCase(BaseTestCase):
         udf1 = self._create_udf()
         yield self.main.vm.add_udf(udf1)
         udf2 = self._create_udf(volume_id='other', node_id='another',
-                                suggested_path=u'~/other/location ♫ test')
+                                suggested_path='~/other/location ♫ test')
         yield self.main.vm.add_udf(udf2)
 
         expected = [get_udf_dict(udf) for udf in self.main.vm.udfs.values()]
@@ -1053,7 +1051,7 @@ class SyncdaemonFoldersTestCase(BaseTestCase):
 
     def test_get_udf_dict_bad_encoding(self):
         """Test for Folders.get_udf_dict."""
-        suggested_path = u'~/Música'
+        suggested_path = '~/Música'
         udf = self._create_udf(suggested_path=suggested_path, subscribed=False)
         udf.suggested_path = udf.suggested_path.encode('utf-8')
         udf_dict = get_udf_dict(udf)
@@ -1179,7 +1177,7 @@ class SyncdaemonEventListenerTestCase(BaseTestCase):
     @defer.inlineCallbacks
     def setUp(self):
         yield super(SyncdaemonEventListenerTestCase, self).setUp()
-        self.a_dir = os.path.join(self.root_dir, u'ñoño'.encode('utf-8'))
+        self.a_dir = os.path.join(self.root_dir, 'ñoño'.encode('utf-8'))
         self.main.event_q.subscribe(self.sd_obj)
         self.addCleanup(self.main.event_q.unsubscribe, self.sd_obj)
 
@@ -1351,7 +1349,7 @@ class StatusEventListenerTestCase(SyncdaemonEventListenerTestCase):
         info = yield d
 
         bytes = account_info.purchased_bytes
-        self.assertEqual(info, dict(purchased_bytes=unicode(bytes)))
+        self.assertEqual(info, dict(purchased_bytes=str(bytes)))
 
     @defer.inlineCallbacks
     def test_handle_FS_INVALID_NAME(self):
@@ -1386,7 +1384,7 @@ class StatusEventListenerTestCase(SyncdaemonEventListenerTestCase):
         self.assertEqual(node_id, 'node')
         self.assertEqual(mdid, 'mdid')
         self.assertEqual(path, 'somepath')
-        self.assertIsInstance(path, unicode)
+        self.assertIsInstance(path, str)
 
     @defer.inlineCallbacks
     def test_handle_SYS_BROKEN_NODE_partial_data(self):
@@ -1402,7 +1400,7 @@ class StatusEventListenerTestCase(SyncdaemonEventListenerTestCase):
         self.assertEqual(volume_id, 'volume')
         self.assertEqual(node_id, 'node')
         self.assertEqual(mdid, '')
-        self.assertEqual(path, u'')
+        self.assertEqual(path, '')
 
     @defer.inlineCallbacks
     def test_handle_SYS_STATE_CHANGED(self):
@@ -1438,7 +1436,7 @@ class SharesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         info = yield d
 
         expected = get_share_dict(share)
-        expected['free_bytes'] = unicode(free_bytes)
+        expected['free_bytes'] = str(free_bytes)
         self.assertEqual(expected, info)
 
     @defer.inlineCallbacks

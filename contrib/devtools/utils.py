@@ -28,8 +28,6 @@
 
 """Utilities for Ubuntu One developer tools."""
 
-from __future__ import unicode_literals
-
 import getopt
 import sys
 

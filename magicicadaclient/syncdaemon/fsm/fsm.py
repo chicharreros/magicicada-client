@@ -517,7 +517,7 @@ if __name__ == "__main__":
     s = StateMachine(sys.argv[1], sys.argv[2:])
     if s.errors:
         for e in s.errors:
-            print e >> sys.stderr
+            print(e, file=sys.stderr)
         print("There are %s errors" % (len(s.errors)))
         exit(1)
     else:

@@ -317,6 +317,8 @@ class BaseTwistedTestCase(TwistedTestCase):
 
     MAX_FILENAME = 32  # some platforms limit lengths of filenames
 
+    assertItemsEqual = TwistedTestCase.assertCountEqual
+
     def mktemp(self, name='temp'):
         """Customized mktemp that accepts an optional name argument."""
         tempdir = os.path.join(self.tmpdir, name)
@@ -351,24 +353,20 @@ class BaseTwistedTestCase(TwistedTestCase):
         if not can_write(path):
             set_dir_readwrite(path)
 
-        if sys.platform == 'win32':
-            # path is a byte sequence encoded with utf-8. If we pass this to
-            # os.walk, in windows, we'll get results encoded with mbcs
-            path = path.decode('utf-8')
+        assert isinstance(path, str)
 
         for dirpath, dirs, files in os.walk(path):
             for adir in dirs:
                 adir = os.path.join(dirpath, adir)
                 if sys.platform == 'win32':
-                    assert isinstance(adir, unicode)
-                    adir = adir.encode('utf-8')
+                    assert isinstance(adir, str)
                 if not can_write(adir):
                     set_dir_readwrite(adir)
 
         if sys.platform == 'win32':
-            # in windows, we need to pass a unicode, literal path to
-            # shutil.rmtree, otherwise we can't remove "deep and wide" paths
-            path = u'\\\\?\\' + path.decode('utf-8')
+            # in windows, we need to pass a literal path to shutil.rmtree,
+            # otherwise we can't remove "deep and wide" paths
+            path = '\\\\?\\' + path
 
         # Instead of ignoring the errors when removing trees, we are temporarly
         # printing a message to stdout to caught everyone's attention.

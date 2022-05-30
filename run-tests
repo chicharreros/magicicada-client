@@ -49,5 +49,6 @@ fi
 
 echo "*** Running test suite for ""$MODULE"" ***"
 export SSL_CERTIFICATES_DIR=/etc/ssl/certs
-.env/bin/python contrib/u1trial -i "$IGNORE_FILES" -p "$IGNORE_PATHS" $MODULE
+export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+.env3/bin/python contrib/u1trial -i "$IGNORE_FILES" -p "$IGNORE_PATHS" $MODULE
 rm -rf _trial_temp

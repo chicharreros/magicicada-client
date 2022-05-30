@@ -680,7 +680,7 @@ class ConditionsLocker(object):
 
     def check_conditions(self):
         """Check for all commands' conditions, and release accordingly."""
-        for cmd in self.locked.keys():
+        for cmd in list(self.locked.keys()):
             if cmd.is_runnable:
                 deferred = self.locked.pop(cmd)
                 deferred.callback(True)
@@ -838,7 +838,7 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
 
     def _make_connection(self):
         """Do the real connect call."""
-        connection_info = self.connection_info.next()
+        connection_info = next(self.connection_info)
         logger.info("Attempting connection to %s", connection_info)
         host = connection_info['host']
         port = connection_info['port']
@@ -1516,9 +1516,7 @@ class MakeThing(ActionQueueCommand):
         super(MakeThing, self).__init__(request_queue)
         self.share_id = share_id
         self.parent_id = parent_id
-        # Unicode boundary! the name is Unicode in protocol and server, but
-        # here we use bytes for paths
-        self.name = name.decode("utf-8")
+        self.name = name
         self.marker = marker
         self.mdid = mdid
         self.path = self._get_current_path(mdid)
@@ -1530,9 +1528,6 @@ class MakeThing(ActionQueueCommand):
 
     def handle_success(self, request):
         """It worked! Push the event."""
-        # note that we're not getting the new name from the answer
-        # message, if we would get it, we would have another Unicode
-        # boundary with it
         d = dict(marker=self.marker, new_id=request.new_id,
                  new_generation=request.new_generation,
                  volume_id=self.share_id)
@@ -1582,9 +1577,7 @@ class Move(ActionQueueCommand):
         self.node_id = node_id
         self.old_parent_id = old_parent_id
         self.new_parent_id = new_parent_id
-        # Unicode boundary! the name is Unicode in protocol and server, but
-        # here we use bytes for paths
-        self.new_name = new_name.decode("utf-8")
+        self.new_name = new_name
 
         # Move stores the paths and uses them to acquire the pathlock
         # later, as it is responsible of the moves and nobody else
@@ -1873,7 +1866,6 @@ class CreateUDF(ActionQueueCommand):
     def __init__(self, request_queue, path, name, marker):
         super(CreateUDF, self).__init__(request_queue)
         self.path = path
-        # XXX Unicode boundary?
         self.name = name
         self.marker = marker
 

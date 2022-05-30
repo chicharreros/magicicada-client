@@ -158,7 +158,7 @@ class TestParse(unittest.TestCase):
         f.validate()
         self.assertEqual(
             list(f.events["EVENT_2"].transitions[0].parameters.keys()),
-            [u"MV2"])
+            ["MV2"])
 
     def test_func_na(self):
         """Test that na param columns are ignored."""

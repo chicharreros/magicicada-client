@@ -53,8 +53,8 @@ class VolumesTests(BaseVolumeManagerTests):
 
     def test_get_udf_path(self):
         """Test for get_udf_path."""
-        suggested_path = u"suggested_path"
-        udf_path = get_udf_path(u"~/" + suggested_path)
+        suggested_path = "suggested_path"
+        udf_path = get_udf_path("~/" + suggested_path)
         self.assertEqual(
             os.path.join(self.home_dir, suggested_path.encode('utf-8')),
             udf_path)
@@ -89,8 +89,8 @@ class MetadataOldLayoutTests(MetadataTestCase):
 
     def _set_permissions(self):
         """Set the RO perms in the root and the shares directory."""
-        os.chmod(self.shares_dir, 0500)
-        os.chmod(self.u1_dir, 0500)
+        os.chmod(self.shares_dir, 0o500)
+        os.chmod(self.u1_dir, 0o500)
 
     def test_upgrade_0(self):
         """Test the upgrade from the first shelf layout version."""
@@ -177,7 +177,7 @@ class MetadataOldLayoutTests(MetadataTestCase):
         open(self.shares_dir + '/bar.partial', 'w').close()
         os.mkdir(self.shares_dir + '/baz/')
         open(self.shares_dir + '/baz/baz.conflict', 'w').close()
-        os.chmod(self.shares_dir + '/baz/', 0500)
+        os.chmod(self.shares_dir + '/baz/', 0o500)
         if self.md_version_None:
             self.set_md_version('')
         self._set_permissions()
@@ -215,7 +215,7 @@ class MetadataOldLayoutTests(MetadataTestCase):
             # ...in a readonly directory
             os.mkdir(dirname + '/1d')
             os.mkdir(dirname + '/1d/1d.conflict')
-            os.chmod(dirname + '/1d', 0500)
+            os.chmod(dirname + '/1d', 0o500)
             expected.append(new_dirname + '/1d/1d.u1conflict')
             # ...in a directory that is also a .conflict
             os.mkdir(dirname + '/1e.conflict')
@@ -236,7 +236,7 @@ class MetadataOldLayoutTests(MetadataTestCase):
             # ...in a readonly directory
             os.mkdir(dirname + '/2d')
             os.mkdir(dirname + '/2d/2d.conflict.5')
-            os.chmod(dirname + '/2d', 0500)
+            os.chmod(dirname + '/2d', 0o500)
             expected.append(new_dirname + '/2d/2d.u1conflict.5')
             # ...in a directory that is also a .conflict
             os.mkdir(dirname + '/2e.conflict')
@@ -266,7 +266,7 @@ class MetadataOldLayoutTests(MetadataTestCase):
             os.mkdir(dirname + '/3d/3d.conflict')
             os.mkdir(dirname + '/3d/3d.u1conflict')
             os.mkdir(dirname + '/3d/3d.u1conflict/3d')
-            os.chmod(dirname + '/3d', 0500)
+            os.chmod(dirname + '/3d', 0o500)
             expected.append(new_dirname + '/3d/3d.u1conflict/3d')
             expected.append(new_dirname + '/3d/3d.u1conflict.1')
             # ...in a directory that is also a .conflict
@@ -298,7 +298,7 @@ class MetadataOldLayoutTests(MetadataTestCase):
             os.mkdir(dirname + '/4d')
             os.mkdir(dirname + '/4d/4d.conflict.4')
             os.mkdir(dirname + '/4d/4d.u1conflict.4')
-            os.chmod(dirname + '/4d', 0500)
+            os.chmod(dirname + '/4d', 0o500)
             expected.append(new_dirname + '/4d/4d.u1conflict.4')
             expected.append(new_dirname + '/4d/4d.u1conflict.5')
             # ...in a directory that is also a .conflict
@@ -319,7 +319,7 @@ class MetadataOldLayoutTests(MetadataTestCase):
             # ...of a readonly directory
             os.mkdir(dirname + '/5c')
             open(dirname + '/5c/.partial', 'w').close()
-            os.chmod(dirname + '/5c', 0500)
+            os.chmod(dirname + '/5c', 0o500)
             expected.append(new_dirname + '/5c/.u1partial')
 
             # a plain .partial of which there already exists a .u1partial...
@@ -338,7 +338,7 @@ class MetadataOldLayoutTests(MetadataTestCase):
             os.mkdir(dirname + '/6c')
             open(dirname + '/6c/.partial', 'w').close()
             open(dirname + '/6c/.u1partial', 'w').close()
-            os.chmod(dirname + '/6c', 0500)
+            os.chmod(dirname + '/6c', 0o500)
             expected.append(new_dirname + '/6c/.u1partial')
             expected.append(new_dirname + '/6c/.u1partial.1')
 
@@ -490,7 +490,7 @@ class MetadataNewLayoutTests(MetadataTestCase):
 
     def _fix_permissions(self):
         """Fix shares dir permissions, making it read-only."""
-        os.chmod(self.shares_dir, 0500)
+        os.chmod(self.shares_dir, 0o500)
 
     def test_upgrade_None_to_last(self):
         """Upgrade from version 'None' (possibly a clean start)."""
@@ -678,7 +678,7 @@ class MetadataNewLayoutTests(MetadataTestCase):
             udf_id = str(uuid.uuid4())
             udf_name = name + '_' + str(idx)
             udf = _UDF(
-                udf_id, str(uuid.uuid4()), u'~/' + udf_name.decode('utf-8'),
+                udf_id, str(uuid.uuid4()), '~/' + udf_name.decode('utf-8'),
                 os.path.join(self.home_dir, udf_name))
             if idx % 2:
                 udf.subscribed = True
@@ -978,7 +978,7 @@ class MetadataNewLayoutTests(MetadataTestCase):
             udf_id = str(uuid.uuid4())
             udf_name = name + '_' + str(idx)
             udf = UDF(
-                udf_id, str(uuid.uuid4()), u'~/' + udf_name.decode('utf-8'),
+                udf_id, str(uuid.uuid4()), '~/' + udf_name.decode('utf-8'),
                 os.path.join(self.home_dir, udf_name))
             if idx % 2:
                 udf.subscribed = True

@@ -84,7 +84,7 @@ INVALID_FILE_ATTRIBUTES = -1
 
 # LONG_PATH_PREFIX will always be appended only to windows paths,
 # which should always be unicode.
-LONG_PATH_PREFIX = u'\\\\?\\'
+LONG_PATH_PREFIX = '\\\\?\\'
 
 EVERYONE_SID = CreateWellKnownSid(WinWorldSid)
 ADMINISTRATORS_SID = CreateWellKnownSid(WinBuiltinAdministratorsSid)
@@ -92,17 +92,17 @@ ADMINISTRATORS_SID = CreateWellKnownSid(WinBuiltinAdministratorsSid)
 # Mappping from the characters that are valid in other operating system but
 #  areillegal in windows, to unicode values that look like the original chars
 # and are valid in this platform.
-BASE_CODE = u'\N{ZERO WIDTH SPACE}%s\N{ZERO WIDTH SPACE}'
+BASE_CODE = '\N{ZERO WIDTH SPACE}%s\N{ZERO WIDTH SPACE}'
 WINDOWS_ILLEGAL_CHARS_MAP = {
-    u'<': BASE_CODE % u'\N{SINGLE LEFT-POINTING ANGLE QUOTATION MARK}',
-    u'>': BASE_CODE % u'\N{SINGLE RIGHT-POINTING ANGLE QUOTATION MARK}',
-    u':': BASE_CODE % u'\N{RATIO}',
-    u'"': BASE_CODE % u'\N{DOUBLE PRIME}',
-    u'/': BASE_CODE % u'\N{FRACTION SLASH}',
-    u'|': BASE_CODE % u'\N{DIVIDES}',
-    u'?': BASE_CODE % u'\N{INTERROBANG}',
-    u'*': BASE_CODE % u'\N{SEXTILE}',
-    u'\n': BASE_CODE % u'\N{LINE SEPARATOR}'
+    '<': BASE_CODE % '\N{SINGLE LEFT-POINTING ANGLE QUOTATION MARK}',
+    '>': BASE_CODE % '\N{SINGLE RIGHT-POINTING ANGLE QUOTATION MARK}',
+    ':': BASE_CODE % '\N{RATIO}',
+    '"': BASE_CODE % '\N{DOUBLE PRIME}',
+    '/': BASE_CODE % '\N{FRACTION SLASH}',
+    '|': BASE_CODE % '\N{DIVIDES}',
+    '?': BASE_CODE % '\N{INTERROBANG}',
+    '*': BASE_CODE % '\N{SEXTILE}',
+    '\n': BASE_CODE % '\N{LINE SEPARATOR}'
 }
 # inverse map
 LINUX_ILLEGAL_CHARS_MAP = {}
@@ -161,11 +161,11 @@ def assert_windows_path(path, method_name=None):
     }
     messages = _add_method_info(messages, method_name)
 
-    assert isinstance(path, unicode), messages['unicode_path'] % path
+    assert isinstance(path, str), messages['unicode_path'] % path
     assert path.startswith(LONG_PATH_PREFIX), messages['long_path'] % path
-    assert os.path.isabs(path.replace(LONG_PATH_PREFIX, u''))
+    assert os.path.isabs(path.replace(LONG_PATH_PREFIX, ''))
 
-    path = path.replace(LONG_PATH_PREFIX, u'')
+    path = path.replace(LONG_PATH_PREFIX, '')
     drive, path = os.path.splitdrive(path)
     assert not any(c in WINDOWS_ILLEGAL_CHARS_MAP for c in path), (
         messages['illegal_path'] % path)
@@ -278,7 +278,7 @@ def get_syncdaemon_valid_path(path):
     assert_windows_path(path)
 
     # path is unicode, absolute and literal
-    path = path.replace(LONG_PATH_PREFIX, u'')
+    path = path.replace(LONG_PATH_PREFIX, '')
     result = _unicode_to_bytes(path)
 
     assert_syncdaemon_path(result)
@@ -652,17 +652,17 @@ def recursive_move(path_from, path_to):
 def make_link(target, destination):
     """Create a link from the target in the given destination."""
     # append the correct file type
-    if not destination.endswith(u'.lnk'):
-        destination += u'.lnk'
+    if not destination.endswith('.lnk'):
+        destination += '.lnk'
     # ensure that the dir containing the link exists
     dirname = os.path.dirname(destination)
-    if dirname != u'' and not os.path.exists(dirname):
+    if dirname != '' and not os.path.exists(dirname):
         make_dir(dirname, recursive=True)
 
     # destination and target can't be literal paths nor contain
     # illegal chars.
-    destination = destination.replace(LONG_PATH_PREFIX, u'')
-    target = target.replace(LONG_PATH_PREFIX, u'')
+    destination = destination.replace(LONG_PATH_PREFIX, '')
+    target = target.replace(LONG_PATH_PREFIX, '')
 
     try:
         shortcut = CreateObject(shelllink.ShellLink)
@@ -685,8 +685,8 @@ def read_link(path):
     # because TargetPath or anything related was returning malformed paths.
     # The bug associated to this issue is: #907336
     # https://bugs.launchpad.net/ubuntuone-client/+bug/907336
-    if not path.endswith(u'.lnk'):
-        path += u'.lnk'
+    if not path.endswith('.lnk'):
+        path += '.lnk'
     shortcut = CreateObject(shelllink.ShellLink)
     pf = shortcut.QueryInterface(IPersistFile)
     pf.Load(path, True)
@@ -776,7 +776,7 @@ def walk(path, topdown=True):
     # does not. Nevertheless lets filter the same way in here so that if python
     # os.walk changes at some point, we do the same in BOTH methods.
     for dirpath, dirnames, filenames in os.walk(path, topdown):
-        dirpath = _unicode_to_bytes(dirpath.replace(LONG_PATH_PREFIX, u''))
+        dirpath = _unicode_to_bytes(dirpath.replace(LONG_PATH_PREFIX, ''))
         if native_is_system_path(dirpath):
             continue
         dirnames = map(
@@ -867,7 +867,7 @@ def move_to_trash(path):
 
     # the shell code does not know how to deal with long paths, lets
     # try to move it to the trash if it is short enough, else we remove it
-    no_prefix_path = path.replace(LONG_PATH_PREFIX, u'')
+    no_prefix_path = path.replace(LONG_PATH_PREFIX, '')
     flags = (shellcon.FOF_ALLOWUNDO | shellcon.FOF_NOCONFIRMATION |
              shellcon.FOF_NOERRORUI | shellcon.FOF_SILENT)
     result = shell.SHFileOperation((0, shellcon.FO_DELETE,
@@ -914,7 +914,7 @@ def get_path_list(path):
     """Return a list with the diff components of the path."""
     # The LONG_PATH_PREFIX should always be present since we use the
     # windowspath decorator.
-    path = path.replace(LONG_PATH_PREFIX, u'')
+    path = path.replace(LONG_PATH_PREFIX, '')
     drive, path = os.path.splitdrive(path)
     # ensure that we do not return the windows unicode chars
     path = _unicode_to_bytes(path)
@@ -930,7 +930,7 @@ def normpath(path):
     # The LONG_PATH_PREFIX should always be present since we use the
     # windowspath decorator. We remove it since the system's normpath does not
     # process literal paths.
-    path = path.replace(LONG_PATH_PREFIX, u'')
+    path = path.replace(LONG_PATH_PREFIX, '')
     result = LONG_PATH_PREFIX + os.path.normpath(path)
     result = get_syncdaemon_valid_path(result)
     return result
