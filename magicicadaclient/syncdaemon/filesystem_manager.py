@@ -32,7 +32,6 @@ import os
 import re
 import time
 import functools
-import itertools
 import logging
 import contextlib
 import errno
@@ -303,7 +302,7 @@ class FileSystemManager(object):
     CHANGED_NONE = 'NONE'
 
     def __init__(self, data_dir, partials_dir, vm, db):
-        if not isinstance(data_dir, basestring):
+        if not isinstance(data_dir, str):
             raise TypeError("data_dir should be a string instead of %s" %
                             type(data_dir))
         fsmdir = os.path.join(data_dir, 'fsm')
@@ -383,9 +382,10 @@ class FileSystemManager(object):
                     return False
                 else:
                     return mdid, mdobj
-        safe_items = itertools.imap(safeget_mdobj, self.old_fs.keys())
+
+        safe_iteritems = map(safeget_mdobj, self.old_fs.keys())
         # filter all False values
-        return itertools.ifilter(None, safe_items)
+        return filter(None, safe_iteritems)
 
     def _fix_path_for_new_layout(self, mdobj):
         """fix the mdobj path for the new layout, only for shares root"""

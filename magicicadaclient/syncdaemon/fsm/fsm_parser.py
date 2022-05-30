@@ -123,9 +123,9 @@ if has_oo_bindings:
             in_props = PropertyValue("Hidden", 0, True, 0),
             document = desktop.loadComponentFromURL(
                 file_url, "_blank", 0, in_props)
-            self.rules = document.Sheets.getByName(u'rules')
+            self.rules = document.Sheets.getByName('rules')
             try:
-                self.invalid = document.Sheets.getByName(u'invalid')
+                self.invalid = document.Sheets.getByName('invalid')
             except NoSuchElementException:
                 self.invalid = None
 
@@ -135,7 +135,7 @@ if has_oo_bindings:
             # find the last column with data. from the second state
             # the last column in the third row (varnames)
             i = 1
-            cells = [u""]
+            cells = [""]
             found_state = False
             while True:
                 try:

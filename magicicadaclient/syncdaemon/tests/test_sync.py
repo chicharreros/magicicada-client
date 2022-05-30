@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2009-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -1672,13 +1670,13 @@ class TestSyncDelta(BaseSync):
         self.filetxtdelta = delta.FileInfoDelta(
             generation=5, is_live=True, file_type=delta.FILE,
             parent_id=root_id, share_id=ROOT, node_id=uuid.uuid4(),
-            name=u"fileñ.txt", is_public=False, content_hash="hash",
+            name="fileñ.txt", is_public=False, content_hash="hash",
             crc32=1, size=10, last_modified=0)
 
         self.dirdelta = delta.FileInfoDelta(
             generation=6, is_live=True, file_type=delta.DIRECTORY,
             parent_id=root_id, share_id=ROOT, node_id=uuid.uuid4(),
-            name=u"directory_ñ", is_public=False, content_hash="hash",
+            name="directory_ñ", is_public=False, content_hash="hash",
             crc32=1, size=10, last_modified=0)
 
     def create_filetxt(self, dt=None):
@@ -2160,7 +2158,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             d = delta.FileInfoDelta(
                 generation=i, is_live=True, file_type=delta.DIRECTORY,
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
-                name=u"directory_ñ_%d" % i, is_public=False,
+                name="directory_ñ_%d" % i, is_public=False,
                 content_hash="hash", crc32=i, size=10, last_modified=0)
             directories.append(d)
             self.create_dir(dt=d)
@@ -2168,7 +2166,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             f = delta.FileInfoDelta(
                 generation=i, is_live=True, file_type=delta.FILE,
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
-                name=u"fileñ.%d.txt" % i, is_public=False, content_hash="hash",
+                name="fileñ.%d.txt" % i, is_public=False, content_hash="hash",
                 crc32=i, size=10, last_modified=0)
             f.parent_id = directories[i - 5].node_id
             self.create_filetxt(dt=f)
@@ -2224,7 +2222,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             d = delta.FileInfoDelta(
                 generation=i, is_live=True, file_type=delta.DIRECTORY,
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
-                name=u"directory_ñ_%d" % i, is_public=False,
+                name="directory_ñ_%d" % i, is_public=False,
                 content_hash="hash", crc32=i, size=10, last_modified=0)
             directories.append(d)
             self.create_dir(dt=d)
@@ -2232,7 +2230,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             f = delta.FileInfoDelta(
                 generation=i, is_live=True, file_type=delta.FILE,
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
-                name=u"fileñ.%d.txt" % i, is_public=False, content_hash="hash",
+                name="fileñ.%d.txt" % i, is_public=False, content_hash="hash",
                 crc32=i, size=10, last_modified=0)
             f.parent_id = directories[i - 5].node_id
             self.create_filetxt(dt=f)

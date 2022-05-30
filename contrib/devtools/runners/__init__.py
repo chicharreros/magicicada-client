@@ -28,8 +28,6 @@
 
 """The base test runner object."""
 
-from __future__ import unicode_literals
-
 import coverage
 import gc
 import inspect
@@ -41,7 +39,7 @@ import unittest
 from devtools.errors import TestError, UsageError
 from devtools.testing.txcheck import TXCheckSuite
 from devtools.utils import OptionParser
-from devtools.compat import text_type
+
 
 __all__ = ['BaseTestOptions', 'BaseTestRunner', 'main']
 
@@ -62,7 +60,7 @@ class BaseTestRunner(object):
 
         # set $HOME to the _trial_temp dir, to avoid breaking user files
         trial_temp_dir = os.environ.get('TRIAL_TEMP_DIR', os.getcwd())
-        homedir = os.path.join(trial_temp_dir, options['temp-directory'])
+        homedir = os.path.join(trial_temp_dir, str(options['temp-directory']))
         os.environ['HOME'] = homedir
 
         # setup $XDG_*_HOME variables and create the directories
@@ -195,7 +193,7 @@ class BaseTestOptions(OptionParser):
                      ['ignore-modules', 'i', '', None],
                      ['ignore-paths', 'p', '', None],
                      ['runner', None, 'txrunner', None],
-                     ['temp-directory', None, b'_trial_temp', None],
+                     ['temp-directory', None, '_trial_temp', None],
                      ]
 
     def __init__(self, *args, **kwargs):
@@ -209,13 +207,13 @@ class BaseTestOptions(OptionParser):
         """Comma-separate list of test modules to ignore,
            e.g: test_gtk.py, test_account.py
            """
-        self['ignore-modules'] = list(map(text_type.strip, option.split(',')))
+        self['ignore-modules'] = list(map(str.strip, option.split(',')))
 
     def opt_ignore_paths(self, option):
         """Comma-separated list of relative paths to ignore,
            e.g: tests/platform/windows, tests/platform/macosx
            """
-        self['ignore-paths'] = list(map(text_type.strip, option.split(',')))
+        self['ignore-paths'] = list(map(str.strip, option.split(',')))
 
     def opt_loop(self, option):
         """Loop tests the specified number of times."""

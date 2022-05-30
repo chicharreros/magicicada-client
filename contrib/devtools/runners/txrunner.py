@@ -28,8 +28,6 @@
 
 """The twisted test runner and options."""
 
-from __future__ import unicode_literals
-
 import sys
 
 from twisted.internet import defer

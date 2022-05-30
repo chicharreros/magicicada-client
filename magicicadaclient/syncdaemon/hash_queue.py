@@ -30,7 +30,7 @@
 
 import logging
 import threading
-import Queue as queue
+import queue
 import time
 
 from collections import OrderedDict
@@ -230,7 +230,7 @@ class UniqueQueue(queue.Queue):
 
     def __init__(self, *args, **kwargs):
         """create the instance"""
-        queue.Queue.__init__(self, *args, **kwargs)
+        super().__init__(self, *args, **kwargs)
         self.logger = logging.getLogger(
             '.'.join((__name__, self.__class__.__name__)))
 

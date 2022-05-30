@@ -50,29 +50,29 @@ def set_no_rights(path):
 
 def set_file_readonly(path):
     """Change path permissions to readonly in a file."""
-    os.chmod(path, 0444)
+    os.chmod(path, 0o444)
 
 
 def set_file_readwrite(path):
     """Change path permissions to readwrite in a file."""
-    os.chmod(path, 0664)
+    os.chmod(path, 0o664)
 
 
 def set_dir_readonly(path):
     """Change path permissions to readonly in a dir."""
-    os.chmod(path, 0555)
+    os.chmod(path, 0o555)
 
 
 def set_dir_readwrite(path):
     """Change path permissions to readwrite in a dir."""
-    os.chmod(path, 0775)
+    os.chmod(path, 0o775)
 
 
 @contextmanager
 def allow_writes(path):
     """A very simple context manager to allow writting in RO dirs."""
     prev_mod = stat.S_IMODE(os.stat(path).st_mode)
-    os.chmod(path, 0755)
+    os.chmod(path, 0o755)
     yield
     os.chmod(path, prev_mod)
 

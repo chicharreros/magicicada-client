@@ -141,32 +141,32 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_path_interesting_not_watched_or_ignored(self):
         """Test that we do know if the path is not interesting."""
-        path = u'/not/watched/path'
+        path = '/not/watched/path'
         self.assertTrue(self.factory.path_is_not_interesting(path))
 
     def test_path_interesting_watched_not_ignored(self):
         """Test that we do not know if the path is not interesting."""
-        path = u'/watched/path'
+        path = '/watched/path'
         self.factory.watched_paths.append(path)
         self.assertFalse(self.factory.path_is_not_interesting(path))
 
     def test_path_interesting_watched_but_ignored(self):
         """Test that we do not know if the path is not interesting."""
-        path = u'/ignored/path'
+        path = '/ignored/path'
         self.factory.watched_paths.append(path)
         self.factory.ignored_paths.append(path)
         self.assertTrue(self.factory.path_is_not_interesting(path))
 
     def test_path_interesting_not_watched_but_ignored(self):
         """Test that we do not know if the path is not interesting."""
-        path = u'/ignored/path'
+        path = '/ignored/path'
         self.factory.ignored_paths.append(path)
         self.assertTrue(self.factory.path_is_not_interesting(path))
 
     def test_is_create_false_rename(self):
         """Test if we do know when an event is a create."""
-        source_path = u'/other/watched/path'
-        destination_path = u'/watched/path'
+        source_path = '/other/watched/path'
+        destination_path = '/watched/path'
         source_head, _ = os.path.split(source_path)
         destination_head, _ = os.path.split(destination_path)
         self.factory.watched_paths.extend([source_head, destination_head])
@@ -176,8 +176,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_is_create_false_delete(self):
         """Test if we do know when an event is a create."""
-        source_path = u'/watched/path'
-        destination_path = u'/not/watched/path'
+        source_path = '/watched/path'
+        destination_path = '/not/watched/path'
         source_head, _ = os.path.split(source_path)
         self.factory.watched_paths.append(source_head)
         event = FakeDaemonEvent()
@@ -186,8 +186,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_is_create_true(self):
         """Test is we do know when an event is a create."""
-        source_path = u'/not/watched/path'
-        destination_path = u'/watched/path'
+        source_path = '/not/watched/path'
+        destination_path = '/watched/path'
         destination_head, _ = os.path.split(destination_path)
         self.factory.watched_paths.append(destination_head)
         event = FakeDaemonEvent()
@@ -196,8 +196,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_is_delete_false_rename(self):
         """Test if we do know when an event is a delete."""
-        source_path = u'/other/watched/path'
-        destination_path = u'/watched/path'
+        source_path = '/other/watched/path'
+        destination_path = '/watched/path'
         source_head, _ = os.path.split(source_path)
         destination_head, _ = os.path.split(destination_path)
         self.factory.watched_paths.extend([source_head, destination_head])
@@ -207,8 +207,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_is_delete_false_create(self):
         """Test if we do know when an event is a delete."""
-        source_path = u'/not/watched/path'
-        destination_path = u'/watched/path'
+        source_path = '/not/watched/path'
+        destination_path = '/watched/path'
         destination_head, _ = os.path.split(destination_path)
         self.factory.watched_paths.append(destination_head)
         event = FakeDaemonEvent()
@@ -217,8 +217,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_is_delete_true(self):
         """Test if we do know when an event is a delete."""
-        source_path = u'/watched/path'
-        destination_path = u'/not/watched/path'
+        source_path = '/watched/path'
+        destination_path = '/not/watched/path'
         source_head, _ = os.path.split(source_path)
         self.factory.watched_paths.append(source_head)
         event = FakeDaemonEvent()
@@ -228,8 +228,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
     def test_generate_from_event(self):
         """Test the creation of a fake from event."""
         cookie = 'cookie'
-        source_path = u'/source/path'
-        destination_path = u'/destination/path'
+        source_path = '/source/path'
+        destination_path = '/destination/path'
         event = FakeDaemonEvent()
         event.event_paths.extend([source_path, destination_path])
         pyinotify_event = self.factory.generate_from_event(event, cookie)
@@ -242,8 +242,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
     def test_generate_to_event(self):
         """Test the creation of a fake to event."""
         cookie = 'cookie'
-        source_path = u'/source/path'
-        destination_path = u'/destination/path'
+        source_path = '/source/path'
+        destination_path = '/destination/path'
         event = FakeDaemonEvent()
         event.event_paths.extend([source_path, destination_path])
         pyinotify_event = self.factory.generate_to_event(event, cookie)
@@ -255,7 +255,7 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_convert_in_pyinotify_event_no_rename(self):
         """Test the creation of a no rename event."""
-        event_path = u'/path/of/the/event'
+        event_path = '/path/of/the/event'
         for action in fsevents_daemon.DARWIN_ACTIONS:
             event = FakeDaemonEvent()
             event.event_paths.append(event_path)
@@ -272,8 +272,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_convert_in_pyinotify_event_rename_create(self):
         """Test the creation of a rename which is a create/modify pair."""
-        source_path = u'/not/watched/path'
-        destination_path = u'/watched/path'
+        source_path = '/not/watched/path'
+        destination_path = '/watched/path'
         head, _ = os.path.split(destination_path)
         self.factory.watched_paths.append(head)
         event = FakeDaemonEvent()
@@ -295,8 +295,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_convert_in_pyinotify_event_rename_delete(self):
         """Test the creation of a rename which is a delete."""
-        source_path = u'/watched/path'
-        destination_path = u'/not/watched/path'
+        source_path = '/watched/path'
+        destination_path = '/not/watched/path'
         head, _ = os.path.split(source_path)
         self.factory.watched_paths.append(head)
         event = FakeDaemonEvent()
@@ -312,8 +312,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_convert_in_pyinotify_event_rename(self):
         """Test the creation of a rename event."""
-        source_path = u'/watched/path1'
-        destination_path = u'/watched/path2'
+        source_path = '/watched/path1'
+        destination_path = '/watched/path2'
         head, _ = os.path.split(source_path)
         self.factory.watched_paths.append(head)
         event = FakeDaemonEvent()
@@ -360,7 +360,7 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_process_ignored_path(self):
         """Test processing events from an ignored path."""
-        event_path = u'/path/of/the/event'
+        event_path = '/path/of/the/event'
         head, _ = os.path.split(event_path)
         self.factory.ignored_paths.append(head)
         event = FakeDaemonEvent()
@@ -371,7 +371,7 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
 
     def test_process_not_ignored_path(self):
         """Test processing events that are not ignored."""
-        event_path = u'/path/of/the/event'
+        event_path = '/path/of/the/event'
         head, _ = os.path.split(event_path)
         self.factory.watched_paths.append(head)
         event = FakeDaemonEvent()

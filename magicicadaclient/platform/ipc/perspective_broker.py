@@ -221,10 +221,8 @@ class IPCExposedObject(Referenceable, SignalBroadcaster):
         self.service = service
 
 
-class Status(IPCExposedObject):
+class Status(IPCExposedObject, metaclass=RemoteMeta):
     """Represent the status of the syncdaemon."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     remote_calls = [
@@ -374,10 +372,8 @@ class Status(IPCExposedObject):
         # handle_AQ_UPLOAD_FINISHED, handle_AQ_UPLOAD_ERROR
 
 
-class Events(IPCExposedObject):
+class Events(IPCExposedObject, metaclass=RemoteMeta):
     """The events of the system translated to signals."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     remote_calls = [
@@ -395,10 +391,8 @@ class Events(IPCExposedObject):
         self.service.events.push_event(event_name, args)
 
 
-class SyncDaemon(IPCExposedObject):
+class SyncDaemon(IPCExposedObject, metaclass=RemoteMeta):
     """The Syncdaemon interface."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     remote_calls = [
@@ -479,10 +473,8 @@ class SyncDaemon(IPCExposedObject):
         """Volumes list has changed."""
 
 
-class FileSystem(IPCExposedObject):
+class FileSystem(IPCExposedObject, metaclass=RemoteMeta):
     """An interface to the FileSystem Manager."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     remote_calls = [
@@ -519,10 +511,8 @@ class FileSystem(IPCExposedObject):
         return self.service.file_system.search_files(pattern)
 
 
-class Shares(IPCExposedObject):
+class Shares(IPCExposedObject, metaclass=RemoteMeta):
     """An interface to interact with shares."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     remote_calls = [
@@ -660,10 +650,8 @@ class Shares(IPCExposedObject):
         """Notify an error while unsubscribing from a share."""
 
 
-class Config(IPCExposedObject):
+class Config(IPCExposedObject, metaclass=RemoteMeta):
     """The Syncdaemon config/settings interface."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     remote_calls = [
@@ -790,10 +778,8 @@ class Config(IPCExposedObject):
             self.service.config.disable_autoconnect()
 
 
-class Folders(IPCExposedObject):
+class Folders(IPCExposedObject, metaclass=RemoteMeta):
     """An interface to interact with User Defined Folders."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     remote_calls = [
@@ -883,10 +869,8 @@ class Folders(IPCExposedObject):
         """Notify an error while unsubscribing from a user defined folder."""
 
 
-class PublicFiles(IPCExposedObject):
+class PublicFiles(IPCExposedObject, metaclass=RemoteMeta):
     """An interface for handling public files."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     remote_calls = [
@@ -930,10 +914,8 @@ class PublicFiles(IPCExposedObject):
         """Report an error in geting the public files list."""
 
 
-class IPCInterface(object, Root):
+class IPCInterface(Root, metaclass=RemoteMeta):
     """Holder of all exposed objects."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     remote_calls = [

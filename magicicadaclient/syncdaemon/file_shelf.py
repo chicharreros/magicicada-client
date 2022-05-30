@@ -28,10 +28,10 @@
 
 """Storage shelf using a files tree."""
 
-import cPickle as pickle
-import os
-import stat
 import errno
+import os
+import pickle
+import stat
 
 from collections import MutableMapping, deque
 
@@ -206,7 +206,7 @@ class FileShelf(MutableMapping):
             yield k
 
     def items(self):
-        """Custom items that discard 'broken' metadata."""
+        """Custom iterator that discard 'broken' metadata."""
         for k in self:
             try:
                 yield (k, self[k])

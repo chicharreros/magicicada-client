@@ -65,14 +65,15 @@ class IgnoreFileTests(unittest.TestCase):
 
     def test_filter_one(self):
         """Filters stuff that matches (or not) this one regex."""
-        p = notify_processor.NotifyProcessor(None, ['\A.*\\.pyc\Z'])
+        p = notify_processor.NotifyProcessor(None, [r'\A.*\\.pyc\Z'])
         self.assertTrue(p.is_ignored("froo.pyc"))
         self.assertFalse(p.is_ignored("froo.pyc.real"))
         self.assertFalse(p.is_ignored("otherstuff"))
 
     def test_filter_two_simple(self):
         """Filters stuff that matches (or not) these simple regexes."""
-        p = notify_processor.NotifyProcessor(None, ['\A.*foo\Z', '\A.*bar\Z'])
+        p = notify_processor.NotifyProcessor(
+            None, [r'\A.*foo\Z', r'\A.*bar\Z'])
         self.assertTrue(p.is_ignored("blah_foo"))
         self.assertTrue(p.is_ignored("blah_bar"))
         self.assertFalse(p.is_ignored("bar_xxx"))
@@ -82,7 +83,7 @@ class IgnoreFileTests(unittest.TestCase):
     def test_filter_two_complex(self):
         """Filters stuff that matches (or not) these complex regexes."""
         p = notify_processor.NotifyProcessor(
-            None, ['\A.*foo\Z|\Afoo.*\Z', '\A.*bar\Z'])
+            None, [r'\A.*foo\Z|\Afoo.*\Z', r'\A.*bar\Z'])
         self.assertTrue(p.is_ignored("blah_foo"))
         self.assertTrue(p.is_ignored("blah_bar"))
         self.assertTrue(p.is_ignored("foo_xxx"))

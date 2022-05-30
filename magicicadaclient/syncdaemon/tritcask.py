@@ -32,8 +32,6 @@ import clauses and in preparation for incoming Python 3 port.
 
 """
 
-from __future__ import absolute_import
-
 import tritcask
 
 

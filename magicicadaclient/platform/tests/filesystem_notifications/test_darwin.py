@@ -32,7 +32,7 @@ import itertools
 import logging
 import os
 import tempfile
-import thread
+import _thread
 
 from twisted.internet import defer
 
@@ -153,7 +153,7 @@ class TestCaseHandler(ProcessEvent):
     def _verify_thread_id(self):
         """Verify that the event was processed in the correct thread."""
         if self.main_thread_id:
-            assert self.main_thread_id == thread.get_ident()
+            assert self.main_thread_id == _thread.get_ident()
 
 
 class TestWatch(common_tests.TestWatch):
@@ -1093,7 +1093,7 @@ class TestNotifyProcessor(common_tests.TestNotifyProcessor):
         def grouper(n, iterable, fillvalue=None):
             "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
             args = [iter(iterable)] * n
-            return itertools.izip_longest(fillvalue=fillvalue, *args)
+            return itertools.zip_longest(fillvalue=fillvalue, *args)
 
         for i, called_methods in enumerate(grouper(2,
                                            self.general.called_methods)):

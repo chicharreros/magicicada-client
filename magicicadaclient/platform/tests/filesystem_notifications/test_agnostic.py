@@ -53,7 +53,7 @@ class RawOutputFormatTest(TestCase):
         """Test the formatting of a simple value that is non-ascii str."""
         attr = 'attribute'
         self.format[attr] = attr
-        value = u'ñoño'
+        value = 'ñoño'
         expected_result = (attr + value.encode(
                            sys.getfilesystemencoding(), 'replace') +
                            self.format['normal'])

@@ -36,6 +36,7 @@ from twisted.internet.defer import inlineCallbacks
 
 from devtools.testcases.dbus import DBusTestCase
 from magicicadaclient.platform import session
+from functools import reduce
 
 INHIBIT_ALL = (session.INHIBIT_LOGGING_OUT |
                session.INHIBIT_USER_SWITCHING |
