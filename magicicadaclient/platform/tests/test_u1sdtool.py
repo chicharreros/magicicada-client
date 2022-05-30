@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2009-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -33,7 +31,7 @@
 import os
 
 from operator import itemgetter
-from StringIO import StringIO
+from io import StringIO
 
 from twisted.internet import defer
 
@@ -84,15 +82,15 @@ class U1SDToolTests(TestToolsBase):
     def test_show_shares(self):
         """test the output of --list-shared """
         out = StringIO()
-        share_path = os.path.join(self.shares_dir, u"ñoño".encode('utf-8'))
-        share = Share(path=share_path, name=u"ñoño", volume_id='share_id',
+        share_path = os.path.join(self.shares_dir, "ñoño".encode('utf-8'))
+        share = Share(path=share_path, name="ñoño", volume_id='share_id',
                       access_level=ACCESS_LEVEL_RO, other_username='fake_user',
-                      other_visible_name=u"ñoño", accepted=False,
+                      other_visible_name="ñoño", accepted=False,
                       subscribed=False)
         yield self.main.vm.add_share(share)
         expected = (
-            u"Shares list:\n id=share_id name=\xf1o\xf1o accepted=False "
-            u"subscribed=False access_level=View from=fake_user\n")
+            "Shares list:\n id=share_id name=\xf1o\xf1o accepted=False "
+            "subscribed=False access_level=View from=fake_user\n")
         result = yield self.tool.get_shares()
         show_shares(result, out)
         self.assertEqual(out.getvalue(), expected)
@@ -111,7 +109,7 @@ class U1SDToolTests(TestToolsBase):
 
     def test_show_shared(self):
         """test the output of --list-shared """
-        path = os.path.join(self.root_dir, u"ñoño".encode('utf-8'))
+        path = os.path.join(self.root_dir, "ñoño".encode('utf-8'))
         self.fs.create(path, "")
         self.fs.set_node_id(path, "node_id")
 
@@ -124,8 +122,8 @@ class U1SDToolTests(TestToolsBase):
                                   ACCESS_LEVEL_RO)
         out = StringIO()
         expected = (
-            u"Shared list:\n  id=share_id name=shared_name accepted=False "
-            u"access_level=View to=fake_user path=%s\n" % path.decode('utf-8'))
+            "Shared list:\n  id=share_id name=shared_name accepted=False "
+            "access_level=View to=fake_user path=%s\n" % path.decode('utf-8'))
         d = self.tool.list_shared()
         d.addCallback(lambda result: show_shared(result, out))
 
@@ -145,7 +143,7 @@ class U1SDToolTests(TestToolsBase):
 
     def generic_test_show_path_info_unicode(self, encoding):
         """generic test for the output of --info with unicode paths """
-        path = os.path.join(self.root_dir, u"ñoño".encode('utf-8'))
+        path = os.path.join(self.root_dir, "ñoño".encode('utf-8'))
         mdid = self.fs.create(path, "")
         self.fs.set_node_id(path, "uuid1")
         mdobj = self.fs.get_by_mdid(mdid)
@@ -190,7 +188,7 @@ class U1SDToolTests(TestToolsBase):
             else:
                 result.update(dict(path_info=path))
             for k, v in result.items():
-                self.assertIsInstance(v, unicode)
+                self.assertIsInstance(v, str)
             value = expected % result
             self.assertEqual(out.getvalue(), value)
 
@@ -208,7 +206,7 @@ class U1SDToolTests(TestToolsBase):
         d.addCallback(lambda result: show_uploads(result, out))
         d.addCallback(lambda _: self.tool.get_current_downloads())
         d.addCallback(lambda result: show_downloads(result, out))
-        expected = u'Current uploads: 0\nCurrent downloads: 0\n'
+        expected = 'Current uploads: 0\nCurrent downloads: 0\n'
 
         def check(result):
             """check the output"""
@@ -235,9 +233,9 @@ class U1SDToolTests(TestToolsBase):
 
         out = StringIO()
         expected = (
-            u"Current uploads:\n  path: up_path\n    deflated size: 100\n    "
-            u"bytes written: 10\nCurrent downloads:\n  path: down_path\n    "
-            u"deflated size: 10\n    bytes read: 1\n")
+            "Current uploads:\n  path: up_path\n    deflated size: 100\n    "
+            "bytes written: 10\nCurrent downloads:\n  path: down_path\n    "
+            "deflated size: 10\n    bytes read: 1\n")
         result = yield self.tool.get_current_uploads()
         show_uploads(result, out)
 
@@ -344,15 +342,15 @@ class U1SDToolTests(TestToolsBase):
                 FakeCommand2("", "node_id_3")])
         out = StringIO()
         expected = (
-            u"Warning: this option is deprecated! Use '--waiting' instead\n"
-            u"operation='FakeUpload' node_id='node_id' share_id='' "
-            u"path='upload_path'\n"
-            u"operation='FakeCommand2' node_id='node_id_2' share_id='' "
-            u"path='other_path'\n"
-            u"operation='FakeDownload' node_id='node_id_1' share_id='' "
-            u"path='download_path'\n"
-            u"operation='FakeCommand2' node_id='node_id_3' share_id='' "
-            u"path='other_path'\n"
+            "Warning: this option is deprecated! Use '--waiting' instead\n"
+            "operation='FakeUpload' node_id='node_id' share_id='' "
+            "path='upload_path'\n"
+            "operation='FakeCommand2' node_id='node_id_2' share_id='' "
+            "path='other_path'\n"
+            "operation='FakeDownload' node_id='node_id_1' share_id='' "
+            "path='download_path'\n"
+            "operation='FakeCommand2' node_id='node_id_3' share_id='' "
+            "path='other_path'\n"
         )
 
         result = yield self.tool.waiting_content()
@@ -375,14 +373,14 @@ class U1SDToolTests(TestToolsBase):
     def test_show_folders_subscribed(self):
         """Test the output of --list-folders."""
         out = StringIO()
-        suggested_path = u"~/ñoño"
+        suggested_path = "~/ñoño"
         path = get_udf_path(suggested_path)
 
         udf = UDF("folder_id", "node_id", suggested_path, path,
                   subscribed=True)
         yield self.main.vm.add_udf(udf)
-        expected = u"Folder list:\n  id=folder_id subscribed=True " + \
-                   u"path=%s\n" % path.decode('utf-8')
+        expected = "Folder list:\n  id=folder_id subscribed=True " + \
+                   "path=%s\n" % path.decode('utf-8')
         result = yield self.tool.get_folders()
         show_folders(result, out)
         self.assertEqual(out.getvalue(), expected)
@@ -391,15 +389,15 @@ class U1SDToolTests(TestToolsBase):
     def test_show_folders_unsubscribed(self):
         """Test the output of --list-folders with a unsubscribed folder."""
         out = StringIO()
-        path = u'ñoño'.encode('utf-8')
-        suggested_path = os.path.join("~", u'ñoño')
+        path = 'ñoño'.encode('utf-8')
+        suggested_path = os.path.join("~", 'ñoño')
 
         udf = UDF("folder_id", "node_id", suggested_path, path,
                   subscribed=True)
         yield self.main.vm.add_udf(udf)
         self.main.vm.unsubscribe_udf(udf.id)
-        expected = u"Folder list:\n  id=folder_id subscribed=False " + \
-                   u"path=\xf1o\xf1o\n"
+        expected = "Folder list:\n  id=folder_id subscribed=False " + \
+                   "path=\xf1o\xf1o\n"
         result = yield self.tool.get_folders()
         show_folders(result, out)
         self.assertEqual(out.getvalue(), expected)
@@ -408,9 +406,9 @@ class U1SDToolTests(TestToolsBase):
     def generic_show_dirty_nodes(self, encoding, empty=False):
         """Test dirty nodes output."""
         # create some nodes
-        path1 = os.path.join(self.root_dir, u'ñoño-1'.encode('utf-8'))
+        path1 = os.path.join(self.root_dir, 'ñoño-1'.encode('utf-8'))
         self.main.fs.create(path1, "")
-        path2 = os.path.join(self.root_dir, u'ñoño-2'.encode('utf-8'))
+        path2 = os.path.join(self.root_dir, 'ñoño-2'.encode('utf-8'))
         mdid2 = self.main.fs.create(path2, "")
         path3 = os.path.join(self.root_dir, "path3")
         self.main.fs.create(path3, "")

@@ -15,8 +15,6 @@
 
 """XDG Base Directory paths."""
 
-from __future__ import unicode_literals
-
 import os
 
 from dirspec.utils import (
@@ -26,7 +24,6 @@ from dirspec.utils import (
     default_data_home,
     default_data_path,
     get_env_path,
-    unicode_path,
 )
 
 
@@ -61,18 +58,16 @@ def get_xdg_data_home():
 def get_xdg_config_dirs():
     """Get the paths for the XDG config directories."""
     result = [get_xdg_config_home()]
-    result.extend([x.encode('utf-8') for x in get_env_path(
-        'XDG_CONFIG_DIRS',
-        default_config_path).decode('utf-8').split(os.pathsep)])
+    config_dirs = get_env_path('XDG_CONFIG_DIRS', default_config_path)
+    result.extend(x for x in config_dirs.split(os.pathsep))
     return result
 
 
 def get_xdg_data_dirs():
     """Get the paths for the XDG data directories."""
     result = [get_xdg_data_home()]
-    result.extend([x.encode('utf-8') for x in get_env_path(
-        'XDG_DATA_DIRS',
-        default_data_path).decode('utf-8').split(os.pathsep)])
+    data_dirs = get_env_path('XDG_DATA_DIRS', default_data_path)
+    result.extend(x for x in data_dirs.split(os.pathsep))
     return result
 
 
@@ -86,10 +81,8 @@ def load_paths(search_dirs, *resource):
     resource = os.path.join(*resource)
     assert not resource.startswith('/')
     for target in search_dirs:
-        path = os.path.join(target, resource.encode('utf-8'))
-        # access the file system always with unicode
-        # to properly behave in some operating systems
-        if os.path.exists(unicode_path(path)):
+        path = os.path.join(target, resource)
+        if os.path.exists(path):
             yield path
 
 
@@ -133,11 +126,9 @@ def save_config_path(*resource):
     """
     resource = os.path.join(*resource)
     assert not resource.startswith('/')
-    path = os.path.join(get_xdg_config_home(), resource.encode('utf-8'))
-    # access the file system always with unicode
-    # to properly behave in some operating systems
-    if not os.path.isdir(unicode_path(path)):
-        os.makedirs(unicode_path(path), 0o700)
+    path = os.path.join(get_xdg_config_home(), resource)
+    if not os.path.isdir(path):
+        os.makedirs(path, 0o700)
     return path
 
 
@@ -150,11 +141,9 @@ def save_data_path(*resource):
     """
     resource = os.path.join(*resource)
     assert not resource.startswith('/')
-    path = os.path.join(get_xdg_data_home(), resource.encode('utf-8'))
-    # access the file system always with unicode
-    # to properly behave in some operating systems
-    if not os.path.isdir(unicode_path(path)):
-        os.makedirs(unicode_path(path), 0o700)
+    path = os.path.join(get_xdg_data_home(), resource)
+    if not os.path.isdir(path):
+        os.makedirs(path, 0o700)
     return path
 
 

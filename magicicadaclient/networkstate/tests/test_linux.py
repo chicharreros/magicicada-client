@@ -29,8 +29,8 @@
 """Tests for the network state detection code."""
 
 from collections import defaultdict
+from unittest import mock
 
-import mock
 from twisted.internet.defer import inlineCallbacks
 
 from magicicadaclient.networkstate import (

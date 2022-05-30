@@ -389,7 +389,7 @@ class Event(object):
         vlist.update(self.state_vars)
         vlist.update(self.event_vars)
         self.state_x_params = build_combinations_from_varlist(vlist)
-        # now we remove the lines that have been defines as invalid
+        # now we remove the lines that have been defined as invalid
         toremove = []
         for i in self.invalid_states:
             for ei in expand_var_list(state_vars, i):
@@ -401,7 +401,8 @@ class Event(object):
                         if sxp not in toremove:
                             toremove.append(sxp)
 
-        map(self.state_x_params.remove, toremove)
+        for i in toremove:
+            self.state_x_params.remove(i)
 
         # create transitions by expanding states
         for line in lines:
@@ -517,7 +518,7 @@ if __name__ == "__main__":
     s = StateMachine(sys.argv[1], sys.argv[2:])
     if s.errors:
         for e in s.errors:
-            print e >> sys.stderr
+            print(e, file=sys.stderr)
         print("There are %s errors" % (len(s.errors)))
         exit(1)
     else:

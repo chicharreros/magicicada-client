@@ -64,25 +64,19 @@ class mklog(object):
         # args are _-prepended to lower the chances of them
         # conflicting with kwargs
 
-        all_args = []
-        for arg in args:
-            all_args.append(
-                repr(arg).decode('ascii', 'replace').encode('ascii', 'replace')
-            )
-        for k, v in kwargs.items():
-            v = repr(v).decode('ascii', 'replace').encode('ascii', 'replace')
-            all_args.append("%s=%r" % (k, v))
+        all_args = [repr(a) for a in args]
+        all_args.extend("%s=%r" % (k, v) for k, v in kwargs.items())
         args = ", ".join(all_args)
 
-        desc = "%-28s share:%-40r node:%-40r %s(%s) " % (_method, _share,
-                                                         _uid, _method, args)
-        desc = desc.replace('%', '%%')
+        desc = "%-28s share:%-40r node:%-40r %s(%s) " % (
+            _method, _share, _uid, _method, args)
+        desc = desc.replace('%', '%%').encode('utf-8')
         self.zipped_desc = zlib.compress(desc, 9)
         self.logger = _logger
 
     def _log(self, logger_func, *args):
         """Generalized form of the different logging methods."""
-        desc = zlib.decompress(self.zipped_desc)
+        desc = zlib.decompress(self.zipped_desc).decode('utf-8')
         text = desc + args[0]
         logger_func(text, *args[1:])
 

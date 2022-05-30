@@ -156,7 +156,7 @@ class BaseTestCase(BaseTwistedTestCase):
             self, share_id, share_name, access_level=ACCESS_LEVEL_RW,
             accepted=True, subscribed=True):
         """Create a share."""
-        assert isinstance(share_name, unicode)
+        assert isinstance(share_name, str)
 
         share_path = os.path.join(self.shares_dir, share_name.encode('utf-8'))
         make_dir(share_path, recursive=True)
@@ -168,10 +168,10 @@ class BaseTestCase(BaseTwistedTestCase):
         defer.returnValue(share)
 
     @defer.inlineCallbacks
-    def create_udf(self, udf_id, node_id, suggested_path=u'~/myudf',
+    def create_udf(self, udf_id, node_id, suggested_path='~/myudf',
                    subscribed=True, generation=None, free_bytes=100):
         """Create an UDF and add it to the volume manager."""
-        assert isinstance(suggested_path, unicode)
+        assert isinstance(suggested_path, str)
 
         volume = volumes.UDFVolume(volume_id=udf_id, node_id=node_id,
                                    generation=generation,
@@ -233,7 +233,7 @@ class CollectionTests(BaseTestCase):
     def test_empty_rw(self):
         """Test with one empty Modify share."""
         # create the share
-        share = yield self.create_share('share_id', u'rw_share',
+        share = yield self.create_share('share_id', 'rw_share',
                                         access_level=ACCESS_LEVEL_RW)
         self.fsm.create(share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(share.path, "uuid")
@@ -254,7 +254,7 @@ class CollectionTests(BaseTestCase):
     def test_not_empty_rw(self):
         """Test with a Modify share with info."""
         # create the share
-        share = yield self.create_share('share_id', u'ro_share',
+        share = yield self.create_share('share_id', 'ro_share',
                                         access_level=ACCESS_LEVEL_RW)
         self.fsm.create(share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(share.path, "uuid1")
@@ -281,7 +281,7 @@ class CollectionTests(BaseTestCase):
     def test_deleted_rw(self):
         """Test with a deleted rw share."""
         # create the share
-        share = yield self.create_share('share_id', u'rw_share',
+        share = yield self.create_share('share_id', 'rw_share',
                                         access_level=ACCESS_LEVEL_RW)
         self.fsm.create(share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(share.path, "uuid")
@@ -310,7 +310,7 @@ class CollectionTests(BaseTestCase):
     def test_deleted_rw_not_empty(self):
         """Test with a deleted rw share with some nodes in it."""
         # create the share
-        share = yield self.create_share('share_id', u'rw_share',
+        share = yield self.create_share('share_id', 'rw_share',
                                         access_level=ACCESS_LEVEL_RW)
         self.fsm.create(share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(share.path, "uuid")
@@ -381,7 +381,7 @@ class VolumeTestCase(BaseTestCase):
         self.lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
         self.volumes = []
         self.expected = [self.vm.root.path]  # root volume has to be scanned
-        paths = [u'~/Documents', u'~/PDFs', u'~/yadda/yadda/doo']
+        paths = ['~/Documents', '~/PDFs', '~/yadda/yadda/doo']
         for i, suggested_path in enumerate(paths):
             # create UDF
             udf_id, node_id = 'udf_id%i' % i, 'node_id%i' % i
@@ -521,7 +521,7 @@ class TwistedBase(BaseTestCase):
         self.lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
 
         # create a share
-        self.share = yield self.create_share('share_id', u'ro_share',
+        self.share = yield self.create_share('share_id', 'ro_share',
                                              access_level=ACCESS_LEVEL_RW)
         self.fsm.create(self.share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(self.share.path, "uuidshare")
@@ -952,7 +952,7 @@ class ComparationTests(TwistedBase):
     def test_one_dir_ro_share(self):
         """The dir is in a share that's RO, no error but no action."""
         # create the share
-        share = yield self.create_share('share_id', u'ro_share2',
+        share = yield self.create_share('share_id', 'ro_share2',
                                         access_level=ACCESS_LEVEL_RO)
         self.fsm.create(share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(share.path, "uuidshare")
@@ -1169,11 +1169,11 @@ class QueuingTests(BaseTestCase):
         self.lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
 
         # create two shares
-        self.share1 = yield self.create_share('share_id1', u'ro_share_1',
+        self.share1 = yield self.create_share('share_id1', 'ro_share_1',
                                               access_level=ACCESS_LEVEL_RW)
         self.fsm.create(self.share1.path, "share_id1", is_dir=True)
         self.fsm.set_node_id(self.share1.path, "uuidshare1")
-        self.share2 = yield self.create_share('share_id2', u'ro_share_2',
+        self.share2 = yield self.create_share('share_id2', 'ro_share_2',
                                               access_level=ACCESS_LEVEL_RW)
         self.fsm.create(self.share2.path, "share_id2", is_dir=True)
         self.fsm.set_node_id(self.share2.path, "uuidshare2")
@@ -1886,7 +1886,7 @@ class BadStateTests(TwistedBase):
     def test_SERVER_file_ro_share(self):
         """We were downloading the file, but it was interrupted in RO share."""
         # create the file in metadata
-        ro_share = yield self.create_share('share_ro_id', u'share_ro2',
+        ro_share = yield self.create_share('share_ro_id', 'share_ro2',
                                            access_level=ACCESS_LEVEL_RO)
         self.fsm.create(ro_share.path, ro_share.id, is_dir=True)
         self.fsm.set_node_id(ro_share.path, "uuidshare")
@@ -1921,7 +1921,7 @@ class BadStateTests(TwistedBase):
         This was valid before, but no more, so we just fix and log in warning.
         """
         # create the dir in metadata
-        ro_share = yield self.create_share('share_ro_id', u'share_ro2',
+        ro_share = yield self.create_share('share_ro_id', 'share_ro2',
                                            access_level=ACCESS_LEVEL_RO)
         self.fsm.create(ro_share.path, ro_share.id, is_dir=True)
         self.fsm.set_node_id(ro_share.path, "uuidshare")
@@ -1997,7 +1997,7 @@ class RootBadStateTests(TwistedBase):
     def test_SERVER_share(self):
         """We were downloading the share root dir but it was interrupted."""
         # create a share
-        share = yield self.create_share('share_id_1', u'rw_share',
+        share = yield self.create_share('share_id_1', 'rw_share',
                                         access_level=ACCESS_LEVEL_RW)
         self.fsm.create(share.path, "share_id_1", is_dir=True)
         self.fsm.set_node_id(share.path, "uuid_share_1")
@@ -2201,7 +2201,7 @@ class ParentWatchForUDFTestCase(BaseTestCase):
         self.lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
 
         # create UDF
-        suggested_path = u'~/Documents/Reading/Books/PDFs'
+        suggested_path = '~/Documents/Reading/Books/PDFs'
         udf_id, node_id = 'udf_id', 'node_id'
         self.udf = yield self.create_udf(udf_id, node_id, suggested_path)
         self.ancestors = self.udf.ancestors  # need a fake HOME

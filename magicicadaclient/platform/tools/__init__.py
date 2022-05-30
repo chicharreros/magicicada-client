@@ -28,8 +28,6 @@
 
 """SyncDaemon Tools."""
 
-from __future__ import unicode_literals
-
 import logging
 import sys
 import warnings
@@ -74,7 +72,7 @@ class SyncDaemonTool(object):
         """Converts a dict returned by the IPC client to a dict of strings."""
         str_dict = {}
         for key in a_dict:
-            str_dict[unicode(key)] = unicode(a_dict[key])
+            str_dict[str(key)] = str(a_dict[key])
         return str_dict
 
     def shutdown(self):
@@ -685,8 +683,8 @@ def show_error(error, out):
         raise error.value
     except Exception:
         signal, (args, retval) = error.value.args
-        msg_template = u"%s: %s (%s)\n"
-        fmtd_args = u", ".join("%s=%s" % (k, v) for k, v in args.items())
+        msg_template = "%s: %s (%s)\n"
+        fmtd_args = ", ".join("%s=%s" % (k, v) for k, v in args.items())
         out.write(msg_template % (signal, retval, fmtd_args))
 
 
@@ -706,7 +704,7 @@ def show_shares(shares, out):
 
 def show_path_info(result, path, out):
     """Print the path info to stdout."""
-    assert isinstance(path, unicode)
+    assert isinstance(path, str)
     out.write(" File: %s\n" % path)
     keys = list(result.keys())
     keys.sort()
@@ -765,19 +763,19 @@ def show_waiting(waiting_ops, out):
         attributes = []
         running = op_data.pop('running', None)
         if running is not None:
-            bool_text = u'True' if running else u'False'
-            attributes.append(u"running=%s" % (bool_text,))
+            bool_text = 'True' if running else 'False'
+            attributes.append("running=%s" % (bool_text,))
 
         # custom
         for attr in ('share_id', 'node_id', 'path'):
             if attr in op_data:
-                attributes.append(u"%s='%s'" % (attr, op_data.pop(attr)))
+                attributes.append("%s='%s'" % (attr, op_data.pop(attr)))
 
         # the rest, ordered
         for attr in sorted(op_data):
-            attributes.append(u"%s='%s'" % (attr, op_data[attr]))
+            attributes.append("%s='%s'" % (attr, op_data[attr]))
 
-        out.write("  %s(%s)\n" % (op_name, u', '.join(attributes)))
+        out.write("  %s(%s)\n" % (op_name, ', '.join(attributes)))
 
 
 def show_waiting_metadata(waiting_ops, out):
@@ -820,5 +818,5 @@ def show_dirty_nodes(nodes, out):
         "is_dir: %(is_dir)s path: %(path)s\n")
     out.write(" Dirty nodes:\n")
     for node in nodes:
-        assert isinstance(node['path'], unicode)
+        assert isinstance(node['path'], str)
         out.write(node_line_tpl % node)

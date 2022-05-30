@@ -31,10 +31,7 @@
 from __future__ import absolute_import
 
 import os
-try:
-    from urllib.parse import unquote
-except ImportError:
-    from urllib import unquote
+from urllib.parse import unquote
 
 from twisted.internet import defer
 # DBusRunner for DBusTestCase using tests
@@ -99,7 +96,7 @@ class DBusTestCase(BaseTestCase):
         # str instead of anything from devtools.compat. dbus
         # expects this to be str regardless of version.
         self.bus = dbus.bus.BusConnection(
-            address_or_type=bus_address.encode('utf-8'), mainloop=self.loop)
+            address_or_type=bus_address, mainloop=self.loop)
         self.addCleanup(self.bus.flush)
         self.addCleanup(self.bus.close)
 

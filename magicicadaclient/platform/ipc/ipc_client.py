@@ -98,7 +98,7 @@ class RemoteClient(object):
         return self.remote.callRemote('unregister_to_signals', self)
 
 
-class RemoteHandler(object, Referenceable):
+class RemoteHandler(Referenceable):
     """A handler that can be called so that is called remotely."""
 
     def __init__(self, cb):
@@ -138,10 +138,8 @@ def callbacks(callbacks_indexes=None, callbacks_names=None):
     return decorator
 
 
-class StatusClient(RemoteClient, Referenceable):
+class StatusClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
     """Client used to access the status of the daemon."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     signal_handlers = [
@@ -254,10 +252,8 @@ class StatusClient(RemoteClient, Referenceable):
         """Emit RequestQueueRemoved."""
 
 
-class EventsClient(RemoteClient, Referenceable):
+class EventsClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
     """Client use to access the status api."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     signal_handlers = ['on_event']
@@ -271,10 +267,8 @@ class EventsClient(RemoteClient, Referenceable):
         """Emit on event."""
 
 
-class SyncDaemonClient(RemoteClient, Referenceable):
+class SyncDaemonClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
     """The Daemon ipc interface client."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     signal_handlers = [
@@ -358,10 +352,8 @@ class FileSystemClient(RemoteClient):
         """Returns a list of the files that matches this pattern."""
 
 
-class SharesClient(RemoteClient, Referenceable):
+class SharesClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
     """A ipc interface to interact with shares."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     signal_handlers = [
@@ -576,10 +568,8 @@ class ConfigClient(RemoteClient):
         """
 
 
-class FoldersClient(RemoteClient, Referenceable):
+class FoldersClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
     """An interface to interact with User Defined Folders"""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     signal_handlers = [
@@ -658,10 +648,8 @@ class FoldersClient(RemoteClient, Referenceable):
         """Emit the FolderUnSubscribeError signal"""
 
 
-class PublicFilesClient(RemoteClient, Referenceable):
+class PublicFilesClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
     """An IPC interface for handling public files."""
-
-    __metaclass__ = RemoteMeta
 
     # calls that will be accessible remotely
     signal_handlers = [

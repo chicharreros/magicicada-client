@@ -64,9 +64,9 @@ def get_share_dir_name(share):
         visible_name = share.from_visible_name
 
     if visible_name:
-        dir_name = u'%s (%s, %s)' % (share_name, visible_name, share_id)
+        dir_name = '%s (%s, %s)' % (share_name, visible_name, share_id)
     else:
-        dir_name = u'%s (%s)' % (share_name, share_id)
+        dir_name = '%s (%s)' % (share_name, share_id)
 
     # Unicode boundary! the name is Unicode in protocol and server,
     # but here we use bytes for paths
@@ -113,9 +113,9 @@ def get_udf_suggested_path(path):
     # suggested_path is always unicode, because the suggested path is a
     # server-side metadata, and we will always use the unix path separator '/'
 
-    suggested_path = path.replace(user_home, u'~')
-    suggested_path = suggested_path.replace(os.path.sep, u'/')
-    assert isinstance(suggested_path, unicode)
+    suggested_path = path.replace(user_home, '~')
+    suggested_path = suggested_path.replace(os.path.sep, '/')
+    assert isinstance(suggested_path, str)
     return suggested_path
 
 
@@ -126,8 +126,8 @@ def get_udf_path(suggested_path):
     to and received from the server.
 
     """
-    assert isinstance(suggested_path, unicode)
+    assert isinstance(suggested_path, str)
     # Unicode boundary! the suggested_path is Unicode in protocol and server,
     # but here we use bytes for paths
-    path = suggested_path.replace(u'/', os.path.sep).encode('utf-8')
+    path = suggested_path.replace('/', os.path.sep).encode('utf-8')
     return expand_user(path)

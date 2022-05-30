@@ -28,20 +28,16 @@
 
 """Utilities for finding and running a dbus session bus for testing."""
 
-from __future__ import unicode_literals
-
 import os
 import signal
 import subprocess
+from urllib.parse import quote
 
 from distutils.spawn import find_executable
 
-try:
-    from urllib.parse import quote
-except ImportError:
-    from urllib import quote
-
 from devtools.services import find_config_file
+
+
 DBUS_CONFIG_FILE = 'dbus-session.conf.in'
 
 

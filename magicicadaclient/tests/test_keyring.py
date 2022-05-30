@@ -30,8 +30,6 @@
 
 """Tests for the keyring common module."""
 
-from __future__ import unicode_literals
-
 from twisted.internet import defer
 from twisted.internet.defer import inlineCallbacks
 from twisted.trial.unittest import TestCase

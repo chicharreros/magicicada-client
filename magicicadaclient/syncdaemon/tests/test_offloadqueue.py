@@ -28,7 +28,7 @@
 
 """Tests for the Offload Queue."""
 
-import StringIO
+import io
 import logging
 import os
 import pickle
@@ -286,11 +286,11 @@ class OffloadQueueTestCase(TwistedTestCase):
     def _test_safe_push_write(self, count):
         """Fail when pushing an item will leave it all ok."""
 
-        class CrashingFile(StringIO.StringIO):
+        class CrashingFile(io.StringIO):
             """File-like object that crashes in second write."""
             def __init__(self):
                 self._fail_counter = 0
-                StringIO.StringIO.__init__(self)
+                io.StringIO.__init__(self)
 
             def write(self, *a):
                 """Crashing write."""
@@ -298,7 +298,7 @@ class OffloadQueueTestCase(TwistedTestCase):
                 if self._fail_counter == count:
                     raise ValueError("broken")
                 else:
-                    StringIO.StringIO.write(self, *a)
+                    io.StringIO.write(self, *a)
 
         self.oq._tempfile = CrashingFile()
 

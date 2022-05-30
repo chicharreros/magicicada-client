@@ -28,22 +28,15 @@
 
 """Handle keys in the local kerying."""
 
-from __future__ import unicode_literals
-
 import logging
 import socket
 import sys
 
-try:
-    from urllib.parse import parse_qsl, urlencode
-except ImportError:
-    from urllib import urlencode
-    from urlparse import parse_qsl
+from urllib.parse import parse_qsl, urlencode
 
 from twisted.internet.defer import inlineCallbacks, returnValue
 
 from magicicadaclient.clientdefs import NAME
-from magicicadaclient.utils import compat
 from magicicadaclient.utils.txsecrets import SecretService
 
 
@@ -57,7 +50,7 @@ def gethostname():
     """Get the hostname, return the name as unicode."""
     sys_encoding = sys.getfilesystemencoding()
     hostname = socket.gethostname()
-    if isinstance(hostname, compat.binary_type):
+    if isinstance(hostname, bytes):
         return hostname.decode(sys_encoding)
     return hostname
 
@@ -68,8 +61,8 @@ def get_token_name(app_name):
     computer_name = computer_name.replace(TOKEN_SEPARATOR,
                                           SEPARATOR_REPLACEMENT)
 
-    assert isinstance(computer_name, compat.text_type)
-    assert isinstance(computer_name, compat.text_type)
+    assert isinstance(computer_name, str)
+    assert isinstance(computer_name, str)
 
     return TOKEN_SEPARATOR.join((app_name, computer_name))
 

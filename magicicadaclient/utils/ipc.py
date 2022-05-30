@@ -183,7 +183,7 @@ class RemoteService(meta_base(RemoteMeta),
     remote_calls = []
 
 
-class BaseService(object, Root):
+class BaseService(Root):
     """Base PB service.
 
     Inherit from this class and define name, description and cmdline.
@@ -229,7 +229,7 @@ class BaseService(object, Root):
 # ============================== client helpers ==============================
 
 
-class RemoteClient(object, Referenceable):
+class RemoteClient(Referenceable):
     """Represent a client for remote calls."""
 
     call_remote_functions = []  # methods that can be called on the remote obj

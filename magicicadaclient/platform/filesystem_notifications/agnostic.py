@@ -24,6 +24,7 @@
 import logging
 import os
 import sys
+from functools import reduce
 
 
 COMPATIBILITY_MODE = False
@@ -42,10 +43,6 @@ class RawOutputFormat:
         self.format = format or {}
 
     def simple(self, s, attribute):
-        if isinstance(s, unicode):
-            s = s.encode(sys.getfilesystemencoding(), 'replace')
-        else:
-            s = str(s)
         return (self.format.get(attribute, '') + s +
                 self.format.get('normal', ''))
 
@@ -227,7 +224,7 @@ class _Event:
                 continue
             if attr == 'mask':
                 value = hex(getattr(self, attr))
-            elif isinstance(value, basestring) and not value:
+            elif isinstance(value, str) and not value:
                 value = "''"
             s += ' %s%s%s' % (output_format.field_name(attr),
                               output_format.punctuation('='),

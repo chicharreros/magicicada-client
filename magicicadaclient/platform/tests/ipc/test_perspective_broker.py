@@ -29,8 +29,8 @@
 """IPC tests on perspective broker."""
 
 import itertools
+from unittest import mock
 
-import mock
 from twisted.internet import defer
 from twisted.spread.pb import (
     DeadReferenceError,
@@ -677,10 +677,8 @@ class RemoteMetaTestCase(TestCase):
         """The remote_calls are renamed."""
         test_token = object()
 
-        class TestClass(object):
+        class TestClass(object, metaclass=RemoteMeta):
             """A class for testing."""
-
-            __metaclass__ = RemoteMeta
 
             remote_calls = ['test_method']
 
@@ -696,10 +694,8 @@ class RemoteMetaTestCase(TestCase):
         """The signal_handlers are renamed."""
         test_token = object()
 
-        class TestClass(object):
+        class TestClass(object, metaclass=RemoteMeta):
             """A class for testing."""
-
-            __metaclass__ = RemoteMeta
 
             signal_handlers = ['test_signal_handler']
 
@@ -873,7 +869,7 @@ class MultipleConnectionsTestCase(TestCase):
     def grouper(self, n, iterable, fillvalue=None):
         "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
         args = [iter(iterable)] * n
-        return itertools.izip_longest(*args, fillvalue=fillvalue)
+        return itertools.zip_longest(*args, fillvalue=fillvalue)
 
     @defer.inlineCallbacks
     def test_multiple_connections(self):

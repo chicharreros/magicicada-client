@@ -30,14 +30,12 @@
 
 import itertools
 import functools
-import cPickle as pickle
 import logging
 import os
+import pickle
 import re
 import sys
 import stat
-
-from itertools import ifilter
 
 from magicicadaprotocol import request
 from magicicadaprotocol.volumes import (
@@ -115,8 +113,8 @@ class _UDF(object):
                  path, subscribed=False):
         """Create the UDF, not subscribed by default"""
         # id and node_id should be str or None
-        assert isinstance(udf_id, basestring) or udf_id is None
-        assert isinstance(node_id, basestring) or node_id is None
+        assert isinstance(udf_id, str) or udf_id is None
+        assert isinstance(node_id, str) or node_id is None
         self.id = udf_id
         self.node_id = node_id
         self.suggested_path = suggested_path
@@ -136,8 +134,8 @@ class Volume(object):
     def __init__(self, volume_id, node_id, generation=None, subscribed=False):
         """Create the volume."""
         # id and node_id should be str or None
-        assert isinstance(volume_id, basestring) or volume_id is None
-        assert isinstance(node_id, basestring) or node_id is None
+        assert isinstance(volume_id, str) or volume_id is None
+        assert isinstance(node_id, str) or node_id is None
         self.volume_id = volume_id
         self.node_id = node_id
         self.generation = generation
@@ -733,22 +731,22 @@ class VolumeManager(object):
         # get the list of shares/volumes
         self.log.debug('deleting dead volumes')
         if shares is not None:
-            for share in ifilter(lambda item: item and item not in shares,
-                                 self.shares):
+            for share in filter(
+                    lambda item: item and item not in shares, self.shares):
                 self.log.debug('deleting share: id=%s', share)
                 self.share_deleted(share)
         if udfs is not None:
             # cleanup missing udfs
-            for udf in ifilter(lambda item: item and item not in udfs,
-                               self.udfs):
+            for udf in filter(
+                    lambda item: item and item not in udfs, self.udfs):
                 self.log.debug('deleting udfs: id=%s', udf)
                 self.udf_deleted(udf)
 
     def _cleanup_shared(self, to_keep):
         """Cleanup shared Shares from the shelf."""
         self.log.debug('deleting dead shared')
-        for share in ifilter(lambda item: item and item not in to_keep,
-                             self.shared):
+        for share in filter(
+                lambda item: item and item not in to_keep, self.shared):
             self.log.debug('deleting shared: id=%s', share)
             del self.shared[share]
 
@@ -757,7 +755,7 @@ class VolumeManager(object):
         self.log.debug('deleting dead shares')
         shares = (
             lambda i: i and i not in to_keep and not self.shares[i].accepted)
-        for share in ifilter(shares, self.shares):
+        for share in filter(shares, self.shares):
             self.log.debug('deleting shares: id=%s', share)
             self.share_deleted(share)
 
@@ -1244,7 +1242,7 @@ class VolumeManager(object):
                           path=path, subscribed=True)
                 self.marker_udf_map[marker] = udf
                 # XXX: unicode boundary! parameters should be unicode
-                server_path, udf_name = suggested_path.rsplit(u'/', 1)
+                server_path, udf_name = suggested_path.rsplit('/', 1)
                 self.m.action_q.create_udf(server_path, udf_name, marker)
             except Exception as e:
                 self.m.event_q.push('VM_UDF_CREATE_ERROR', path=path,
