@@ -98,7 +98,7 @@ if has_oo_bindings:
     class ParseError(Exception):
         """Raised when we cant parse the spreadsheet"""
 
-    class ODSReader(object):
+    class ODSReader:
         """Reads fsm from spreadsheets"""
 
         def __init__(self, filename):

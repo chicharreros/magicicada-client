@@ -85,7 +85,7 @@ ACCESS_LEVEL_RO = 'View'
 ACCESS_LEVEL_RW = 'Modify'
 
 
-class _Share(object):
+class _Share:
     """Represents a share or mount point"""
 
     def __init__(self, share_id=request.ROOT, node_id=None, path=None,
@@ -106,7 +106,7 @@ class _Share(object):
         self.free_bytes = None
 
 
-class _UDF(object):
+class _UDF:
     """A representation of a User Defined Folder."""
 
     def __init__(self, udf_id, node_id, suggested_path,
@@ -122,7 +122,7 @@ class _UDF(object):
         self.subscribed = subscribed
 
 
-class Volume(object):
+class Volume:
     """A generic volume."""
 
     # default generation for all volumes without a value in the metadata
@@ -173,7 +173,7 @@ class Share(Volume):
                  access_level=ACCESS_LEVEL_RO, free_bytes=None,
                  generation=None, subscribed=False):
         """Create the share."""
-        super(Share, self).__init__(volume_id, node_id, generation, subscribed)
+        super().__init__(volume_id, node_id, generation, subscribed)
         self.__dict__['type'] = 'Share'
         if path is None:
             self.path = None
@@ -241,7 +241,7 @@ class Share(Volume):
     __hash__ = Volume.__hash__
 
     def __eq__(self, other):
-        result = (super(Share, self).__eq__(other) and
+        result = (super().__eq__(other) and
                   self.path == other.path and
                   self.name == other.name and
                   self.other_username == other.other_username and
@@ -266,7 +266,7 @@ class Share(Volume):
 class Shared(Share):
 
     def __init__(self, *args, **kwargs):
-        super(Shared, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.subscribed = True  # other value makes no sense
         self.__dict__['type'] = 'Shared'
 
@@ -282,15 +282,13 @@ class Root(Volume):
     def __init__(self, volume_id=request.ROOT, node_id=None, path=None,
                  free_bytes=None, generation=None):
         """Create the Root."""
-        super(Root, self).__init__(volume_id, node_id, generation,
-                                   subscribed=True)
+        super().__init__(volume_id, node_id, generation, subscribed=True)
         self.__dict__['type'] = 'Root'
         self.path = path
         self.free_bytes = free_bytes
 
     def __eq__(self, other):
-        result = (super(Root, self).__eq__(other) and
-                  self.path == other.path)
+        result = super().__eq__(other) and self.path == other.path
         return result
 
     def can_write(self):
@@ -319,7 +317,7 @@ class UDF(Volume):
     def __init__(self, volume_id=None, node_id=None, suggested_path=None,
                  path=None, subscribed=False, generation=None):
         """Create the UDF, not subscribed by default"""
-        super(UDF, self).__init__(volume_id, node_id, generation, subscribed)
+        super().__init__(volume_id, node_id, generation, subscribed)
         self.__dict__['type'] = 'UDF'
         self.node_id = node_id
         self.suggested_path = suggested_path
@@ -373,7 +371,7 @@ class UDF(Volume):
     __hash__ = Volume.__hash__
 
     def __eq__(self, other):
-        result = (super(UDF, self).__eq__(other) and
+        result = (super().__eq__(other) and
                   self.suggested_path == other.suggested_path and
                   self.path == other.path)
         return result
@@ -386,14 +384,14 @@ class VolumeDoesNotExist(Exception):
 
     def __init__(self, volume_id):
         """Create the instance."""
-        super(VolumeDoesNotExist, self).__init__(self.msg, volume_id)
+        super().__init__(self.msg, volume_id)
 
     def __str__(self):
         """The error message."""
         return self.msg
 
 
-class VolumeManager(object):
+class VolumeManager:
     """Manages shares and mount points."""
 
     METADATA_VERSION = '7'
@@ -1466,7 +1464,7 @@ class VolumeManager(object):
             self.udfs[volume_id] = vol
 
 
-class MetadataUpgrader(object):
+class MetadataUpgrader:
     """A class that loads old metadata and migrate it."""
 
     def __init__(self, data_dir, shares_md_dir, shared_md_dir, udfs_md_dir,
@@ -1876,14 +1874,14 @@ class VMFileShelf(file_shelf.CachedFileShelf):
 
     def __init__(self, *args, **kwargs):
         """Create the instance."""
-        super(VMFileShelf, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.key = 'root_node_id'
 
     def key_file(self, key):
         """Override default key_file, to handle key == request.ROOT."""
         if key == request.ROOT:
             key = self.key
-        return super(VMFileShelf, self).key_file(key)
+        return super().key_file(key)
 
     def keys(self):
         """Override default keys, to handle key == request.ROOT."""

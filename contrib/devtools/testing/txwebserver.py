@@ -35,7 +35,7 @@ from twisted.web import server
 from devtools.testcases.txsocketserver import server_protocol_factory
 
 
-class BaseWebServer(object):
+class BaseWebServer:
     """Webserver used to perform requests in tests."""
 
     def __init__(self, root_resource, scheme):

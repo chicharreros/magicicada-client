@@ -62,7 +62,7 @@ from magicicadaclient.testing.testcase import (
 TRACE = logging.getLevelName('TRACE')
 
 
-class DontHitMe(object):
+class DontHitMe:
     """We shouldn't be called."""
 
     def __init__(self, test_instance):
@@ -74,7 +74,7 @@ class DontHitMe(object):
                                           (a, k))
 
 
-class FakedVolume(object):
+class FakedVolume:
 
     path = __file__
 
@@ -144,7 +144,7 @@ class WatchTests(BaseEQTestCase):
         self.assertEqual(called, [('foo',)])
 
 
-class DynamicHitMe(object):
+class DynamicHitMe:
     """Helper class to test a sequence of signals."""
 
     def __init__(self, should_events, test_machinery):
@@ -297,7 +297,7 @@ class FreezeTests(BaseTwisted):
         testdir = os.path.join(self.root_dir, "foo")
         make_dir(testdir)
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_DIR_DELETE(innerself, path):
                 if path != "foobar":
@@ -364,7 +364,7 @@ class FreezeTests(BaseTwisted):
         testfile = os.path.join(testdir, "bar")
         make_dir(testdir)
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_DIR_DELETE(innerself, path):
                 if path != "foobar":
@@ -400,7 +400,7 @@ class FreezeTests(BaseTwisted):
         make_dir(testdir)
         testfile = os.path.join(self.root_dir, "bar")
 
-        class HitMe(object):
+        class HitMe:
 
             def __init__(innerself):
                 innerself.hist = []
@@ -1004,7 +1004,7 @@ class SignalingTests(BaseTwisted):
         """Test receiving the open signal on files."""
         testfile = os.path.join(self.root_dir, "foo")
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_FILE_OPEN(innerself, path):
                 if path != testfile:
@@ -1027,7 +1027,7 @@ class SignalingTests(BaseTwisted):
         open_file(testfile, "w").close()
         fh = open_file(testfile)
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_FILE_CLOSE_NOWRITE(innerself, path):
                 if path != testfile:
@@ -1048,7 +1048,7 @@ class SignalingTests(BaseTwisted):
         """Test receiving the create and close_write signals on files."""
         testfile = os.path.join(self.root_dir, "foo")
 
-        class HitMe(object):
+        class HitMe:
 
             def __init__(innerself):
                 innerself.hist = []
@@ -1082,7 +1082,7 @@ class SignalingTests(BaseTwisted):
         """Test receiving the create signal on dirs."""
         testdir = os.path.join(self.root_dir, "foo")
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_DIR_CREATE(innerself, path):
                 if path != testdir:
@@ -1104,7 +1104,7 @@ class SignalingTests(BaseTwisted):
         testfile = os.path.join(self.root_dir, "foo")
         open_file(testfile, "w").close()
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_FILE_DELETE(innerself, path):
                 if path != testfile:
@@ -1130,7 +1130,7 @@ class SignalingTests(BaseTwisted):
         testdir = os.path.join(self.root_dir, "foo")
         make_dir(testdir)
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_DIR_DELETE(innerself, path):
                 if path != testdir:
@@ -1183,7 +1183,7 @@ class SignalingTests(BaseTwisted):
         open_file(fromfile, "w").close()
         make_dir(helpdir)
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_FILE_DELETE(innerself, path):
                 if path != fromfile:
@@ -1209,7 +1209,7 @@ class SignalingTests(BaseTwisted):
         make_dir(fromdir)
         make_dir(helpdir)
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_DIR_DELETE(innerself, path):
                 self.eq.rm_watch(self.root_dir)
@@ -1239,7 +1239,7 @@ class SignalingTests(BaseTwisted):
         make_dir(helpdir)
         open_file(fromfile, "w").close()
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_FILE_CREATE(innerself, path):
                 if path != tofile:
@@ -1265,7 +1265,7 @@ class SignalingTests(BaseTwisted):
         make_dir(helpdir)
         make_dir(fromdir)
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_DIR_CREATE(innerself, path):
                 if path != todir:
@@ -1419,7 +1419,7 @@ class SignalingTests(BaseTwisted):
         self.fs.set_node_id(tofile, "to_node_id")
         open_file(fromfile, "w").close()
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_FILE_MOVE(innerself, path_from, path_to):
                 if path_from != fromfile:
@@ -1448,7 +1448,7 @@ class SignalingTests(BaseTwisted):
         self.fs.set_node_id(todir, "to_node_id")
         make_dir(fromdir)
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_DIR_MOVE(innerself, path_from, path_to):
                 if path_from != fromdir:
@@ -1524,7 +1524,7 @@ class SignalingTests(BaseTwisted):
 
         paths = [testdir, testfile]
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_DIR_DELETE(innerself, path):
                 expected = paths.pop()
@@ -1553,7 +1553,7 @@ class SignalingTests(BaseTwisted):
         make_dir(testdir)
         newdirname = os.path.join(self.root_dir, "newdir")
 
-        class HitMe(object):
+        class HitMe:
 
             def handle_FS_FILE_CREATE(innerself, path):
                 if path != newfilepath:

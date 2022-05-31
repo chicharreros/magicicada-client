@@ -132,7 +132,7 @@ class BaseVolumeManagerTests(BaseTwistedTestCase):
         """Setup a EQ listener for the especified event."""
         event_q = self.main.event_q
 
-        class Listener(object):
+        class Listener:
             """A basic listener to handle the pushed event."""
 
             def __init__(self):
@@ -1600,7 +1600,7 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
         """Test the handling of the AQ_LIST_VOLUMES_ERROR event."""
 
         # patch AQ.list_volumes
-        class Helper(object):
+        class Helper:
             """Helper class to keep count of the retries"""
             retries = 0
 

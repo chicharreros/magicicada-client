@@ -66,7 +66,7 @@ class FakeServerFactory(protocol.ServerFactory):
     protocol = FakeServerProtocol
 
 
-class FakeTransport(object):
+class FakeTransport:
     """A fake transport."""
 
     connectionLost = False
@@ -76,7 +76,7 @@ class FakeTransport(object):
         self.connectionLost = True
 
 
-class FakeDescriptionFactory(object):
+class FakeDescriptionFactory:
     """A fake description factory."""
 
     def __init__(self, server_description, client_description):
@@ -229,7 +229,7 @@ class ActivationDetectorTestCase(TestCase):
         server = self.get_server()
         self.addCleanup(server.clean_up)
 
-        class TestConnect(object):
+        class TestConnect:
             """A fake connection object."""
 
             @defer.inlineCallbacks
@@ -386,7 +386,7 @@ class ActivationInstanceTestCase(ServerTestCase):
         server = self.get_server()
         self.addCleanup(server.clean_up)
 
-        class TestConnect(object):
+        class TestConnect:
             """A fake connection object."""
 
             @defer.inlineCallbacks

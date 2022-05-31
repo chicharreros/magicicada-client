@@ -70,7 +70,7 @@ def no_op(*args):
     """Do nothing."""
 
 
-class SecretService(object):
+class SecretService:
     """The Secret Service manages all the sessions and collections."""
     service = None
     properties = None
@@ -283,7 +283,7 @@ class SecretService(object):
         return d
 
 
-class Collection(object):
+class Collection:
     """A collection of items containing secrets."""
 
     def __init__(self, service, object_path):
@@ -352,7 +352,7 @@ class Collection(object):
         return d
 
 
-class Item(object):
+class Item:
     """An item contains a secret, lookup attributes and has a label."""
 
     def __init__(self, service, object_path):

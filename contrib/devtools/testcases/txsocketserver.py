@@ -98,7 +98,7 @@ def client_protocol_factory(cls):
     return ClientTidyProtocol
 
 
-class TidySocketServer(object):
+class TidySocketServer:
     """Ensure that twisted servers are correctly managed in tests.
 
     Closing a twisted server is a complicated matter. In order to do so you

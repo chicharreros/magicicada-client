@@ -1440,7 +1440,7 @@ class SyncStateMachineRunnerTestCase(BaseSync):
         self.assertEqual(called, [(somepath, 'node_id')])
 
 
-class FakedState(object):
+class FakedState:
     """A faked state."""
 
     def __init__(self, action_func):
@@ -1450,7 +1450,7 @@ class FakedState(object):
     def get_transition(self, event_name, parameters):
         """A fake get_transition."""
 
-        class A(object):
+        class A:
             pass
 
         result = A()

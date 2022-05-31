@@ -53,7 +53,7 @@ NOTE = logger.NOTE
 TRACE = logger.TRACE
 
 
-class mklog(object):
+class mklog:
     """
     Create a logger that keeps track of the method where it's being
     called from, in order to make more informative messages.

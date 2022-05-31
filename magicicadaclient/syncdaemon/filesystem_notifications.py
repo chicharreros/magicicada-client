@@ -37,7 +37,7 @@ from magicicadaclient.platform import access, path_exists
 from magicicadaclient.syncdaemon.mute_filter import MuteFilter
 
 
-class GeneralINotifyProcessor(object):
+class GeneralINotifyProcessor:
     """Processor that takes care of dealing with the events."""
 
     def __init__(self, monitor, handle_dir_delete, name_translations,

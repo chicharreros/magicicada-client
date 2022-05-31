@@ -119,7 +119,7 @@ def sanitize_dict(data):
             data[k] = str(v)
 
 
-class SyncdaemonObject(object):
+class SyncdaemonObject:
     """Represent a basic syncdaemon object."""
 
     def __init__(self, main, interface):
@@ -1054,7 +1054,7 @@ class SyncdaemonEventListener(SyncdaemonObject):
         self.interface.status.RequestQueueRemoved(op_name, str(op_id), data)
 
 
-class AllEventsSender(object):
+class AllEventsSender:
     """Event listener that sends all of them through IPC."""
 
     def __init__(self, events):

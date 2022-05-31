@@ -35,7 +35,7 @@ def get_domain_socket():
     return get_user_config().get_parsed(MAIN, 'socket_dir')
 
 
-class DescriptionFactory(object):
+class DescriptionFactory:
     """Factory that provides the server and client descriptions."""
 
     client_description_pattern = 'unix:path=%s'

@@ -58,7 +58,7 @@ class RandomException(Exception):
     """A random exception."""
 
 
-class FakeActivationClient(object):
+class FakeActivationClient:
     """A fake ActivationClient."""
 
     def __init__(self, config):
@@ -70,7 +70,7 @@ class FakeActivationClient(object):
         return defer.succeed(self.config.description.client)
 
 
-class FakeActivationInstance(object):
+class FakeActivationInstance:
     """A fake ActivationInstance."""
 
     def __init__(self, config):
@@ -82,7 +82,7 @@ class FakeActivationInstance(object):
         return defer.succeed(self.config.description.server)
 
 
-class FakeDescriptionFactory(object):
+class FakeDescriptionFactory:
     """A fake description factory."""
 
     def __init__(self, server_description, client_description):
@@ -91,7 +91,7 @@ class FakeDescriptionFactory(object):
         self.client = client_description
 
 
-class FakeReactor(object):
+class FakeReactor:
     """A fake reactor."""
 
     def __init__(self):
@@ -111,7 +111,7 @@ class FakeReactor(object):
         self.connections.append(connection)
 
 
-class FakeTCP4ClientEndpoint(object):
+class FakeTCP4ClientEndpoint:
     """A fake tcp4 client."""
 
     def __init__(self, protocol):
@@ -123,7 +123,7 @@ class FakeTCP4ClientEndpoint(object):
         return defer.succeed(self.protocol)
 
 
-class FakeRemoteClient(object):
+class FakeRemoteClient:
     """A fake RemoteClient."""
 
     missing_signal = "missing"
@@ -213,7 +213,7 @@ class DummyClient(ipc.BaseClient):
     service_cmdline = DummyService.cmdline
 
 
-class DummyDescription(object):
+class DummyDescription:
     """Return the descriptions accordingly."""
 
     def __init__(self, client, server):
@@ -603,7 +603,7 @@ class SignalBroadcasterTestCase(TestCase):
         self.assertTrue(self.memento.check_warning(*expected))
 
 
-class FakeRootObject(object):
+class FakeRootObject:
     """A fake root object."""
 
     def __init__(self, called, remote_obj):
@@ -617,7 +617,7 @@ class FakeRootObject(object):
         return defer.succeed(self.remote_obj)
 
 
-class FakeWorkingRemoteClient(object):
+class FakeWorkingRemoteClient:
     """A fake remote client."""
 
     def __init__(self, called):

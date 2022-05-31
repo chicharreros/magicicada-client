@@ -39,7 +39,7 @@ STRUCT_FMT = 'h'
 STRUCT_SIZE = struct.calcsize(STRUCT_FMT)
 
 
-class OffloadQueue(object):
+class OffloadQueue:
     """A FIFO queue that stores items in disk."""
 
     # limits for file rotation...

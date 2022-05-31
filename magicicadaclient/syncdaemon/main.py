@@ -57,7 +57,7 @@ from magicicadaclient.syncdaemon.states import StateManager, QueueManager
 logger = logging.getLogger(__name__)
 
 
-class WaitingHelpingHandler(object):
+class WaitingHelpingHandler:
     """An auxiliary class that helps wait for events."""
 
     def __init__(self, event_queue, waiting_events, waiting_kwargs,
@@ -83,7 +83,7 @@ class WaitingHelpingHandler(object):
         reactor.callLater(0, lambda: self.deferred.callback(self.result))
 
 
-class Main(object):
+class Main:
     """The one who executes the syncdaemon."""
 
     def __init__(self, root_dir, shares_dir, data_dir, partials_dir,

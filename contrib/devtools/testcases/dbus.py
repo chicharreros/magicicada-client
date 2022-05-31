@@ -59,7 +59,7 @@ class InvalidSessionBus(Exception):
     """Error when we are connected to the wrong session bus in tests."""
 
 
-class FakeDBusInterface(object):
+class FakeDBusInterface:
     """A fake DBusInterface..."""
 
     def shutdown(self, with_restart=False):
@@ -73,7 +73,7 @@ class DBusTestCase(BaseTestCase):
 
     def required_services(self):
         """Return the list of required services for DBusTestCase."""
-        services = super(DBusTestCase, self).required_services()
+        services = super().required_services()
         services.extend([DBusRunner])
         return services
 

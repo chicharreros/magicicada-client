@@ -260,7 +260,7 @@ class CachedFileShelf(FileShelf):
             del self._cache[key]
 
 
-class LRUCache(object):
+class LRUCache:
     """A least-recently-used|updated cache with maximum size.
 
     The object(s) added to the cache must be hashable.

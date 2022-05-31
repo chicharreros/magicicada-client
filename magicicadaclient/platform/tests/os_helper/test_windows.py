@@ -134,7 +134,7 @@ class TestSpecialOSCalls(BaseTwistedTestCase):
             self.assertFalse(LONG_PATH_PREFIX in current_path)
 
 
-class FakeSecurityInfo(object):
+class FakeSecurityInfo:
 
     user_sid = 'user_sid'
 

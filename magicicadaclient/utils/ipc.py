@@ -101,7 +101,7 @@ def signal(f):
     return inner
 
 
-class SignalBroadcaster(object):
+class SignalBroadcaster:
     """Object that allows to emit signals to clients over the IPC."""
 
     MSG_NO_SIGNAL_HANDLER = "No signal handler for %r in %r"
@@ -330,7 +330,7 @@ class RemoteClient(Referenceable):
             self._mapping[signal_name].remove(match)
 
 
-class BaseClient(object):
+class BaseClient:
     """Client that will connect to the service listening on the description.
 
     Inherit from this class and define service_name, service_description and

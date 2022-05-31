@@ -172,7 +172,7 @@ class SCNRContext(Structure):
                 ("copyDescription", c_void_p)]  # func ptr
 
 
-class NetworkManagerState(object):
+class NetworkManagerState:
 
     """Probe Network State and receive callbacks on changes.
 

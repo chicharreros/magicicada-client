@@ -54,7 +54,7 @@ from magicicadaclient.platform import (
 empty_hash = ""
 
 
-class FSKey(object):
+class FSKey:
     """Encapsulate the problem of getting the metadata with different keys."""
     __slots__ = ('fs', 'keys', 'mdid', '_changes')
 
@@ -238,7 +238,7 @@ def loglevel(lvl):
     return level_log
 
 
-class FileLogger(object):
+class FileLogger:
     """A logger that knows about the file and its state."""
     __slots__ = ('logger', 'key')
 
@@ -805,7 +805,7 @@ class SyncStateMachineRunner(StateMachineRunner):
         self.key.sync()
 
 
-class Sync(object):
+class Sync:
     """Translates from EQ events into state machine events."""
     # XXX: lucio.torre:
     # this will need some refactoring once we handle more events

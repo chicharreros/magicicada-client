@@ -48,7 +48,7 @@ NM_DBUS_INTERFACE = "org.freedesktop.NetworkManager"
 NM_DBUS_OBJECTPATH = "/org/freedesktop/NetworkManager"
 
 
-class NetworkManagerState(object):
+class NetworkManagerState:
     """Checks the state of NetworkManager thru DBus."""
 
     def __init__(self, result_cb, dbus_module=dbus):

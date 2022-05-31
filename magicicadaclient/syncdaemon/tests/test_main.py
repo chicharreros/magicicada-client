@@ -50,14 +50,14 @@ from magicicadaclient.testing.testcase import (
 )
 
 
-class FakeListener(object):
+class FakeListener:
     """Just an object that will listen something."""
 
     def handle_default(self, *a):
         """Something! :)"""
 
 
-class FakedExternalInterface(object):
+class FakedExternalInterface:
     """Do nothing."""
 
     def __init__(self, *a, **kw):

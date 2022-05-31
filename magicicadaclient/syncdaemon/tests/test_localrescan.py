@@ -70,7 +70,7 @@ from magicicadaclient.testing.testcase import (
 TRACE = logging.getLevelName('TRACE')
 
 
-class Listener(object):
+class Listener:
 
     def __init__(self):
         self.events = []
@@ -79,7 +79,7 @@ class Listener(object):
         self.events.append(args + tuple(kwargs.values()))
 
 
-class FakeEQ(object):
+class FakeEQ:
     """Fake EQ"""
     def __init__(self):
         self.pushed = []
@@ -102,7 +102,7 @@ class FakeEQ(object):
         self.pushed.extend(events)
 
 
-class FakeAQ(object):
+class FakeAQ:
     """Fake AQ"""
     def __init__(self):
         self.unlinked = []

@@ -51,7 +51,7 @@ class NotFoundError(Exception):
     pass
 
 
-class DBusRunner(object):
+class DBusRunner:
     """Class for running dbus-daemon with a private session."""
 
     def __init__(self):

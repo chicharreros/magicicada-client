@@ -90,7 +90,7 @@ class SubscriptionTests(BaseEQTestCase):
     def test_subscription_simple(self):
         """Subscribe creating the listener map."""
 
-        class Listener(object):
+        class Listener:
             """Listener."""
 
             def handle_FS_FILE_CREATE(self, path):
@@ -114,7 +114,7 @@ class SubscriptionTests(BaseEQTestCase):
     def test_subscription_nodefault(self):
         """Don't subscribe if there's no default."""
 
-        class Listener(object):
+        class Listener:
             """Listener."""
 
             def handle_FS_FILE_CREATE(self, path):
@@ -134,7 +134,7 @@ class SubscriptionTests(BaseEQTestCase):
     def test_subscription_two_listeners(self):
         """Subscribe several listeners."""
 
-        class Listener1(object):
+        class Listener1:
             """Listener 1."""
 
             def handle_FS_FILE_CREATE(self, path):
@@ -143,7 +143,7 @@ class SubscriptionTests(BaseEQTestCase):
             def handle_FS_DIR_CREATE(self, path):
                 """Handle FS_DIR_CREATE."""
 
-        class Listener2(object):
+        class Listener2:
             """Listener 2."""
 
             def handle_FS_FILE_CREATE(self, path):
@@ -172,7 +172,7 @@ class SubscriptionTests(BaseEQTestCase):
     def test_unsubscription(self):
         """Test that unsubscription works."""
 
-        class Listener1(object):
+        class Listener1:
             """Listener 1."""
 
             def handle_FS_FILE_CREATE(self, path):
@@ -181,7 +181,7 @@ class SubscriptionTests(BaseEQTestCase):
             def handle_FS_DIR_CREATE(self, path):
                 """Handle FS_DIR_CREATE."""
 
-        class Listener2(object):
+        class Listener2:
             """Listener 2."""
 
             def handle_FS_FILE_CREATE(self, path):
@@ -237,7 +237,7 @@ class PushTests(BaseEQTestCase):
         """Push events and listem them."""
 
         # helper class
-        class Create(object):
+        class Create:
 
             def __init__(self):
                 self.a = None
@@ -263,7 +263,7 @@ class PushTests(BaseEQTestCase):
         """Check that the handle signatures are forced when passing."""
 
         # helper class
-        class Create(object):
+        class Create:
 
             def handle_FS_FILE_CREATE(self, notpath):  # it should be path here
                 pass
@@ -314,12 +314,12 @@ class PushTestsWithCallback(BaseEQTestCase):
         d = defer.Deferred()
 
         # helper class
-        class BadListener(object):
+        class BadListener:
 
             def handle_FS_FILE_CREATE(self, notpath):  # it should be path here
                 d.callback(False)
 
-        class GoodListener(object):
+        class GoodListener:
 
             def handle_FS_FILE_CREATE(self, path):
                 d.callback(path)
@@ -352,7 +352,7 @@ class PushTestsWithCallback(BaseEQTestCase):
         d = defer.Deferred()
 
         # helper class
-        class Listener(object):
+        class Listener:
 
             def handle_default(self, event, **kwargs):
                 d.callback((event, kwargs))
@@ -382,7 +382,7 @@ class PushTestsWithCallback(BaseEQTestCase):
         d = defer.Deferred()
 
         # helper class
-        class Listener(object):
+        class Listener:
 
             def __init__(self, eq):
                 self.eq = eq
@@ -421,7 +421,7 @@ class PushTestsWithCallback(BaseEQTestCase):
         return d
 
 
-class SimpleFakeMonitor(object):
+class SimpleFakeMonitor:
     """A fake FilesystemMonitor."""
 
     def __init__(self, *args):

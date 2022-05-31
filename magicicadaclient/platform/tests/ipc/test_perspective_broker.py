@@ -81,7 +81,7 @@ class RandomException(Exception):
     """A random exception."""
 
 
-class FakeActivationClient(object):
+class FakeActivationClient:
     """A fake ActivationClient."""
 
     def __init__(self, config):
@@ -93,7 +93,7 @@ class FakeActivationClient(object):
         return defer.succeed(self.config.description.client)
 
 
-class FakeDecoratedObject(object):
+class FakeDecoratedObject:
     """An object that has decorators."""
 
     @signal
@@ -270,7 +270,7 @@ class TestSignalBroadcaster(TestCase):
         fake_alive_remote.callRemote.assert_called_once_with(sample_signal)
 
 
-class FakeRemoteClient(object):
+class FakeRemoteClient:
     """A fake RemoteClient."""
 
     missing_signal = "missing"
@@ -333,7 +333,7 @@ class SignalBroadcasterFailuresTestCase(TestCase):
         self.assertIn(expected, warnings)
 
 
-class FakeRemoteObject(object):
+class FakeRemoteObject:
     """A test helper."""
 
     def __init__(self):
@@ -345,7 +345,7 @@ class FakeRemoteObject(object):
         self.called.append(args)
 
 
-class FakeNetworkManagerState(object):
+class FakeNetworkManagerState:
     """Fake NetworkState."""
 
     def __init__(self, result_cb=None):
@@ -392,7 +392,7 @@ class IPCTestCase(FakeMainTestCase, TCPPbServerTestCase):
 
         yield super(IPCTestCase, self).setUp()
 
-        class FakeDescriptionFactory(object):
+        class FakeDescriptionFactory:
             """Factory used that returns settings for the test."""
 
             def __init__(my_self):
@@ -677,7 +677,7 @@ class RemoteMetaTestCase(TestCase):
         """The remote_calls are renamed."""
         test_token = object()
 
-        class TestClass(object, metaclass=RemoteMeta):
+        class TestClass(metaclass=RemoteMeta):
             """A class for testing."""
 
             remote_calls = ['test_method']
@@ -694,7 +694,7 @@ class RemoteMetaTestCase(TestCase):
         """The signal_handlers are renamed."""
         test_token = object()
 
-        class TestClass(object, metaclass=RemoteMeta):
+        class TestClass(metaclass=RemoteMeta):
             """A class for testing."""
 
             signal_handlers = ['test_signal_handler']

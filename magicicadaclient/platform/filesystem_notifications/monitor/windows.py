@@ -112,7 +112,7 @@ FILESYSTEM_MONITOR_MASK = FILE_NOTIFY_CHANGE_FILE_NAME | \
     FILE_NOTIFY_CHANGE_LAST_ACCESS
 
 
-class Watch(object):
+class Watch:
     """Implement the same functions as pyinotify.Watch."""
 
     def __init__(self, path, process_events, mask=FILESYSTEM_MONITOR_MASK,
@@ -244,7 +244,7 @@ class Watch(object):
         return self._watch_stopped_deferred
 
 
-class WatchManager(object):
+class WatchManager:
     """Implement the same functions as pyinotify.WatchManager.
 
     All paths passed to methods in this class should be windows paths.

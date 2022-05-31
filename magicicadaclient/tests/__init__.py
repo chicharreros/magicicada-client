@@ -48,7 +48,7 @@ class TestCase(unittest.TestCase):
         self._called = (args, kwargs)
 
 
-class Recorder(object):
+class Recorder:
     """A class that records every call clients made to it."""
 
     no_wrap = ['_called']

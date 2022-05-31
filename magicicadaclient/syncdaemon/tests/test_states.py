@@ -41,7 +41,7 @@ from magicicadaclient.syncdaemon.states import (
 )
 
 
-class FakeEventQueue(object):
+class FakeEventQueue:
     """Fake EQ."""
     def __init__(self):
         self.events = []
@@ -54,7 +54,7 @@ class FakeEventQueue(object):
         """Fake."""
 
 
-class FakeRequestQueue(object):
+class FakeRequestQueue:
     """Fake object that marks the runs.
 
     It has the behaviour of the real queues regarding waiting, done,
@@ -88,7 +88,7 @@ class FakeRequestQueue(object):
         self.active = False
 
 
-class FakeActionQueue(object):
+class FakeActionQueue:
     """Fake class to log actions on AQ."""
     def __init__(self):
         self.queue = FakeRequestQueue()
@@ -102,7 +102,7 @@ class FakeActionQueue(object):
             return object.__getattribute__(self, name)
 
 
-class FakeMain(object):
+class FakeMain:
     """Fake class to log actions on Main."""
     def __init__(self, aq, eq):
         self.action_q = aq

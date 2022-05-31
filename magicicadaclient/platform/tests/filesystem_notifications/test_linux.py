@@ -44,7 +44,7 @@ from magicicadaclient.platform.tests.filesystem_notifications import (
 )
 
 
-class FakeVolume(object):
+class FakeVolume:
     """A fake volume."""
 
     def __init__(self, path, ancestors):
@@ -184,7 +184,7 @@ class WatchManagerTests(BaseFSMonitorTestCase):
             self.monitor._ancestors_watchs, {'/baz': 1, '/other': 2})
 
 
-class DynamicHitMe(object):
+class DynamicHitMe:
     """Helper class to test a sequence of signals."""
 
     def __init__(self, should_events, test_machinery):
@@ -396,7 +396,7 @@ class WatchTests(BaseFSMonitorTestCase):
         self.assertTrue(is_available, 'Should always be available.')
 
 
-class FakeEvent(object):
+class FakeEvent:
     """A fake event."""
 
     mask = 0

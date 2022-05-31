@@ -48,7 +48,7 @@ from magicicadaclient.syncdaemon import (
 )
 
 
-class FakeVM(object):
+class FakeVM:
     """Some functionality needed from VM, without starting a new world."""
 
     def __init__(self, data_dir, db):

@@ -98,7 +98,7 @@ NAME_TRANSLATIONS = {
 DAEMON_SOCKET = '/var/run/com.ubuntu.one.fsevents.sock'
 
 
-class DescriptionFactory(object):
+class DescriptionFactory:
     """Factory that provides the server and client descriptions."""
 
     client_description_pattern = 'unix:path=%s'
@@ -313,7 +313,7 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
                     self._processor(pyinotify_event)
 
 
-class FilesystemMonitor(object):
+class FilesystemMonitor:
     """Implementation that allows to receive events from the system."""
 
     def __init__(self, eq, fs, ignore_config=None, timeout=1):

@@ -16,7 +16,7 @@
 """Network states."""
 
 
-class NetworkState(object):
+class NetworkState:
     """ A simple class to add a label and make debugging easier. """
 
     def __init__(self, label="unlabeled"):

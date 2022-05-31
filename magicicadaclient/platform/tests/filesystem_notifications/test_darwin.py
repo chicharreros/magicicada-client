@@ -71,7 +71,7 @@ for key, value in common.ACTIONS.items():
     REVERSE_MACOS_ACTIONS[value] = key
 
 
-class FakeEventsProcessor(object):
+class FakeEventsProcessor:
 
     """Handle fake events creation and processing."""
 
@@ -85,7 +85,7 @@ class FakeEventsProcessor(object):
             watch.platform_watch._process_events(event)
 
 
-class FakeFileEvent(object):
+class FakeFileEvent:
     """A Fake FileEvent from macfsevents"""
 
     def __init__(self, mask, cookie, name):
@@ -94,7 +94,7 @@ class FakeFileEvent(object):
         self.name = name
 
 
-class FakeObserver(object):
+class FakeObserver:
     """Fake fsevents.py Observer for tests that don't need real events."""
 
     def __init__(self, latency=0, process_asap=True):
@@ -773,7 +773,7 @@ class TestWatchManagerAddWatches(BaseTwistedTestCase):
         self.assertTrue(d2, "Should not be called yet.")
 
 
-class FakeEvent(object):
+class FakeEvent:
     """Fake event."""
 
     def __init__(self, wd=0, dir=True, name=None, path=None, pathname=None,

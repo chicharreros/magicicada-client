@@ -48,7 +48,7 @@ from magicicadaclient.syncdaemon import (
 )
 
 
-class EventListener(object):
+class EventListener:
     """Store the events."""
     def __init__(self):
         self._events = []

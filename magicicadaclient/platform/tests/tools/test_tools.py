@@ -122,7 +122,7 @@ class TestSyncDaemonTool(TestCase):
                 self.assertNotEqual(func_name, "call_after_connection_inner")
 
 
-class FakeRemoteObject(object):
+class FakeRemoteObject:
     """Fake a remote object."""
 
     def __init__(self):
@@ -187,7 +187,7 @@ class PerspectiveBrokerReconnect(TestCase):
         self.assertEqual(2, len(self.connected_signals))
 
 
-class FakeU1Objects(object):
+class FakeU1Objects:
     """Fake PublicFiles for UbuntuOneClient."""
 
     def on_public_files_list_cb(self):
@@ -197,7 +197,7 @@ class FakeU1Objects(object):
         """Do nothing."""
 
 
-class FakeUbuntuOneClient(object):
+class FakeUbuntuOneClient:
     """Fake UbuntuOneClient."""
 
     def __init__(self):

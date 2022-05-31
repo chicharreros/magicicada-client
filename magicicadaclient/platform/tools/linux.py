@@ -61,7 +61,7 @@ class IPCError(DBusException):
         self.details = details
 
 
-class DBusClient(object):
+class DBusClient:
     """Low level dbus client. To help testing the DBus interface."""
 
     def __init__(self, bus, path, interface, destination=DBUS_IFACE_NAME):
@@ -121,7 +121,7 @@ class DBusClient(object):
         return d
 
 
-class SyncDaemonToolProxy(object):
+class SyncDaemonToolProxy:
     """Platform dependent proxy to syncdaemon."""
 
     def __init__(self, bus=None):

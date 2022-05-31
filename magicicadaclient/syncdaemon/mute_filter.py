@@ -31,7 +31,7 @@
 import logging
 
 
-class MuteFilter(object):
+class MuteFilter:
     """Stores what needs to be muted."""
     def __init__(self):
         self._cnt = {}

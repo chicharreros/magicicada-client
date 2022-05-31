@@ -170,7 +170,7 @@ class _Hasher(threading.Thread):
                 self._should_cancel = path
 
 
-class HashQueue(object):
+class HashQueue:
     """Interface between the real Hasher and the rest of the world."""
 
     def __init__(self, event_queue):
