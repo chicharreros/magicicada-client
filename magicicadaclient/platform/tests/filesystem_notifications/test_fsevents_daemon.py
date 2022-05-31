@@ -62,7 +62,7 @@ class FakeServerFactory(protocol.ServerFactory):
     protocol = FakeServerProtocol
 
 
-class FakeDaemonEvent(object):
+class FakeDaemonEvent:
     """A fake daemon event."""
 
     def __init__(self):
@@ -71,7 +71,7 @@ class FakeDaemonEvent(object):
         self.event_type = None
 
 
-class FakeProcessor(object):
+class FakeProcessor:
     """A fake processor."""
 
     def __init__(self, *args):
@@ -83,7 +83,7 @@ class FakeProcessor(object):
         self.processed_events.append(event)
 
 
-class FakePyInotifyEventsFactory(object):
+class FakePyInotifyEventsFactory:
     """Fake factory."""
 
     def __init__(self):
@@ -94,7 +94,7 @@ class FakePyInotifyEventsFactory(object):
         self.ignored_paths = []
 
 
-class FakeTransport(object):
+class FakeTransport:
     """A fake transport for the protocol."""
 
     def __init__(self):
@@ -106,7 +106,7 @@ class FakeTransport(object):
         self.called.append('loseConnection')
 
 
-class FakeProtocol(object):
+class FakeProtocol:
     """A fake protocol object to interact with the daemon."""
 
     def __init__(self):

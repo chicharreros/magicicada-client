@@ -143,7 +143,7 @@ class RemoteMeta(type):
         return super(RemoteMeta, cls).__new__(cls, name, bases, attrs)
 
 
-class SignalBroadcaster(object):
+class SignalBroadcaster:
     """Object that allows to emit signals to clients over the IPC."""
 
     MSG_NO_SIGNAL_HANDLER = "No signal handler for %r in %r"

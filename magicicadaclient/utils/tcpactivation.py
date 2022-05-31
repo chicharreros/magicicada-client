@@ -95,7 +95,7 @@ class PortDetectFactory(protocol.ClientFactory):
             self.d.callback(False)
 
 
-class ActivationConfig(object):
+class ActivationConfig:
     """The configuration for tcp activation."""
 
     def __init__(self, service_name, command_line, description):
@@ -105,7 +105,7 @@ class ActivationConfig(object):
         self.description = description
 
 
-class ActivationDetector(object):
+class ActivationDetector:
     """Base class to detect if the service is running."""
 
     def __init__(self, config):

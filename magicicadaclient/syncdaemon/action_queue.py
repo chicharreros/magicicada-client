@@ -101,7 +101,7 @@ class InterruptibleDeferred(defer.Deferred):
             self.errback(DeferredInterrupted())
 
 
-class PathLockingTree(object):
+class PathLockingTree:
     """Tree that stores deferreds in the nodes."""
 
     def __init__(self):
@@ -366,7 +366,7 @@ class LoggingStorageClient(ThrottlingStorageClient):
         return result
 
 
-class PingManager(object):
+class PingManager:
     """Handle the ping/pong with the server."""
 
     _ping_delay = 600  # 10 minutes
@@ -437,7 +437,7 @@ class ActionQueueProtocol(LoggingStorageClient):
         LoggingStorageClient.connectionLost(self, reason)
 
 
-class ZipQueue(object):
+class ZipQueue:
     """A queue of files to be compressed for upload.
 
     Parts of this were shamelessly copied from
@@ -551,7 +551,7 @@ class ZipQueue(object):
             fileobj.close()
 
 
-class RequestQueue(object):
+class RequestQueue:
     """Pool of commands being run."""
 
     def __init__(self, action_queue):
@@ -626,7 +626,7 @@ class RequestQueue(object):
             self.waiting.remove(command)
 
 
-class DeferredMap(object):
+class DeferredMap:
     """A mapping of deferred values.
 
     Return deferreds for a key that are fired (succesfully or not) later.
@@ -662,7 +662,7 @@ class DeferredMap(object):
                 d.errback(failure)
 
 
-class ConditionsLocker(object):
+class ConditionsLocker:
     """Structure to hold commands waiting because of conditions.
 
     On each call to lock it will return a deferred for the received
@@ -692,7 +692,7 @@ class ConditionsLocker(object):
             deferred.callback(True)
 
 
-class UploadProgressWrapper(object):
+class UploadProgressWrapper:
     """A wrapper around the file-like object used for Uploads.
 
     It adjusts automatically the transfer variables in the command.
@@ -1214,7 +1214,7 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         self.uuid_map.set(mdid, root_id)
 
 
-class ActionQueueCommand(object):
+class ActionQueueCommand:
     """Base of all the action queue commands."""
 
     # the info used in the protocol errors is hidden, but very useful!

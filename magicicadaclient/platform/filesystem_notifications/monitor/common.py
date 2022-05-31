@@ -82,7 +82,7 @@ TRACE = logger.TRACE
 
 
 # The implementation of the code that is provided as the pyinotify substitute
-class Watch(object):
+class Watch:
     """Implement the same functions as pyinotify.Watch."""
 
     def __init__(self, watch_descriptor, path, processor):
@@ -241,7 +241,7 @@ class Watch(object):
         return self.platform_watch.stopped
 
 
-class WatchManager(object):
+class WatchManager:
     """Implement the same functions as pyinotify.WatchManager.
 
     All paths passed to methods in this class should be proper os paths.
@@ -349,7 +349,7 @@ class WatchManager(object):
         yield self.platform_manager.stop()
 
 
-class FilesystemMonitor(object):
+class FilesystemMonitor:
     """Manages the signals from filesystem."""
 
     def __init__(self, eq, fs, ignore_config=None, timeout=1):

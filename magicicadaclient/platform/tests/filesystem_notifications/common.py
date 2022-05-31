@@ -66,7 +66,7 @@ for key, value in ACTIONS.items():
     REVERSE_OS_ACTIONS[value] = key
 
 
-class FakeEventsProcessor(object):
+class FakeEventsProcessor:
 
     """Handle fake events creation and processing."""
 
@@ -814,7 +814,7 @@ class TestWatchManager(BaseTwistedTestCase):
         self.assertEqual(1, len(events))
 
 
-class FakeEvent(object):
+class FakeEvent:
     """Fake event."""
 
     def __init__(self, wd=0, dir=True, name=None, path=None, pathname=None,
@@ -828,7 +828,7 @@ class FakeEvent(object):
         self.cookie = cookie
 
 
-class FakeLog(object):
+class FakeLog:
     """A fake log that is used by the general processor."""
 
     def __init__(self):
@@ -840,7 +840,7 @@ class FakeLog(object):
         self.called_methods.append(('info', args))
 
 
-class FakeGeneralProcessor(object):
+class FakeGeneralProcessor:
     """Fake implementation of the general processor."""
 
     def __init__(self):
@@ -1256,7 +1256,7 @@ class FilesystemMonitorTestCase(BaseTwistedTestCase):
 
     def test_add_watches_to_udf_ancestors(self):
         """Test that the ancestor watches are not added."""
-        class FakeVolume(object):
+        class FakeVolume:
             """A fake UDF."""
 
             def __init__(self, ancestors):

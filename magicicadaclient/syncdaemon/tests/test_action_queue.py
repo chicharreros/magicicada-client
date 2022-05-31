@@ -102,7 +102,7 @@ class MementoHandler(handlers.MementoHandler):
         return self.check(NOTE, *msgs)
 
 
-class FakeOffloadQueue(object):
+class FakeOffloadQueue:
     """Fake replacemente for offload_queue."""
     def __init__(self):
         self.queue = collections.deque()
@@ -122,12 +122,12 @@ class FakeOffloadQueue(object):
         return self.queue[idx]
 
 
-class FakeMagicHash(object):
+class FakeMagicHash:
     """Fake magic hash."""
     _magic_hash = '666'
 
 
-class FakeTempFile(object):
+class FakeTempFile:
     """Fake temporary file."""
 
     def __init__(self, tmpdir):
@@ -151,14 +151,14 @@ class FakedEventQueue(EventQueue):
         super(FakedEventQueue, self).push(event_name, **kwargs)
 
 
-class FakedVolume(object):
+class FakedVolume:
     """Faked volume."""
     volume_id = None
     generation = None
     free_bytes = None
 
 
-class FakeSemaphore(object):
+class FakeSemaphore:
     """Fake semaphore."""
 
     def __init__(self):
@@ -173,7 +173,7 @@ class FakeSemaphore(object):
         self.count -= 1
 
 
-class FakeRequest(object):
+class FakeRequest:
     """Fake Request."""
     def __init__(self, *a, **k):
         self.deferred = defer.succeed(True)
@@ -184,7 +184,7 @@ class FakeRequest(object):
         self.cancelled = True
 
 
-class FakeClient(object):
+class FakeClient:
     """Fake Client."""
     def __init__(self):
         self.called = []
@@ -200,7 +200,7 @@ class FakeClient(object):
         return FakeRequest()
 
 
-class FakeTunnelClient(object):
+class FakeTunnelClient:
     """A fake proxy.tunnel_client."""
 
     def __init__(self):
@@ -217,7 +217,7 @@ class FakeTunnelClient(object):
         self.ssl_connected = True
 
 
-class SavingConnectionTunnelRunner(object):
+class SavingConnectionTunnelRunner:
     """A fake proxy.tunnel_client.TunnelRunner."""
 
     def __init__(self, host, port):
@@ -497,7 +497,7 @@ class TestRequestQueue(TwistedTestCase):
         """Set up."""
         yield super(TestRequestQueue, self).setUp()
 
-        class FakeAQ(object):
+        class FakeAQ:
             """Fake AQ."""
             event_queue = self.eq = FakedEventQueue()
 
@@ -1370,7 +1370,7 @@ class ConnectionTestCase(FactoryBaseTestCase):
         assert connection_info['host'] == '127.0.0.1'
         assert connection_info['port'] == 0
 
-        class FakeConnector(object):
+        class FakeConnector:
             """Fake connector."""
             host = '1.2.3.4'
             port = 4321
@@ -2284,7 +2284,7 @@ class ActionQueueCommandErrorsTestCase(ConnectedBaseTestCase):
 
         self.deferred = defer.Deferred()
 
-        class MyLogger(object):
+        class MyLogger:
             """Fake logger that just stores error and warning calls."""
             def __init__(self):
                 self.logged = None
@@ -2796,7 +2796,7 @@ class DownloadTestCase(ConnectedBaseTestCase):
             'get_content_request', lambda *a, **kw: mock.Mock())
 
         # would first get the node attribute including this
-        class FakeDecompressor(object):
+        class FakeDecompressor:
             """Fake decompressor."""
 
             def decompress(self, data):
@@ -3012,7 +3012,7 @@ class DownloadTestCase(ConnectedBaseTestCase):
         # don't use the real protocol
         self.action_queue.client.get_content_request = FakeRequest
 
-        class FakeFileObj(object):
+        class FakeFileObj:
             """Fake class to check behaviour."""
             def __init__(self):
                 self.seek_count = 0
@@ -3140,7 +3140,7 @@ class UploadProgressWrapperTestCase(BaseTwistedTestCase):
 
     def test_read(self):
         """Test the read method."""
-        class FakeCommand(object):
+        class FakeCommand:
             """Fake command."""
 
             def __init__(self):
@@ -3167,7 +3167,7 @@ class UploadProgressWrapperTestCase(BaseTwistedTestCase):
 
     def test_seek(self):
         """Test the seek method."""
-        class FakeCommand(object):
+        class FakeCommand:
             """Fake command."""
 
             def __init__(self):
@@ -3413,7 +3413,7 @@ class UploadTestCase(ConnectedBaseTestCase):
         called = []
         self.patch(ActionQueueCommand, 'cancel', lambda s: called.append(1))
 
-        class FakeProducer(object):
+        class FakeProducer:
             """Fake producer."""
             finished = True
 
@@ -3432,7 +3432,7 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.patch(ActionQueueCommand, 'cancel',
                    lambda s: called.append(True) or True)
 
-        class FakeProducer(object):
+        class FakeProducer:
             """Fake producer."""
             finished = False
 
@@ -3841,7 +3841,7 @@ class SpecificException(Exception):
     """The specific exception."""
 
 
-class SillyClass(object):
+class SillyClass:
     """Silly class that accepts the set of any attribute.
 
     We can't use object() directly, since its raises AttributeError.
@@ -5692,7 +5692,7 @@ class PingManagerTestCase(TwistedTestCase):
         """Set up."""
         yield super(PingManagerTestCase, self).setUp()
 
-        class FakeActionQueueProtocol(object):
+        class FakeActionQueueProtocol:
             """Fake object for the tests."""
             log = logger
             log.setLevel(TRACE)

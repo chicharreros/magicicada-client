@@ -40,7 +40,7 @@ SESSION_MANAGER_PATH = "/org/gnome/SessionManager"
 TOPLEVEL_XID = 0
 
 
-class Inhibitor(object):
+class Inhibitor:
     """An object representing an inhibition, that can be cancelled."""
 
     def __init__(self):

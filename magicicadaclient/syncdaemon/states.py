@@ -41,7 +41,7 @@ class BadEventError(Exception):
     """One of the managers received a bad event."""
 
 
-class ConnectionManager(object):
+class ConnectionManager:
     """Class that knows how to play with network.
 
     This has four states, as you can see in the class attribs here.
@@ -200,7 +200,7 @@ class ConnectionManager(object):
             self._waiting_timer.cancel()
 
 
-class Node(object):
+class Node:
     """Node information."""
     def __init__(self, name, desc, error=False, conn=False, online=False):
         self.name = name
@@ -234,7 +234,7 @@ class StateInfo(Node):
     __str__ = __repr__
 
 
-class QueueManager(object):
+class QueueManager:
     """A smaller finite state machine to handle queues."""
 
     IDLE = Node('IDLE', "nothing in the queues")
@@ -306,7 +306,7 @@ ACCEPTED_EVENTS = [
 ]
 
 
-class StateManager(object):
+class StateManager:
     """The Manager of the high level states."""
 
     INIT = Node('INIT', "just initialized")

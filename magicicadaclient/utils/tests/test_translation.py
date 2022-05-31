@@ -43,13 +43,13 @@ TEST_FALLBACK_PATH = 'test-path/to/mofiles'
 TEST_FROZEN_PATH = 'frozen-test-path/to/mofiles'
 
 
-class MockGettextTranslations(object):
+class MockGettextTranslations:
     """Mock translations to test properties"""
     ugettext = 'ugettext'
     gettext = 'gettext'
 
 
-class MockNSUserDefaults(object):
+class MockNSUserDefaults:
     """Mock defaults for _get_languages on darwin."""
 
     def standardUserDefaults(self):

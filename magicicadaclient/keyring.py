@@ -67,7 +67,7 @@ def get_token_name(app_name):
     return TOKEN_SEPARATOR.join((app_name, computer_name))
 
 
-class Keyring(object):
+class Keyring:
     """A Keyring for a given application name."""
 
     def __init__(self):

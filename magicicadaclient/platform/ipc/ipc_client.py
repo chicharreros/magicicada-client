@@ -79,7 +79,7 @@ def signal(function):
     return callback_wrapper
 
 
-class RemoteClient(object):
+class RemoteClient:
     """Represent a client for remote calls."""
 
     signal_handlers = []
@@ -687,7 +687,7 @@ class PublicFilesClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
         """Emit the PublicFilesListError signal."""
 
 
-class UbuntuOneClient(object):
+class UbuntuOneClient:
     """Root object that provides access to all the remote objects."""
 
     connection_lock = defer.DeferredLock()

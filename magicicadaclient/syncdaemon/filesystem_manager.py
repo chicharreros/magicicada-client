@@ -163,7 +163,7 @@ class DirectoryNotRemovable(Exception):
     """The directory can not be emptied to delete."""
 
 
-class _MDObject(object):
+class _MDObject:
     """Wrapper around MD dict."""
     def __init__(self, **mdobj):
         self.__dict__.update(mdobj)
@@ -284,7 +284,7 @@ class TrashTritcaskShelf(TritcaskShelf):
             yield (share_id, node_id)
 
 
-class FileSystemManager(object):
+class FileSystemManager:
     """Keeps the files/dirs metadata and interacts with the filesystem.
 
     It has a FileShelf where all the metadata is stored, using 'mdid's as
@@ -1514,7 +1514,7 @@ class FileSystemManager(object):
                 del self.move_limbo[(share, node)]
 
 
-class EnableShareWrite(object):
+class EnableShareWrite:
     """Context manager to allow write in ro-shares."""
 
     def __init__(self, share, path, recursive=False):

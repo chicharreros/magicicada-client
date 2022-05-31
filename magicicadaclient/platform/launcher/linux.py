@@ -37,7 +37,7 @@ except ImportError:
 CONTROLPANEL_DOTDESKTOP = "ubuntuone-installer.desktop"
 
 
-class LauncherUnity(object):
+class LauncherUnity:
     """The launcher icon."""
 
     def __init__(self):
@@ -73,7 +73,7 @@ class LauncherUnity(object):
         self.entry.set_property('count_visible', False)
 
 
-class DummyLauncher(object):
+class DummyLauncher:
     """A dummy launcher icon."""
 
     def __init__(self):

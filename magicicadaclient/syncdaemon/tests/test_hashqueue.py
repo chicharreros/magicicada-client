@@ -49,7 +49,7 @@ from magicicadaclient.testing.testcase import BaseTwistedTestCase
 FAKE_TIMESTAMP = 1
 
 
-class FakeEventQueue(object):
+class FakeEventQueue:
     """Faked EventQueue class."""
 
     def __init__(self, deferred, expected_events=1):
@@ -66,7 +66,7 @@ class FakeEventQueue(object):
             self.deferred.callback(event)
 
 
-class FakeTimeModule(object):
+class FakeTimeModule:
     """A fake time module."""
 
     def __init__(self):
@@ -87,7 +87,7 @@ class FakeTimeModule(object):
         self.timestamp += delay
 
 
-class FakeReceiver(object):
+class FakeReceiver:
     """Fake Receiver class."""
 
     def __init__(self, events_limit=1):
@@ -514,7 +514,7 @@ class HashQueueTests(BaseTwistedTestCase):
         tfile2 = os.path.join(self.test_dir, "tfile2")
         open_file(tfile2, "wb").close()
 
-        class C(object):
+        class C:
             """Bogus."""
             def push(self, e, **k):
                 """None."""
@@ -651,7 +651,7 @@ class HashQueueTests(BaseTwistedTestCase):
 
         old_open = hash_queue.open_file
 
-        class OpenFaker(object):
+        class OpenFaker:
             """A class to fake open for specific paths"""
 
             def __init__(self, paths):

@@ -390,7 +390,7 @@ def create_object_path(base):
     return base + "/" + random
 
 
-class TextFilter(object):
+class TextFilter:
     """Prevents the logging of messages containing a given text."""
 
     def __init__(self, *args):
