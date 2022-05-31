@@ -63,7 +63,7 @@ ACTIONS_NAMES = {
 
 
 # The implementation of the code that is provided as the pyinotify substitute
-class Watch(object):
+class Watch:
     """Implement the same functions as pyinotify.Watch."""
 
     def __init__(self, path, process_events):
@@ -115,7 +115,7 @@ class Watch(object):
         return defer.succeed(self.watching)
 
 
-class WatchManager(object):
+class WatchManager:
     """Implement the same functions as pyinotify.WatchManager.
 
     All paths passed to methods in this class should be darwin paths.

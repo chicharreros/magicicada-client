@@ -139,7 +139,7 @@ class TestNetworkManagerState(MockerTestCase):
                                      listener_thread=self.thread)
 
 
-class FakeWininet(object):
+class FakeWininet:
     """Fake wininet for windll."""
 
     connection_state = -1
@@ -149,7 +149,7 @@ class FakeWininet(object):
         return self.connection_state
 
 
-class FakeWininetException(object):
+class FakeWininetException:
     """Fake wininet for windll."""
 
     connection_state = -1

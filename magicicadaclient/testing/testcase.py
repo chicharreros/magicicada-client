@@ -94,7 +94,7 @@ def environ(env_var, new_value):
         os.environ[env_var] = old_value
 
 
-class FakeHashQueue(object):
+class FakeHashQueue:
     """A fake hash queue"""
     def __init__(self, eq):
         self.eq = eq
@@ -117,13 +117,13 @@ class FakeHashQueue(object):
                      crc32='', size=0, stat=stat_path(path))
 
 
-class FakeMark(object):
+class FakeMark:
     """A fake Mark Shuttleworth..."""
     def stop(self):
         """...that only knows how to stop"""
 
 
-class FakeExternalInterface(object):
+class FakeExternalInterface:
     """A fake DBusInterface..."""
 
     def start(self):
@@ -139,7 +139,7 @@ class FakeExternalInterface(object):
 
 
 @implementer(interfaces.IActionQueue)
-class FakeActionQueue(object):
+class FakeActionQueue:
     """Stub implementation."""
 
     def __init__(self, eq, *args, **kwargs):
@@ -193,7 +193,7 @@ class FakeActionQueue(object):
     node_is_with_queued_move = cleanup = get_public_files = disconnect
 
 
-class FakeMonitor(object):
+class FakeMonitor:
     """A fake FilesystemMonitor."""
 
     def __init__(self, eq, fs, ignore_config=None, timeout=1):
@@ -447,7 +447,7 @@ class FakeMainTestCase(BaseTwistedTestCase):
         self._called = (args, kwargs)
 
 
-class FakeVolumeManager(object):
+class FakeVolumeManager:
     """ A volume manager that only knows one share, the root"""
 
     def __init__(self, root_path):
@@ -502,7 +502,7 @@ class FakeVolumeManager(object):
         """Request the deletion of a volume."""
 
 
-class FakeLogger(object):
+class FakeLogger:
     """Helper logging class."""
     def __init__(self):
         self.logged = dict(debug=[], warning=[], info=[])
@@ -526,7 +526,7 @@ class FakeLogger(object):
         self._log(self.logged['info'], txt, args)
 
 
-class FakeCommand(object):
+class FakeCommand:
     """A fake command."""
 
     is_runnable = True
@@ -605,7 +605,7 @@ class EmptyCommand(FakeCommand):
         return {}
 
 
-class FakedObject(object):
+class FakedObject:
     """A class that records every call clients made to it."""
 
     def __init__(self, *args, **kwargs):
@@ -662,7 +662,7 @@ class FakedService(interaction_interfaces.SyncdaemonService):
             setattr(self, client, FakedObject())
 
 
-class Listener(object):
+class Listener:
     """Helper class to gather events."""
 
     def __init__(self):
@@ -673,7 +673,7 @@ class Listener(object):
         self.events.append((event_name, kwargs))
 
 
-class DummyClass(object):
+class DummyClass:
     """Dummy class, does nothing."""
 
     def __getattr__(self, name):

@@ -49,7 +49,7 @@ from magicicadaclient.platform.tests.filesystem_notifications import (
 )
 
 
-class FakeEventsProcessor(object):
+class FakeEventsProcessor:
 
     """Handle fake events creation and processing."""
 
@@ -328,7 +328,7 @@ class FilesystemMonitorTestCase(common_tests.FilesystemMonitorTestCase):
     def test_add_watches_to_udf_ancestors(self):
         """Test that the ancestor watches are not added."""
 
-        class FakeVolume(object):
+        class FakeVolume:
             """A fake UDF."""
 
             def __init__(self, ancestors):

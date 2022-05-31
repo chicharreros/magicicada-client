@@ -37,7 +37,7 @@ from twisted.trial.unittest import TestCase
 from magicicadaclient import keyring
 
 
-class MockItem(object):
+class MockItem:
     """An item contains a secret, lookup attributes and has a label."""
 
     def __init__(self, label, collection, attr, value):
@@ -66,7 +66,7 @@ class MockItem(object):
         return True
 
 
-class MockCollection(object):
+class MockCollection:
     """A collection of items containing secrets."""
 
     def __init__(self, label, service):
@@ -82,7 +82,7 @@ class MockCollection(object):
         return defer.succeed(item)
 
 
-class MockSecretService(object):
+class MockSecretService:
     """A class that mocks txsecrets.SecretService."""
 
     def __init__(self, *args, **kwargs):

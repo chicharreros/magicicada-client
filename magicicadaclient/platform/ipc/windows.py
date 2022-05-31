@@ -35,7 +35,7 @@ def get_sd_pb_port():
     return SD_PORT
 
 
-class DescriptionFactory(object):
+class DescriptionFactory:
     """Factory that provides the server and client descriptions."""
 
     client_description_pattern = 'tcp:host=127.0.0.1:port=%s'

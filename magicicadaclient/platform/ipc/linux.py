@@ -806,7 +806,7 @@ class PublicFiles(DBusExposedObject):
         """Report an error in geting the public files list."""
 
 
-class DBusInterface(object):
+class DBusInterface:
     """Holder of all DBus exposed objects."""
 
     def __init__(self, service, bus=None, system_bus=None):

@@ -31,7 +31,7 @@
 import logging
 
 
-class DownloadFinishedNanny(object):
+class DownloadFinishedNanny:
     """Supervises the download finished signals.
 
     It listens AQ_DOWNLOAD_COMMIT, and generates AQ_DOWNLOAD_FINISHED when

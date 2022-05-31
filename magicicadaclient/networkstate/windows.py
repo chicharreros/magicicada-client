@@ -177,7 +177,7 @@ def is_machine_connected():
         return defer.fail(NetworkFailException(e))
 
 
-class NetworkManagerState(object):
+class NetworkManagerState:
     """Check for status changed in the network on Windows."""
 
     def __init__(self, result_cb, **kwargs):

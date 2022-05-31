@@ -44,8 +44,8 @@ CONSTANTS_MODULE = 'magicicadaclient.clientdefs'
 NOT_DEFINED = object()
 
 
-class FakedConstantsModule(object):
-    """Fake the controlpanel.constants' module."""
+class FakedConstantsModule:
+    """Fake the 'ubuntuone.controlpanel.constants' module."""
 
     PROJECT_DIR = '/tmp/foo/bar'
     BIN_DIR = '/tmp/foo/bin'

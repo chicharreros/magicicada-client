@@ -58,7 +58,7 @@ def is_running(bus=None):
     return is_already_running(bus=bus)
 
 
-class SyncDaemonTool(object):
+class SyncDaemonTool:
     """Various utility methods to test/play with the SyncDaemon."""
 
     def __init__(self, bus=None):

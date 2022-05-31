@@ -47,7 +47,7 @@ class ValidationFailed(Exception):
     """signals that the specification is not correct"""
 
 
-class ValidationError(object):
+class ValidationError:
     """Contains validation errors"""
 
     def __init__(self, description):
@@ -92,7 +92,7 @@ def expand_var_list(varlist, values):
     return build_combinations_from_varlist(myvalues)
 
 
-class StateMachineRunner(object):
+class StateMachineRunner:
     """Reads a StateMachine descriptions and executes transitions."""
 
     def __init__(self, fsm, log=None):
@@ -177,7 +177,7 @@ class StateMachineRunner(object):
         """
 
 
-class StateMachine(object):
+class StateMachine:
     """The state machine"""
 
     def __init__(self, input_data, event_filter=None):
@@ -326,7 +326,7 @@ class StateMachine(object):
         return self.states[hash_dict(vars_dict)]
 
 
-class Tracker(object):
+class Tracker:
     """Tracks a list of state_x_params combinations.
 
     Does the same that a list does, but its more explicit. it used to do more.
@@ -344,7 +344,7 @@ class Tracker(object):
         return bool(self.pending)
 
 
-class Event(object):
+class Event:
     """Represents events that may happen.
 
     Interesting properties:
@@ -461,7 +461,7 @@ class Event(object):
         return Tracker(self.state_x_params)
 
 
-class Transition(object):
+class Transition:
     """A transition.
 
     For each expansion of a transition line in the original spreadsheet we
@@ -489,7 +489,7 @@ class Transition(object):
             self.event, self.source, self.parameters)
 
 
-class State(object):
+class State:
     """A State object.
 
     Represents a combination of state variable values.

@@ -84,7 +84,7 @@ class CustomError(Exception):
     """A custom error, for testing only."""
 
 
-class FakedExternalInterface(object):
+class FakedExternalInterface:
     """A faked external interface."""
 
     clients = (
@@ -1150,7 +1150,7 @@ class SyncdaemonEventsTestCase(BaseTestCase):
         """Test the push_event method."""
         d = defer.Deferred()
 
-        class Listener(object):
+        class Listener:
             """A basic listener to handle the pushed event."""
 
             def handle_FS_FILE_CREATE(innerself, path):

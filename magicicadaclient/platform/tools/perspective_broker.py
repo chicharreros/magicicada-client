@@ -54,7 +54,7 @@ class IPCError(Exception):
         self.details = details
 
 
-class SyncDaemonToolProxy(object):
+class SyncDaemonToolProxy:
     """Platform dependent proxy to syncdaemon.
 
     Please note that most of the methods of this class are "pre-processed"

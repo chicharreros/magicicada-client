@@ -47,7 +47,7 @@ class NotFoundError(Exception):
     pass
 
 
-class DBusRunner(object):
+class DBusRunner:
 
     def __init__(self):
         self.dbus_address = None

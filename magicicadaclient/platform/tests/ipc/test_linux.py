@@ -71,8 +71,7 @@ class FakeNetworkManager(DBusExposedObject):
                               dbus.bus.NAME_FLAG_ALLOW_REPLACEMENT)
         self.busName = dbus.service.BusName('org.freedesktop.NetworkManager',
                                             bus=self.bus)
-        DBusExposedObject.__init__(self, bus_name=self.busName,
-                                   service=None)
+        super().__init__(bus_name=self.busName, service=None)
 
     def shutdown(self):
         """Shutdown the fake NetworkManager."""

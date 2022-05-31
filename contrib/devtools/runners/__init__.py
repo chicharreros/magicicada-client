@@ -52,7 +52,7 @@ def _is_in_ignored_path(testcase, paths):
     return False
 
 
-class BaseTestRunner(object):
+class BaseTestRunner:
     """The base test runner type. Does not actually run tests."""
 
     def __init__(self, options=None, *args, **kwargs):

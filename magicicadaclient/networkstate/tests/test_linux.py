@@ -67,7 +67,7 @@ class TestException(Exception):
         return "Test Exception Message"
 
 
-class FakeNetworkManagerState(object):
+class FakeNetworkManagerState:
 
     """Fake Network Manager State."""
 
@@ -82,7 +82,7 @@ class FakeNetworkManagerState(object):
         self.call_function(self.connection_state)
 
 
-class FakeDBusMatch(object):
+class FakeDBusMatch:
 
     """Fake a DBus match."""
 
@@ -97,7 +97,7 @@ class FakeDBusMatch(object):
         self.removed = True
 
 
-class FakeDBusInterface(object):
+class FakeDBusInterface:
 
     """Fake DBus Interface."""
 
@@ -119,7 +119,7 @@ class FakeDBusInterface(object):
             match.callback(state)
 
 
-class FakeSystemBus(object):
+class FakeSystemBus:
 
     """Fake SystemBus."""
 

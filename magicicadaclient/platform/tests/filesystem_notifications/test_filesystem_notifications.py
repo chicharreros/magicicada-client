@@ -130,7 +130,7 @@ class BaseFSMonitorTestCase(BaseTwistedTestCase):
 
         self.deferred = deferred = defer.Deferred()
 
-        class HitMe(object):
+        class HitMe:
             def handle_default(innerself, event, **args):
                 deferred.callback(True)
 
@@ -143,7 +143,7 @@ class BaseFSMonitorTestCase(BaseTwistedTestCase):
         self.addCleanup(self.monitor.log.removeHandler, self.log_handler)
 
 
-class DynamicHitMe(object):
+class DynamicHitMe:
     """Helper class to test a sequence of signals."""
 
     def __init__(self, should_events, test_machinery):

@@ -140,7 +140,7 @@ class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
             self.monitor.rm_watch(ancestor)
 
 
-class FilesystemMonitor(object):
+class FilesystemMonitor:
     """Manages the signals from filesystem."""
 
     def __init__(self, eq, fs, ignore_config=None):

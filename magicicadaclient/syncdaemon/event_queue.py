@@ -179,7 +179,7 @@ EVENTS = {
 DEFAULT_HANDLER = "handle_default"  # receives (event_name, **kwargs)
 
 
-class EventQueue(object):
+class EventQueue:
     """Manages the events from different sources and distributes them."""
 
     def __init__(self, fs, ignore_config=None, monitor_class=None):

@@ -31,7 +31,7 @@
 CONTROLPANEL_DOTDESKTOP = "ubuntuone-control-panel-gtk.desktop"
 
 
-class Launcher(object):
+class Launcher:
     """The launcher icon."""
 
     def __init__(self):

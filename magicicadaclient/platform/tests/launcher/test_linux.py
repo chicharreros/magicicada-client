@@ -34,7 +34,7 @@ from twisted.trial.unittest import TestCase
 from magicicadaclient.platform import launcher
 
 
-class FakeLauncherEntryProps(object):
+class FakeLauncherEntryProps:
     """A fake Unity.LauncherEntry.props"""
 
     progress = 0.0
@@ -44,7 +44,7 @@ class FakeLauncherEntryProps(object):
     urgent = False
 
 
-class FakeLauncherEntry(object):
+class FakeLauncherEntry:
     """A fake Unity.LauncherEntry"""
 
     @staticmethod

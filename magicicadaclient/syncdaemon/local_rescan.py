@@ -92,7 +92,7 @@ def is_valid_name(path):
         return True
 
 
-class LocalRescan(object):
+class LocalRescan:
     """Local re-scanner.
 
     Compares the real disc with FSM's metadata, and pushes the changes to EQ.
