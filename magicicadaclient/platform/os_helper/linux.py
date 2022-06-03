@@ -46,7 +46,7 @@ from send2trash import send2trash
 
 from magicicadaclient.platform.os_helper import unix
 
-platform = "linux2"
+platform = "linux"
 
 logger = logging.getLogger(__name__)
 

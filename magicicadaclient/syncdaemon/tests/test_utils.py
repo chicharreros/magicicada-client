@@ -49,7 +49,7 @@ class UtilsTestCase(TestCase):
 
     def test_get_sd_bin_cmd_src_linux(self):
         """Test that we DO NOT use the buildout python running from source."""
-        self.patch(sys, 'platform', 'linux2')
+        self.patch(sys, 'platform', 'linux')
         self.patch(
             utils, 'get_program_path', lambda _, *args, **kwargs: 'test-path')
         args = utils.get_sd_bin_cmd()
@@ -71,7 +71,7 @@ class UtilsTestCase(TestCase):
         """Test that we DO NOT use the buildout python when installed."""
         sys.frozen = True
         self.addCleanup(delattr, sys, 'frozen')
-        self.patch(sys, 'platform', 'linux2')
+        self.patch(sys, 'platform', 'linux')
         self.patch(
             utils, 'get_program_path', lambda _, *args, **kwargs: 'test-path')
         args = utils.get_sd_bin_cmd()

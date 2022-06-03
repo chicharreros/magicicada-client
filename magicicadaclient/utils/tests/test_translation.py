@@ -86,7 +86,7 @@ class TranslationsTestCase(TestCase):
 
     def test_get_languages_linux(self):
         """Test that we will use gettext defaults on linux."""
-        self.patch(sys, 'platform', 'linux2')
+        self.patch(sys, 'platform', 'linux')
         langs = translation._get_languages()
         self.assertIsNone(langs)
 
@@ -140,11 +140,11 @@ class TranslationsTestCase(TestCase):
 
     def test_get_gettext_linux_py2(self):
         """test get_gettext on linux py2"""
-        self._call_get_gettext('linux2', py_version=(2,))
+        self._call_get_gettext('linux', py_version=(2,))
 
     def test_get_gettext_linux_py3(self):
         """test get_gettext on linux py3"""
-        self._call_get_gettext('linux2', py_version=(3,))
+        self._call_get_gettext('linux', py_version=(3,))
 
     def _call_get_gettext_nonlinux(self, frozen, py_version,
                                    lang_en_first=False):
