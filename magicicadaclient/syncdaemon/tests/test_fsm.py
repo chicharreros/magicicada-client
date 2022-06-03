@@ -334,7 +334,6 @@ class CreationTests(FSMTestCase):
         real_mdobj = self.fsm.fs[mdid]
         del real_mdobj["stat"]
         del real_mdobj["generation"]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj
@@ -732,7 +731,6 @@ class CreationTests(FSMTestCase):
 
         # break the node on purpose
         real_mdobj = self.fsm.fs[mdid]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj
@@ -895,7 +893,6 @@ class CreationTests(FSMTestCase):
 
         # break the node on purpose
         real_mdobj = self.fsm.fs[mdid]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj
@@ -1607,7 +1604,7 @@ class StatTests(FSMTestCase):
         # create a partial
         self.fsm.create_partial(mdobj.node_id, mdobj.share_id)
         fh = self.fsm.get_partial_for_writing(mdobj.node_id, mdobj.share_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         mdobj = self.fsm.get_by_mdid(mdid)
         self.assertEqual(mdobj.stat, oldstat)
@@ -1632,7 +1629,7 @@ class StatTests(FSMTestCase):
         # create a partial
         self.fsm.create_partial(mdobj.node_id, mdobj.share_id)
         fh = self.fsm.get_partial_for_writing(mdobj.node_id, mdobj.share_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         mdobj = self.fsm.get_by_mdid(mdid)
         self.assertEqual(mdobj.stat, oldstat)
@@ -3475,7 +3472,6 @@ class RealVMTestCase(FSMTestCase):
         # break the node on purpose
         real_mdobj = self.fsm.fs[mdid]
         del real_mdobj["stat"]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj

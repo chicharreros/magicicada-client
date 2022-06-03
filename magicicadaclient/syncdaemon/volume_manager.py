@@ -133,6 +133,7 @@ class Volume(object):
 
     def __init__(self, volume_id, node_id, generation=None, subscribed=False):
         """Create the volume."""
+        super().__init__()
         # id and node_id should be str or None
         assert isinstance(volume_id, str) or volume_id is None
         assert isinstance(node_id, str) or node_id is None
@@ -1061,7 +1062,6 @@ class VolumeManager(object):
                        other_username=username, other_visible_name=None,
                        node_id=node_id)
         self.marker_share_map[marker] = share
-        # XXX: unicode boundary! username, name should be unicode
         self.m.action_q.create_share(node_id, username, name,
                                      access_level, marker, abspath)
 
@@ -1241,7 +1241,6 @@ class VolumeManager(object):
                           # always subscribed since it's a local request
                           path=path, subscribed=True)
                 self.marker_udf_map[marker] = udf
-                # XXX: unicode boundary! parameters should be unicode
                 server_path, udf_name = suggested_path.rsplit('/', 1)
                 self.m.action_q.create_udf(server_path, udf_name, marker)
             except Exception as e:
@@ -1914,12 +1913,7 @@ class VMFileShelf(file_shelf.CachedFileShelf):
         pickle.dump(value.__dict__, fd, protocol=protocol)
 
 
-class LegacyShareFileShelf(VMFileShelf):
-    """A FileShelf capable of replacing pickled classes with a different class.
-
-    upgrade_map attribute is a dict of (module, name):class
-
-    """
+class LegacyShareFileShelfPickler(pickle.Unpickler):
 
     upgrade_map = {
         ('ubuntuone.syncdaemon.volume_manager', 'UDF'): _UDF,
@@ -1928,7 +1922,7 @@ class LegacyShareFileShelf(VMFileShelf):
          'Share'): _Share,
     }
 
-    def _find_global(self, module, name):
+    def _find_class(self, module, name):
         """Returns the class object for (module, name) or None."""
         # handle our 'migration types'
         if (module, name) in self.upgrade_map:
@@ -1938,12 +1932,18 @@ class LegacyShareFileShelf(VMFileShelf):
             __import__(module)
             return getattr(sys.modules[module], name)
 
+
+class LegacyShareFileShelf(VMFileShelf):
+    """A FileShelf capable of replacing pickled classes with a different class.
+
+    upgrade_map attribute is a dict of (module, name):class
+
+    """
+
     def _unpickle(self, fd):
         """Override _unpickle with one capable of migrating pickled classes."""
-        unpickler = pickle.Unpickler(fd)
-        unpickler.find_global = self._find_global
-        value = unpickler.load()
-        return value
+        unpickler = LegacyShareFileShelfPickler(fd)
+        return unpickler.load()
 
     def _pickle(self, value, fd, protocol):
         """Pickle value in fd using protocol."""

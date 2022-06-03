@@ -1398,7 +1398,7 @@ class VolumeManagerVolumesTests(BaseVolumeManagerTests):
                     os.path.join('~', 'Documents', 'Reading Años'),
                     os.path.join('~', 'Documents', 'Reading Años',
                                  'Books')]
-        expected = [platform.expand_user(p.encode('utf-8')) for p in expected]
+        expected = [platform.expand_user(p) for p in expected]
 
         udf = self._create_udf(suggested_path=suggested_path)
         self.assertEqual(expected, udf.ancestors)
@@ -1984,6 +1984,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         """Test VolumeManager.create_udf.
 
         Check that VM calls AQ.create_udf with non-ascii strings.
+
         """
         d = defer.Deferred()
         path = get_udf_path("~/ñoño/mirá que lindo mi udf")
@@ -1998,9 +1999,9 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
         path, name = yield d
         self.assertIsInstance(
-            name, str, 'name should be unicode but is: %s' % type(name))
+            name, str, 'name should be str but is: %s' % type(name))
         self.assertIsInstance(
-            path, str, 'path should be unicode but is: %s' % type(path))
+            path, str, 'path should be str but is: %s' % type(path))
 
     @defer.inlineCallbacks
     def test_delete_volume(self):
@@ -4163,7 +4164,7 @@ class MetadataVersionFileTestCase(MetadataTestCase):
             self.temp_dir, "", "", "", "", "", "", None)
 
     def test_metadata_version_write(self):
-        """The metadata .version file is written on unicode paths."""
+        """The metadata .version file is written on str paths."""
         self.md_upgrader.update_metadata_version()
 
         with open(self.version_file) as fh:
@@ -4171,7 +4172,7 @@ class MetadataVersionFileTestCase(MetadataTestCase):
         self.assertEqual(result, self.fake_version)
 
     def test_metadata_version_read(self):
-        """The metadata .version file is read from unicode paths."""
+        """The metadata .version file is read from str paths."""
         with open(self.version_file, "w") as fh:
             fh.write(self.fake_version)
 

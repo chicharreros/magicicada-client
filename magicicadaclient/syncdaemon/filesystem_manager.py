@@ -210,9 +210,9 @@ class TrashFileShelf(file_shelf.CachedFileShelf):
 
         # convert the markers to a string that flags them
         if IMarker.providedBy(share_id):
-            share_id = str(share_id) + self._marker_flag
+            share_id = share_id + self._marker_flag
         if IMarker.providedBy(node_id):
-            node_id = str(node_id) + self._marker_flag
+            node_id = node_id + self._marker_flag
 
         # build a string with the node_id first to have a more sparse
         # layout in disk
@@ -244,9 +244,9 @@ class TrashTritcaskShelf(TritcaskShelf):
 
         # convert the markers to a string that flags them
         if IMarker.providedBy(share_id):
-            share_id = str(share_id) + self._marker_flag
+            share_id = share_id + self._marker_flag
         if IMarker.providedBy(node_id):
-            node_id = str(node_id) + self._marker_flag
+            node_id = node_id + self._marker_flag
 
         # build a string from the (share_id, node_id)
         return "%s|%s" % (share_id, node_id)
@@ -423,6 +423,7 @@ class FileSystemManager(object):
         logger("loading metadata from old version %r", old_version)
 
         for mdid, mdobj in self._safe_old_fs_items():
+            # ensure path is valid (used to check for bytes paths)
             if not is_valid_filepath(mdobj["path"], platform='auto'):
                 # this is an invalid path, we shouldn't have it
                 del self.fs[mdid]

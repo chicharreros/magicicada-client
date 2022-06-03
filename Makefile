@@ -27,7 +27,7 @@
 #
 # For further info, check  http://launchpad.net/magicicada-client
 
-ENV = $(CURDIR)/.env3
+ENV = $(CURDIR)/.env
 
 deps:
 	cat dependencies.txt | sudo xargs apt-get install -y --no-install-recommends

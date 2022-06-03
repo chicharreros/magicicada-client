@@ -158,7 +158,7 @@ class BaseTestCase(BaseTwistedTestCase):
         """Create a share."""
         assert isinstance(share_name, str)
 
-        share_path = os.path.join(self.shares_dir, share_name.encode('utf-8'))
+        share_path = os.path.join(self.shares_dir, share_name)
         make_dir(share_path, recursive=True)
         share = volume_manager.Share(path=share_path, volume_id=share_id,
                                      access_level=access_level,
@@ -634,35 +634,6 @@ class ComparationTests(TwistedBase):
         self.assertEqual(self.eq.pushed, [])
         self.assertTrue(self.handler.check_info("Ignoring path",
                                                 "symlink", symlname))
-
-    @skipIfOS('win32', "Windows paths are already unicode, "
-                       "can't make this explode there")
-    @defer.inlineCallbacks
-    def test_disc_non_utf8_file(self):
-        """Test having a utf-8 file."""
-        # create a broken path
-        path = os.path.join(self.share.path, "non utf-8 \xff path")
-        with open_file(path, "w") as fh:
-            fh.write("broken")
-
-        yield self.lr.start()
-        self.assertEqual(self.eq.pushed, [])
-        self.assertTrue(self.handler.check_info("Ignoring path",
-                                                "invalid (non utf-8)"))
-
-    @skipIfOS('win32', "Windows paths are already unicode, "
-                       "can't make this explode there")
-    @defer.inlineCallbacks
-    def test_disc_non_utf8_dir(self):
-        """Test having a utf-8 dir."""
-        # create a broken path
-        path = os.path.join(self.share.path, "non utf-8 \xff path")
-        make_dir(path)
-
-        yield self.lr.start()
-        self.assertEqual(self.eq.pushed, [])
-        self.assertTrue(self.handler.check_info("Ignoring path",
-                                                "invalid (non utf-8)"))
 
     @defer.inlineCallbacks
     def test_disc_more_dir_normal(self):
@@ -1547,7 +1518,7 @@ class BadStateTests(TwistedBase):
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
         self.fsm.create_partial("uuid", self.share.volume_id)
         fh = self.fsm.get_partial_for_writing("uuid", self.share.volume_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         self.assertTrue(path_exists(partial_path))
 
@@ -1588,8 +1559,8 @@ class BadStateTests(TwistedBase):
         """We were downloading the file, but it was interrupted, and changed"""
         # create the file in metadata
         path = os.path.join(self.share.path, "a")
-        with open_file(path, 'w') as fh:
-            fh.write("previous content")
+        with open_file(path, 'wb') as fh:
+            fh.write(b"previous content")
         mdid = self.fsm.create(path, self.share.volume_id, is_dir=False)
         partial_path = os.path.join(
             self.fsm.partials_dir,
@@ -1600,13 +1571,13 @@ class BadStateTests(TwistedBase):
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
         self.fsm.create_partial("uuid", self.share.volume_id)
         fh = self.fsm.get_partial_for_writing("uuid", self.share.volume_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         self.assertTrue(path_exists(partial_path))
 
         # also change the original file
-        with open_file(path, "w") as fh:
-            fh.write("I see dead people")
+        with open_file(path, "wb") as fh:
+            fh.write(b"I see dead people")
 
         yield self.lr.start()
         # The MD should be left as is, and issue the CLOSE_WRITE.
@@ -1639,7 +1610,7 @@ class BadStateTests(TwistedBase):
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
         self.fsm.create_partial("uuid", self.share.volume_id)
         fh = self.fsm.get_partial_for_writing("uuid", self.share.volume_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         self.assertTrue(path_exists(partial_path))
 
@@ -1708,7 +1679,7 @@ class BadStateTests(TwistedBase):
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
         self.fsm.create_partial("uuid", self.share.volume_id)
         fh = self.fsm.get_partial_for_writing("uuid", self.share.volume_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         partial_path = os.path.join(self.fsm.partials_dir,
                                     mdid + ".u1partial.a")
@@ -1761,7 +1732,7 @@ class BadStateTests(TwistedBase):
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
         self.fsm.create_partial("uuid", self.share.volume_id)
         fh = self.fsm.get_partial_for_writing("uuid", self.share.volume_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         self.assertTrue(path_exists(partial_path))
 
@@ -1903,7 +1874,7 @@ class BadStateTests(TwistedBase):
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
         self.fsm.create_partial("uuid", ro_share.volume_id)
         fh = self.fsm.get_partial_for_writing("uuid", ro_share.volume_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         self.assertTrue(path_exists(partial_path))
 
@@ -1937,7 +1908,7 @@ class BadStateTests(TwistedBase):
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
         self.fsm.create_partial("uuid", ro_share.volume_id)
         fh = self.fsm.get_partial_for_writing("uuid", ro_share.volume_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         self.assertTrue(path_exists(partial_path))
 
@@ -1975,7 +1946,7 @@ class RootBadStateTests(TwistedBase):
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
         self.fsm.create_partial(volume.node_id, volume.volume_id)
         fh = self.fsm.get_partial_for_writing(volume.node_id, volume.volume_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         self.assertTrue(path_exists(partial_path))
 
