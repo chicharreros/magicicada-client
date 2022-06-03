@@ -403,12 +403,12 @@ class U1SDToolTests(TestToolsBase):
         self.assertEqual(out.getvalue(), expected)
 
     @defer.inlineCallbacks
-    def generic_show_dirty_nodes(self, encoding, empty=False):
+    def generic_show_dirty_nodes(self, empty=False):
         """Test dirty nodes output."""
         # create some nodes
-        path1 = os.path.join(self.root_dir, 'ñoño-1'.encode('utf-8'))
+        path1 = os.path.join(self.root_dir, 'ñoño-1')
         self.main.fs.create(path1, "")
-        path2 = os.path.join(self.root_dir, 'ñoño-2'.encode('utf-8'))
+        path2 = os.path.join(self.root_dir, 'ñoño-2')
         mdid2 = self.main.fs.create(path2, "")
         path3 = os.path.join(self.root_dir, "path3")
         self.main.fs.create(path3, "")
@@ -423,7 +423,6 @@ class U1SDToolTests(TestToolsBase):
         dirty_nodes = yield self.tool.get_dirty_nodes()
 
         out = StringIO()
-        out.encoding = encoding
         # sort the list
         dirty_nodes.sort(key=itemgetter('mdid'))
         show_dirty_nodes(dirty_nodes, out)
@@ -436,10 +435,6 @@ class U1SDToolTests(TestToolsBase):
             for mdid in sorted([mdid4, mdid2]):
                 mdobj = self.main.fs.get_by_mdid(mdid)
                 d = mdobj.__dict__
-                if encoding is not None:
-                    d['path'] = d['path'].decode(encoding)
-                else:
-                    d['path'] = d['path'].decode('utf-8')
                 lines.append(node_line_tpl % d)
             value = expected % ''.join(lines)
         else:
@@ -448,12 +443,8 @@ class U1SDToolTests(TestToolsBase):
 
     def test_show_dirty_nodes_non_ascii(self):
         """Test show_dirty_nodes with non-ascii paths."""
-        return self.generic_show_dirty_nodes("utf-8")
-
-    def test_show_dirty_nodes_pipe(self):
-        """Test show_dirty_nodes with unicode paths going to e.g: a pipe"""
-        return self.generic_show_dirty_nodes(None)
+        return self.generic_show_dirty_nodes()
 
     def test_show_dirty_nodes_empty(self):
         """Test show_dirty_nodes with no dirty nodes."""
-        return self.generic_show_dirty_nodes(None, empty=True)
+        return self.generic_show_dirty_nodes(empty=True)

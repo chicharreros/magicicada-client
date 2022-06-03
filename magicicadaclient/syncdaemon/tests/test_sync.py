@@ -30,7 +30,7 @@
 
 import contextlib
 import copy
-from inspect import getmembers, getargspec, ismethod
+from inspect import getmembers, getargspec, isfunction
 import logging
 import os
 import unittest
@@ -74,7 +74,7 @@ class TestSyncClassAPI(unittest.TestCase):
 
     def assert_handler_is_correct(self, handler_name):
         handler = getattr(Sync, handler_name, None)
-        self.assertTrue(ismethod(handler))
+        self.assertTrue(isfunction(handler))
         event = EVENTS[handler_name.replace('handle_', '')]
         spec = getargspec(handler).args[1:]
         # the argspec must also match (same order same variable names)
@@ -88,7 +88,8 @@ class TestSyncClassAPI(unittest.TestCase):
         """
         handls = (k for k in dict(getmembers(Sync)) if k.startswith('handle_'))
         for handle in handls:
-            self.assert_handler_is_correct(handle)
+            with self.subTest(handler=handle):
+                self.assert_handler_is_correct(handle)
 
 
 class FSKeyTestCase(BaseTwistedTestCase):
@@ -1685,8 +1686,7 @@ class TestSyncDelta(BaseSync):
             dt = self.filetxtdelta
         mdobj = self.main.fs.get_by_node_id(dt.share_id, dt.parent_id)
         path = os.path.join(
-            self.main.fs.get_abspath(dt.share_id, mdobj.path),
-            dt.name.encode("utf-8"))
+            self.main.fs.get_abspath(dt.share_id, mdobj.path), dt.name)
         self.main.fs.create(
             path=path, share_id=dt.share_id, node_id=dt.node_id,
             is_dir=False)
@@ -1700,8 +1700,7 @@ class TestSyncDelta(BaseSync):
             dt = self.dirdelta
         mdobj = self.main.fs.get_by_node_id(dt.share_id, dt.parent_id)
         path = os.path.join(
-            self.main.fs.get_abspath(dt.share_id, mdobj.path),
-            dt.name.encode("utf-8"))
+            self.main.fs.get_abspath(dt.share_id, mdobj.path), dt.name)
         self.main.fs.create(
             path=path, share_id=dt.share_id, node_id=dt.node_id,
             is_dir=True)
@@ -1771,7 +1770,7 @@ class TestHandleAqDeltaOk(TestSyncDelta):
 
         # check that the file is created
         node = self.main.fs.get_by_node_id(ROOT, self.filetxtdelta.node_id)
-        self.assertEqual(node.path, self.filetxtdelta.name.encode('utf8'))
+        self.assertEqual(node.path, self.filetxtdelta.name)
         self.assertEqual(node.is_dir, False)
         self.assertEqual(node.generation, self.filetxtdelta.generation)
 
@@ -1831,7 +1830,7 @@ class TestHandleAqDeltaOk(TestSyncDelta):
 
         # check that the dir is created
         node = self.main.fs.get_by_node_id(ROOT, self.dirdelta.node_id)
-        self.assertEqual(node.path, self.dirdelta.name.encode('utf8'))
+        self.assertEqual(node.path, self.dirdelta.name)
         self.assertEqual(node.is_dir, True)
         self.assertEqual(node.generation, self.dirdelta.generation)
 
@@ -2211,7 +2210,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             ROOT, [changed_file], changed_file.generation, True, 100)
         expected = [
             ("new_file", ROOT, changed_file.node_id, changed_file.parent_id,
-             changed_file.name.encode("utf-8"))]
+             changed_file.name)]
         self.assertEqual(called, expected)
 
     def test_move_in_the_middle(self):
@@ -2275,7 +2274,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             ROOT, [changed_file], changed_file.generation, True, 100)
         expected = [
             ("new_file", ROOT, changed_file.node_id, changed_file.parent_id,
-             changed_file.name.encode("utf-8"))]
+             changed_file.name)]
         self.assertEqual(called, expected)
 
 

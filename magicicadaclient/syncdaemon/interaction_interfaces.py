@@ -32,9 +32,13 @@ ATTENTION: this is a boundary between platform dependent external interfaces
 (such as the DBus interface in Linux and the perspective broker interface in
 Windows) and syncdaemon.
 
-Syncdaemon handles ONLY string volume ID's and ONLY string paths (always bytes
-encoded with utf-8). We assume the external interfaces will ALWAYS handle
-unicode, so ID's and paths will be encoded to bytes with utf-8 in this layer.
+Prior the migration to Python 3, syncdaemon would ONLY handle bytes volume ID's
+and ONLY bytes paths (utf-8 encoded). There was the assumption that the
+external interfaces would ALWAYS handle strings, so ID's and paths would be
+encoded to utf-8 bytes in this layer.
+
+Since the migrationt to Python3 only support, external interfaces and this
+module would all use Python3's str type.
 
 """
 
@@ -107,8 +111,6 @@ def sanitize_dict(data):
         if IMarker.providedBy(v):
             # this goes first, as it also is instance of basestring
             data[k] = repr(v)
-        elif isinstance(v, str):
-            pass  # to avoid str() to already strings
         elif isinstance(v, bool):
             data[k] = bool_str(v)
         elif v is None:
@@ -322,13 +324,11 @@ class SyncdaemonFileSystem(SyncdaemonObject):
         for k, v in mdobj.__dict__.items():
             if k == 'info':
                 continue
-            elif k == 'path':
-                md_dict[str(k)] = v.decode('utf-8')
             else:
-                md_dict[str(k)] = str(v)
+                md_dict[k] = v
         if mdobj.__dict__.get('info', None):
             for k, v in mdobj.info.__dict__.items():
-                md_dict['info_' + str(k)] = str(v)
+                md_dict['info_' + k] = v
         return md_dict
 
     @log_call(logger.debug)
@@ -408,9 +408,6 @@ class SyncdaemonShares(SyncdaemonObject):
         @param name: the name of the share
         @param access_level: ACCESS_LEVEL_RO or ACCESS_LEVEL_RW
         """
-        path = path.encode("utf-8")
-        username = str(username)
-        name = str(name)
         try:
             self.fs_manager.get_by_path(path)
         except KeyError:
@@ -703,8 +700,6 @@ class SyncdaemonEventListener(SyncdaemonObject):
             self.interface.status.SignalError(signal_name, args)
 
         if path is not None:
-            # unicode boundary! external interfaces expect unicode paths
-            path = path.decode('utf-8')
             signal = getattr(self.interface.status, signal_name)
             if info is None:
                 signal(path)
@@ -771,9 +766,7 @@ class SyncdaemonEventListener(SyncdaemonObject):
     @log_call(logger.debug)
     def handle_FS_INVALID_NAME(self, dirname, filename):
         """Handle FS_INVALID_NAME."""
-        # unicode boundary! external interfaces expect unicode paths
-        dirname = dirname.decode('utf-8')
-        self.interface.status.InvalidName(dirname, str(filename))
+        self.interface.status.InvalidName(dirname, filename)
 
     @log_call(logger.debug)
     def handle_SYS_BROKEN_NODE(self, volume_id, node_id, mdid, path):
@@ -782,8 +775,6 @@ class SyncdaemonEventListener(SyncdaemonObject):
             mdid = ''
         if path is None:
             path = ''
-        # unicode boundary! external interfaces expect unicode paths
-        path = path.decode('utf-8')
         self.interface.status.BrokenNode(volume_id, node_id, mdid, path)
 
     @log_call(logger.debug)
@@ -815,8 +806,6 @@ class SyncdaemonEventListener(SyncdaemonObject):
     def handle_AQ_CREATE_SHARE_ERROR(self, marker, error):
         """Handle AQ_CREATE_SHARE_ERROR event, emit ShareCreateError signal."""
         path = self.fs_manager.get_by_mdid(marker).path
-        # unicode boundary! external interfaces expect unicode paths
-        path = path.decode('utf-8')
         info = dict(path=path, marker=marker)
         self.interface.shares.ShareCreateError(info, error)
 
@@ -870,8 +859,6 @@ class SyncdaemonEventListener(SyncdaemonObject):
     @log_call(logger.debug)
     def handle_VM_UDF_CREATE_ERROR(self, path, error):
         """Handle VM_UDF_CREATE_ERROR event, emit FolderCreateError signal."""
-        # unicode boundary! external interfaces expect unicode paths
-        path = path.decode('utf-8')
         self.interface.folders.FolderCreateError(dict(path=path), str(error))
 
     @log_call(logger.debug)
@@ -1166,22 +1153,22 @@ class SyncdaemonService(SyncdaemonObject):
     @log_call(logger.debug)
     def get_homedir(self):
         """Return the home dir point."""
-        return self.main.get_homedir().decode('utf-8')
+        return self.main.get_homedir()
 
     @log_call(logger.debug)
     def get_rootdir(self):
         """Return the root dir/mount point."""
-        return self.main.get_rootdir().decode('utf-8')
+        return self.main.get_rootdir()
 
     @log_call(logger.debug)
     def get_sharesdir(self):
         """Return the shares dir/mount point."""
-        return self.main.get_sharesdir().decode('utf-8')
+        return self.main.get_sharesdir()
 
     @log_call(logger.debug)
     def get_sharesdir_link(self):
         """Return the shares dir/mount point."""
-        return self.main.get_sharesdir_link().decode('utf-8')
+        return self.main.get_sharesdir_link()
 
     @log_call(logger.debug)
     def wait_for_nirvana(self, last_event_interval):

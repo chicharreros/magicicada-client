@@ -80,10 +80,9 @@ def expand_var_list(varlist, values):
     """
     myvalues = values.copy()
     for name in myvalues:
-        # star may be unicode
-        if str(myvalues[name]) == "*":
+        if myvalues[name] == "*":
             myvalues[name] = varlist[name]
-        elif str(myvalues[name])[0] == "!":
+        elif myvalues[name][0] == "!":
             var_list = varlist[name].copy()
             var_list.remove(myvalues[name][1:])
             myvalues[name] = var_list
@@ -235,11 +234,11 @@ class StateMachine:
                         (name, kind))
                     self.errors.append(err)
                 else:
-                    if str(value).strip() == "=" and kind != "STATE_OUT":
+                    if value.strip() == "=" and kind != "STATE_OUT":
                         self.errors.append(ValidationError(
                             "Cant have '=' in STATE or PARAMETERS section"))
-                    if not str(value).strip() in ("*", "="):
-                        if not str(value).strip()[0] == "!":
+                    if not value.strip() in ("*", "="):
+                        if not value.strip()[0] == "!":
                             vals.add(value)
         return vals
 
@@ -369,7 +368,7 @@ class Event:
         # clean invalid list
         for line in lines:
             for k, v in line["PARAMETERS"].items():
-                if str(v).strip() != "NA":
+                if v.strip() != "NA":
                     # this parameter has a value, remove from invalid list
                     if k in invalid:
                         invalid.remove(k)
@@ -413,7 +412,7 @@ class Event:
                     # copy source state if dest state is '='
                     so = new_line["STATE_OUT"].copy()
                     for k in so:
-                        if str(so[k]).strip() == "=":
+                        if so[k].strip() == "=":
                             so[k] = se[k]
                     new_line["STATE"] = se
                     new_line["PARAMETERS"] = pe
@@ -421,7 +420,7 @@ class Event:
 
                     # here we have the expanded lines, remove from
                     # states_x_params the lines with action NA
-                    if str(new_line["ACTION"]).strip() == "NA":
+                    if new_line["ACTION"].strip() == "NA":
                         s_x_p = {}
                         s_x_p.update(new_line["STATE"])
                         s_x_p.update(new_line["PARAMETERS"])
@@ -441,7 +440,7 @@ class Event:
                 # copy source state if dest state is '='
                 so = new_line["STATE_OUT"].copy()
                 for k in so:
-                    if str(so[k]).strip() == "=":
+                    if so[k].strip() == "=":
                         so[k] = se[k]
                 new_line["STATE"] = se
                 new_line["PARAMETERS"] = pe
@@ -449,7 +448,7 @@ class Event:
 
                 # here we have the expanded lines, remove from
                 # states_x_params the lines with action NA
-                if not str(new_line["ACTION"]).strip() == "NA":
+                if not new_line["ACTION"].strip() == "NA":
                     self.draw_transitions.append(Transition(name, new_line))
 
     def __str__(self):

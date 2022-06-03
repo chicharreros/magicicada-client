@@ -235,7 +235,7 @@ class PathLockingTree:
 
         # fix the stored ids and elements
         something_found = False
-        for key in self.stored_by_elements.keys():
+        for key in list(self.stored_by_elements.keys()):
             if key == from_elements:
                 new_key = to_elements
             elif key[:len(from_elements)] == from_elements:

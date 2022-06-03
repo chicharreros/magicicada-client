@@ -55,7 +55,7 @@ class VMHelperTest(BaseVolumeManagerTests):
 
         path = get_udf_path(suggested_path)
         expected = suggested_path.replace('/', os.path.sep)
-        expected = expand_user(expected.encode('utf8'))
+        expected = expand_user(expected)
         self.assertEqual(path, expected)
 
     def test_get_udf_path(self):
@@ -75,18 +75,16 @@ class VMHelperTest(BaseVolumeManagerTests):
         in_home = os.path.join(self.home_dir, 'foo')
         self.assertEqual('~/foo', get_udf_suggested_path(in_home))
 
-    def test_get_udf_suggested_path_expand_user_decode(self):
+    def test_get_udf_suggested_path_expand_user(self):
         """Test for get_udf_suggested_path."""
-        home = os.path.join(
-            self.home_dir.decode('utf-8'), '雄鳥お人好し ñandú')
+        home = os.path.join(self.home_dir, '雄鳥お人好し ñandú')
 
         def fake_expand_user(path):
             """Fake expand_user."""
-            return home.encode('utf-8')
+            return home
 
         self.patch(vm_helper, 'expand_user', fake_expand_user)
         in_home = os.path.join(home, 'ñoño')
-        in_home = in_home.encode('utf-8')
         suggested_path = get_udf_suggested_path(in_home)
         self.assertEqual('~/ñoño', suggested_path)
 
@@ -167,7 +165,7 @@ class GetShareDirNameTests(BaseVolumeManagerTests):
         result = get_share_dir_name(share)
 
         expected = '%s (%s, %s)' % (self.name, other_name, self.share_id)
-        self.assertEqual(result, expected.encode('utf8'))
+        self.assertEqual(result, expected)
 
     def test_get_share_dir_name_visible_name_empty(self):
         """Test for get_share_dir_name."""
@@ -178,4 +176,4 @@ class GetShareDirNameTests(BaseVolumeManagerTests):
         result = get_share_dir_name(share)
 
         expected = '%s (%s)' % (self.name, self.share_id)
-        self.assertEqual(result, expected.encode('utf8'))
+        self.assertEqual(result, expected)

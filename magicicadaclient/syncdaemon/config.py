@@ -32,7 +32,7 @@ import os
 import functools
 import logging
 
-from configparser import NoOptionError, NoSectionError
+from backports.configparser import NoOptionError, NoSectionError
 from optparse import OptionParser
 from dirspec.basedir import (
     load_config_paths,
@@ -174,7 +174,7 @@ def log_level_parser(value):
     log level is defined is to check the private attribute.
     """
     try:
-        level = logging._levelNames[value]
+        level = logging._nameToLevel[value]
     except KeyError:
         # if level don't exists in our custom levels, fallback to DEBUG
         level = logging.DEBUG

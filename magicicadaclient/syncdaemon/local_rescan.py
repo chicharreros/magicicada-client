@@ -73,23 +73,8 @@ log_warning = functools.partial(logger.log, logging.WARNING)
 
 
 def is_valid_name(path):
-    """Tell if the name is valid.
-
-    This checks for the bytes in the path to be utf-8 valid before let them
-    get into Syncdaemon.
-
-    There is a similar check in platform/linux/filesystem_notification.py; we
-    don't use that because this is more platform independant, will all go away
-    when put everything in unicode, and most importantly because don't want to
-    send invalid notifications and don't write in the invalid log for *every*
-    local rescan.
-    """
-    try:
-        path.decode("utf-8")
-    except UnicodeDecodeError:
-        return False
-    else:
-        return True
+    """Tell if the name is a valid str."""
+    return isinstance(path, str)
 
 
 class LocalRescan:
