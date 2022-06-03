@@ -962,8 +962,7 @@ class TestToolsSomeMore(TestToolsBase):
         vol_id = yield d
         self.assertEqual(vol_id, udf.volume_id)
 
-    @skipIfNotOS('linux2',
-                 "Exception is raised twice from PB in same process.")
+    @skipIfNotOS('linux', "Exception is raised twice from PB in same process.")
     @defer.inlineCallbacks
     def test_rescan_from_scratch_missing_volume(self):
         """Test for rescan_from_scratch method with a non-existing volume.."""
