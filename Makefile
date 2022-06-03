@@ -46,6 +46,7 @@ lint:
 	$(ENV)/bin/flake8 --exclude='u1fsfsm.py,test_run_hello.py' magicicadaclient contrib bin/*
 
 test: lint
+	loffice --accept="socket,host=localhost,port=2002;urp;" &
 	./run-tests
 
 clean:
