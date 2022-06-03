@@ -38,7 +38,7 @@ build:
 bootstrap: deps venv build
 
 venv:
-	virtualenv -p python3 $(ENV)
+	virtualenv -p python3 $(ENV) --system-site-packages
 	$(ENV)/bin/pip install -U pip setuptools
 	$(ENV)/bin/pip install -U -r requirements.txt -r requirements-devel.txt
 
@@ -46,6 +46,7 @@ lint:
 	$(ENV)/bin/flake8 --exclude='u1fsfsm.py,test_run_hello.py' magicicadaclient contrib bin/*
 
 test: lint
+	loffice --accept="socket,host=localhost,port=2002;urp;" &
 	./run-tests
 
 clean:
