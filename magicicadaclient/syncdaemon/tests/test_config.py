@@ -438,13 +438,13 @@ class TestConfigBasic(BaseTwistedTestCase):
         self.assertEqual(conf.get_memory_pool_limit(), 666)
 
 
-class UnicodePathsTestCase(TestCase):
-    """Tests for unicode paths."""
+class PathsTestCase(TestCase):
+    """Tests for paths."""
 
     def test_get_config_files_path_encoding(self):
         """Check that get_config_files uses paths in the right encoding."""
         temp = self.mktemp()
-        fake_path = os.path.join(temp, "Ñandú".encode("utf8"))
+        fake_path = os.path.join(temp, "Ñandú")
         assert isinstance(fake_path, str)
         os.makedirs(fake_path)
         with open(os.path.join(fake_path, config.CONFIG_FILE), "w") as f:
@@ -577,7 +577,7 @@ class XdgHomeParsersTests(BaseTwistedTestCase):
         actual = self.parser(self.good_value)
         self.assertEqual(expected, actual)
         self.assertIsInstance(actual, str)
-        self.assertNotIsInstance(actual, str)
+        self.assertNotIsInstance(actual, bytes)
 
     def test_bad_value(self):
         """Test the parser using a bad value."""

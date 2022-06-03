@@ -89,7 +89,7 @@ def _create_share(share_id, share_name, fsm, shares_dir,
                   access_level=ACCESS_LEVEL_RW):
     """Create a share."""
     assert isinstance(share_name, str)
-    share_path = os.path.join(shares_dir, share_name.encode('utf-8'))
+    share_path = os.path.join(shares_dir, share_name)
     make_dir(share_path, recursive=True)
     share = Share(path=share_path, volume_id=share_id,
                   access_level=access_level)
@@ -334,7 +334,6 @@ class CreationTests(FSMTestCase):
         real_mdobj = self.fsm.fs[mdid]
         del real_mdobj["stat"]
         del real_mdobj["generation"]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj
@@ -732,7 +731,6 @@ class CreationTests(FSMTestCase):
 
         # break the node on purpose
         real_mdobj = self.fsm.fs[mdid]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj
@@ -895,7 +893,6 @@ class CreationTests(FSMTestCase):
 
         # break the node on purpose
         real_mdobj = self.fsm.fs[mdid]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj
@@ -1514,7 +1511,7 @@ class GetMDObjectsInDirTests(FSMTestCase):
         for f in files:
             self.create_node(f, is_dir=False, share=share)
 
-        self.contents[share] = sorted(dirs + files)
+        self.contents[str(share)] = sorted(dirs + files)
 
     @defer.inlineCallbacks
     def setUp(self):
@@ -1607,7 +1604,7 @@ class StatTests(FSMTestCase):
         # create a partial
         self.fsm.create_partial(mdobj.node_id, mdobj.share_id)
         fh = self.fsm.get_partial_for_writing(mdobj.node_id, mdobj.share_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         mdobj = self.fsm.get_by_mdid(mdid)
         self.assertEqual(mdobj.stat, oldstat)
@@ -1632,7 +1629,7 @@ class StatTests(FSMTestCase):
         # create a partial
         self.fsm.create_partial(mdobj.node_id, mdobj.share_id)
         fh = self.fsm.get_partial_for_writing(mdobj.node_id, mdobj.share_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         mdobj = self.fsm.get_by_mdid(mdid)
         self.assertEqual(mdobj.stat, oldstat)
@@ -3475,7 +3472,6 @@ class RealVMTestCase(FSMTestCase):
         # break the node on purpose
         real_mdobj = self.fsm.fs[mdid]
         del real_mdobj["stat"]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid] = real_mdobj

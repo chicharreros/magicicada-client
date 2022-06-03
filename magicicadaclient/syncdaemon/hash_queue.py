@@ -230,7 +230,7 @@ class UniqueQueue(queue.Queue):
 
     def __init__(self, *args, **kwargs):
         """create the instance"""
-        super().__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.logger = logging.getLogger(
             '.'.join((__name__, self.__class__.__name__)))
 

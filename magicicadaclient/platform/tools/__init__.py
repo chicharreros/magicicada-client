@@ -436,8 +436,8 @@ class SyncDaemonTool:
         """Change the public access for a given path."""
         d = self.wait_for_signals(
             'PublicAccessChanged', 'PublicAccessChangeError',
-            success_filter=lambda info: info['path'] == path.decode('utf-8'),
-            error_filter=lambda info, _: info['path'] == path.decode('utf-8'))
+            success_filter=lambda info: info['path'] == path,
+            error_filter=lambda info, _: info['path'] == path)
 
         metadata = yield self.get_metadata(path)
         args = (metadata['share_id'], metadata['node_id'], is_public)

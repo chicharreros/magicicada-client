@@ -286,19 +286,18 @@ class OffloadQueueTestCase(TwistedTestCase):
     def _test_safe_push_write(self, count):
         """Fail when pushing an item will leave it all ok."""
 
-        class CrashingFile(io.StringIO):
+        class CrashingFile(io.BytesIO):
             """File-like object that crashes in second write."""
             def __init__(self):
                 self._fail_counter = 0
-                io.StringIO.__init__(self)
+                super().__init__()
 
             def write(self, *a):
                 """Crashing write."""
                 self._fail_counter += 1
                 if self._fail_counter == count:
                     raise ValueError("broken")
-                else:
-                    io.StringIO.write(self, *a)
+                super().write(*a)
 
         self.oq._tempfile = CrashingFile()
 

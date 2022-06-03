@@ -1152,8 +1152,6 @@ class Sync:
             try:
                 if not isinstance(dt, delta.FileInfoDelta):
                     continue
-                # Unicode boundary, convert dt.name
-                dt_name = dt.name.encode('utf-8')
                 # we only support files and directories
                 if dt.file_type == delta.DIRECTORY:
                     is_dir = True
@@ -1182,7 +1180,7 @@ class Sync:
                         continue
 
                     # node not there, we must create it
-                    args = (dt.share_id, dt.node_id, dt.parent_id, dt_name)
+                    args = (dt.share_id, dt.node_id, dt.parent_id, dt.name)
                     if is_dir:
                         node = self._handle_SV_DIR_NEW(*args)
                     else:
@@ -1201,8 +1199,7 @@ class Sync:
                                                         path_parent_name)
                 node_parent_id = self.m.fs.get_by_path(abs_parent_path).node_id
                 node_name = os.path.basename(node.path)
-                if dt.parent_id != node_parent_id or \
-                        dt_name != node_name:
+                if dt.parent_id != node_parent_id or dt.name != node_name:
                     # this was moved, or maybe the server still didn't receive
                     # the move that happened here
                     if not self.m.action_q.node_is_with_queued_move(
@@ -1211,7 +1208,7 @@ class Sync:
                         self._handle_SV_MOVED(
                             share_id=node.share_id, node_id=node.node_id,
                             new_share_id=dt.share_id,
-                            new_parent_id=dt.parent_id, new_name=dt_name)
+                            new_parent_id=dt.parent_id, new_name=dt.name)
                     else:
                         self.logger.info("Not calling _handle_SV_MOVED for "
                                          "%s:%s due to pending move. "
@@ -1219,7 +1216,7 @@ class Sync:
                                          "old_name = %s, new_name = %s)",
                                          node.share_id, node.node_id,
                                          node_parent_id, dt.parent_id,
-                                         node_name, dt_name)
+                                         node_name, dt.name)
 
                 # if its a dir, theres nothing else that we do with them except
                 # creating them.

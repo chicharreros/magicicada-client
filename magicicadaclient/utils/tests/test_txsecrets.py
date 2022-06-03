@@ -784,7 +784,8 @@ class CollectionTestCase(BaseTestCase):
         sample_secret = "secret!"
         yield coll.create_item("Cucaracha", attr, sample_secret)
         self.assertEqual(len(mock_collection.items), 1)
-        self.assertEqual(mock_collection.items[0].value, sample_secret)
+        self.assertEqual(
+            mock_collection.items[0].value, sample_secret.encode('utf-8'))
 
     @inlineCallbacks
     def test_create_item_prompt(self):
@@ -799,7 +800,8 @@ class CollectionTestCase(BaseTestCase):
         sample_secret = "secret2!"
         yield coll.create_item("Cucaracha", attr, sample_secret)
         self.assertEqual(len(mock_collection.items), 1)
-        self.assertEqual(mock_collection.items[0].value, sample_secret)
+        self.assertEqual(
+            mock_collection.items[0].value, sample_secret.encode('utf-8'))
 
     @inlineCallbacks
     def test_create_item_prompt_dismissed(self):
@@ -943,7 +945,8 @@ class AltItemTestCase(BaseTestCase):
         sample_secret = "secret!"
         yield coll.create_item("Cucaracha", attr, sample_secret)
         self.assertEqual(len(mock_collection.items), 1)
-        self.assertEqual(mock_collection.items[0].value, sample_secret)
+        self.assertEqual(
+            mock_collection.items[0].value, sample_secret.encode('utf-8'))
 
     @inlineCallbacks
     def test_get_value_four_fields_per_secret(self):

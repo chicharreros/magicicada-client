@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2009-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -996,9 +994,8 @@ class TestToolsSomeMore(TestToolsBase):
         self.assertIn(mdid4, dirty_mdids)
         self.assertNotIn(mdid1, dirty_mdids)
         self.assertNotIn(mdid3, dirty_mdids)
-        # check that path de/encoding is done correctly
-        self.assertEqual(repr(self.main.fs.get_by_mdid(mdid2).path),
-                         repr(dirty_mdids[mdid2]['path'].encode('utf-8')))
+        self.assertEqual(self.main.fs.get_by_mdid(mdid2).path,
+                         dirty_mdids[mdid2]['path'])
 
     @defer.inlineCallbacks
     def test_get_home_dir(self):
