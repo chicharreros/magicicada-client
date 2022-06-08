@@ -43,7 +43,7 @@ class RawOutputFormat:
         self.format = format or {}
 
     def simple(self, s, attribute):
-        return (self.format.get(attribute, '') + s +
+        return (self.format.get(attribute, '') + str(s) +
                 self.format.get('normal', ''))
 
     def punctuation(self, s):

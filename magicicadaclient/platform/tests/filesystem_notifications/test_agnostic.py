@@ -30,8 +30,6 @@
 
 """Test for the pyinotify implementation on windows."""
 
-import sys
-
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
@@ -54,15 +52,13 @@ class RawOutputFormatTest(TestCase):
         attr = 'attribute'
         self.format[attr] = attr
         value = 'ñoño'
-        expected_result = (attr + value.encode(
-                           sys.getfilesystemencoding(), 'replace') +
-                           self.format['normal'])
+        expected_result = attr + value + self.format['normal']
         self.assertEqual(expected_result, self.formatter.simple(value, attr))
 
-    def test_simple_not_unicode(self):
-        """Test the formatting of a simple value that is not unicode."""
+    def test_simple_bool(self):
+        """Test the formatting of a simple value that is a boolean."""
         attr = 'attribute'
         self.format[attr] = attr
         value = True
-        expected_result = (attr + str(value) + self.format['normal'])
+        expected_result = attr + str(value) + self.format['normal']
         self.assertEqual(expected_result, self.formatter.simple(value, attr))
