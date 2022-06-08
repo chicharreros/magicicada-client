@@ -107,7 +107,7 @@ class TestIllegalPaths(OSWrapperTests):
     def test_listdir(self, expected_result=None):
         """Return a list of the files in a dir."""
         _, valid_path_name = os.path.split(self.valid_path)
-        expected_result = [valid_path_name.encode('utf-8')]
+        expected_result = [valid_path_name]
         super(TestIllegalPaths, self).test_listdir(expected_result)
 
     def _assert_read_link(self, target):
@@ -116,7 +116,7 @@ class TestIllegalPaths(OSWrapperTests):
         darwin.make_link(self.testfile, destination)
 
         target = darwin.read_link(destination)
-        self.assertEqual(self.testfile.encode('utf-8'), target)
+        self.assertEqual(self.testfile, target)
 
     def test_make_link(self):
         """The link is properly made."""
@@ -124,8 +124,7 @@ class TestIllegalPaths(OSWrapperTests):
         darwin.make_link(self.testfile, destination)
 
         self.assertTrue(darwin.is_link(destination))
-        self.assertEqual(self.testfile.encode('utf-8'),
-                         darwin.read_link(destination))
+        self.assertEqual(self.testfile, darwin.read_link(destination))
 
 
 class TestIllegalPathsWalk(test_os_helper.WalkTests):

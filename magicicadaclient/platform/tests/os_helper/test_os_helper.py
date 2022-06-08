@@ -435,16 +435,6 @@ class OSWrapperTests(BaseTestCase):
         self.assertEqual(self.home_dir, result)
         self.assertFalse(result.endswith(os.path.sep))
 
-    def test_expand_user_fails_if_not_bytes(self):
-        """Test the expand_user function input assertions."""
-        path = 'userpath'
-        self.assertRaises(AssertionError, expand_user, path)
-
-    def test_expand_user_fails_if_not_utf8_encoded(self):
-        """Test the expand_user function input encoding."""
-        path = 'usérpath'.encode('latin-1')
-        self.assertRaises(AssertionError, expand_user, path)
-
 
 class RecursiveMoveTests(BaseTestCase):
     """Tests for os wrapper functions."""
@@ -474,7 +464,7 @@ class RecursiveMoveTests(BaseTestCase):
         # lets assume we can create a dir in a diff fs
         # add some fake data
         with open_file(self.src_file, "wb") as f:
-            f.write("spam")
+            f.write(b"spam")
 
     def _clean_recursive_move_dirs(self):
         """Clean the created files."""

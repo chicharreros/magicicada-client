@@ -246,7 +246,7 @@ def _windows_to_linux_path(path):
     for invalid, valid in LINUX_ILLEGAL_CHARS_MAP.items():
         path = path.replace(invalid, valid)
 
-    return (drive + path).encode('utf8')
+    return drive + path
 
 
 def get_syncdaemon_valid_path(path):
@@ -262,8 +262,6 @@ def get_syncdaemon_valid_path(path):
     2. Replace unicode chars: the path may have some unicode chars used to
     replace chars that are valid in other operating systems but not in windows,
     so we need to replace those characters back to the original bytes.
-
-    3. Return a sequence of bytes encoded with utf8.
 
     """
     assert_windows_path(path)
