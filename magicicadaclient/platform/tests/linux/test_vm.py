@@ -56,8 +56,7 @@ class VolumesTests(BaseVolumeManagerTests):
         suggested_path = "suggested_path"
         udf_path = get_udf_path("~/" + suggested_path)
         self.assertEqual(
-            os.path.join(self.home_dir, suggested_path.encode('utf-8')),
-            udf_path)
+            os.path.join(self.home_dir, suggested_path), udf_path)
 
 
 class MetadataOldLayoutTests(MetadataTestCase):
@@ -147,8 +146,8 @@ class MetadataOldLayoutTests(MetadataTestCase):
             "\x0caccess_levelq\x0cU\x04Viewq\rU\x04pathq\x0eU=/home/"
             "auser/Magicicada/Shared With Me/fakeshare from fakeuser"
             "q\x0fU\x08acceptedq\x10\x88U\x02idq\x11U$0664f050-9254-"
-            "45c5-9f31-3482858709e4q\x12ub.")
-        with open(share_file, 'w') as fd:
+            "45c5-9f31-3482858709e4q\x12ub.").encode('utf-8')
+        with open(share_file, 'wb') as fd:
             fd.write(share_value)
 
         # try to load the shelf
@@ -678,7 +677,7 @@ class MetadataNewLayoutTests(MetadataTestCase):
             udf_id = str(uuid.uuid4())
             udf_name = name + '_' + str(idx)
             udf = _UDF(
-                udf_id, str(uuid.uuid4()), '~/' + udf_name.decode('utf-8'),
+                udf_id, str(uuid.uuid4()), '~/' + udf_name,
                 os.path.join(self.home_dir, udf_name))
             if idx % 2:
                 udf.subscribed = True
@@ -978,7 +977,7 @@ class MetadataNewLayoutTests(MetadataTestCase):
             udf_id = str(uuid.uuid4())
             udf_name = name + '_' + str(idx)
             udf = UDF(
-                udf_id, str(uuid.uuid4()), '~/' + udf_name.decode('utf-8'),
+                udf_id, str(uuid.uuid4()), '~/' + udf_name,
                 os.path.join(self.home_dir, udf_name))
             if idx % 2:
                 udf.subscribed = True

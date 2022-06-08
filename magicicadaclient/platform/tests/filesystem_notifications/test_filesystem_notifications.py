@@ -65,7 +65,7 @@ class IgnoreFileTests(unittest.TestCase):
 
     def test_filter_one(self):
         """Filters stuff that matches (or not) this one regex."""
-        p = notify_processor.NotifyProcessor(None, [r'\A.*\\.pyc\Z'])
+        p = notify_processor.NotifyProcessor(None, [r'\A.*\.pyc\Z'])
         self.assertTrue(p.is_ignored("froo.pyc"))
         self.assertFalse(p.is_ignored("froo.pyc.real"))
         self.assertFalse(p.is_ignored("otherstuff"))

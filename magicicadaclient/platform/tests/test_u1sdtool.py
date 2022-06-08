@@ -82,7 +82,7 @@ class U1SDToolTests(TestToolsBase):
     def test_show_shares(self):
         """test the output of --list-shared """
         out = StringIO()
-        share_path = os.path.join(self.shares_dir, "ñoño".encode('utf-8'))
+        share_path = os.path.join(self.shares_dir, "ñoño")
         share = Share(path=share_path, name="ñoño", volume_id='share_id',
                       access_level=ACCESS_LEVEL_RO, other_username='fake_user',
                       other_visible_name="ñoño", accepted=False,
@@ -109,7 +109,7 @@ class U1SDToolTests(TestToolsBase):
 
     def test_show_shared(self):
         """test the output of --list-shared """
-        path = os.path.join(self.root_dir, "ñoño".encode('utf-8'))
+        path = os.path.join(self.root_dir, "ñoño")
         self.fs.create(path, "")
         self.fs.set_node_id(path, "node_id")
 
@@ -123,7 +123,7 @@ class U1SDToolTests(TestToolsBase):
         out = StringIO()
         expected = (
             "Shared list:\n  id=share_id name=shared_name accepted=False "
-            "access_level=View to=fake_user path=%s\n" % path.decode('utf-8'))
+            "access_level=View to=fake_user path=%s\n" % path)
         d = self.tool.list_shared()
         d.addCallback(lambda result: show_shared(result, out))
 
@@ -135,33 +135,19 @@ class U1SDToolTests(TestToolsBase):
 
     def test_show_path_info_non_ascii(self):
         """Test the output of --info with non-ascii paths """
-        return self.generic_test_show_path_info_unicode('utf-8')
-
-    def test_show_path_info_unicode_pipe(self):
-        """test the output of --info with unicode paths going to e.g. a pipe"""
-        return self.generic_test_show_path_info_unicode(None)
-
-    def generic_test_show_path_info_unicode(self, encoding):
-        """generic test for the output of --info with unicode paths """
-        path = os.path.join(self.root_dir, "ñoño".encode('utf-8'))
+        path = os.path.join(self.root_dir, 'ñoño')
         mdid = self.fs.create(path, "")
         self.fs.set_node_id(path, "uuid1")
         mdobj = self.fs.get_by_mdid(mdid)
         self.fs.create_partial(mdobj.node_id, mdobj.share_id)
         fh = self.fs.get_partial_for_writing(mdobj.node_id, mdobj.share_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         self.fs.commit_partial(mdobj.node_id, mdobj.share_id, "localhash")
         self.fs.remove_partial("uuid1", "")
 
-        if encoding is not None:
-            path = path.decode(encoding)
-        else:
-            path = path.decode('utf-8')
-
         d = self.tool.get_metadata(path)
         out = StringIO()
-        out.encoding = encoding
         expected = """ File: %(path_info)s
   crc32: None
   generation: None
@@ -183,10 +169,7 @@ class U1SDToolTests(TestToolsBase):
 """
 
         def callback(result):
-            if encoding is not None:
-                result.update(dict(path_info=path))
-            else:
-                result.update(dict(path_info=path))
+            result.update(dict(path_info=path))
             for k, v in result.items():
                 self.assertIsInstance(v, str)
             value = expected % result
@@ -379,18 +362,17 @@ class U1SDToolTests(TestToolsBase):
         udf = UDF("folder_id", "node_id", suggested_path, path,
                   subscribed=True)
         yield self.main.vm.add_udf(udf)
-        expected = "Folder list:\n  id=folder_id subscribed=True " + \
-                   "path=%s\n" % path.decode('utf-8')
+        expected = "Folder list:\n  id=folder_id subscribed=True path=%s\n"
         result = yield self.tool.get_folders()
         show_folders(result, out)
-        self.assertEqual(out.getvalue(), expected)
+        self.assertEqual(out.getvalue(), expected % path)
 
     @defer.inlineCallbacks
     def test_show_folders_unsubscribed(self):
         """Test the output of --list-folders with a unsubscribed folder."""
         out = StringIO()
-        path = 'ñoño'.encode('utf-8')
-        suggested_path = os.path.join("~", 'ñoño')
+        path = 'ñoño'
+        suggested_path = os.path.join("~", path)
 
         udf = UDF("folder_id", "node_id", suggested_path, path,
                   subscribed=True)

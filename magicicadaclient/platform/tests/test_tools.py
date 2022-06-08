@@ -702,7 +702,6 @@ class TestToolsSomeMore(TestToolsBase):
         node_id = '59809aae-9c5a-47e0-b37c-5abbfbe7c50a'
         share_id = ""
         path = os.path.join(self.root_dir, "ñoño")
-        path = path.encode('utf-8')
         self.fs.create(path, "")
         self.fs.set_node_id(path, node_id)
 
@@ -717,7 +716,7 @@ class TestToolsSomeMore(TestToolsBase):
 
         file_info = yield self.tool.change_public_access(path, True)
 
-        self.assertEqual(path.decode('utf-8'), file_info['path'])
+        self.assertEqual(path, file_info['path'])
         self.assertEqual(share_id, file_info['share_id'])
         self.assertEqual(node_id, file_info['node_id'])
         self.assertEqual('True', file_info['is_public'])
@@ -973,9 +972,9 @@ class TestToolsSomeMore(TestToolsBase):
     def test_get_dirty_nodes(self):
         """Test for get_dirty_nodes method."""
         # create some nodes
-        path1 = os.path.join(self.root_dir, 'ñoño-1'.encode('utf-8'))
+        path1 = os.path.join(self.root_dir, 'ñoño-1')
         mdid1 = self.main.fs.create(path1, "")
-        path2 = os.path.join(self.root_dir, 'ñoño-2'.encode('utf-8'))
+        path2 = os.path.join(self.root_dir, 'ñoño-2')
         mdid2 = self.main.fs.create(path2, "")
         path3 = os.path.join(self.root_dir, "path3")
         mdid3 = self.main.fs.create(path3, "")
@@ -1001,7 +1000,7 @@ class TestToolsSomeMore(TestToolsBase):
     def test_get_home_dir(self):
         """Test the get_home_dir method."""
         result = yield self.tool.get_home_dir()
-        self.assertEqual(self.main.get_homedir().decode('utf-8'), result)
+        self.assertEqual(self.main.get_homedir(), result)
 
     @defer.inlineCallbacks
     def test_get_root_dir(self):

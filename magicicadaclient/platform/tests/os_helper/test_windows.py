@@ -75,8 +75,7 @@ from magicicadaclient.platform.tests.os_helper.test_os_helper import (
 
 
 def _build_invalid_windows_bytes_name():
-    invalid_unicodes = ''.join(WINDOWS_ILLEGAL_CHARS_MAP)
-    invalid_filename = 'test_file' + invalid_unicodes.encode('utf8')
+    invalid_filename = 'test_file' + ''.join(WINDOWS_ILLEGAL_CHARS_MAP)
     return invalid_filename
 
 
@@ -330,15 +329,15 @@ class DecoratorsTestCase(TestCase):
         method_name = 'method_name'
         self.assert_error_raised(path, method_name)
 
-    def test_assert_windows_path_non_unicode(self):
+    def test_assert_windows_path_non_str(self):
         """A non-unicode path is invalid."""
         path = (LONG_PATH_PREFIX + 'C:\\Yadda').encode('utf8')
         self.assert_error_raised(path)
 
-    def test_assert_windows_method_name_path_non_unicode(self):
-        """A non-unicode path is invalid."""
+    def test_assert_windows_method_name_non_str(self):
+        """A non-str method_name is invalid."""
         path = (LONG_PATH_PREFIX + 'C:\\Yadda').encode('utf8')
-        method_name = 'method_name'
+        method_name = b'method_name'
         self.assert_error_raised(path, method_name)
 
     def test_assert_windows_path_non_literal(self):
