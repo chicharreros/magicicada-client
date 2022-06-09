@@ -27,13 +27,44 @@
 
 """Bitcask-like (row_type,key)/value store.
 
-Dummy layer on top of upstreamed Tritcask, left here to avoid changing multiple
-import clauses and in preparation for incoming Python 3 port.
+Abstraction layer on top of tritcask's upstream to handle str instead of bytes.
 
 """
 
 import tritcask
 
 
-Tritcask = tritcask.Tritcask
 TritcaskShelf = tritcask.TritcaskShelf
+
+
+class Tritcask(tritcask.Tritcask):
+    """Abstraction layer on top of tritcask.Tritcask."""
+
+    def __contains__(self, key):
+        """Return True if key is in self._keydir."""
+        row_type, k = key
+        if not isinstance(k, str):
+            raise ValueError('key must be a str (got %r).' % k)
+        return (row_type, k.encode('utf-8')) in self._keydir
+
+    def keys(self):
+        """Return the keys in self._keydir."""
+        return ((t, k.decode('utf-8')) for (t, k) in list(self._keydir.keys()))
+
+    def put(self, row_type, key, value):
+        """Put key/value in the store."""
+        if isinstance(key, str):
+            key = key.encode('utf-8')
+        super().put(row_type, key, value)
+
+    def get(self, row_type, key):
+        """Get the value for the specified row_type, key."""
+        if isinstance(key, str):
+            key = key.encode('utf-8')
+        return super().get(row_type, key)
+
+    def delete(self, row_type, key):
+        """Delete the key/value specified by key."""
+        if isinstance(key, str):
+            key = key.encode('utf-8')
+        super().delete(row_type, key)
