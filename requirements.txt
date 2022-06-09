@@ -9,4 +9,5 @@ PyGObject
 pyinotify
 Send2Trash
 tritcask
+git+https://github.com/verterok/tritcask.git
 Twisted
