@@ -396,7 +396,6 @@ class CreationTests(FSMTestCase):
 
         # break the node on purpose, with valid and not valid paths
         real_mdobj = self.fsm.fs[mdid1]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         del real_mdobj["generation"]
@@ -3540,7 +3539,6 @@ class RealVMTestCase(FSMTestCase):
 
         # break the node on purpose, with valid and not valid paths
         real_mdobj = self.fsm.fs[mdid1]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid1] = real_mdobj

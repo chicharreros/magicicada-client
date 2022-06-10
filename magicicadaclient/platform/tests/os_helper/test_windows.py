@@ -52,7 +52,7 @@ from win32file import (
 from magicicadaclient.platform.os_helper import windows as os_helper
 from magicicadaclient.platform.os_helper.windows import (
     _set_file_attributes,
-    _unicode_to_bytes,
+    _windows_to_linux_path,
     EVERYONE_SID,
     LONG_PATH_PREFIX,
     USER_SID,
@@ -107,7 +107,7 @@ class TestIllegalPaths(OSWrapperTests):
     def test_listdir(self, expected_result=None):
         """Return a list of the files in a dir."""
         _, valid_path_name = os.path.split(self.valid_path)
-        expected_result = [_unicode_to_bytes(valid_path_name)]
+        expected_result = [_windows_to_linux_path(valid_path_name)]
         super(TestIllegalPaths, self).test_listdir(expected_result)
 
     def test_make_link(self):
@@ -393,7 +393,7 @@ class TestIllegalPathsWalk(WalkTests):
         result = os.walk(valid_base_dir, topdown)
         expected = self._build_dict_from_walk(
             result, path_transformer=get_syncdaemon_valid_path,
-            name_transformer=_unicode_to_bytes)
+            name_transformer=_windows_to_linux_path)
         super(TestIllegalPathsWalk, self).test_top_down(topdown=topdown,
                                                         expected=expected)
 

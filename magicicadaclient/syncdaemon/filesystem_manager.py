@@ -38,6 +38,8 @@ import errno
 import stat
 import uuid
 
+from pathvalidate import is_valid_filepath
+
 from magicicadaclient import platform
 from magicicadaclient.clientdefs import NAME
 from magicicadaclient.syncdaemon import config, file_shelf
@@ -466,10 +468,8 @@ class FileSystemManager(object):
         logger("loading metadata from old version %r", old_version)
 
         for mdid, mdobj in self._safe_old_fs_items():
-            # assure path are bytes (new to version 2)
-            try:
-                mdobj["path"] = mdobj["path"].encode("utf8")
-            except UnicodeDecodeError:
+            # ensure path is valid (used to check for bytes paths)
+            if not is_valid_filepath(mdobj["path"], platform='auto'):
                 # this is an invalid path, we shouldn't have it
                 del self.old_fs[mdid]
                 continue
