@@ -144,12 +144,12 @@ def assert_windows_path(path, method_name=None):
 
     A 'valid windows path' should meet the following requirements:
 
-    * is an unicode
+    * is a str
     * is an absolute path
     * is a literal path (it starts with the LONG_PATH_PREFIX prefix)
-    * do not contain any invalid character (see WINDOWS_ILLEGAL_CHARS_MAP)
+    * does not contain any invalid character (see WINDOWS_ILLEGAL_CHARS_MAP)
 
-    Opcionally the name of the method that called the assertion can be passed
+    Optionally the name of the method that called the assertion can be passed
     to improve the assertion message.
 
     """
@@ -176,26 +176,19 @@ def assert_syncdaemon_path(path, method_name=None):
 
     A 'valid syncdaemon path' should meet the following requirements:
 
-    * is a bytes sequence
-    * is encoded with utf8
-    * do not contain the LONG_PATH_PREFIX
+    * is a str
+    * does not contain the LONG_PATH_PREFIX
 
     """
     messages = {
-        'byte_path': 'Path %r should be a bytes sequence.',
-        'utf8_path': 'Path %r should be encoded with utf8.',
+        'str_path': 'Path %r should be str.',
         'long_path': '%r should not start with the LONG_PATH_PREFIX.',
         'unicode_chars': '%r should not contain any character from '
                          'LINUX_ILLEGAL_CHARS_MAP.',
     }
     messages = _add_method_info(messages, method_name)
 
-    assert isinstance(path, str), messages['byte_path'] % path
-    try:
-        path = path.decode('utf8')
-    except UnicodeDecodeError:
-        raise AssertionError(messages['utf8_path'] % path)
-    # path is now a unicode, we can compare against other unicodes
+    assert isinstance(path, str), messages['str_path'] % path
     assert not path.startswith(LONG_PATH_PREFIX), messages['long_path']
     assert not any(c in LINUX_ILLEGAL_CHARS_MAP for c in path), \
         messages['unicode_chars'] % path
@@ -204,10 +197,8 @@ def assert_syncdaemon_path(path, method_name=None):
 # Functions to be used for path transformation
 
 
-def _bytes_to_unicode(path):
+def _linux_to_windows_path(path):
     """Convert a bytes path to a unicode path."""
-    # path is bytes, and non literal
-    path = path.decode('utf8')
     drive, path = os.path.splitdrive(path)
     # remove the illegal windows chars with similar ones
     for invalid, valid in WINDOWS_ILLEGAL_CHARS_MAP.items():
@@ -238,7 +229,7 @@ def get_windows_valid_path(path):
     assert_syncdaemon_path(path)
 
     # grab the absolute path
-    path = os.path.abspath(_bytes_to_unicode(path))
+    path = os.path.abspath(_linux_to_windows_path(path))
     result = LONG_PATH_PREFIX + path
 
     assert_windows_path(result)
@@ -248,7 +239,7 @@ def get_windows_valid_path(path):
 get_os_valid_path = get_windows_valid_path
 
 
-def _unicode_to_bytes(path):
+def _windows_to_linux_path(path):
     """Convert a unicode path to a bytes path."""
     # path is unicode and absolute
     drive, path = os.path.splitdrive(path)
@@ -279,7 +270,7 @@ def get_syncdaemon_valid_path(path):
 
     # path is unicode, absolute and literal
     path = path.replace(LONG_PATH_PREFIX, '')
-    result = _unicode_to_bytes(path)
+    result = _windows_to_linux_path(path)
 
     assert_syncdaemon_path(result)
     return result
@@ -755,7 +746,7 @@ def listdir(directory):
     # we do not want to work with.
 
     return map(
-        _unicode_to_bytes,
+        _windows_to_linux_path,
         [p for p in os.listdir(directory)
          if not native_is_system_path(os.path.join(directory, p))])
 
@@ -776,15 +767,15 @@ def walk(path, topdown=True):
     # does not. Nevertheless lets filter the same way in here so that if python
     # os.walk changes at some point, we do the same in BOTH methods.
     for dirpath, dirnames, filenames in os.walk(path, topdown):
-        dirpath = _unicode_to_bytes(dirpath.replace(LONG_PATH_PREFIX, ''))
+        dirpath = _windows_to_linux_path(dirpath.replace(LONG_PATH_PREFIX, ''))
         if native_is_system_path(dirpath):
             continue
         dirnames = map(
-            _unicode_to_bytes,
+            _windows_to_linux_path,
             [p for p in dirnames
              if not native_is_system_path(os.path.join(dirpath, p))])
         filenames = map(
-            _unicode_to_bytes,
+            _windows_to_linux_path,
             [p for p in filenames
              if not native_is_system_path(os.path.join(dirpath, p))])
         yield dirpath, dirnames, filenames
@@ -917,7 +908,7 @@ def get_path_list(path):
     path = path.replace(LONG_PATH_PREFIX, '')
     drive, path = os.path.splitdrive(path)
     # ensure that we do not return the windows unicode chars
-    path = _unicode_to_bytes(path)
+    path = _windows_to_linux_path(path)
     result = [LONG_PATH_PREFIX + drive]
     result.extend(path.split(os.path.sep))
     return result
