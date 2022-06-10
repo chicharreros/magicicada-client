@@ -89,7 +89,7 @@ def _create_share(share_id, share_name, fsm, shares_dir,
                   access_level=ACCESS_LEVEL_RW):
     """Create a share."""
     assert isinstance(share_name, str)
-    share_path = os.path.join(shares_dir, share_name.encode('utf-8'))
+    share_path = os.path.join(shares_dir, share_name)
     make_dir(share_path, recursive=True)
     share = Share(path=share_path, volume_id=share_id,
                   access_level=access_level)
@@ -396,7 +396,6 @@ class CreationTests(FSMTestCase):
 
         # break the node on purpose, with valid and not valid paths
         real_mdobj = self.fsm.fs[mdid1]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         del real_mdobj["generation"]
@@ -3540,7 +3539,6 @@ class RealVMTestCase(FSMTestCase):
 
         # break the node on purpose, with valid and not valid paths
         real_mdobj = self.fsm.fs[mdid1]
-        real_mdobj["path"] = str(real_mdobj["path"])
         real_mdobj["local_hash"] = None
         real_mdobj["server_hash"] = None
         self.fsm.fs[mdid1] = real_mdobj
