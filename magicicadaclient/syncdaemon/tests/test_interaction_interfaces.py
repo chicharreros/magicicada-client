@@ -1383,7 +1383,7 @@ class StatusEventListenerTestCase(SyncdaemonEventListenerTestCase):
         self.assertEqual(node_id, 'node')
         self.assertEqual(mdid, 'mdid')
         self.assertEqual(path, 'somepath')
-        self.assertTrue(isinstance(path, unicode))
+        self.assertIsInstance(path, unicode)
 
     @defer.inlineCallbacks
     def test_handle_SYS_BROKEN_NODE_partial_data(self):

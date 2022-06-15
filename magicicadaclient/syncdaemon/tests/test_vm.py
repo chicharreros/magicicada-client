@@ -792,7 +792,7 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         share = Share(path=share_path, volume_id='share_id', node_id="node_id")
         yield self.vm.add_share(share)
         self.assertIn(share.volume_id, self.vm.shares)
-        self.assertEqual(False, share.accepted)
+        self.assertFalse(share.accepted)
 
         def answer_share(share_id, answer):
             reactor.callLater(0.2, d.callback, (share_id, answer))
@@ -840,10 +840,10 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         share = Share(
             path=path, volume_id='share_id', access_level=ACCESS_LEVEL_RO)
         yield self.vm.add_shared(share)
-        self.assertEqual(False, self.vm.shared['share_id'].accepted)
+        self.assertFalse(self.vm.shared['share_id'].accepted)
         # check that a answer notify of a missing share don't blowup
         self.vm.handle_SV_SHARE_ANSWERED('share_id', 'Yes')
-        self.assertEqual(True, self.vm.shared['share_id'].accepted)
+        self.assertTrue(self.vm.shared['share_id'].accepted)
 
     def test_handle_SV_SHARE_ANSWERED_missing(self):
         """ test the handling of the AQ_SHARE_ANSWERED. """
@@ -1985,8 +1985,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
             self.assertEqual(udf.volume_id, str(udf_id))
             self.assertEqual(udf.node_id, str(node_id))
             self.assertEqual(udf.suggested_path, suggested_path)
-            self.assertTrue(isinstance(udf.suggested_path, unicode),
-                            'suggested_path should be unicode')
+            self.assertIsInstance(udf.suggested_path, unicode)
             self.assertIn(udf.volume_id, self.vm.udfs)
 
         self._listen_for('VM_UDF_CREATED', d.callback)
@@ -2748,14 +2747,14 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         volume = volumes.UDFVolume(uuid.uuid4(), uuid.uuid4(), None,
                                    10, suggested_path)
         udf = UDF.from_udf_volume(volume, path)
-        self.assertTrue(isinstance(udf.id, basestring))
-        self.assertTrue(isinstance(udf.node_id, basestring))
+        self.assertIsInstance(udf.id, basestring)
+        self.assertIsInstance(udf.node_id, basestring)
 
     def test_share_from_share_volume(self):
         """Test for Share.from_share_volume."""
         share = self._create_share()
-        self.assertTrue(isinstance(share.id, basestring))
-        self.assertTrue(isinstance(share.node_id, basestring))
+        self.assertIsInstance(share.id, basestring)
+        self.assertIsInstance(share.node_id, basestring)
 
     @defer.inlineCallbacks
     def test_volumes_list_args_as_AQ_wants(self):

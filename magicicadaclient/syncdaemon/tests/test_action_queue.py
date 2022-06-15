@@ -611,7 +611,7 @@ class TestRequestQueue(TwistedTestCase):
 
     def test_init_activedef(self):
         """Just instanced queue has the deferred to take."""
-        self.assertTrue(isinstance(self.rq.active_deferred, defer.Deferred))
+        self.assertIsInstance(self.rq.active_deferred, defer.Deferred)
 
     def test_run_goes_active(self):
         """Activate on run."""
@@ -649,8 +649,7 @@ class TestRequestQueue(TwistedTestCase):
 
         def fake_pause():
             """Check that RQ has a useful active_deferred."""
-            self.assertTrue(isinstance(self.rq.active_deferred,
-                                       defer.Deferred))
+            self.assertIsInstance(self.rq.active_deferred, defer.Deferred)
             self.assertFalse(self.rq.active_deferred.called)
             checked.callback(True)
 
@@ -1209,7 +1208,7 @@ class ConnectionTestCase(FactoryBaseTestCase):
         """Test connection state is properly reset."""
         self.assertTrue(self.action_queue.client is None)
         self.assertTrue(self.action_queue.connector is None)
-        self.assertEqual(False, self.action_queue.connect_in_progress)
+        self.assertFalse(self.action_queue.connect_in_progress)
 
     def test_init(self):
         """Test connection init state."""
@@ -2220,7 +2219,7 @@ class CreateUDFTestCase(ConnectedBaseTestCase):
 
     def test_is_action_queue_command(self):
         """Test proper inheritance."""
-        self.assertTrue(isinstance(self.command, ActionQueueCommand))
+        self.assertIsInstance(self.command, ActionQueueCommand)
 
     def test_init(self):
         """Test creation."""
@@ -2437,7 +2436,7 @@ class ListVolumesTestCase(ConnectedBaseTestCase):
 
     def test_is_action_queue_command(self):
         """Test proper inheritance."""
-        self.assertTrue(isinstance(self.command, ActionQueueCommand))
+        self.assertIsInstance(self.command, ActionQueueCommand)
 
     def test_run_returns_a_deferred(self):
         """Test a deferred is returned."""
@@ -2516,7 +2515,7 @@ class DeleteVolumeTestCase(ConnectedBaseTestCase):
 
     def test_is_action_queue_command(self):
         """Test proper inheritance."""
-        self.assertTrue(isinstance(self.command, ActionQueueCommand))
+        self.assertIsInstance(self.command, ActionQueueCommand)
 
     def test_init(self):
         """Test creation."""
@@ -2617,13 +2616,13 @@ class ChangePublicAccessTests(ConnectedBaseTestCase):
 
     def test_is_action_queue_command(self):
         """Test proper inheritance."""
-        self.assertTrue(isinstance(self.command, ActionQueueCommand))
+        self.assertIsInstance(self.command, ActionQueueCommand)
 
     def test_init(self):
         """Test creation."""
         self.assertEqual(VOLUME, self.command.share_id)
         self.assertEqual(NODE, self.command.node_id)
-        self.assertEqual(True, self.command.is_public)
+        self.assertTrue(self.command.is_public)
 
     def test_handle_success_push_event(self):
         """Test AQ_CHANGE_PUBLIC_ACCESS_OK is pushed on success."""
@@ -2685,7 +2684,7 @@ class GetPublicFilesTestCase(ConnectedBaseTestCase):
 
     def test_is_action_queue_command(self):
         """Test proper inheritance."""
-        self.assertTrue(isinstance(self.command, ActionQueueCommand))
+        self.assertIsInstance(self.command, ActionQueueCommand)
 
     def test_handle_success_push_event(self):
         """Test AQ_PUBLIC_FILES_LIST_OK is pushed on success."""
@@ -3038,7 +3037,7 @@ class DownloadTestCase(ConnectedBaseTestCase):
 
         # first run, it is just instantiated
         cmd._run()
-        self.assertTrue(isinstance(cmd.fileobj, FakeFileObj))
+        self.assertIsInstance(cmd.fileobj, FakeFileObj)
         self.assertEqual(cmd.fileobj.seek_count, 0)
         self.assertEqual(cmd.fileobj.truncate_count, 0)
 
@@ -3112,7 +3111,7 @@ class UploadUnconnectedTestCase(FactoryBaseTestCase):
         self.assertEqual(args[4], 0)
         self.assertEqual(args[5], 0)
         self.assertEqual(args[6], 123)
-        self.assertTrue(isinstance(args[7], UploadProgressWrapper))
+        self.assertIsInstance(args[7], UploadProgressWrapper)
         self.assertEqual(kwargs['magic_hash'], '666')
 
     def test_has_path(self):
@@ -4299,7 +4298,7 @@ class GetDeltaTestCase(ConnectedBaseTestCase):
     def test_is_action_queue_command(self):
         """Test proper inheritance."""
         cmd = GetDelta(self.rq, VOLUME, 0)
-        self.assertTrue(isinstance(cmd, ActionQueueCommand))
+        self.assertIsInstance(cmd, ActionQueueCommand)
 
     def test_run_returns_a_deferred(self):
         """Test a deferred is returned."""
@@ -4338,7 +4337,7 @@ class GetDeltaTestCase(ConnectedBaseTestCase):
                           end_generation=76,
                           full=True, free_bytes=1231234)
         self.assertEqual(received, ('AQ_DELTA_OK', delta_info))
-        self.assertTrue(isinstance(received[1]["delta_content"], DeltaList))
+        self.assertIsInstance(received[1]["delta_content"], DeltaList)
 
     def test_handle_generic_failure_push_event(self):
         """Test AQ_DELTA_ERROR is pushed on failure."""
@@ -4495,7 +4494,7 @@ class GetDeltaFromScratchTestCase(ConnectedBaseTestCase):
     def test_is_action_queue_command(self):
         """Test proper inheritance."""
         cmd = GetDeltaFromScratch(self.rq, VOLUME)
-        self.assertTrue(isinstance(cmd, ActionQueueCommand))
+        self.assertIsInstance(cmd, ActionQueueCommand)
 
     def test_run_returns_a_deferred(self):
         """Test a deferred is returned."""
@@ -4534,7 +4533,7 @@ class GetDeltaFromScratchTestCase(ConnectedBaseTestCase):
                           end_generation=76,
                           free_bytes=1231234)
         self.assertEqual(received, ('AQ_RESCAN_FROM_SCRATCH_OK', delta_info))
-        self.assertTrue(isinstance(received[1]["delta_content"], DeltaList))
+        self.assertIsInstance(received[1]["delta_content"], DeltaList)
 
     def test_handle_generic_failure_push_event(self):
         """Test AQ_DELTA_ERROR is pushed on failure."""
@@ -4908,7 +4907,7 @@ class TestDeltaList(unittest.TestCase):
         """A DeltaList is a list."""
         data = [1, 2, 3]
         a = DeltaList(data)
-        self.assertTrue(isinstance(a, list))
+        self.assertIsInstance(a, list)
 
     def test_is_equal_list(self):
         """A DeltaList is equal to the list it represents."""

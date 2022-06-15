@@ -451,7 +451,7 @@ class VolumeTestCase(BaseTestCase):
         mdobj = self.fsm.get_by_path(udf.path)
         d = self.lr.scan_dir(mdobj.mdid, udf.path)
         # scan_dir would fail if volumes are not included
-        self.assertTrue(isinstance(d, defer.Deferred))
+        self.assertIsInstance(d, defer.Deferred)
         return d
 
     def test_start_without_udf_itself(self):

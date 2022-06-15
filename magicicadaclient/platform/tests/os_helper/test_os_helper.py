@@ -210,7 +210,7 @@ class OSWrapperTests(BaseTestCase):
     def test_open_file_gets_a_fileobject(self):
         """Open a file, and get a file object."""
         f = open_file(self.testfile)
-        self.assertTrue(isinstance(f, file))
+        self.assertIsInstance(f, file)
 
     def test_open_file_read(self):
         """Open a file, and read."""
