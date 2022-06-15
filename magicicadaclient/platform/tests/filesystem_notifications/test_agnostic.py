@@ -35,7 +35,7 @@ import sys
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic import (
+from magicicadaclient.platform.filesystem_notifications.agnostic import (
     RawOutputFormat)
 
 

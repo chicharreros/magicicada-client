@@ -52,7 +52,7 @@ from magicicadaclient.platform.filesystem_notifications.monitor.common import (
     Watch,
     WatchManager,
 )
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic \
+from magicicadaclient.platform.filesystem_notifications.agnostic \
     import (
         ProcessEvent,
         IN_CLOSE_WRITE,

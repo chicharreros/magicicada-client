@@ -43,7 +43,7 @@ venv:
 	$(ENV)/bin/pip install -r requirements.txt -r requirements-devel.txt
 
 lint:
-	$(ENV)/bin/flake8 --filename='*.py' --exclude='u1fsfsm.py,test_run_hello.py' ubuntuone contrib
+	$(ENV)/bin/flake8 --filename='*.py' --exclude='u1fsfsm.py,test_run_hello.py' magicicadaclient contrib
 
 test: lint
 	./run-tests

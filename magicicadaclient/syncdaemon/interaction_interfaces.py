@@ -56,7 +56,11 @@ from magicicadaclient.platform import ExternalInterface
 from magicicadaclient.syncdaemon import config
 from magicicadaclient.syncdaemon.action_queue import Download, Upload
 from magicicadaclient.syncdaemon.interfaces import IMarker
-from magicicadaclient.syncdaemon.volume_manager import Share, UDF, VolumeDoesNotExist
+from magicicadaclient.syncdaemon.volume_manager import (
+    Share,
+    UDF,
+    VolumeDoesNotExist,
+)
 
 
 logger = logging.getLogger("ubuntuone.SyncDaemon.InteractionInterfaces")

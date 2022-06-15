@@ -119,27 +119,19 @@ class TestToolsBasic(TestToolsBase):
         """Test wait_connected."""
         self.action_q.connect()
         result = yield self.tool.wait_connected()
-        self.assertEqual(True, result)
+        self.assertTrue(result)
 
+    @defer.inlineCallbacks
     def test_all_downloads(self):
         """ test wait_all_downloads """
-        d = self.tool.wait_all_downloads()
+        result = yield self.tool.wait_all_downloads()
+        self.assertTrue(result)
 
-        # test callback, pylint: disable-msg=C0111
-        def downloads(result):
-            self.assertEqual(True, result)
-        d.addBoth(downloads)
-        return d
-
+    @defer.inlineCallbacks
     def test_all_uploads(self):
         """ test wait_all_uploads """
-        d = self.tool.wait_all_uploads()
-
-        # test callback, pylint: disable-msg=C0111
-        def uploads(result):
-            self.assertEqual(True, result)
-        d.addBoth(uploads)
-        return d
+        result = yield self.tool.wait_all_uploads()
+        self.assertTrue(result)
 
     def test_wait_for_nirvana(self):
         """Test wait_for_nirvana."""
@@ -151,11 +143,7 @@ class TestToolsBasic(TestToolsBase):
         self.event_q.unsubscribe(self.main.vm)
         self.event_q.unsubscribe(self.main.state_manager)
         d = self.tool.wait_for_nirvana(last_event_interval=.1)
-
-        # test callback, pylint: disable-msg=C0111
-        def callback(result):
-            self.assertEqual(True, result)
-        d.addBoth(callback)
+        d.addBoth(lambda result: self.assertTrue(result))
 
         # clear downloading
         reactor.callLater(0, self.action_q.connect)

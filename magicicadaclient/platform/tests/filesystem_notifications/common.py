@@ -38,7 +38,7 @@ from twisted.internet import defer
 
 from devtools.handlers import MementoHandler
 from magicicadaclient.testing.testcase import BaseTwistedTestCase
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic \
+from magicicadaclient.platform.filesystem_notifications.agnostic \
     import (
         EventsCodes,
         ProcessEvent,

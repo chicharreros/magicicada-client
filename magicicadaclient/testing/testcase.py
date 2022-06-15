@@ -239,10 +239,10 @@ class FakeMain(main.Main):
     _sync_class = None
     _monitor_class = FakeMonitor
 
-    # don't call Main.__init__ we take care of creating a fake main and
-    # all its attributes. pylint: disable=W0231
     def __init__(self, root_dir, shares_dir, data_dir, partials_dir):
         """ create the instance. """
+        # don't call Main.__init__: we take care of creating a fake main and
+        # all its attributes.
         self.logger = logging.getLogger('ubuntuone.SyncDaemon.FakeMain')
         self.root_dir = root_dir
         self.data_dir = data_dir
@@ -334,7 +334,7 @@ class BaseTwistedTestCase(TwistedTestCase):
                             self.__class__.__name__[:self.MAX_FILENAME],
                             self._testMethodName)
         # use _trial_temp dir, it should be TRIAL_TEMP_DIR or os.getcwd()
-        # define the root temp dir of the testcase, pylint: disable=W0201
+        # define the root temp dir of the testcase
         root_tmp = os.environ.get('TRIAL_TEMP_DIR', os.getcwd())
         self.__root = os.path.join(root_tmp, '_trial_temp', base)
         self.addCleanup(self.rmtree, self.__root)

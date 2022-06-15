@@ -43,21 +43,12 @@ from twisted.spread.pb import (
 from twisted.trial.unittest import TestCase
 
 from devtools.testcases import skipIf, skipIfOS
-from magicicadaclient.testing.testcase import FakedService, FakeMainTestCase
-from magicicadaclient.platform.ipc import perspective_broker as ipc
-from magicicadaclient.platform.ipc.perspective_broker import (
-    Config,
-    Events,
-    Folders,
-    FileSystem,
-    PublicFiles,
-    RemoteMeta,
-    Shares,
-    SignalBroadcaster,
-    Status,
-    SyncDaemon,
+from devtools.testcases.txsocketserver import (
+    TidyUnixServer,
+    TCPPbServerTestCase,
 )
-from magicicadaclient.platform.ipc import ipc_client
+from magicicadaclient.networkstate.networkstates import ONLINE
+from magicicadaclient.platform.ipc import ipc_client, perspective_broker as ipc
 from magicicadaclient.platform.ipc.ipc_client import (
     signal,
     ConfigClient,
@@ -70,25 +61,21 @@ from magicicadaclient.platform.ipc.ipc_client import (
     SyncDaemonClient,
     SharesClient,
 )
+from magicicadaclient.platform.ipc.perspective_broker import (
+    Config,
+    Events,
+    Folders,
+    FileSystem,
+    PublicFiles,
+    RemoteMeta,
+    Shares,
+    SignalBroadcaster,
+    Status,
+    SyncDaemon,
+)
 from magicicadaclient.syncdaemon import interaction_interfaces
-try:
-    from magicicadaclient.networkstate.networkstates import ONLINE
-except ImportError:
-    from magicicadaclient.networkstate import ONLINE
+from magicicadaclient.testing.testcase import FakedService, FakeMainTestCase
 
-
-class NoTestCase(object):
-    """Dummy class to be used when txsocketserver is not available."""
-
-
-try:
-    from ubuntuone.devtools.testcases.txsocketserver import (
-        TidyUnixServer,
-        TCPPbServerTestCase,
-    )
-except ImportError:
-    TidyUnixServer = None
-    TCPPbServerTestCase = NoTestCase
 
 TEST_PORT = 40404
 TEST_DOMAIN_SOCKET = os.path.join(basedir.xdg_cache_home, 'ubuntuone', 'ipc')
@@ -389,8 +376,6 @@ class RemoteClientTestCase(TestCase):
         self.assertEqual(fake_remote_object.called, expected)
 
 
-@skipIf(TCPPbServerTestCase is NoTestCase,
-        'Testcases from txsocketserver not availble.')
 class IPCTestCase(FakeMainTestCase, TCPPbServerTestCase):
     """Set the ipc to a random port for this instance."""
 

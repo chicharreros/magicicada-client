@@ -1589,7 +1589,6 @@ class MetadataUpgrader(object):
 
     def _upgrade_metadata_None(self, md_version):
         """Upgrade the shelf layout, for *very* old clients."""
-        from magicicadaclient.syncdaemon.volume_manager import LegacyShareFileShelf
         self.log.debug('Upgrading the share shelf layout')
         # the shelf already exists, and don't have a .version file
         # first backup the old data
@@ -1630,7 +1629,6 @@ class MetadataUpgrader(object):
         Upgrade all pickled Share to the new package/module layout.
 
         """
-        from magicicadaclient.syncdaemon.volume_manager import LegacyShareFileShelf
         self.log.debug('upgrading share shelfs from metadata 1')
         shares = LegacyShareFileShelf(self._shares_md_dir)
         for key, share in shares.iteritems():
@@ -1700,7 +1698,6 @@ class MetadataUpgrader(object):
         move "~/<root>/My Files" contents to "~/<root>"
 
         """
-        from magicicadaclient.syncdaemon.volume_manager import LegacyShareFileShelf
         self.log.debug('upgrading from metadata 3 (new layout)')
         old_share_dir = os.path.join(self._root_dir, 'Shared With Me')
         old_root_dir = os.path.join(self._root_dir, 'My Files')
@@ -1783,8 +1780,6 @@ class MetadataUpgrader(object):
 
     def _upgrade_metadata_5(self, md_version):
         """Upgrade to version 6 (plain dict storage)."""
-        from magicicadaclient.syncdaemon.volume_manager import (
-            VMFileShelf, LegacyShareFileShelf, UDF)
         self.log.debug('upgrading from metadata 5')
         bkp_dir = os.path.join(os.path.dirname(self._data_dir), '5.bkp')
         new_md_dir = os.path.join(os.path.dirname(self._data_dir), 'md_6.new')
@@ -1820,8 +1815,6 @@ class MetadataUpgrader(object):
 
     def _upgrade_share_to_volume(self, share, shared=False):
         """Upgrade from _Share to new Volume hierarchy."""
-        from magicicadaclient.syncdaemon.volume_manager import (
-            VMFileShelf, Root, Share, Shared)
 
         def upgrade_share_dict(share):
             """Upgrade share __dict__ to be compatible with the
@@ -1857,10 +1850,6 @@ class MetadataUpgrader(object):
 
     def _upgrade_metadata_6(self, md_version):
         """Upgrade to version 7, tritcask!."""
-        from magicicadaclient.syncdaemon.volume_manager import (
-            VMFileShelf, VMTritcaskShelf,
-            SHARE_ROW_TYPE, SHARED_ROW_TYPE, UDF_ROW_TYPE,
-        )
         self.log.debug('upgrading from metadata 6')
         old_shares = VMFileShelf(self._shares_md_dir)
         old_shared = VMFileShelf(self._shared_md_dir)

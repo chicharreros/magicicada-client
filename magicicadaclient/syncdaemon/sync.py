@@ -39,7 +39,10 @@ from operator import attrgetter
 from magicicadaprotocol import delta
 
 from magicicadaclient.syncdaemon.marker import MDMarker
-from magicicadaclient.syncdaemon.fsm.fsm import StateMachineRunner, StateMachine
+from magicicadaclient.syncdaemon.fsm.fsm import (
+    StateMachineRunner,
+    StateMachine,
+)
 from magicicadaclient.syncdaemon import u1fsfsm
 from magicicadaclient.syncdaemon.logger import DebugCapture
 from magicicadaclient.syncdaemon.filesystem_manager import (

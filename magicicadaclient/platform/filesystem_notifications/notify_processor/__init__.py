@@ -31,15 +31,13 @@
 import sys
 
 if sys.platform in ('win32', 'darwin'):
-    from magicicadaclient.platform.filesystem_notifications.notify_processor import (
-        common,
-    )
+    from magicicadaclient.platform.filesystem_notifications.notify_processor \
+        import common
     # workaround due to pyflakes :(
     source = common
 else:
-    from magicicadaclient.platform.filesystem_notifications.notify_processor import (
-        linux,
-    )
+    from magicicadaclient.platform.filesystem_notifications.notify_processor \
+        import linux
     # workaround due to pyflakes :(
     source = linux
 

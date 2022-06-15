@@ -112,11 +112,11 @@ class U1SDToolTests(TestToolsBase):
         path = os.path.join(self.root_dir, u"ñoño".encode('utf-8'))
         self.fs.create(path, "")
         self.fs.set_node_id(path, "node_id")
-        # helper function, pylint: disable-msg=C0111
 
         def fake_create_share(node_id, user, name, access_level, marker, path):
             self.main.vm.handle_AQ_CREATE_SHARE_OK(
                 share_id='share_id', marker=marker)
+
         self.main.action_q.create_share = fake_create_share
         self.main.vm.create_share(path, 'fake_user', 'shared_name',
                                   ACCESS_LEVEL_RO)
@@ -181,7 +181,6 @@ class U1SDToolTests(TestToolsBase):
   size: None
   stat: %(stat)s
 """
-        # the callback, pylint: disable-msg=C0111
 
         def callback(result):
             if encoding is not None:
@@ -192,7 +191,6 @@ class U1SDToolTests(TestToolsBase):
                 self.assertIsInstance(v, unicode)
             value = expected % result
             self.assertEqual(out.getvalue(), value)
-        # helper callback, pylint: disable-msg=C0111
 
         def show(result):
             show_path_info(result, path, out)

@@ -42,8 +42,13 @@ from magicicadaclient.testing.testcase import (
     FakeVolumeManager,
     skip_if_win32_missing_fs_event,
 )
-from magicicadaclient.syncdaemon import (filesystem_manager, event_queue,
-                                  events_nanny, hash_queue, tritcask)
+from magicicadaclient.syncdaemon import (
+    filesystem_manager,
+    event_queue,
+    events_nanny,
+    hash_queue,
+    tritcask,
+)
 
 
 class EventListener(object):

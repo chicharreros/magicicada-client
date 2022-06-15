@@ -67,7 +67,7 @@ from magicicadaclient.platform.os_helper.windows import (
     get_syncdaemon_valid_path,
 )
 
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic import (
+from magicicadaclient.platform.filesystem_notifications.agnostic import (
     IN_CREATE,
     IN_DELETE,
     IN_MODIFY,

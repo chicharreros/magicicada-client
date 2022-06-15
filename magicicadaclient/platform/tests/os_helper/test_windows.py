@@ -31,7 +31,6 @@
 import errno
 import os
 import shutil
-import sys
 
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
@@ -73,12 +72,6 @@ from magicicadaclient.platform.tests.os_helper.test_os_helper import (
     OSWrapperTests,
     WalkTests,
 )
-
-
-# ugly trick to stop pylint for complaining about
-# WindowsError on Linux
-if sys.platform != 'win32':
-    WindowsError = Exception
 
 
 def _build_invalid_windows_bytes_name():

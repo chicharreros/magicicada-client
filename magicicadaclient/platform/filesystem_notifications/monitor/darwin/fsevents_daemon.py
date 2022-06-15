@@ -37,10 +37,9 @@ from twisted.internet import defer, endpoints, reactor
 
 from magicicadaclient import logger
 from magicicadaclient import fseventsd
-from magicicadaclient.platform.filesystem_notifications.notify_processor import (
-    NotifyProcessor,
-)
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic import (
+from magicicadaclient.platform.filesystem_notifications.notify_processor \
+    import NotifyProcessor
+from magicicadaclient.platform.filesystem_notifications.agnostic import (
     Event,
     IN_OPEN,
     IN_CLOSE_NOWRITE,

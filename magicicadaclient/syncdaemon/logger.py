@@ -42,10 +42,14 @@ from magicicadaclient.logger import (
     Logger,
     MultiFilter,
 )
-from magicicadaclient.platform.logger import ubuntuone_log_dir
 # api compatibility imports
 from magicicadaclient import logger
-from magicicadaclient.platform import get_filesystem_logger, setup_filesystem_logging
+from magicicadaclient.platform import (
+    get_filesystem_logger,
+    setup_filesystem_logging,
+)
+from magicicadaclient.platform.logger import ubuntuone_log_dir
+
 DebugCapture = logger.DebugCapture
 NOTE = logger.NOTE
 TRACE = logger.TRACE
