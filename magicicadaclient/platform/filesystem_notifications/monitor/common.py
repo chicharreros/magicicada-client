@@ -35,7 +35,7 @@ import sys
 from twisted.internet import defer
 
 from magicicadaclient.platform.filesystem_notifications import notify_processor
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic import (
+from magicicadaclient.platform.filesystem_notifications.agnostic import (
     Event,
     WatchManagerError,
     IN_CREATE,
@@ -55,12 +55,14 @@ from magicicadaclient.platform.os_helper import (
 
 
 if sys.platform == 'darwin':
-    from magicicadaclient.platform.filesystem_notifications.monitor.darwin import (
-        fsevents_client,
+    from magicicadaclient.platform.filesystem_notifications.monitor import (
+        darwin,
     )
-    source = fsevents_client
+    source = darwin.fsevents_client
 elif sys.platform == 'win32':
-    from magicicadaclient.platform.filesystem_notifications.monitor import windows
+    from magicicadaclient.platform.filesystem_notifications.monitor import (
+        windows,
+    )
     source = windows
 else:
     raise ImportError('Not supported platform')

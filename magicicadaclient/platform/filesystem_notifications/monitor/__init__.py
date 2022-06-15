@@ -54,8 +54,8 @@ if sys.platform == 'win32':
     ACTIONS = windows.ACTIONS
 
 elif sys.platform == 'darwin':
-    from magicicadaclient.platform.filesystem_notifications.monitor import darwin
     from magicicadaclient.platform.filesystem_notifications.monitor import (
+        darwin,
         common,
     )
 

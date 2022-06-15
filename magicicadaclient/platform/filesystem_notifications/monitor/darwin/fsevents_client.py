@@ -33,7 +33,7 @@ import os
 import fsevents
 from twisted.internet import defer, reactor
 
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic import (
+from magicicadaclient.platform.filesystem_notifications.agnostic import (
     IN_DELETE,
     IN_CREATE,
     IN_MODIFY,

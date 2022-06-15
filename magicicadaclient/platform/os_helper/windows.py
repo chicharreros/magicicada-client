@@ -33,7 +33,6 @@ import logging
 import os
 import shutil
 import stat
-import sys
 
 from contextlib import contextmanager
 from functools import wraps
@@ -75,10 +74,6 @@ from win32security import (
 from comtypes import shelllink
 from comtypes.client import CreateObject
 from comtypes.persist import IPersistFile
-
-# ugly trick to stop pylint for complaining about WindowsError on Linux
-if sys.platform != 'win32':
-    WindowsError = None
 
 
 logger = logging.getLogger('ubuntuone.SyncDaemon.VM')

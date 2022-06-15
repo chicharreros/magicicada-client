@@ -49,7 +49,9 @@ from magicicadaclient.syncdaemon import (
     volume_manager,
 )
 from magicicadaclient import syncdaemon, clientdefs
-from magicicadaclient.syncdaemon.interaction_interfaces import SyncdaemonService
+from magicicadaclient.syncdaemon.interaction_interfaces import (
+    SyncdaemonService,
+)
 from magicicadaclient.syncdaemon.states import StateManager, QueueManager
 
 

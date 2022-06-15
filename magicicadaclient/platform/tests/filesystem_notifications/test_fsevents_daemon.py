@@ -39,7 +39,7 @@ from magicicadaclient import fseventsd
 from magicicadaclient.platform.filesystem_notifications.monitor.darwin import (
     fsevents_daemon,
 )
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic \
+from magicicadaclient.platform.filesystem_notifications.agnostic \
     import (
         IN_CREATE,
         IN_DELETE,

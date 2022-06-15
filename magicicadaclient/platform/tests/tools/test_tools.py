@@ -28,7 +28,6 @@
 # files in the program, then also delete it here.
 """Tests for some tools for talking to the syncdaemon."""
 
-import sys
 import operator
 
 from twisted.internet import defer
@@ -36,12 +35,6 @@ from twisted.spread import pb
 from twisted.trial.unittest import TestCase
 
 from magicicadaclient.platform.tools import perspective_broker
-
-
-# ugly trick to stop pylint for complaining about
-# WindowsError on Linux
-if sys.platform != 'win32':
-    WindowsError = None
 
 
 class TestSyncDaemonTool(TestCase):

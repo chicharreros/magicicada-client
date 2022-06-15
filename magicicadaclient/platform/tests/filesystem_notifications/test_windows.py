@@ -39,21 +39,12 @@ from magicicadaclient.testing.testcase import BaseTwistedTestCase
 
 from magicicadaclient.platform.filesystem_notifications.monitor import (
     common,
-    windows as filesystem_notifications,
+    windows,
 )
 from magicicadaclient.platform.filesystem_notifications.monitor.common import (
     FilesystemMonitor,
     Watch,
     WatchManager,
-)
-from magicicadaclient.platform.filesystem_notifications.monitor.windows import (
-    FILE_NOTIFY_CHANGE_FILE_NAME,
-    FILE_NOTIFY_CHANGE_DIR_NAME,
-    FILE_NOTIFY_CHANGE_ATTRIBUTES,
-    FILE_NOTIFY_CHANGE_SIZE,
-    FILE_NOTIFY_CHANGE_LAST_WRITE,
-    FILE_NOTIFY_CHANGE_SECURITY,
-    FILE_NOTIFY_CHANGE_LAST_ACCESS,
 )
 from magicicadaclient.platform.tests.filesystem_notifications import (
     common as common_tests,
@@ -84,13 +75,15 @@ class TestWatch(common_tests.TestWatch):
         self.path = u'\\\\?\\C:\\path'  # a valid windows path
         self.common_path = u'C:\\path'
         self.invalid_path = u'\\\\?\\C:\\path\\to\\no\\dir'
-        self.mask = FILE_NOTIFY_CHANGE_FILE_NAME | \
-            FILE_NOTIFY_CHANGE_DIR_NAME | \
-            FILE_NOTIFY_CHANGE_ATTRIBUTES | \
-            FILE_NOTIFY_CHANGE_SIZE | \
-            FILE_NOTIFY_CHANGE_LAST_WRITE | \
-            FILE_NOTIFY_CHANGE_SECURITY | \
-            FILE_NOTIFY_CHANGE_LAST_ACCESS
+        self.mask = (
+            windows.FILE_NOTIFY_CHANGE_FILE_NAME |
+            windows.FILE_NOTIFY_CHANGE_DIR_NAME |
+            windows.FILE_NOTIFY_CHANGE_ATTRIBUTES |
+            windows.FILE_NOTIFY_CHANGE_SIZE |
+            windows.FILE_NOTIFY_CHANGE_LAST_WRITE |
+            windows.FILE_NOTIFY_CHANGE_SECURITY |
+            windows.FILE_NOTIFY_CHANGE_LAST_ACCESS
+        )
         self.fake_events_processor = FakeEventsProcessor()
 
         def file_notify_information_wrapper(buf, data):
@@ -105,8 +98,9 @@ class TestWatch(common_tests.TestWatch):
             self.raw_events.append(str_events)
             return events
 
-        self.patch(filesystem_notifications, 'FILE_NOTIFY_INFORMATION',
-                   file_notify_information_wrapper)
+        self.patch(
+            windows, 'FILE_NOTIFY_INFORMATION',
+            file_notify_information_wrapper)
 
     @defer.inlineCallbacks
     def test_file_write(self):
@@ -175,7 +169,7 @@ class TestWatch(common_tests.TestWatch):
     def test_start_watching_fails_early_in_thread(self):
         """An early failure inside the thread should errback the deferred."""
         test_path = self.mktemp("test_directory")
-        self.patch(filesystem_notifications, "CreateFileW", self.random_error)
+        self.patch(windows, "CreateFileW", self.random_error)
         watch = Watch(1, test_path, None)
         d = watch.start_watching()
         yield self.assertFailure(d, common_tests.FakeException)
@@ -184,8 +178,7 @@ class TestWatch(common_tests.TestWatch):
     def test_start_watching_fails_late_in_thread(self):
         """A late failure inside the thread should errback the deferred."""
         test_path = self.mktemp("test_directory")
-        self.patch(filesystem_notifications, "ReadDirectoryChangesW",
-                   self.random_error)
+        self.patch(windows, "ReadDirectoryChangesW", self.random_error)
         watch = Watch(1, test_path, None)
         d = watch.start_watching()
         yield self.assertFailure(d, common_tests.FakeException)
@@ -195,11 +188,9 @@ class TestWatch(common_tests.TestWatch):
         """CloseHandle is called when there's an error in the watch thread."""
         test_path = self.mktemp("test_directory")
         close_called = []
-        self.patch(filesystem_notifications, "CreateFileW", lambda *_: None)
-        self.patch(filesystem_notifications, "CloseHandle",
-                   close_called.append)
-        self.patch(filesystem_notifications, "ReadDirectoryChangesW",
-                   self.random_error)
+        self.patch(windows, "CreateFileW", lambda *_: None)
+        self.patch(windows, "CloseHandle", close_called.append)
+        self.patch(windows, "ReadDirectoryChangesW", self.random_error)
         watch = Watch(1, test_path, self.mask)
         d = watch.start_watching()
         yield self.assertFailure(d, common_tests.FakeException)
@@ -249,7 +240,7 @@ class TestWatchManager(common_tests.TestWatchManager):
         self.assertTrue(self.was_called, 'The watch start was not called.')
         self.assertEqual(self.path + os.path.sep, self.manager._wdm[0].path)
         self.assertEqual(
-            filesystem_notifications.FILESYSTEM_MONITOR_MASK,
+            windows.FILESYSTEM_MONITOR_MASK,
             self.manager._wdm[0].platform_watch._mask)
         self.manager._wdm[0].stopped.callback(None)
 

@@ -34,7 +34,7 @@ import sys
 from magicicadaclient.syncdaemon.filesystem_notifications import (
     GeneralINotifyProcessor,
 )
-from magicicadaclient.platform.filesystem_notifications.pyinotify_agnostic import (
+from magicicadaclient.platform.filesystem_notifications.agnostic import (
     Event,
     ProcessEvent,
     IN_OPEN,

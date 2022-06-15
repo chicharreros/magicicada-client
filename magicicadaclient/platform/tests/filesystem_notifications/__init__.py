@@ -62,7 +62,6 @@ class BaseFSMonitorTestCase(testcase.BaseTwistedTestCase):
         self.deferred = deferred = defer.Deferred()
 
         class HitMe(object):
-            # class-closure, cannot use self, pylint: disable-msg=E0213
             def handle_default(innerself, event, **args):
                 reactor.callLater(.1, deferred.callback, True)
 
