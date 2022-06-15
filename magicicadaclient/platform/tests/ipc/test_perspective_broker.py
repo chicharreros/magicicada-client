@@ -28,11 +28,11 @@
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
 """IPC tests on perspective broker."""
+
 import itertools
 import os
 
-from mocker import MockerTestCase, ANY
-
+import mock
 from dirspec import basedir
 from twisted.internet import defer
 from twisted.spread.pb import (
@@ -121,74 +121,81 @@ class FakeDecoratedObject(object):
         """Both args."""
 
 
-class SignalTestCase(MockerTestCase):
+class SignalTestCase(TestCase):
     """Test the signal decorator."""
-
-    @defer.inlineCallbacks
-    def setUp(self):
-        yield super(SignalTestCase, self).setUp()
-        self.fake_object = FakeDecoratedObject()
-        self.cb = self.mocker.mock()
 
     def test_no_args(self):
         """Test when the cb should have no args."""
-        self.fake_object.on_no_args_cb = self.cb
-        self.cb()
-        self.mocker.replay()
-        self.fake_object.on_no_args()
+        fake_object = FakeDecoratedObject()
+        fake_object.on_no_args_cb = cb = mock.Mock()
+
+        fake_object.on_no_args()
+
+        cb.assert_called_once_with()
 
     def test_just_args(self):
         """Test when the cb just has *args"""
         first = 'first'
         second = 'second'
-        self.fake_object.on_just_args_cb = self.cb
-        self.cb(first, second)
-        self.mocker.replay()
-        self.fake_object.on_just_args(first, second)
+        fake_object = FakeDecoratedObject()
+        fake_object.on_just_args_cb = cb = mock.Mock()
+
+        fake_object.on_just_args(first, second)
+
+        cb.assert_called_once_with(first, second)
 
     def test_just_kwargs(self):
         """Test when the cb just has kwargs."""
         first = 'first'
         second = 'second'
-        self.fake_object.on_just_kwargs_cb = self.cb
-        self.cb(first=first, second=second)
-        self.mocker.replay()
-        self.fake_object.on_just_kwargs(first=first, second=second)
+        fake_object = FakeDecoratedObject()
+        fake_object.on_just_kwargs_cb = cb = mock.Mock()
+
+        fake_object.on_just_kwargs(first=first, second=second)
+
+        cb.assert_called_once_with(first=first, second=second)
 
     def test_just_kwargs_empty(self):
         """Test when the cb just has kwargs."""
-        self.fake_object.on_just_kwargs_cb = self.cb
-        self.cb()
-        self.mocker.replay()
-        self.fake_object.on_just_kwargs()
+        fake_object = FakeDecoratedObject()
+        fake_object.on_just_kwargs_cb = cb = mock.Mock()
+
+        fake_object.on_just_kwargs()
+
+        cb.assert_called_once_with()
 
     def test_both_args(self):
         """Test with args and kwargs."""
         first = 'first'
         second = 'second'
-        self.fake_object.on_both_args_cb = self.cb
-        self.cb(first, second, first=first, second=second)
-        self.mocker.replay()
-        self.fake_object.on_both_args(first, second, first=first,
-                                      second=second)
+        fake_object = FakeDecoratedObject()
+        fake_object.on_both_args_cb = cb = mock.Mock()
+
+        fake_object.on_both_args(first, second, first=first, second=second)
+
+        cb.assert_called_once_with(first, second, first=first, second=second)
 
     def test_both_args_no_kwargs(self):
         """Test with args and kwargs."""
         first = 'first'
         second = 'second'
-        self.fake_object.on_both_args_cb = self.cb
-        self.cb(first, second)
-        self.mocker.replay()
-        self.fake_object.on_both_args(first, second)
+        fake_object = FakeDecoratedObject()
+        fake_object.on_both_args_cb = cb = mock.Mock()
+
+        fake_object.on_both_args(first, second)
+
+        cb.assert_called_once_with(first, second)
 
     def test_both_args_no_args(self):
         """Test with args and kwargs."""
         first = 'first'
         second = 'second'
-        self.fake_object.on_both_args_cb = self.cb
-        self.cb(first=first, second=second)
-        self.mocker.replay()
-        self.fake_object.on_both_args(first=first, second=second)
+        fake_object = FakeDecoratedObject()
+        fake_object.on_both_args_cb = cb = mock.Mock()
+
+        fake_object.on_both_args(first=first, second=second)
+
+        cb.assert_called_once_with(first=first, second=second)
 
 
 class PerspectiveBrokerTestCase(TestCase):
@@ -207,23 +214,24 @@ class PerspectiveBrokerTestCase(TestCase):
         self.fs = FileSystem(None)
 
 
-class TestSignalBroadcaster(MockerTestCase):
+class TestSignalBroadcaster(TestCase):
     """Test the signal broadcaster code."""
 
     @defer.inlineCallbacks
     def setUp(self):
         yield super(TestSignalBroadcaster, self).setUp()
-        self.client = self.mocker.mock()
+        self.client = mock.Mock()
         self.broad_caster = SignalBroadcaster()
 
     def test_remote_register_to_signals(self):
         """Assert that the client was added."""
-        self.mocker.replay()
+        client = mock.Mock()
         signals = ["demo_signal1", "demo_signal2"]
-        self.broad_caster.remote_register_to_signals(self.client, signals)
+
+        self.broad_caster.remote_register_to_signals(client, signals)
+
         for sig in signals:
-            clients = self.broad_caster.clients_per_signal[sig]
-            self.assertTrue(self.client in clients)
+            self.assertIn(client, self.broad_caster.clients_per_signal[sig])
 
     def test_emit_signal(self):
         """Assert that the client method was called."""
@@ -231,23 +239,18 @@ class TestSignalBroadcaster(MockerTestCase):
         second = 2
         word = 'word'
         signal_name = 'on_test'
-        deferred = self.mocker.mock()
-        self.client.callRemote(signal_name, first, second, word=word)
-        self.mocker.result(deferred)
-        deferred.addErrback(ANY, ANY, ANY)
-        deferred.addErrback(ANY, ANY, ANY)
-        self.mocker.replay()
         signals = [signal_name]
         self.broad_caster.remote_register_to_signals(self.client, signals)
         self.broad_caster.emit_signal(signal_name, first, second, word=word)
 
+        self.client.callRemote.assert_called_once_with(
+            signal_name, first, second, word=word)
+
     def test_emit_signal_dead_reference(self):
         """Test dead reference while emitting a signal."""
         sample_signal = "sample_signal"
-        fake_remote_client = self.mocker.mock()
-        fake_remote_client.callRemote(sample_signal)
-        self.mocker.throw(DeadReferenceError())
-        self.mocker.replay()
+        fake_remote_client = mock.Mock()
+        fake_remote_client.callRemote.side_effect = DeadReferenceError()
 
         sb = SignalBroadcaster()
         sb.remote_register_to_signals(fake_remote_client, [sample_signal])
@@ -256,22 +259,23 @@ class TestSignalBroadcaster(MockerTestCase):
         self.assertNotIn(fake_remote_client,
                          sb.clients_per_signal[sample_signal])
 
+        fake_remote_client.callRemote.assert_called_once_with(sample_signal)
+
     def test_emit_signal_some_dead_some_not(self):
         """Test a clean reference after a dead one."""
         sample_signal = "sample_signal"
-        fake_dead_remote = self.mocker.mock()
-        fake_alive_remote = self.mocker.mock()
-
-        fake_dead_remote.callRemote(sample_signal)
-        self.mocker.throw(DeadReferenceError())
-        fake_alive_remote.callRemote(sample_signal)
-        self.mocker.result(defer.succeed(None))
-        self.mocker.replay()
+        fake_dead_remote = mock.Mock()
+        fake_alive_remote = mock.Mock()
+        fake_dead_remote.callRemote.side_effect = DeadReferenceError()
+        fake_alive_remote.callRemote.return_value = defer.succeed(None)
 
         sb = SignalBroadcaster()
         sb.remote_register_to_signals(fake_dead_remote, [sample_signal])
         sb.remote_register_to_signals(fake_alive_remote, [sample_signal])
         sb.emit_signal(sample_signal)
+
+        fake_dead_remote.callRemote.assert_called_once_with(sample_signal)
+        fake_alive_remote.callRemote.assert_called_once_with(sample_signal)
 
 
 class FakeRemoteClient(object):

@@ -43,31 +43,13 @@ import errno
 import stat
 import uuid
 
+from magicicadaclient import platform
 from magicicadaclient.clientdefs import NAME
-from magicicadaclient.syncdaemon import file_shelf, config
+from magicicadaclient.syncdaemon import config, file_shelf
 from magicicadaclient.syncdaemon.volume_manager import VolumeDoesNotExist
 from magicicadaclient.syncdaemon.interfaces import IMarker
 from magicicadaclient.syncdaemon.marker import MDMarker
 from magicicadaclient.syncdaemon.tritcask import TritcaskShelf
-from magicicadaclient.platform import (
-    listdir,
-    make_dir,
-    normpath,
-    move_to_trash,
-    path_exists,
-    remove_dir,
-    remove_file,
-    remove_tree,
-    rename,
-    recursive_move,
-    set_dir_readonly,
-    set_dir_readwrite,
-    set_file_readonly,
-    set_file_readwrite,
-    stat_path,
-    walk,
-)
-from magicicadaclient.platform import open_file as os_open
 
 METADATA_VERSION = "6"
 
@@ -332,11 +314,11 @@ class FileSystemManager(object):
         self._trash_dir = os.path.join(data_dir, 'trash')
         self._movelimbo_dir = os.path.join(data_dir, 'move_limbo')
         self.partials_dir = partials_dir
-        if not path_exists(self.partials_dir):
-            make_dir(self.partials_dir, recursive=True)
+        if not platform.path_exists(self.partials_dir):
+            platform.make_dir(self.partials_dir, recursive=True)
         else:
             # ensure that we can write in the partials_dir
-            set_dir_readwrite(self.partials_dir)
+            platform.set_dir_readwrite(self.partials_dir)
         self.fs = TritcaskShelf(FSM_ROW_TYPE, db)
         self.old_fs = file_shelf.CachedFileShelf(
             fsmdir, cache_size=1500, cache_compact_threshold=4)
@@ -352,8 +334,8 @@ class FileSystemManager(object):
 
         # get the metadata version
         self._version_file = os.path.join(data_dir, "metadata_version")
-        if path_exists(self._version_file):
-            with os_open(self._version_file) as fh:
+        if platform.path_exists(self._version_file):
+            with platform.open_file(self._version_file) as fh:
                 md_version = fh.read().strip()
         else:
             md_version = None
@@ -412,8 +394,8 @@ class FileSystemManager(object):
     def _fix_path_for_new_layout(self, mdobj):
         """fix the mdobj path for the new layout, only for shares root"""
         base_path, name = os.path.split(mdobj['path'])
-        if base_path.startswith('/') and \
-           base_path.endswith('%s/Shared With Me' % NAME):
+        if (base_path.startswith('/') and
+                base_path.endswith('%s/Shared With Me' % NAME)):
             realpath = os.path.realpath(mdobj['path'])
             mdobj['path'] = realpath
         if (base_path.startswith('/') and base_path.endswith(NAME) and
@@ -427,7 +409,7 @@ class FileSystemManager(object):
         for key, value in old_trash.iteritems():
             self.trash[key] = value
         # delete the old trash
-        remove_tree(self._trash_dir)
+        platform.remove_tree(self._trash_dir)
 
     def _migrate_movelimbo_to_tritcask(self):
         """Migrate move limbo from FileShelf to Tritcask."""
@@ -436,7 +418,7 @@ class FileSystemManager(object):
         for key, value in old_move_limbo.iteritems():
             self.move_limbo[key] = value
         # delete the old move limbo
-        remove_tree(self._movelimbo_dir)
+        platform.remove_tree(self._movelimbo_dir)
 
     def _load_metadata_None(self, old_version):
         """Loads metadata from when it wasn't even versioned."""
@@ -477,11 +459,11 @@ class FileSystemManager(object):
         self._migrate_trash_to_tritcask()
         self._migrate_movelimbo_to_tritcask()
         # set new version
-        with os_open(self._version_file, "w") as fh:
+        with platform.open_file(self._version_file, "w") as fh:
             fh.write(METADATA_VERSION)
             os.fsync(fh.fileno())
         # remove the old metadata
-        remove_tree(self.old_fs._path)
+        platform.remove_tree(self.old_fs._path)
 
     def _load_metadata_1(self, old_version):
         """Loads metadata from version 1."""
@@ -520,11 +502,11 @@ class FileSystemManager(object):
         self._migrate_trash_to_tritcask()
         self._migrate_movelimbo_to_tritcask()
         # set new version
-        with os_open(self._version_file, "w") as fh:
+        with platform.open_file(self._version_file, "w") as fh:
             fh.write(METADATA_VERSION)
             os.fsync(fh.fileno())
         # remove the old metadata
-        remove_tree(self.old_fs._path)
+        platform.remove_tree(self.old_fs._path)
 
     def _load_metadata_2(self, old_version):
         """Loads metadata from version 2."""
@@ -555,11 +537,11 @@ class FileSystemManager(object):
         self._migrate_trash_to_tritcask()
         self._migrate_movelimbo_to_tritcask()
         # set new version
-        with os_open(self._version_file, "w") as fh:
+        with platform.open_file(self._version_file, "w") as fh:
             fh.write(METADATA_VERSION)
             os.fsync(fh.fileno())
         # remove the old metadata
-        remove_tree(self.old_fs._path)
+        platform.remove_tree(self.old_fs._path)
 
     def _load_metadata_3(self, old_version):
         """Loads metadata from version 3."""
@@ -584,11 +566,11 @@ class FileSystemManager(object):
         self._migrate_trash_to_tritcask()
         self._migrate_movelimbo_to_tritcask()
         # set new version
-        with os_open(self._version_file, "w") as fh:
+        with platform.open_file(self._version_file, "w") as fh:
             fh.write(METADATA_VERSION)
             os.fsync(fh.fileno())
         # remove the old metadata
-        remove_tree(self.old_fs._path)
+        platform.remove_tree(self.old_fs._path)
 
     def _load_metadata_4(self, old_version):
         """Loads metadata from version 4."""
@@ -610,11 +592,11 @@ class FileSystemManager(object):
         self._migrate_trash_to_tritcask()
         self._migrate_movelimbo_to_tritcask()
         # set new version
-        with os_open(self._version_file, "w") as fh:
+        with platform.open_file(self._version_file, "w") as fh:
             fh.write(METADATA_VERSION)
             os.fsync(fh.fileno())
         # remove the old metadata
-        remove_tree(self.old_fs._path)
+        platform.remove_tree(self.old_fs._path)
 
     def _load_metadata_5(self, old_version):
         """Loads metadata of last version."""
@@ -631,11 +613,11 @@ class FileSystemManager(object):
         self._migrate_trash_to_tritcask()
         self._migrate_movelimbo_to_tritcask()
         # set new version
-        with os_open(self._version_file, "w") as fh:
+        with platform.open_file(self._version_file, "w") as fh:
             fh.write(METADATA_VERSION)
             os.fsync(fh.fileno())
         # remove the old metadata
-        remove_tree(self.old_fs._path)
+        platform.remove_tree(self.old_fs._path)
 
     def _load_metadata_updated(self):
         """Loads metadata of last version."""
@@ -674,7 +656,7 @@ class FileSystemManager(object):
         if not path.strip():
             raise ValueError("Empty paths are not allowed (got %r)" % path)
 
-        path = normpath(path)
+        path = platform.normpath(path)
         if path in self._idx_path:
             raise ValueError("The path %r is already created!" % path)
 
@@ -702,7 +684,7 @@ class FileSystemManager(object):
 
     def set_node_id(self, path, node_id):
         """Sets the node_id to a md object."""
-        path = normpath(path)
+        path = platform.normpath(path)
         mdid = self._idx_path[path]
         mdobj = self.fs[mdid]
         self._set_node_id(mdobj, node_id, path)
@@ -793,7 +775,7 @@ class FileSystemManager(object):
 
     def get_by_path(self, path):
         """Returns the md object according to the path."""
-        path = normpath(path)
+        path = platform.normpath(path)
         mdid = self._idx_path[path]
         mdobj = self.fs[mdid]
         return _MDObject(**mdobj)
@@ -821,7 +803,7 @@ class FileSystemManager(object):
         """Set some values to the md object with that path."""
         if "mdid" in kwargs:
             raise ValueError("The mdid is forbidden to set externally")
-        path = normpath(path)
+        path = platform.normpath(path)
         mdid = self._idx_path[path]
         self.set_by_mdid(mdid, **kwargs)
 
@@ -834,8 +816,8 @@ class FileSystemManager(object):
 
     def move_file(self, new_share_id, path_from, path_to):
         """Move a file/dir from one point to the other."""
-        path_from = normpath(path_from)
-        path_to = normpath(path_to)
+        path_from = platform.normpath(path_from)
+        path_to = platform.normpath(path_to)
         mdid = self._idx_path[path_from]
         mdobj = self.fs[mdid]
 
@@ -851,8 +833,8 @@ class FileSystemManager(object):
             with contextlib.nested(from_context, to_context):
                 self.eq.add_to_mute_filter(expected_event, path_from=path_from,
                                            path_to=path_to)
-                recursive_move(path_from, path_to)
-        except IOError, e:
+                platform.recursive_move(path_from, path_to)
+        except IOError as e:
             # file was not yet created
             self.eq.rm_from_mute_filter(expected_event,
                                         path_from=path_from, path_to=path_to)
@@ -862,8 +844,8 @@ class FileSystemManager(object):
 
     def moved(self, new_share_id, path_from, path_to):
         """Change the metadata of a moved file."""
-        path_from = normpath(path_from)
-        path_to = normpath(path_to)
+        path_from = platform.normpath(path_from)
+        path_to = platform.normpath(path_to)
         mdid = self._idx_path.pop(path_from)
         log_debug("move_file: mdid=%r path_from=%r path_to=%r",
                   mdid, path_from, path_to)
@@ -888,7 +870,7 @@ class FileSystemManager(object):
         mdobj["info"]["last_moved_time"] = time.time()
         # we try to stat, if we fail, so what?
         try:
-            mdobj["stat"] = stat_path(path_to)  # needed if not the same FS
+            mdobj["stat"] = platform.stat_path(path_to)  # needed if diff FS
         except OSError:
             log_warning("Got an OSError while getting the stat of %r", path_to)
         self.fs[mdid] = mdobj
@@ -913,7 +895,7 @@ class FileSystemManager(object):
 
     def delete_metadata(self, path):
         """Delete the metadata."""
-        path = normpath(path)
+        path = platform.normpath(path)
         mdid = self._idx_path[path]
         mdobj = self.fs[mdid]
         log_debug("delete metadata: path=%r mdid=%r", path, mdid)
@@ -937,7 +919,7 @@ class FileSystemManager(object):
                 raise DirectoryNotRemovable()
 
         # check disk searching for previous conflicts
-        for (dirpath, dirnames, filenames) in walk(path):
+        for (dirpath, dirnames, filenames) in platform.walk(path):
             for fname in filenames + dirnames:
                 if fname.endswith(self.CONFLICT_SUFFIX):
                     logger("Conflicting dir on remove because of previous "
@@ -949,7 +931,7 @@ class FileSystemManager(object):
     def delete_file(self, path):
         """Delete a file/dir and the metadata."""
         # adjust the metadata
-        path = normpath(path)
+        path = platform.normpath(path)
         mdid = self._idx_path[path]
         mdobj = self.fs[mdid]
         log_debug("delete: path=%r mdid=%r", path, mdid)
@@ -963,7 +945,7 @@ class FileSystemManager(object):
 
         try:
             if is_dir:
-                if listdir(path):
+                if platform.listdir(path):
                     # not empty, need to check if we can delete it
                     subtree = self._delete_dir_tree(path=path)
                     for p, is_dir in subtree:
@@ -975,23 +957,23 @@ class FileSystemManager(object):
                     with self._enable_share_write(mdobj['share_id'], path,
                                                   recursive=True):
                         if self.user_config.get_use_trash():
-                            move_to_trash(path)
+                            platform.move_to_trash(path)
                         else:
-                            remove_tree(path)
+                            platform.remove_tree(path)
                 else:
                     # empty, just delete it
                     with self._enable_share_write(mdobj['share_id'], path):
                         if self.user_config.get_use_trash():
-                            move_to_trash(path)
+                            platform.move_to_trash(path)
                         else:
-                            remove_dir(path)
+                            platform.remove_dir(path)
             else:
                 # it's a file, just delete it
                 with self._enable_share_write(mdobj['share_id'], path):
                     if self.user_config.get_use_trash():
-                        move_to_trash(path)
+                        platform.move_to_trash(path)
                     else:
-                        remove_file(path)
+                        platform.remove_file(path)
 
         except OSError, e:
             self.eq.rm_from_mute_filter(filter_event, path=path)
@@ -1007,7 +989,7 @@ class FileSystemManager(object):
         log_debug("move_to_conflict: path=%r mdid=%r", path, mdid)
         base_to_path = to_path = path + self.CONFLICT_SUFFIX
         ind = 0
-        while path_exists(to_path):
+        while platform.path_exists(to_path):
             ind += 1
             to_path = base_to_path + "." + str(ind)
         is_dir = mdobj["is_dir"]
@@ -1018,7 +1000,7 @@ class FileSystemManager(object):
         with self._enable_share_write(mdobj['share_id'], path):
             try:
                 self.eq.add_to_mute_filter(expected_event, path=path)
-                rename(path, to_path)
+                platform.rename(path, to_path)
                 event = "FSM_DIR_CONFLICT" if is_dir else "FSM_FILE_CONFLICT"
                 self.eq.push(event, old_name=path, new_name=to_path)
             except OSError, e:
@@ -1051,7 +1033,7 @@ class FileSystemManager(object):
         # get the values
         mdobj = self.fs[mdid]
         partial_in_md = mdobj["info"]["is_partial"]
-        partial_in_disk = path_exists(self._get_partial_path(mdobj))
+        partial_in_disk = platform.path_exists(self._get_partial_path(mdobj))
 
         # check and return
         if partial_in_md != partial_in_disk:
@@ -1091,9 +1073,9 @@ class FileSystemManager(object):
         path = self.get_abspath(mdobj['share_id'], mdobj['path'])
         with self._enable_share_write(share_id, os.path.dirname(path)):
             # if we don't have the dir yet, create it
-            if is_dir and not path_exists(path):
+            if is_dir and not platform.path_exists(path):
                 self.eq.add_to_mute_filter("FS_DIR_CREATE", path=path)
-                make_dir(path)
+                platform.make_dir(path)
 
         mdobj["info"]["last_partial_created"] = time.time()
         mdobj["info"]["is_partial"] = True
@@ -1107,8 +1089,8 @@ class FileSystemManager(object):
                 try:
                     # don't alert EQ
                     # partials are in other directory, not watched
-                    os_open(partial_path, "w").close()
-                except IOError, e:
+                    platform.open_file(partial_path, "w").close()
+                except IOError as e:
                     # linux will give you too long, windows will say invalid
                     if e.errno in (errno.ENAMETOOLONG, errno.EINVAL):
                         trim += 1
@@ -1128,7 +1110,7 @@ class FileSystemManager(object):
 
         mdobj = self.fs[mdid]
         partial_path = self._get_partial_path(mdobj)
-        return os_open(partial_path, "wb")
+        return platform.open_file(partial_path, "wb")
 
     def get_partial(self, node_id, share_id):
         """Get a read-only fd to a partial file."""
@@ -1138,7 +1120,7 @@ class FileSystemManager(object):
                              "not partial!" % (share_id, node_id))
 
         partial_path = self._get_partial_path(self.fs[mdid])
-        fd = os_open(partial_path, "rb")
+        fd = platform.open_file(partial_path, "rb")
         return fd
 
     def commit_partial(self, node_id, share_id, local_hash):
@@ -1160,7 +1142,7 @@ class FileSystemManager(object):
         with self._enable_share_write(share_id, path):
             self.eq.add_to_mute_filter("FS_FILE_CREATE", path=path)
             self.eq.add_to_mute_filter("FS_FILE_CLOSE_WRITE", path=path)
-            recursive_move(partial_path, path)
+            platform.recursive_move(partial_path, path)
         mdobj["local_hash"] = local_hash
         mdobj["info"]["last_downloaded"] = time.time()
         mdobj["info"]["is_partial"] = False
@@ -1181,8 +1163,8 @@ class FileSystemManager(object):
         partial_path = self._get_partial_path(mdobj)
         try:
             # don't alert EQ, partials are in other directory, not watched
-            remove_file(partial_path)
-        except OSError, e:
+            platform.remove_file(partial_path)
+        except OSError as e:
             # we only remove it if its there.
             m = "OSError %s when trying to remove partial_path %r"
             log_warning(m, e, partial_path)
@@ -1200,7 +1182,7 @@ class FileSystemManager(object):
     def _get_mdid_from_args(self, kwargs, parent):
         """Parse the kwargs and gets the mdid."""
         if len(kwargs) == 1 and "path" in kwargs:
-            path = normpath(kwargs["path"])
+            path = platform.normpath(kwargs["path"])
             return self._idx_path[path]
         if len(kwargs) == 1 and "mdid" in kwargs:
             return kwargs["mdid"]
@@ -1217,7 +1199,7 @@ class FileSystemManager(object):
     def has_metadata(self, **kwargs):
         """Return True if there's metadata for a given object."""
         if len(kwargs) == 1 and "path" in kwargs:
-            path = normpath(kwargs["path"])
+            path = platform.normpath(kwargs["path"])
             return path in self._idx_path
         if len(kwargs) == 1 and "mdid" in kwargs:
             return kwargs["mdid"] in self.fs
@@ -1276,7 +1258,7 @@ class FileSystemManager(object):
 
     def dir_content(self, path):
         """Return the content of the directory in a server-comparable way."""
-        path = normpath(path)
+        path = platform.normpath(path)
         mdid = self._idx_path[path]
         mdobj = self.fs[mdid]
         if not mdobj["is_dir"]:
@@ -1298,8 +1280,8 @@ class FileSystemManager(object):
         if mdobj["is_dir"]:
             raise ValueError("You can only open files, not directories.")
 
-        return os_open(self.get_abspath(mdobj['share_id'], mdobj['path']),
-                       'rb')
+        return platform.open_file(
+            self.get_abspath(mdobj['share_id'], mdobj['path']), 'rb')
 
     def _share_relative_path(self, share_id, path):
         """Return the relative path from the share_id."""
@@ -1329,8 +1311,8 @@ class FileSystemManager(object):
         if share_path == path:
             # the relaitve path is the fullpath
             return share_path
-        else:
-            return os.path.abspath(os.path.join(share_path, path))
+
+        return os.path.abspath(os.path.join(share_path, path))
 
     def _enable_share_write(self, share_id, path, recursive=False):
         """Helper to create a EnableShareWrite context manager."""
@@ -1471,8 +1453,8 @@ class FileSystemManager(object):
                 self.eq.add_to_mute_filter('FS_DIR_CREATE', path=full_path)
 
             try:
-                make_dir(full_path)
-            except OSError, e:
+                platform.make_dir(full_path)
+            except OSError as e:
                 if not e.errno == 17:  # already exists
                     raise
 
@@ -1559,30 +1541,31 @@ class EnableShareWrite(object):
         if parent_stat is None:
             # if we don't have the parent yet, create it
             with EnableShareWrite(self.share, parent):
-                make_dir(parent)
-        set_dir_readwrite(parent)
+                platform.make_dir(parent)
+        platform.set_dir_readwrite(parent)
         self._changed_nodes.append((parent, True))
 
         # so, change path if exists
         path_stat = get_stat(self.path)
         if path_stat is not None:
             if stat.S_ISDIR(path_stat.st_mode):
-                set_dir_readwrite(self.path)
+                platform.set_dir_readwrite(self.path)
                 self._changed_nodes.append((self.path, True))
             else:
-                set_file_readwrite(self.path)
+                platform.set_file_readwrite(self.path)
                 self._changed_nodes.append((self.path, False))
 
         # if needed, change the whole subtree
         if self.recursive:
-            for dirpath, dirnames, filenames in walk(self.path, topdown=False):
+            for dirpath, dirnames, filenames in platform.walk(
+                    self.path, topdown=False):
                 for dname in dirnames:
                     path = os.path.join(dirpath, dname)
-                    set_dir_readwrite(path)
+                    platform.set_dir_readwrite(path)
                     self._changed_nodes.append((path, True))
                 for fname in filenames:
                     path = os.path.join(dirpath, fname)
-                    set_file_readwrite(path)
+                    platform.set_file_readwrite(path)
                     self._changed_nodes.append((path, False))
         return self
 
@@ -1598,18 +1581,18 @@ class EnableShareWrite(object):
         path_stat = get_stat(self.path)
         if path_stat is not None:
             if stat.S_ISDIR(path_stat.st_mode):
-                set_dir_readonly(self.path)
+                platform.set_dir_readonly(self.path)
             else:
-                set_file_readonly(self.path)
+                platform.set_file_readonly(self.path)
 
         # restore all saved ones
-        exists = path_exists
+        exists = platform.path_exists
         for path, isdir in self._changed_nodes[::-1]:
             if exists(path):
                 if isdir:
-                    set_dir_readonly(path)
+                    platform.set_dir_readonly(path)
                 else:
-                    set_file_readonly(path)
+                    platform.set_file_readonly(path)
 
 
 def get_stat(path):
@@ -1618,8 +1601,8 @@ def get_stat(path):
     os.lstat is used as we don't support symlinks
     """
     try:
-        return stat_path(path)
-    except OSError, e:
+        return platform.stat_path(path)
+    except OSError as e:
         if e.errno == errno.ENOENT:
             return None
         else:

@@ -43,6 +43,7 @@ import uuid
 from functools import wraps
 from StringIO import StringIO
 
+import mock
 import OpenSSL.SSL
 
 from magicicadaprotocol import (
@@ -52,7 +53,6 @@ from magicicadaprotocol import (
     protocol_pb2,
     request,
 )
-from mocker import Mocker, MockerTestCase, ANY, expect
 from twisted.internet import defer, reactor
 from twisted.internet import error as twisted_error
 from twisted.python.failure import DefaultException, Failure
@@ -61,7 +61,6 @@ from twisted.trial.unittest import TestCase as TwistedTestCase
 from zope.interface.verify import verifyObject, verifyClass
 
 from devtools import handlers
-from devtools.testcases import skipTest
 from magicicadaclient import logger, clientdefs
 from magicicadaclient.platform import open_file, platform, path_exists
 from magicicadaclient.syncdaemon import interfaces, config
@@ -74,7 +73,7 @@ from magicicadaclient.syncdaemon.action_queue import (
     TRANSFER_PROGRESS_THRESHOLD, Unlink, Move, MakeFile, MakeDir, DeltaList,
     ZipQueue, DeferredMap, ThrottlingStorageClient, PathLockingTree,
     InterruptibleDeferred, DeferredInterrupted, ConditionsLocker,
-    NamedTemporaryFile, PingManager,
+    PingManager,
 )
 from magicicadaclient.syncdaemon.event_queue import EventQueue, EVENTS
 from magicicadaclient.syncdaemon import offload_queue
@@ -978,7 +977,6 @@ class TestZipQueue(BasicTestCase):
         yield self.zq.zip(upload, 'willbreak')
         self.assertEqual(len(called), 0)
 
-    @skipTest('Intermittently failing on twisted 12: LP: #1031815')
     @defer.inlineCallbacks
     def test_zip_acquire_lock(self):
         """Test that it acquires the lock."""
@@ -2859,15 +2857,10 @@ class DownloadTestCase(ConnectedBaseTestCase):
 
     def test_cancel_download_req_is_something(self):
         """download_req is also cancelled."""
-        # set up the mocker
-        mocker = Mocker()
-        obj = mocker.mock()
-        obj.cancel()
+        self.command.download_req = mock.Mock()
+        self.command.cancel()
 
-        # test
-        with mocker:
-            self.command.download_req = obj
-            self.command.cancel()
+        self.command.download_req.cancel.assert_called_once()
 
     def test_cancel_clean_up(self):
         """Clean up."""
@@ -2935,13 +2928,16 @@ class DownloadTestCase(ConnectedBaseTestCase):
         # the first command will refuse to cancel (patch the class because
         # the instance is not patchable)
         self.action_queue.download('foo', 'bar', 0, self.mdid)
-        self.action_queue.queue.waiting[0]
         self.patch(Download, 'cancel', lambda instance: False)
 
         self.action_queue.download('foo', 'bar', 1, self.mdid)
+
         self.assertEqual(len(self.action_queue.queue.waiting), 2)
+        first_cmd, second_cmd = self.action_queue.queue.waiting
         self.assertTrue(self.handler.check_debug("Tried to cancel", "couldn't",
                                                  "Download", "foo", "bar"))
+        self.assertFalse(first_cmd.cancelled)
+        self.assertFalse(second_cmd.cancelled)
 
     def test_start_locks_on_semaphore(self):
         """_start acquire the semaphore and locks."""
@@ -2969,15 +2965,15 @@ class DownloadTestCase(ConnectedBaseTestCase):
         self.command.cancelled = True
 
         # release the lock
-        mocker = Mocker()
-        req = mocker.mock()
-        req.release()
-        with mocker:
-            lock.callback(req)
+        req = mock.Mock()
+        req.release.return_value = None
+
+        lock.callback(req)
 
         # check it released the semaphore
-        self.assertTrue(self.handler.check_debug('semaphore released',
-                                                 'cancelled'))
+        req.release.assert_called_once()
+        self.assertTrue(
+            self.handler.check_debug('semaphore released', 'cancelled'))
         self.assertIdentical(self.command.tx_semaphore, None)
 
     def test_finish_releases_semaphore_if_acquired(self):
@@ -3003,12 +2999,11 @@ class DownloadTestCase(ConnectedBaseTestCase):
     def test_decompressor_restarted(self):
         """Restart the decompressor on each _run (because of retries!)."""
         # don't use the real protocol
-        obj = Mocker().mock()
-        obj.deferred
+        obj = mock.Mock()
         self.action_queue.client.get_content_request = lambda *a, **k: obj
 
-        self.patch(self.main.fs, 'get_partial_for_writing',
-                   lambda n, s: StringIO())
+        self.patch(
+            self.main.fs, 'get_partial_for_writing', lambda n, s: StringIO())
         self.command._run()
         decompressor1 = self.command.gunzip
         self.command._run()
@@ -3242,15 +3237,23 @@ class UploadTestCase(ConnectedBaseTestCase):
         err = errors.UploadInProgressError("request", protocol_msg)
 
         # mock fsm
-        mocker = Mocker()
-        mdobj = mocker.mock()
-        expect(mdobj.share_id).result('share_id')
-        expect(mdobj.path).result('path')
-        fsm = mocker.mock()
-        expect(fsm.get_by_mdid(self.mdid)).result(mdobj)
-        expect(fsm.get_abspath('share_id', 'path')).result('/abs/path')
-        expect(fsm.open_file(self.mdid)).result(StringIO())
-        self.patch(self.main, 'fs', fsm)
+        mdobj = mock.Mock(share_id='share_id', path='path')
+
+        class DummyFSM:
+
+            def get_by_mdid(instance, mdid):
+                self.assertEqual(mdid, self.mdid)
+                return mdobj
+
+            def get_abspath(instance, *args):
+                self.assertEqual(args, ('share_id', 'path'))
+                return '/abs/path'
+
+            def open_file(instance, mdid):
+                self.assertEqual(mdid, self.mdid)
+                return StringIO()
+
+        self.patch(self.main, 'fs', DummyFSM())
 
         # first fails with UploadInProgress, then finishes ok
         called = []
@@ -3262,8 +3265,8 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.command.handle_success = lambda _: d.callback(True)
 
         # go and check
-        with mocker:
-            self.command.go()
+        yield self.command.go()
+
         yield d
         self.assertEqual(called, [':)', ':)'])
 
@@ -3447,28 +3450,11 @@ class UploadTestCase(ConnectedBaseTestCase):
 
     def test_cancel_upload_req_is_something(self):
         """upload_req is also cancelled."""
-        # set up the mocker
-        mocker = Mocker()
-        obj = mocker.mock()
-        obj.cancel()
-        obj.producer
-        obj.producer
+        self.command.upload_req = mock.Mock()
+        self.command.upload_req.producer.finished = False
+        self.command.cancel()
 
-        # test
-        with mocker:
-            self.command.upload_req = obj
-            self.command.cancel()
-
-    def test_cancel_remove(self):
-        """Remove the command from the queue."""
-        # set up the mocker
-        mocker = Mocker()
-        obj = mocker.mock()
-
-        # test
-        with mocker:
-            self.command._queue = obj
-            self.command.cancel()
+        self.command.upload_req.cancel.assert_called_once()
 
     def test_cancel_clean_up(self):
         """Clean up."""
@@ -3543,14 +3529,20 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.action_queue.zip_queue.zip = lambda u, f: defer.succeed(True)
 
         # mock fsm
-        mocker = Mocker()
-        mdobj = mocker.mock()
-        expect(mdobj.mdid).result('mdid')
-        fsm = mocker.mock()
-        expect(fsm.get_by_node_id(self.command.share_id, self.command.node_id)
-               ).result(mdobj)
-        expect(fsm.open_file('mdid')).result(StringIO())
-        self.patch(self.main, 'fs', fsm)
+        mdobj = mock.Mock(mdid='mdid')
+
+        class DummyFSM:
+
+            def get_by_node_id(instance, *args):
+                self.assertEqual(
+                    args, (self.command.share_id, self.command.node_id))
+                return mdobj
+
+            def open_file(instance, mdid):
+                self.assertEqual(mdid, self.mdid)
+                return StringIO()
+
+        self.patch(self.main, 'fs', DummyFSM())
 
         # _start and check it locked
         started = self.command._start()
@@ -3573,15 +3565,14 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.command.cancelled = True
 
         # release the lock
-        mocker = Mocker()
-        req = mocker.mock()
-        req.release()
-        with mocker:
-            lock.callback(req)
+        req = mock.Mock()
+        req.release.return_value = None
+        lock.callback(req)
 
         # check it released the semaphore
-        self.assertTrue(self.handler.check_debug('semaphore released',
-                                                 'cancelled'))
+        req.release.assert_called_once()
+        self.assertTrue(
+            self.handler.check_debug('semaphore released', 'cancelled'))
         self.assertIdentical(self.command.tx_semaphore, None)
 
     def test_finish_releases_semaphore_if_acquired(self):
@@ -3650,11 +3641,6 @@ class UploadTestCase(ConnectedBaseTestCase):
         upload_id = self.command.action_queue.client.called[1][2]['upload_id']
         self.assertEqual(upload_id, 'hola')
         self.addCleanup(setattr, self.command.action_queue, 'client', None)
-
-    def test_uses_rb_flags_when_creating_temp_file(self):
-        """Check that the 'b' flag is used for the temporary file."""
-        tempfile = NamedTemporaryFile()
-        self.assertEqual(tempfile.mode, 'w+b')
 
     def test_fileobj_in_run(self):
         """Create it first time, reset after that."""
@@ -4990,35 +4976,26 @@ class ActionQueueProtocolTests(TwistedTestCase):
         yield super(ActionQueueProtocolTests, self).setUp()
         # create an AQP and put a factory to it
         self.aqp = ActionQueueProtocol()
-        obj = Mocker().mock()
-        obj.event_queue.push('SYS_CONNECTION_MADE')
-        self.aqp.factory = obj
+        self.aqp.factory = mock.Mock()
 
         # set up the logger
         self.handler = MementoHandler()
         self.handler.setLevel(logging.DEBUG)
         self.aqp.log.addHandler(self.handler)
-
-    @defer.inlineCallbacks
-    def tearDown(self):
-        """Tear down."""
-        yield super(ActionQueueProtocolTests, self).tearDown()
-        self.aqp.log.removeHandler(self.handler)
-        if self.aqp.ping_manager is not None:
-            self.aqp.ping_manager.stop()
+        self.addCleanup(self.aqp.log.removeHandler, self.handler)
+        self.addCleanup(
+            lambda: self.aqp.ping_manager and self.aqp.ping_manager.stop())
 
     def test_connection_made(self):
         """Connection is made."""
-        mocker = Mocker()
-        obj = mocker.mock()
-        obj.event_queue.push('SYS_CONNECTION_MADE')
-        self.aqp.factory = obj
         super_called = []
         self.patch(ThrottlingStorageClient, 'connectionMade',
                    lambda s: super_called.append(True))
         # test
-        with mocker:
-            self.aqp.connectionMade()
+        self.aqp.connectionMade()
+
+        self.aqp.factory.event_queue.push.assert_called_once_with(
+            'SYS_CONNECTION_MADE')
         self.assertTrue(self.handler.check_info('Connection made.'))
         self.assertNotIdentical(self.aqp.ping_manager, None)
         self.assertTrue(super_called)
@@ -5710,33 +5687,6 @@ class ConditionsLockerTests(TwistedTestCase):
         self.assertFalse(locking_d2.called)
 
 
-class OsIntegrationTests(BasicTestCase, MockerTestCase):
-    """Ensure that the correct os_helper methods are used."""
-
-    @defer.inlineCallbacks
-    def setUp(self):
-        """Set up for tests."""
-        yield super(OsIntegrationTests, self).setUp()
-        self.fdopen = self.mocker.replace('os.fdopen')
-
-    def test_fdopen(self):
-        """Ensure that we are calling fdopen correctly."""
-        # set expectations
-        self.fdopen(ANY, 'w+b')
-        self.mocker.replay()
-        NamedTemporaryFile()
-
-    def test_fdopen_real(self):
-        """Do test that the NamedTeporaryFile can read and write."""
-        data = 'test'
-        self.mocker.replay()
-        tmp = NamedTemporaryFile()
-        tmp.write(data)
-        tmp.seek(0)
-        self.assertEqual(data, tmp.read(len(data)))
-        tmp.close()
-
-
 class PingManagerTestCase(TwistedTestCase):
     """Test the Ping manager."""
 
@@ -5774,21 +5724,20 @@ class PingManagerTestCase(TwistedTestCase):
     def test_ping_do_ping(self):
         """Ping and log."""
         # mock the request
-        mocker = Mocker()
-        req = mocker.mock()
-        expect(req.rtt).result(1.123123)
+        req = mock.Mock(rtt=1.123123)
+
         d = defer.Deferred()
         self.pm.client.ping = lambda: d
 
         # call and check all is started when the ping is done
         self.pm._do_ping()
+
         self.assertTrue(self.pm._timeout_call.active())
         self.handler.debug = True
         self.assertTrue(self.handler.check(logger.TRACE, 'Sending ping'))
 
         # answer the ping, and check
-        with mocker:
-            d.callback(req)
+        d.callback(req)
         self.assertFalse(self.pm._timeout_call.active())
         self.assertTrue(self.handler.check_debug('Ping! rtt: 1.123 segs'))
 
@@ -5840,28 +5789,23 @@ class PingManagerTestCase(TwistedTestCase):
 
     def test_disconnect(self):
         """Stop machinery, log and disconnect."""
-        mocker = Mocker()
-
         # mock the transport
-        transport = mocker.mock()
-        expect(transport.loseConnection())
-        self.pm.client.transport = transport
-
+        self.pm.client.transport = mock.Mock()
         # mock the stop
-        stop = mocker.mock()
-        expect(stop())
-        self.patch(self.pm, 'stop', stop)
+        self.patch(self.pm, 'stop', mock.Mock())
 
-        # ping will be called, and req accessed, otherwise mocker will complain
-        with mocker:
-            self.pm._disconnect()
+        # ping will be called, and req accessed
+        self.pm._disconnect()
 
+        self.pm.client.transport.loseConnection.assert_called_once()
+        self.pm.stop.assert_called_once()
         self.assertTrue(self.handler.check_info("No Pong response"))
 
 
 class ActionQueueTestCase(BasicTestCase):
     """Test the queuing/execution of commands from AQ itself."""
 
+    @defer.inlineCallbacks
     def test_reallyexec_yes(self):
         """Check secuence if command should be queued."""
         aq = self.action_queue
@@ -5869,12 +5813,10 @@ class ActionQueueTestCase(BasicTestCase):
         aq.queue.queue = lambda cmd: called.append(('queue', cmd))
         aq.queue.unqueue = lambda cmd: called.append(('unqueue', cmd))
 
-        mocker = Mocker()
-        cmd = mocker.mock()
-        expect(cmd.should_be_queued()).result(True)
-        expect(cmd.log.debug('queueing'))
+        cmd = mock.Mock()
+        cmd.should_be_queued.return_value = True
         d = defer.Deferred()
-        expect(cmd.go()).result(d)
+        cmd.go.return_value = d
 
         def fake_command_class(queue, *args, **kwargs):
             """Fake the command class, assuring all is received ok."""
@@ -5884,19 +5826,24 @@ class ActionQueueTestCase(BasicTestCase):
             return cmd
 
         # test
-        with mocker:
-            aq._really_execute(fake_command_class, 'arg1', 'arg2', kwarg='foo')
+        executed = aq._really_execute(
+            fake_command_class, 'arg1', 'arg2', kwarg='foo')
 
-            self.assertEqual(called, [('queue', cmd)])
-            d.callback(True)
-            self.assertEqual(called, [('queue', cmd), ('unqueue', cmd)])
+        cmd.should_be_queued.assert_called_once()
+        cmd.log.debug.assert_called_once_with('queueing')
+        cmd.go.assert_called_once()
 
+        self.assertEqual(called, [('queue', cmd)])
+        d.callback(True)
+        self.assertEqual(called, [('queue', cmd), ('unqueue', cmd)])
+
+        yield executed
+
+    @defer.inlineCallbacks
     def test_reallyexec_no(self):
         """Check secuence if command should NOT be queued."""
-        mocker = Mocker()
-        cmd = mocker.mock()
-        expect(cmd.should_be_queued()).result(False)
-        expect(cmd.log.debug('queuing')).count(0)
+        cmd = mock.Mock()
+        cmd.should_be_queued.return_value = False
 
         def fake_command_class(queue, *args, **kwargs):
             """Fake the command class, assuring all is received ok."""
@@ -5906,9 +5853,12 @@ class ActionQueueTestCase(BasicTestCase):
             return cmd
 
         # test
-        with mocker:
-            self.action_queue._really_execute(fake_command_class,
-                                              'arg', foo='bar')
+        yield self.action_queue._really_execute(
+            fake_command_class, 'arg', foo='bar')
+
+        cmd.should_be_queued.assert_called_once()
+        cmd.log.debug.assert_not_called()
+        cmd.go.assert_not_called()
 
     def test_execute_over_limit(self):
         """Check behaviour when we're over the limit."""
