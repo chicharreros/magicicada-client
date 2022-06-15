@@ -79,9 +79,7 @@ class TestRunner(BaseTestRunner, TrialRunner):
             uncleanWarnings=self.config['unclean-warnings'],
             forceGarbageCollection=self.config['force-gc'])
         # Named for trial compatibility.
-        # pylint: disable=C0103
         self.workingDirectory = self.working_dir
-        # pylint: enable=C0103
 
     def run_tests(self, suite):
         """Run the twisted test suite."""

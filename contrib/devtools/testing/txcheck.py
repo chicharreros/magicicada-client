@@ -345,7 +345,7 @@ def make_check_testcase(tests):
     class TXCheckTest(TestCase):
         """Test case which checks the test classes for problems."""
 
-        def runTest(self):  # pylint: disable=C0103
+        def runTest(self):
             """Do nothing."""
 
         def run(self, result=None):

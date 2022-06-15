@@ -36,9 +36,6 @@ from __future__ import unicode_literals
 
 import sys
 
-# Disable redefined builtin, invalid name warning
-# pylint: disable=W0622,C0103
-
 if sys.version_info < (3,):
     text_type = unicode
     binary_type = str

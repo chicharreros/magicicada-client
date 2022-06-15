@@ -57,7 +57,6 @@ def _id(obj):
     return obj
 
 
-# pylint: disable=C0103
 def skipTest(reason):
     """Unconditionally skip a test."""
 
@@ -72,18 +71,14 @@ def skipTest(reason):
                 raise SkipTest(reason)
             test_item = skip_wrapper
 
-        # tell twisted.trial.unittest to skip the test, pylint will complain
-        # since it thinks we are redefining a name out of the scope
-        # pylint: disable=W0621,W0612
         test_item.skip = reason
-        # pylint: enable=W0621,W0612
         # because the item was skipped, we will make sure that no
         # services are started for it
         if hasattr(test_item, "required_services"):
-            # pylint: disable=W0612
             test_item.required_services = lambda *args, **kwargs: []
-            # pylint: enable=W0612
+
         return test_item
+
     return decorator
 
 
@@ -122,9 +117,6 @@ def skipIfJenkins(current_os, reason):
     return _id
 
 
-# pylint: enable=C0103
-
-
 class BaseTestCase(TestCase):
     """Base TestCase with helper methods to handle temp dir.
 
@@ -159,7 +151,7 @@ class BaseTestCase(TestCase):
                             self.__class__.__name__[:max_filename],
                             self._testMethodName[:max_filename])
         # use _trial_temp dir, it should be os.gwtcwd()
-        # define the root temp dir of the testcase, pylint: disable=W0201
+        # define the root temp dir of the testcase
         self.__root = os.path.join(os.getcwd(), base)
         return self.__root
 
@@ -172,7 +164,6 @@ class BaseTestCase(TestCase):
             os.chmod(os.path.dirname(path), 0o755)
         if not os.access(path, os.W_OK):
             os.chmod(path, 0o755)
-        # pylint: disable=W0612
         for dirpath, dirs, files in os.walk(path):
             for dirname in dirs:
                 if not os.access(os.path.join(dirpath, dirname), os.W_OK):

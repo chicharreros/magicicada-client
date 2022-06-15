@@ -31,16 +31,17 @@
 from __future__ import absolute_import, with_statement
 
 import os
+try:
+    from urllib.parse import unquote
+except ImportError:
+    from urllib import unquote
 
 from twisted.internet import defer
-
-from devtools.testcases import BaseTestCase, skipIf
-
 # DBusRunner for DBusTestCase using tests
 from devtools.services.dbus import DBusRunner
+from devtools.testcases import BaseTestCase, skipIf
 
 
-# pylint: disable=F0401,C0103,W0406,E0611
 try:
     import dbus
 except ImportError as e:
@@ -55,8 +56,6 @@ try:
     from dbus.mainloop.glib import DBusGMainLoop
 except ImportError:
     DBusGMainLoop = None
-
-# pylint: enable=F0401,C0103,W0406,E0611
 
 
 class InvalidSessionBus(Exception):
@@ -84,20 +83,10 @@ class DBusTestCase(BaseTestCase):
     @defer.inlineCallbacks
     def setUp(self):
         """Setup the infrastructure fo the test (dbus service)."""
-        # Class 'BaseTestCase' has no 'setUp' member
-        # pylint: disable=E1101
         # dbus modules will be imported by the decorator
-        # pylint: disable=E0602
         yield super(DBusTestCase, self).setUp()
 
         # We need to ensure DBUS_SESSION_BUS_ADDRESS is private here
-        # pylint: disable=F0401,E0611
-        try:
-            from urllib.parse import unquote
-        except ImportError:
-            from urllib import unquote
-        # pylint: enable=F0401,E0611
-
         bus_address = os.environ.get('DBUS_SESSION_BUS_ADDRESS', None)
         if os.path.dirname(unquote(bus_address.split(',')[0].split('=')[1])) \
                 != os.path.dirname(os.getcwd()):

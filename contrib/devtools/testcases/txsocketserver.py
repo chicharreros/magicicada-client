@@ -38,9 +38,6 @@ from twisted.spread import pb
 
 from devtools.testcases import BaseTestCase
 
-# no init method + twisted common warnings
-# pylint: disable=W0232, C0103, E1101
-
 
 def server_protocol_factory(cls):
     """Factory to create tidy protocols."""
@@ -55,12 +52,10 @@ def server_protocol_factory(cls):
             """Lost the connection."""
             cls.connectionLost(self, *args)
             # lets tell everyone
-            # pylint: disable=W0212
             if (self.factory._disconnecting and
                     self.factory.testserver_on_connection_lost is not None and
                     not self.factory.testserver_on_connection_lost.called):
                 self.factory.testserver_on_connection_lost.callback(self)
-            # pylint: enable=W0212
 
     return ServerTidyProtocol
 
@@ -96,12 +91,10 @@ def client_protocol_factory(cls):
         def connectionLost(self, *a):
             """Connection list."""
             cls.connectionLost(self, *a)
-            # pylint: disable=W0212
             if (self.factory._disconnecting and
                     self.factory.testserver_on_connection_lost is not None and
                     not self.factory.testserver_on_connection_lost.called):
                 self.factory.testserver_on_connection_lost.callback(self)
-            # pylint: enable=W0212
 
     return ClientTidyProtocol
 
@@ -194,10 +187,8 @@ class TidySocketServer(object):
                      self.client_factory.testserver_on_connection_lost])
         if self.listener:
             # just clean the server since there is no client
-            # pylint: disable=W0201
             self.server_factory._disconnecting = True
             return defer.maybeDeferred(self.listener.stopListening)
-            # pylint: enable=W0201
 
 
 class TidyTCPServer(TidySocketServer):

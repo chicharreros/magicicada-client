@@ -37,9 +37,6 @@ from twisted.web import server
 
 from devtools.testcases.txsocketserver import server_protocol_factory
 
-# no init method +  twisted common warnings
-# pylint: disable=W0232, C0103, E1101
-
 
 class BaseWebServer(object):
     """Webserver used to perform requests in tests."""
