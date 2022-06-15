@@ -35,12 +35,10 @@ import subprocess
 
 from distutils.spawn import find_executable
 
-# pylint: disable=F0401,E0611
 try:
     from urllib.parse import quote
 except ImportError:
     from urllib import quote
-# pylint: enable=F0401,E0611
 
 from devtools.services import find_config_file
 DBUS_CONFIG_FILE = 'dbus-session.conf.in'

@@ -127,9 +127,6 @@ class BaseTestRunner(object):
         else:
             pattern = None
 
-        # Disable this lint warning as we need to access _tests in the
-        # test suites, to collect the tests
-        # pylint: disable=W0212
         if path:
             try:
                 module_suite = self._load_unittest(path)
@@ -146,8 +143,6 @@ class BaseTestRunner(object):
         else:
             raise TestError('Path should be defined.')
 
-        # We don't use the dirs variable, so ignore the warning
-        # pylint: disable=W0612
         for root, dirs, files in os.walk(path):
             for test in files:
                 filepath = os.path.join(root, test)

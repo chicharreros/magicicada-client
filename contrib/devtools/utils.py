@@ -72,9 +72,7 @@ class OptionParser(dict):
         # Get the options and defaults
         for _get in [self._get_flags, self._get_params]:
             # We don't use variable 'syns' here. It's just to pad the result.
-            # pylint: disable=W0612
             (long_opts, short_opts, docs, defaults, syns, dispatch) = _get()
-            # pylint: enable=W0612
             self.long_opts.extend(long_opts)
             self.short_opts = self.short_opts + short_opts
             self.docs.update(docs)
@@ -84,7 +82,6 @@ class OptionParser(dict):
             self.dispatch.update(dispatch)
 
     # We use some camelcase names for trial compatibility here.
-    # pylint: disable=C0103
     def parseOptions(self, options=None):
         """Parse the options."""
         if options is None:
@@ -123,7 +120,6 @@ class OptionParser(dict):
 
     def parseArgs(self, *args):
         """Override to handle extra arguments specially."""
-    # pylint: enable=C0103
 
     def _parse_arguments(self, arg_type=None, has_default=False):
         """Parse the arguments as either flags or parameters."""

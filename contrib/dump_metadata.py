@@ -60,7 +60,7 @@ class FakeVM(object):
         with open(version_file) as fh:
             version_found = fh.read()
         version_should = volume_manager.VolumeManager.METADATA_VERSION
-        if  version_found is None or version_found != version_should:
+        if version_found is None or version_found != version_should:
             print "The VolumeManager metadata version is too old (or too new?)"
             print "      it should be:", repr(version_should)
             print "      found:", repr(version_found)
@@ -79,6 +79,7 @@ class FakeVM(object):
             return self.udfs[vol_id]
         else:
             return self.shares[vol_id]
+
 
 def main(data_dir):
     """Dump the metadata to stdout."""
@@ -132,7 +133,7 @@ def main(data_dir):
     print "\nShowing trash:"
     something = False
     for (vol_id, node_id), (mdid, parent_id, path, is_dir) in \
-                                                        fsm.trash.iteritems():
+            fsm.trash.iteritems():
         something = True
         print ("  mdid=%r  volume_id=%r  node_id=%r  parent_id=%r  path=%r "
                "is_dir=%r" % (

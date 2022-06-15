@@ -43,7 +43,7 @@ venv:
 	$(ENV)/bin/pip install -r requirements.txt -r requirements-devel.txt
 
 lint:
-	$(ENV)/bin/flake8 --filename='*.py' --exclude='u1fsfsm.py,test_run_hello.py' ubuntuone
+	$(ENV)/bin/flake8 --filename='*.py' --exclude='u1fsfsm.py,test_run_hello.py' ubuntuone contrib
 
 test: lint
 	./run-tests
