@@ -35,15 +35,17 @@ from ctypes import (
     c_void_p,
     c_uint32,
 )
+from ctypes.util import find_library
 from threading import Thread
 
 from twisted.internet import defer
 
 from magicicadaclient.networkstate import NetworkFailException
-from magicicadaclient.networkstate.networkstates import (ONLINE, OFFLINE, UNKNOWN)
-
-
-from ctypes.util import find_library
+from magicicadaclient.networkstate.networkstates import (
+    ONLINE,
+    OFFLINE,
+    UNKNOWN,
+)
 
 
 logger = logging.getLogger(__name__)

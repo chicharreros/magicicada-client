@@ -32,8 +32,8 @@
 
 from collections import defaultdict
 
+import mock
 from twisted.internet.defer import inlineCallbacks
-from mocker import ARGS, KWARGS, ANY, MockerTestCase
 
 from magicicadaclient.networkstate import (
     linux,
@@ -143,7 +143,7 @@ class TestConnection(TestCase):
 
     @inlineCallbacks
     def setUp(self):
-        """Setup the mocker dbus object tree."""
+        """Setup the mocked dbus object tree."""
         yield super(TestConnection, self).setUp()
         self.patch(linux, "NetworkManagerState", FakeNetworkManagerState)
         self.patch(linux.dbus, 'SystemBus', FakeSystemBus)
@@ -211,37 +211,29 @@ class TestConnection(TestCase):
         yield self.assertFailure(is_machine_connected(), NetworkFailException)
 
 
-class NetworkManagerBaseTestCase(MockerTestCase):
-    """Base test case for NM state tests."""
+class NetworkManagerStateTestCase(TestCase):
+    """Test NetworkManager state retrieval code."""
 
-    def setUp(self):
-        """Setup the dbus object tree."""
-        super(NetworkManagerBaseTestCase, self).setUp()
+    def assert_calls(self, dbusmock):
+        dbusmock.SystemBus.assert_called_once()
+        sysbusmock = dbusmock.SystemBus.return_value
+        proxymock = sysbusmock.get_object.return_value
+        ifmock = dbusmock.Interface.return_value
 
-        self.dbusmock = self.mocker.mock()
-        self.dbusmock.SystemBus()
-        sysbusmock = self.mocker.mock()
-        self.mocker.result(sysbusmock)
-
-        sysbusmock.get_object(ARGS, KWARGS)
-
-    def connect_proxy(self, exc=None):
-        """Get a proxy mock object, and allow failing with specified exc."""
-        proxymock = self.mocker.mock()
-        self.mocker.result(proxymock)
-
-        self.dbusmock.Interface(proxymock, ANY)
-        ifmock = self.mocker.mock()
-        self.mocker.result(ifmock)
-
-        ifmock.connect_to_signal(ARGS, KWARGS)
-        signalmock = self.mocker.mock()
-        self.mocker.result(signalmock)
-
-        proxymock.Get(ARGS, KWARGS)
-        if exc is not None:
-            self.mocker.result(exc)
-        self.mocker.replay()
+        sysbusmock.get_object.assert_called_once_with(
+            'org.freedesktop.NetworkManager',
+            '/org/freedesktop/NetworkManager',
+            follow_name_owner_changes=True,
+        )
+        dbusmock.Interface.assert_called_once_with(
+            proxymock, 'org.freedesktop.NetworkManager')
+        ifmock.connect_to_signal.assert_called_once_with(
+            signal_name='StateChanged',
+            handler_function=mock.ANY,
+            dbus_interface='org.freedesktop.NetworkManager')
+        proxymock.state.assert_called_once_with(
+            dbus_interface='org.freedesktop.NetworkManager',
+            reply_handler=mock.ANY, error_handler=mock.ANY)
 
     def assertOnline(self, state):
         """Check that the state given is ONLINE."""
@@ -255,36 +247,36 @@ class NetworkManagerBaseTestCase(MockerTestCase):
         """Check that the state was UNKNOWN."""
         self.assertEqual(state, UNKNOWN)
 
-    def get_nms(self, callback):
+    def get_nms(self, callback, dbusmock):
         """Get the NetworkManagerState object."""
-        nms = NetworkManagerState(callback, self.dbusmock)
+        nms = NetworkManagerState(callback, dbusmock)
         nms.find_online_state()
         return nms
 
     def check_nm_error(self, callback, error):
         """Check that the error handling is correct."""
-        nms = self.get_nms(callback)
+        dbusmock = mock.Mock()
+        proxymock = dbusmock.SystemBus.return_value.get_object.return_value
+        proxymock.Get.side_effect = error
+        self.addCleanup(self.assert_calls, dbusmock)
+
+        nms = self.get_nms(callback, dbusmock)
         nms.got_error(error)
 
     def check_nm_state(self, callback, state):
         """Check the state handling is correct."""
-        nms = self.get_nms(callback)
+        dbusmock = mock.Mock()
+        self.addCleanup(self.assert_calls, dbusmock)
+        nms = self.get_nms(callback, dbusmock)
         nms.got_state(state)
 
     def check_nm_state_change(self, callback, fmstate, tostate):
         """Check the state change handling is correct."""
-        nms = self.get_nms(callback)
+        dbusmock = mock.Mock()
+        self.addCleanup(self.assert_calls, dbusmock)
+        nms = self.get_nms(callback, dbusmock)
         nms.got_state(fmstate)
         nms.state_changed(tostate)
-
-
-class NetworkManagerStateTestCase(NetworkManagerBaseTestCase):
-    """Test NetworkManager state retrieval code."""
-
-    def setUp(self):
-        """Setup the dbus object tree."""
-        super(NetworkManagerStateTestCase, self).setUp()
-        self.connect_proxy()
 
     def test_nm_asleep(self):
         """Asleep status should mean offline."""
@@ -345,22 +337,12 @@ class NetworkManagerStateTestCase(NetworkManagerBaseTestCase):
         self.check_nm_state_change(self.assertOffline,
                                    NM_STATE_CONNECTING, NM_STATE_DISCONNECTED)
 
-
-class NetworkManagerStateErrorsTestCase(NetworkManagerBaseTestCase):
-    """Test NetworkManager state retrieval code."""
-
-    def mock_except_while_getting_proxy(self, exc):
-        """Simulate an exception while getting the DBus proxy object."""
-        self.mocker.throw(exc)
-        self.mocker.result(exc)
-        self.mocker.replay()
-
     def test_nm_check_errors(self):
         """Trying to reach NM fails with some error."""
-        self.connect_proxy(Exception)
         self.check_nm_error(self.assertOnline, Exception())
 
     def test_dbus_problem(self):
         """Check the case when DBus throws some other exception."""
-        self.mock_except_while_getting_proxy(TestException)
-        self.get_nms(self.assertOnline)
+        dbusmock = mock.Mock()
+        dbusmock.SystemBus.side_effect = TestException()
+        self.get_nms(self.assertOnline, dbusmock)

@@ -76,7 +76,8 @@ class NetworkManagerState(object):
         """Called by DBus when the state is retrieved from NM."""
         # Assuming since Network Manager is not running,
         # the user has connected in some other way
-        logger.error("Error contacting NetworkManager: %s", error)
+        msg = error.message.encode('utf-8')
+        logger.error("Error contacting NetworkManager: %s", msg)
         self.call_result_cb(ONLINE)
 
     def state_changed(self, state):
@@ -100,9 +101,10 @@ class NetworkManagerState(object):
                         signal_name="StateChanged",
                         handler_function=self.state_changed,
                         dbus_interface=NM_DBUS_INTERFACE)
-            nm_proxy.Get(NM_DBUS_INTERFACE, "State",
-                         reply_handler=self.got_state,
-                         error_handler=self.got_error)
+            nm_proxy.state(
+                dbus_interface=NM_DBUS_INTERFACE,
+                reply_handler=self.got_state,
+                error_handler=self.got_error)
         except Exception as e:
             self.got_error(e)
 
