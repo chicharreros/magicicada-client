@@ -86,7 +86,7 @@ MOVE_LIMBO_ROW_TYPE = 2
 # directories in the "client disk".
 #
 # Once assigned, the path, share and node_id values can not be changed. For any
-# other value (except another special one, 'info', see below), three methods
+# other value (except another special one, 'info', see below) as three methods
 # are provided to set them: set_by_*() (symmetric to the getters). These
 # methods receive a first argument to indicate what is modified, and then
 # several keyword arguments with all the values to be set.
@@ -975,7 +975,7 @@ class FileSystemManager(object):
                     else:
                         platform.remove_file(path)
 
-        except OSError, e:
+        except OSError as e:
             self.eq.rm_from_mute_filter(filter_event, path=path)
             log_warning("OSError %s when trying to remove file/dir %r",
                         e, path)
@@ -1003,7 +1003,7 @@ class FileSystemManager(object):
                 platform.rename(path, to_path)
                 event = "FSM_DIR_CONFLICT" if is_dir else "FSM_FILE_CONFLICT"
                 self.eq.push(event, old_name=path, new_name=to_path)
-            except OSError, e:
+            except OSError as e:
                 self.eq.rm_from_mute_filter(expected_event, path=path)
                 if e.errno == errno.ENOENT:
                     m = "Already removed when trying to move to conflict: %r"
@@ -1017,7 +1017,7 @@ class FileSystemManager(object):
                 # remove inotify watch
                 try:
                     self.vm.m.event_q.rm_watch(p)
-                except TypeError, e:
+                except TypeError as e:
                     # pyinotify has an ugly error management, if we can call
                     # it that, :(. We handle this here because it's possible
                     # and correct that the path is not there anymore

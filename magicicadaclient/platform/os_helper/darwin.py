@@ -96,7 +96,7 @@ def move_to_trash(path):
 
     try:
         shutil.move(path, trashpath)
-    except Exception, reason:
+    except Exception as reason:
         logger.warning("Problems moving to trash! (%r) Removing anyway: %r",
                        reason, path)
         if os.path.isdir(path):

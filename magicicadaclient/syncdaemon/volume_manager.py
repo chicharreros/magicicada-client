@@ -1037,7 +1037,7 @@ class VolumeManager(object):
         """Remove the inotify watch from path."""
         try:
             self.m.event_q.rm_watch(path)
-        except (ValueError, RuntimeError, TypeError, KeyError), e:
+        except (ValueError, RuntimeError, TypeError, KeyError) as e:
             # pyinotify has an ugly error management, if we can call
             # it that, :(. We handle this here because it's possible
             # and correct that the path is not there anymore
@@ -1232,7 +1232,7 @@ class VolumeManager(object):
 
         try:
             suggested_path = get_udf_suggested_path(path)
-        except ValueError, e:
+        except ValueError as e:
             self.m.event_q.push('VM_UDF_CREATE_ERROR', path=path,
                                 error="INVALID_PATH: %s" % (e,))
         else:
@@ -1251,7 +1251,7 @@ class VolumeManager(object):
                 # XXX: unicode boundary! parameters should be unicode
                 server_path, udf_name = suggested_path.rsplit(u'/', 1)
                 self.m.action_q.create_udf(server_path, udf_name, marker)
-            except Exception, e:
+            except Exception as e:
                 self.m.event_q.push('VM_UDF_CREATE_ERROR', path=path,
                                     error="UNKNOWN_ERROR: %s" % (e,))
 
@@ -1307,7 +1307,7 @@ class VolumeManager(object):
         self.log.debug('_subscribe_volume: %r', volume_id)
         try:
             volume = self.get_volume(volume_id)
-        except VolumeDoesNotExist, e:
+        except VolumeDoesNotExist as e:
             push_error(error="DOES_NOT_EXIST")
             return defer.fail(e)
 
@@ -1330,7 +1330,7 @@ class VolumeManager(object):
             volume.local_rescanning = True
             self.store_volume(volume)
             d = self._scan_volume(volume, scan_local=volume.can_write())
-        except KeyError, e:
+        except KeyError as e:
             push_error(error="METADATA_DOES_NOT_EXIST")
             return defer.fail(e)
 

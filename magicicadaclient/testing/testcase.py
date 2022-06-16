@@ -379,7 +379,7 @@ class BaseTwistedTestCase(TwistedTestCase):
         # can not be removed.
         try:
             shutil.rmtree(path)
-        except Exception, e:
+        except Exception as e:
             print 'ERROR!! could not recursively remove %r ' \
                   '(error is %r).' % (path, e)
 

@@ -144,7 +144,7 @@ class OffloadQueue(object):
         self._tempfile.close()
         try:
             os.unlink(self._tempfile_name)
-        except Exception, err:
+        except Exception as err:
             self.log.warning("Error when removing old tempfile: %r", err)
 
         try:

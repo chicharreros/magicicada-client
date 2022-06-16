@@ -1121,7 +1121,7 @@ class ViewSharesSubscriptionTests(BaseVolumeManagerTests):
         """Test subscribe_share with a invalid volume_id."""
         try:
             yield self.vm.subscribe_share('invalid_share_id')
-        except VolumeDoesNotExist, e:
+        except VolumeDoesNotExist as e:
             self.assertEqual('DOES_NOT_EXIST', e.args[0])
             self.assertEqual('invalid_share_id', e.args[1])
         else:
@@ -1248,7 +1248,7 @@ class ModifySharesSubscriptionTests(ViewSharesSubscriptionTests):
         # subscribe to it and fail!
         try:
             yield self.vm.subscribe_share(share.id)
-        except KeyError, e:
+        except KeyError as e:
             self.assertIn(share.path, e.args[0])
         else:
             self.fail('Must get a KeyError!')
@@ -2119,7 +2119,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         # subscribe to it and fail!
         try:
             yield self.vm.subscribe_udf(udf.id)
-        except KeyError, e:
+        except KeyError as e:
             self.assertIn(udf.path, e.args[0])
         else:
             self.fail('Must get a KeyError!')
@@ -2130,7 +2130,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         # create and add a UDF
         try:
             yield self.vm.subscribe_udf('invalid_udf_id')
-        except VolumeDoesNotExist, e:
+        except VolumeDoesNotExist as e:
             self.assertEqual('DOES_NOT_EXIST', e.args[0])
             self.assertEqual('invalid_udf_id', e.args[1])
         else:

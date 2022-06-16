@@ -327,7 +327,7 @@ class WatchManager(object):
             # trust that the platform watch manager will do the rest of the
             # operations needed to delete a watch
             self.platform_manager.rm_watch(watch)
-        except KeyError, err:
+        except KeyError as err:
             self.log.error(str(err))
             if not quiet:
                 raise WatchManagerError('Watch %s was not found' % wd, {})

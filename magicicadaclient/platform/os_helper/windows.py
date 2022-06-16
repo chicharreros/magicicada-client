@@ -626,7 +626,7 @@ def native_rename(path_from, path_to):
             MOVEFILE_REPLACE_EXISTING)
     try:
         MoveFileExW(path_from, path_to, flag)
-    except PyWinError, e:
+    except PyWinError as e:
         # we need to transform a PyWinError into a OSError
         logger.exception('Got exception when trying to rename from ' +
                          '%r to %r', path_from, path_to)
@@ -641,7 +641,7 @@ def recursive_move(path_from, path_to):
             path_to = os.path.join(path_to, os.path.basename(path_from))
         try:
             native_rename(path_from, path_to)
-        except OSError, e:
+        except OSError as e:
             raise IOError(e.errno, str(e))
     else:
         shutil.move(path_from, path_to)

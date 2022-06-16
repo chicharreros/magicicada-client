@@ -1209,7 +1209,7 @@ class UploadTestCase(SyncdaemonEventListenerTestCase):
             self.assertEqual(args['error'], str(('', 'node_id')))
             self.assertEqual(args['node_id'], 'node_id')
             self.assertEqual(args['share_id'], '')
-        except Exception, e:
+        except Exception as e:
             self.deferred.errback(e)
         else:
             self.deferred.callback(True)

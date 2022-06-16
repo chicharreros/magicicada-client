@@ -319,7 +319,7 @@ class Event(_Event):
                                                              self.name))
             else:
                 self.pathname = os.path.abspath(self.path)
-        except AttributeError, err:
+        except AttributeError as err:
             # Usually it is not an error some events are perfectly valids
             # despite the lack of these attributes.
             logging.debug(err)

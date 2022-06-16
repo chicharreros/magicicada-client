@@ -215,7 +215,7 @@ class SyncDaemonToolProxy(object):
         """Start syncdaemon, should *not* be running."""
         try:
             cmd = get_sd_bin_cmd()
-        except Exception, e:
+        except Exception as e:
             defer.fail(e)
         p = subprocess.Popen(cmd)
         return defer.succeed(p)

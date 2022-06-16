@@ -97,13 +97,13 @@ class _Hasher(threading.Thread):
 
             try:
                 result = self._hash(path)
-            except (IOError, OSError), e:
+            except (IOError, OSError) as e:
                 m = "Hasher: hash error %s  (path %r  mdid %s)"
                 self.logger.debug(m, e, path, mdid)
                 reactor.callLater(
                     .1, reactor.callFromThread, self.eq.push,
                     "HQ_HASH_ERROR", mdid=mdid)
-            except StopHashing, e:
+            except StopHashing as e:
                 self.logger.debug(str(e))
             else:
                 hashdata, crc, size, stat = result

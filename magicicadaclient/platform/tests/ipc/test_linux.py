@@ -99,7 +99,7 @@ class FakeNetworkManager(DBusExposedObject):
         """Fake dbus's Get method to get at the State property."""
         try:
             reply_handler(getattr(self, propname, None))
-        except Exception, e:
+        except Exception as e:
             error_handler(e)
 
     @dbus.service.method('org.freedesktop.NetworkManager')

@@ -82,7 +82,7 @@ class FileShelf(object, DictMixin):
                 remove_file(path)
                 make_dir(path, True)
             # else, the dir is already there
-        except OSError, e:
+        except OSError as e:
             if e.errno == errno.ENOENT:
                 # the file or dir don't exist
                 make_dir(path, True)

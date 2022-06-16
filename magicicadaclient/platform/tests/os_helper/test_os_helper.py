@@ -306,7 +306,7 @@ class OSWrapperTests(BaseTestCase):
         """Test that it raises proper error when no file is there."""
         try:
             return stat_path(os.path.join(self.basedir, 'nofile'))
-        except OSError, e:
+        except OSError as e:
             self.assertEqual(e.errno, errno.ENOENT)
 
     def test_path_exists_file_yes(self):
