@@ -35,7 +35,7 @@ import errno
 import os
 import time
 
-from mocker import MockerTestCase, ANY
+import mock
 from twisted.internet import defer
 
 from magicicadaclient.testing.testcase import (
@@ -61,6 +61,7 @@ from magicicadaclient.platform import (
     set_dir_readwrite,
     stat_path,
 )
+from magicicadaclient.syncdaemon import filesystem_manager, config, logger
 from magicicadaclient.syncdaemon.filesystem_manager import (
     DirectoryNotRemovable,
     EnableShareWrite,
@@ -71,7 +72,6 @@ from magicicadaclient.syncdaemon.filesystem_manager import (
     TrashTritcaskShelf,
     TRASH_ROW_TYPE,
 )
-from magicicadaclient.syncdaemon import filesystem_manager, config, logger
 from magicicadaclient.syncdaemon.file_shelf import FileShelf
 from magicicadaclient.syncdaemon.tritcask import Tritcask
 from magicicadaclient.syncdaemon.event_queue import EventQueue
@@ -2322,8 +2322,8 @@ class FileHandlingTests(FSMTestCase):
 
         # check it was sent to trash, not just deleted
         called = []
-        orig_call = filesystem_manager.remove_file
-        self.patch(filesystem_manager, 'remove_file',
+        orig_call = filesystem_manager.platform.remove_file
+        self.patch(filesystem_manager.platform, 'remove_file',
                    lambda path: called.append(True) or orig_call(path))
 
         self._delete_file()
@@ -2335,8 +2335,8 @@ class FileHandlingTests(FSMTestCase):
 
         # check it was sent to trash, not just deleted
         called = []
-        orig_call = filesystem_manager.move_to_trash
-        self.patch(filesystem_manager, 'move_to_trash',
+        orig_call = filesystem_manager.platform.move_to_trash
+        self.patch(filesystem_manager.platform, 'move_to_trash',
                    lambda path: called.append(True) or orig_call(path))
 
         self._delete_file()
@@ -2368,8 +2368,8 @@ class FileHandlingTests(FSMTestCase):
 
         # check it was sent to trash, not just deleted
         called = []
-        orig_call = filesystem_manager.remove_dir
-        self.patch(filesystem_manager, 'remove_dir',
+        orig_call = filesystem_manager.platform.remove_dir
+        self.patch(filesystem_manager.platform, 'remove_dir',
                    lambda path: called.append(True) or orig_call(path))
 
         self._delete_dir()
@@ -2381,8 +2381,8 @@ class FileHandlingTests(FSMTestCase):
 
         # check it was sent to trash, not just deleted
         called = []
-        orig_call = filesystem_manager.move_to_trash
-        self.patch(filesystem_manager, 'move_to_trash',
+        orig_call = filesystem_manager.platform.move_to_trash
+        self.patch(filesystem_manager.platform, 'move_to_trash',
                    lambda path: called.append(True) or orig_call(path))
 
         self._delete_dir()
@@ -2417,8 +2417,8 @@ class FileHandlingTests(FSMTestCase):
 
         # check it was sent to trash, not just deleted
         called = []
-        orig_call = filesystem_manager.remove_tree
-        self.patch(filesystem_manager, 'remove_tree',
+        orig_call = filesystem_manager.platform.remove_tree
+        self.patch(filesystem_manager.platform, 'remove_tree',
                    lambda path: called.append(True) or orig_call(path))
 
         self._delete_dir_when_non_empty_and_no_modifications()
@@ -2430,8 +2430,8 @@ class FileHandlingTests(FSMTestCase):
 
         # check it was sent to trash, not just deleted
         called = []
-        orig_call = filesystem_manager.move_to_trash
-        self.patch(filesystem_manager, 'move_to_trash',
+        orig_call = filesystem_manager.platform.move_to_trash
+        self.patch(filesystem_manager.platform, 'move_to_trash',
                    lambda path: called.append(True) or orig_call(path))
 
         self._delete_dir_when_non_empty_and_no_modifications()
@@ -4080,85 +4080,85 @@ class TrashTritcaskShelfTests(TrashFileShelfTests):
         self.tfs = TrashTritcaskShelf(TRASH_ROW_TYPE, self.db)
 
 
-class OsIntegrationTests(FSMTestCase, MockerTestCase):
+class OsIntegrationTests(FSMTestCase):
     """Ensure that the correct os_helper methods are used."""
 
     @defer.inlineCallbacks
     def setUp(self):
         """Set up."""
         yield super(OsIntegrationTests, self).setUp()
-        self.open_file = self.mocker.replace(
-            'magicicadaclient.platform.open_file')
-        self.normpath = self.mocker.replace(
-            'magicicadaclient.platform.normpath')
-        self.listdir = self.mocker.replace('magicicadaclient.platform.listdir')
+        self.platform = mock.Mock()
+        self.patch(filesystem_manager, 'platform', self.platform)
 
     def test_get_partial_for_writing(self):
         """Test that the get partial does use the correct os_helper method."""
         fd = 'file_descriptor'
         path = 'path'
+        partial_path = path + '.partial'
         mdid = 'id'
         node_id = 'node_id'
         share_id = 'share_id'
         self.fsm._idx_node_id = {(share_id, node_id): mdid}
         self.fsm.fs = {'id': path}
-        self.fsm._get_partial_path = self.mocker.mock()
-        self.fsm._get_partial_path(path)
-        self.mocker.result(path)
-        self.open_file(path, 'wb')
-        self.mocker.result(fd)
-        self.mocker.replay()
-        self.assertEqual(
-            fd, self.fsm.get_partial_for_writing(node_id, share_id))
+        self.fsm._get_partial_path = mock.Mock(return_value=partial_path)
+        self.platform.open_file.return_value = fd
+
+        result = self.fsm.get_partial_for_writing(node_id, share_id)
+
+        self.fsm._get_partial_path.assert_called_once_with(path)
+        self.platform.open_file.assert_called_once_with(partial_path, 'wb')
+        self.assertEqual(fd, result)
 
     def test_get_partial(self):
         """Test that the get partial does use the correct os_helper method."""
         fd = 'file_descriptor'
         path = 'path'
+        partial_path = path + '.partial'
         mdid = 'id'
         node_id = 'node_id'
         share_id = 'share_id'
         self.fsm._idx_node_id = {(share_id, node_id): mdid}
         self.fsm.fs = {'id': path}
-        self.fsm._get_partial_path = self.mocker.mock()
-        self.fsm._check_partial = self.mocker.mock()
-        # set the expectations
-        self.fsm._check_partial(mdid)
-        self.mocker.result(True)
-        self.fsm._get_partial_path(path)
-        self.mocker.result(path)
-        self.open_file(path, 'rb')
-        self.mocker.result(fd)
-        self.mocker.replay()
-        self.assertEqual(fd, self.fsm.get_partial(node_id, share_id))
+        self.fsm._check_partial = mock.Mock(return_value=True)
+        self.fsm._get_partial_path = mock.Mock(return_value=partial_path)
+        self.platform.open_file.return_value = fd
+
+        result = self.fsm.get_partial(node_id, share_id)
+
+        self.fsm._check_partial.assert_called_once_with(mdid)
+        self.fsm._get_partial_path.assert_called_once_with(path)
+        self.platform.open_file.assert_called_once_with(partial_path, 'rb')
+        self.assertEqual(fd, result)
 
     def test_open_file(self):
         """Test that the open file uses the correct os_helper method."""
         fd = 'file_descriptor'
         mdid = 'id'
         mdobj = dict(is_dir=False, share_id='share_id', path='path')
-        self.fsm.get_abspath = self.mocker.mock()
         self.fsm.fs = dict(id=mdobj)
-        self.fsm.get_abspath(mdobj['share_id'], mdobj['path'])
-        self.mocker.result(mdobj['path'])
-        self.open_file(mdobj['path'], 'rb')
-        self.mocker.result(fd)
-        self.mocker.replay()
-        self.assertEqual(fd, self.fsm.open_file(mdid))
+        self.fsm.get_abspath = mock.Mock(return_value='/absolute/path')
+        self.platform.open_file.return_value = fd
+
+        result = self.fsm.open_file(mdid)
+
+        self.fsm.get_abspath.assert_called_once_with(
+            mdobj['share_id'], mdobj['path'])
+        self.platform.open_file.assert_called_once_with('/absolute/path', 'rb')
+        self.assertEqual(fd, result)
 
     def test_create(self):
         """Test that create uses the correct os_helper functions."""
-        # we do not care about the entire method, lets force and error and
-        # test that the methods are called
         path = 'path'
         share_id = 'share_id'
         mdid = 'id'
-        self.fsm._idx_path = {path: mdid}
+        # we do not care about the entire method, lets force a ValueError and
+        # test that the desired methods are called
+        self.platform.normpath.return_value = 'normalized' + path
+        self.fsm._idx_path = {'normalized' + path: mdid}
+
         # expectations
-        self.normpath(path)
-        self.mocker.result(path)
-        self.mocker.replay()
         self.assertRaises(ValueError, self.fsm.create, path, share_id)
+        self.platform.normpath.assert_called_once_with(path)
 
     def test_set_node_id(self):
         """Test that set_node_id uses the correct os_helper function."""
@@ -4166,24 +4166,24 @@ class OsIntegrationTests(FSMTestCase, MockerTestCase):
         # test that the methods are called
         path = 'path'
         node_id = 'id'
+        self.platform.normpath.return_value = 'normalized' + path
         self.fsm._idx_path = {}
+
         # expectations
-        self.normpath(path)
-        self.mocker.result(path)
-        self.mocker.replay()
         self.assertRaises(KeyError, self.fsm.set_node_id, path, node_id)
+        self.platform.normpath.assert_called_once_with(path)
 
     def test_get_by_path(self):
         """Test that the get_by_path uses the correct os_helper function."""
         # we do not care about the entire method, lets force and error and
         # test that the methods are called
         path = 'path'
+        self.platform.normpath.return_value = 'normalized' + path
         self.fsm._idx_path = {}
+
         # expectations
-        self.normpath(path)
-        self.mocker.result(path)
-        self.mocker.replay()
         self.assertRaises(KeyError, self.fsm.get_by_path, path)
+        self.platform.normpath.assert_called_once_with(path)
 
     def test_set_by_path(self):
         """Test that set_by_path uses the correct os_helper function."""
@@ -4192,10 +4192,10 @@ class OsIntegrationTests(FSMTestCase, MockerTestCase):
         path = 'path'
         self.fsm._idx_path = {}
         # expectations
-        self.normpath(path)
-        self.mocker.result(path)
-        self.mocker.replay()
+        self.platform.normpath.return_value = 'normalized' + path
+
         self.assertRaises(KeyError, self.fsm.set_by_path, path)
+        self.platform.normpath.assert_called_once_with(path)
 
     def test_move_file(self):
         """Test that move_file uses the correct os_helper function."""
@@ -4206,13 +4206,14 @@ class OsIntegrationTests(FSMTestCase, MockerTestCase):
         moved_to = 'path_moved_to'
         self.fsm._idx_path = {}
         # set the expectations
-        self.normpath(moved_from)
-        self.mocker.result(moved_from)
-        self.normpath(moved_to)
-        self.mocker.result(moved_to)
-        self.mocker.replay()
+        self.platform.normpath.side_effect = [
+            'normalized' + moved_from, 'normalized' + moved_to]
+
         self.assertRaises(KeyError, self.fsm.move_file, new_share_id,
                           moved_from, moved_to)
+        self.assertEqual(
+            self.platform.normpath.mock_calls,
+            [mock.call(moved_from), mock.call(moved_to)])
 
     def test_moved(self):
         """Test that moved uses the correct os_helper function."""
@@ -4223,25 +4224,27 @@ class OsIntegrationTests(FSMTestCase, MockerTestCase):
         moved_to = 'path_moved_to'
         self.fsm._idx_path = {}
         # set the expectations
-        self.normpath(moved_from)
-        self.mocker.result(moved_from)
-        self.normpath(moved_to)
-        self.mocker.result(moved_to)
-        self.mocker.replay()
+        self.platform.normpath.return_value = [
+            'normalized' + moved_from, 'normalized' + moved_to]
+
         self.assertRaises(KeyError, self.fsm.moved, new_share_id, moved_from,
                           moved_to)
+        self.assertEqual(
+            self.platform.normpath.mock_calls,
+            [mock.call(moved_from), mock.call(moved_to)])
 
     def test_delete_metadata(self):
         """Test that delete_metadata uses the correct os_helper function."""
         mdid = 'id'
         path = 'path'
+        normalized_path = 'normalized-path'
         mdobj = {'node_id': None}
-        self.fsm._idx_path = {path: mdid}
+        self.fsm._idx_path = {normalized_path: mdid}
         self.fsm.fs = {mdid: mdobj}
-        self.normpath(path)
-        self.mocker.result(path)
-        self.mocker.replay()
+        self.platform.normpath.return_value = normalized_path
+
         self.fsm.delete_metadata(path)
+        self.platform.normpath.assert_called_once_with(path)
 
     def test_delete_file(self):
         """Test that delete_files uses the correct os_helper function."""
@@ -4250,43 +4253,45 @@ class OsIntegrationTests(FSMTestCase, MockerTestCase):
         mdid = 'id'
         mdobj = {}
         path = 'path'
-        self.fsm._idx_path = {path: mdid}
+        normalized_path = 'normalized-path'
+        self.fsm._idx_path = {normalized_path: mdid}
         self.fsm.fs = {mdid: mdobj}
-        self.fsm.is_dir = self.mocker.mock()
-        self.fsm.eq = self.mocker.mock()
+        self.fsm.is_dir = mock.Mock(return_value=True)
+        self.fsm.eq = mock.Mock()
         # expectations
-        self.normpath(path)
-        self.mocker.result(path)
-        self.fsm.is_dir(path=path)
-        self.mocker.result(True)
-        self.fsm.eq.add_to_mute_filter(ANY, path=path)
-        self.listdir(path)
-        self.mocker.throw(ValueError)
-        self.mocker.replay()
+        self.platform.normpath.return_value = normalized_path
+        self.platform.listdir.side_effect = ValueError()
+
         self.assertRaises(ValueError, self.fsm.delete_file, path)
+        self.platform.normpath.assert_called_once_with(path)
+        self.fsm.is_dir.assert_called_once_with(path=normalized_path)
+        self.fsm.eq.add_to_mute_filter.assert_called_once_with(
+            'FS_DIR_DELETE', path=normalized_path)
+        self.platform.listdir.assert_called_once_with(normalized_path)
 
     def test_get_mdid_from_args(self):
         """Test that get_mdid_from_args uses the correct os_helper function."""
         mdid = 'id'
         path = 'path'
+        normalized_path = 'normalized-path'
         parent = None
-        self.fsm._idx_path = {path: mdid}
+        self.fsm._idx_path = {normalized_path: mdid}
         args = {'path': path}
         # expectations
-        self.normpath(path)
-        self.mocker.result(path)
-        self.mocker.replay()
+        self.platform.normpath.return_value = normalized_path
+
         self.assertEqual(mdid, self.fsm._get_mdid_from_args(args, parent))
+        self.platform.normpath.assert_called_once_with(path)
 
     def test_has_metadata(self):
         """Test that has_metadata uses the correct os_helper function."""
         path = 'path'
         self.fsm._idx_path = {}
         # expectations
-        self.normpath(path)
-        self.mocker.result(path)
-        self.mocker.replay()
+        self.platform.normpath.return_value = 'normalized' + path
+
         self.assertFalse(self.fsm.has_metadata(path=path))
+        self.platform.normpath.assert_called_once_with(path)
 
     def test_dir_content(self):
         """Test that dir_content uses the correct os_helper function."""
@@ -4298,10 +4303,9 @@ class OsIntegrationTests(FSMTestCase, MockerTestCase):
         self.fsm._idx_path = {mdid: path}
         self.fsm.fs = {mdid: mdobj}
         # set the expectations
-        self.normpath(path)
-        self.mocker.result(path)
-        self.mocker.replay()
+        self.platform.normpath.return_value = 'normalized' + path
         self.assertRaises(KeyError, self.fsm.dir_content, path)
+        self.platform.normpath.assert_called_once_with(path)
 
 
 class FSMSearchTestCase(BaseTwistedTestCase):

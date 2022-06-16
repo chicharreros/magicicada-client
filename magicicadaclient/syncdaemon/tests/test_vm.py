@@ -39,11 +39,12 @@ import os
 import sys
 import uuid
 
+import mock
+
 from magicicadaprotocol import volumes, request
 from magicicadaprotocol.client import ListShares
 from magicicadaprotocol.sharersp import NotifyShareHolder, ShareResponse
 
-from mocker import Mocker, MATCH
 from twisted.internet import defer, reactor
 
 from devtools.handlers import MementoHandler
@@ -4130,36 +4131,35 @@ class MetadataUpgraderTests(MetadataTestCase):
     def test_upgrade_names_metadata_2_no_os_rename(self):
         """Test that when names are upgraded we use the os_helper.rename."""
         dirpath = os.path.join('path', 'to', 'metadata')
-        files = ['not_yet.partial', ]
-        mocker = Mocker()
+        files = ['not_yet.partial']
+        os_helper_rename = mock.Mock()
         # ensure that we do use the platform method and not the renamed one
-        os_helper_rename = mocker.replace('magicicadaclient.platform.rename')
+        self.patch(volume_manager, 'rename', os_helper_rename)
 
-        def is_string(x):
-            return isinstance(x, str)
+        self.md_upgrader._upgrade_names(dirpath, files)
 
-        os_helper_rename(MATCH(is_string), MATCH(is_string))
-        with mocker:
-            self.md_upgrader._upgrade_names(dirpath, files)
+        os_helper_rename.assert_called_once_with(
+            'path/to/metadata/not_yet.partial',
+            'path/to/metadata/.u1partial.not_yet')
 
     def test_upgrade_metadata_5_no_os_rename(self):
         """Test that when we upgrade we use the os_helper.rename."""
         shelf = LegacyShareFileShelf(self.share_md_dir)
         shelf['foobar'] = _Share(path=os.path.join('foo', 'bar'),
                                  share_id='foobar')
-        mocker = Mocker()
+        os_helper_rename = mock.Mock()
         # ensure that we do use the platform method and not the renamed one
-        self.md_upgrader._upgrade_metadata_6 = mocker.mock()
-        os_helper_rename = mocker.replace('magicicadaclient.platform.rename')
+        self.md_upgrader._upgrade_metadata_6 = mock.Mock()
+        self.patch(volume_manager, 'rename', os_helper_rename)
 
-        def is_string(x):
-            return isinstance(x, str)
+        self.md_upgrader._upgrade_metadata_5(6)
 
-        os_helper_rename(MATCH(is_string), MATCH(is_string))
-        mocker.count(3)
-        self.md_upgrader._upgrade_metadata_6(6)
-        with mocker:
-            self.md_upgrader._upgrade_metadata_5(6)
+        self.assertEqual(
+            os_helper_rename.mock_calls,
+            [mock.call(self.vm_data_dir, self.data_dir + '/5.bkp'),
+             mock.call(self.data_dir + '/md_6.new', self.vm_data_dir)]
+        )
+        self.md_upgrader._upgrade_metadata_6.assert_called_once_with(6)
 
 
 @skipIfOS('linux2', 'On linux paths are bytes so this tests do not apply')
