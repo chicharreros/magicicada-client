@@ -851,7 +851,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
                     self._deferred.errback(ValueError("uid %s is wrong" % uid))
                 self.assertNotIn(udf.path, self.eq.monitor._ancestors_watchs,
                                  'watch must be removed')
-                self.assertEqual(False, self.eq.fs.vm.udfs[udf.id].subscribed)
+                self.assertFalse(self.eq.fs.vm.udfs[udf.id].subscribed)
             self._deferred.callback(True)
 
         original = self.eq.fs.vm.unsubscribe_udf

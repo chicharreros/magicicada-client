@@ -136,7 +136,7 @@ class TestReadingFlags(TestCase):
         for flag in range(0, 17) + [1 << 16, 1 << 17, 1 << 18]:
             # only test cases without the reachable bit set:
             flag = flag & ~ 2
-            self.assertEqual(False, flags_say_reachable(flag))
+            self.assertFalse(flags_say_reachable(flag))
 
 
 class TestNMSListeningForNWStateChanges(TestCase):

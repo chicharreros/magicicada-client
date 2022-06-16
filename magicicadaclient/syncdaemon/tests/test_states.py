@@ -912,11 +912,11 @@ class TestStateManagerAPI(Base):
         sm = self.sm
         for node in self.sm_allnodes:
             sm.state = node
-            self.assertTrue(isinstance(sm.state.name, basestring))
-            self.assertTrue(isinstance(sm.state.description, basestring))
-            self.assertTrue(isinstance(sm.state.is_error, bool))
-            self.assertTrue(isinstance(sm.state.is_connected, bool))
-            self.assertTrue(isinstance(sm.state.is_online, bool))
+            self.assertIsInstance(sm.state.name, basestring)
+            self.assertIsInstance(sm.state.description, basestring)
+            self.assertIsInstance(sm.state.is_error, bool)
+            self.assertIsInstance(sm.state.is_connected, bool)
+            self.assertIsInstance(sm.state.is_online, bool)
 
     def check_node(self, name, error, conn, online):
         self.assertEqual(self.sm.state.name, name)

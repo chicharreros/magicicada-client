@@ -226,8 +226,7 @@ class PushTests(BaseEQTestCase):
         a "(param,)".
         """
         for name, params in event_queue.EVENTS.iteritems():
-            self.assertTrue(isinstance(params, (tuple, list)),
-                            "%s event has params bad defined!" % name)
+            self.assertIsInstance(params, (tuple, list))
 
     def test_listened_pushs(self):
         """Push events and listem them."""

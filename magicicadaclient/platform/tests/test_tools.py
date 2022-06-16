@@ -217,12 +217,12 @@ class TestToolsBasic(TestToolsBase):
         yield self.main.vm.add_share(volume_manager.Share(path=share_path,
                                      volume_id='share_id', access_level='Read',
                                      accepted=False, node_id="node_id"))
-        self.assertEqual(False, self.main.vm.shares['share_id'].accepted)
+        self.assertFalse(self.main.vm.shares['share_id'].accepted)
         result = yield self.tool.accept_share('share_id')
 
         self.assertEqual('Yes', result['answer'])
         self.assertEqual('share_id', result['volume_id'])
-        self.assertEqual(True, self.main.vm.shares['share_id'].accepted)
+        self.assertTrue(self.main.vm.shares['share_id'].accepted)
 
     @defer.inlineCallbacks
     def test_reject_share(self):
@@ -231,12 +231,12 @@ class TestToolsBasic(TestToolsBase):
         yield self.main.vm.add_share(volume_manager.Share(path=share_path,
                                      volume_id='share_id', access_level='Read',
                                      accepted=False))
-        self.assertEqual(False, self.main.vm.shares['share_id'].accepted)
+        self.assertFalse(self.main.vm.shares['share_id'].accepted)
         result = yield self.tool.reject_share('share_id')
 
         self.assertEqual('No', result['answer'])
         self.assertEqual('share_id', result['volume_id'])
-        self.assertEqual(False, self.main.vm.shares['share_id'].accepted)
+        self.assertFalse(self.main.vm.shares['share_id'].accepted)
 
 
 class TestWaitForSignals(TestToolsBase):

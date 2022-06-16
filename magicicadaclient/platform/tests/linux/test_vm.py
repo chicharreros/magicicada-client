@@ -630,7 +630,7 @@ class MetadataNewLayoutTests(MetadataTestCase):
         for sid in vm.shared:
             old_share = legacy_shared[sid]
             share = vm.shared[sid]
-            self.assertTrue(isinstance(share, Shared))
+            self.assertIsInstance(share, Shared)
             compare_share(share, old_share)
 
     def test_upgrade_5_with_udfs(self):
@@ -723,13 +723,13 @@ class MetadataNewLayoutTests(MetadataTestCase):
         for sid in vm.shared:
             old_share = legacy_shared[sid]
             share = vm.shared[sid]
-            self.assertTrue(isinstance(share, Shared))
+            self.assertIsInstance(share, Shared)
             compare_share(share, old_share)
 
         for udf_id in vm.udfs:
             old_udf = legacy_udfs[udf_id]
             udf = vm.udfs[udf_id]
-            self.assertTrue(isinstance(udf, UDF))
+            self.assertIsInstance(udf, UDF)
             self.assertEqual(udf.volume_id, old_udf.id)
             self.assertEqual(udf.path, old_udf.path)
             self.assertEqual(udf.node_id, old_udf.node_id)
@@ -849,7 +849,7 @@ class MetadataNewLayoutTests(MetadataTestCase):
         for sid in vm.shared:
             old_share = legacy_shared[sid]
             share = vm.shared[sid]
-            self.assertTrue(isinstance(share, Shared))
+            self.assertIsInstance(share, Shared)
             compare_share(share, old_share)
 
     def test_upgrade_5_critical_error(self):
@@ -915,14 +915,14 @@ class MetadataNewLayoutTests(MetadataTestCase):
         self.assertEqual(len(list(shares.keys())), len(legacy_shares.keys()))
         for sid, share in shares.iteritems():
             old_share = legacy_shares[sid]
-            self.assertTrue(isinstance(share, _Share))
-            self.assertTrue(isinstance(old_share, _Share))
+            self.assertIsInstance(share, _Share)
+            self.assertIsInstance(old_share, _Share)
         shared = LegacyShareFileShelf(self.shared_md_dir)
         self.assertEqual(len(list(shared.keys())), len(legacy_shared.keys()))
         for sid, share in shared.iteritems():
             old_share = legacy_shared[sid]
-            self.assertTrue(isinstance(share, _Share))
-            self.assertTrue(isinstance(old_share, _Share))
+            self.assertIsInstance(share, _Share)
+            self.assertIsInstance(old_share, _Share)
 
     def test_broken_symlink_latest_metadata(self):
         """Test vm startup with latest metadata and a broken symlink."""
@@ -1010,13 +1010,13 @@ class MetadataNewLayoutTests(MetadataTestCase):
         for sid in vm.shared:
             old_share = legacy_shared[sid]
             share = vm.shared[sid]
-            self.assertTrue(isinstance(share, Shared))
+            self.assertIsInstance(share, Shared)
             self.assertEqual(share.__dict__, old_share.__dict__)
 
         for udf_id in vm.udfs:
             old_udf = legacy_udfs[udf_id]
             udf = vm.udfs[udf_id]
-            self.assertTrue(isinstance(udf, UDF))
+            self.assertIsInstance(udf, UDF)
             self.assertEqual(udf.__dict__, old_udf.__dict__)
 
 

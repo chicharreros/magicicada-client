@@ -75,7 +75,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         conf_file = os.path.join(self.test_root, 'test_missing_config.conf')
         # create the config object with an empty config file
         conf = config._Config(conf_file)
-        self.assertEqual(False, conf.get_throttling())
+        self.assertFalse(conf.get_throttling())
         self.assertEqual(2097152, conf.get_throttling_read_limit())
         self.assertEqual(2097152, conf.get_throttling_write_limit())
 
@@ -89,7 +89,7 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('read_limit = 1000\n')
             fp.write('write_limit = 200\n')
         conf = config._Config(conf_file)
-        self.assertEqual(True, conf.get_throttling())
+        self.assertTrue(conf.get_throttling())
         self.assertEqual(1000, conf.get_throttling_read_limit())
         self.assertEqual(200, conf.get_throttling_write_limit())
 
@@ -107,7 +107,7 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('read_limit = 1000\n')
             fp.write('write_limit = 200\n')
         conf = config._Config(conf_file)
-        self.assertEqual(True, conf.get_throttling())
+        self.assertTrue(conf.get_throttling())
         self.assertEqual(1000, conf.get_throttling_read_limit())
         self.assertEqual(200, conf.get_throttling_write_limit())
 
@@ -204,7 +204,7 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('read_limit = -1\n')
             fp.write('write_limit = -1\n')
         conf = config._Config(conf_file)
-        self.assertEqual(True, conf.get_throttling())
+        self.assertTrue(conf.get_throttling())
         self.assertEqual(None, conf.get_throttling_read_limit())
         self.assertEqual(None, conf.get_throttling_write_limit())
 
@@ -217,7 +217,7 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('on = True\n')
             fp.write('read_limit = 1\n')
         conf = config._Config(conf_file)
-        self.assertEqual(True, conf.get_throttling())
+        self.assertTrue(conf.get_throttling())
         self.assertEqual(1, conf.get_throttling_read_limit())
         self.assertEqual(2097152, conf.get_throttling_write_limit())
 
@@ -234,7 +234,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         conf_orig = config._Config(conf_file)
         overridden_opts = [('bandwidth_throttling', 'on', False)]
         conf.override_options(overridden_opts)
-        self.assertEqual(False, conf.get_throttling())
+        self.assertFalse(conf.get_throttling())
         self.assertFalse(conf.get_throttling() == conf_orig.get_throttling())
         self.assertEqual(1000, conf.get_throttling_read_limit())
         self.assertEqual(200, conf.get_throttling_write_limit())
@@ -291,7 +291,7 @@ class TestConfigBasic(BaseTwistedTestCase):
                             conf_orig.get_udf_autosubscribe())
         conf.save()
         conf_1 = config._Config(conf_file)
-        self.assertEqual(True, conf_1.get_udf_autosubscribe())
+        self.assertTrue(conf_1.get_udf_autosubscribe())
 
     def test_load_share_autosubscribe(self):
         """Test load/set/override of share_autosubscribe config value."""
@@ -333,7 +333,7 @@ class TestConfigBasic(BaseTwistedTestCase):
                             conf_orig.get_share_autosubscribe())
         conf.save()
         conf_1 = config._Config(conf_file)
-        self.assertEqual(True, conf_1.get_share_autosubscribe())
+        self.assertTrue(conf_1.get_share_autosubscribe())
 
     def test_load_autoconnect(self):
         """Test load/set/override of autoconnect config value."""
@@ -381,7 +381,7 @@ class TestConfigBasic(BaseTwistedTestCase):
                             conf_orig.get_autoconnect())
         conf.save()
         conf_1 = config._Config(conf_file)
-        self.assertEqual(True, conf_1.get_autoconnect())
+        self.assertTrue(conf_1.get_autoconnect())
 
     def test_get_simult_transfers(self):
         """Get simult transfers."""
