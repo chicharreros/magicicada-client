@@ -137,7 +137,7 @@ class StateMachineRunner(object):
                           action_func_name, event_name, parameters)
             try:
                 af(event_name, parameters, *args)
-            except Exception, e:
+            except Exception as e:
                 self.log.exception("Executing ACTION_FUNC '%s' "
                                    "gave an exception: %r" %
                                    (action_func_name, e))

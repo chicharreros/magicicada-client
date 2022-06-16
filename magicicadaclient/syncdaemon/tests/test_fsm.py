@@ -1932,7 +1932,7 @@ class PartialTests(FSMTestCase):
         remove_dir(self.partials_dir)
         try:
             self.fsm.create_partial("uuid", "share")
-        except IOError, e:
+        except IOError as e:
             if e.errno == errno.ENOENT:
                 # expected
                 pass
@@ -1952,7 +1952,7 @@ class PartialTests(FSMTestCase):
             testfile = os.path.join(self.share_path, "x" * repeat)
             try:
                 fh = open_file(testfile, 'w')
-            except IOError, e:
+            except IOError as e:
                 # linux will give you "too long", windows will say "invalid"
                 if e.errno in (errno.ENAMETOOLONG, errno.EINVAL):
                     repeat -= 10

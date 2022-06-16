@@ -969,7 +969,7 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
                           ", client (%r) is not self.client (%r)."
                     logger.warning(msg, req_name, client, self.client)
                     return
-        except request_error, failure:
+        except request_error as failure:
             event = event_error
             self.event_queue.push(event_error, error=str(failure))
         except (twisted_errors.ConnectionLost,
@@ -979,16 +979,16 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
             # will be sent by normal client/protocol mechanisms, and logging
             # will be done later in this function.
             pass
-        except protocol_errors.AuthenticationRequiredError, failure:
+        except protocol_errors.AuthenticationRequiredError as failure:
             # we need to separate this case from the rest because an
             # AuthenticationRequiredError is an StorageRequestError,
             # and we treat it differently.
             event = 'SYS_UNKNOWN_ERROR'
             self.event_queue.push(event)
-        except protocol_errors.StorageRequestError, failure:
+        except protocol_errors.StorageRequestError as failure:
             event = 'SYS_SERVER_ERROR'
             self.event_queue.push(event, error=str(failure))
-        except Exception, failure:
+        except Exception as failure:
             if handle_exception:
                 event = 'SYS_UNKNOWN_ERROR'
                 self.event_queue.push(event)
@@ -1396,7 +1396,7 @@ class ActionQueueCommand(object):
 
         try:
             yield self.run()
-        except Exception, exc:
+        except Exception as exc:
             self.log.exception("Error running the command: %s "
                                "(traceback follows)", exc)
         finally:
@@ -1440,7 +1440,7 @@ class ActionQueueCommand(object):
             except DeferredInterrupted:
                 self.running_deferred = None
                 continue
-            except Exception, exc:
+            except Exception as exc:
                 self.running_deferred = None
                 if self.cancelled:
                     self.log.debug('cancelled while running')

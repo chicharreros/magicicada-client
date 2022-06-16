@@ -685,7 +685,7 @@ class SyncStateMachineRunner(StateMachineRunner):
             # directory not empty and with stuff that should not be deleted
             self.key.move_to_conflict()
             self.key.delete_metadata()
-        except OSError, e:
+        except OSError as e:
             if e.errno == 2:
                 # file gone
                 pass
@@ -1068,7 +1068,7 @@ class Sync(object):
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         try:
             data_ok = ssmr.validate_actual_data(path, stat)
-        except OSError, e:
+        except OSError as e:
             # the file went away between the moment HQ finished and now, we
             # discard the info, but needs to send to rehash.
             log.debug("Changing HQ_HASH_NEW to ERROR in %r: %s", path, e)

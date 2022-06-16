@@ -1329,7 +1329,7 @@ class SyncStateMachineRunnerTestCase(BaseSync):
         self.assertEqual(called, [mdid, somepath])
         try:
             yield map_d
-        except Exception, e:
+        except Exception as e:
             # silence the received exception
             self.assertEqual(e, exc)
         else:
@@ -1356,7 +1356,7 @@ class SyncStateMachineRunnerTestCase(BaseSync):
         # check
         try:
             yield map_d
-        except Exception, e:
+        except Exception as e:
             # silence the received exception
             self.assertEqual(e, exc)
             self.assertEqual(called, [('mrker',)])

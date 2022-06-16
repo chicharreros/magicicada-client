@@ -474,5 +474,5 @@ class LRUCacheTests(unittest.TestCase):
         cache['key2']
         try:
             cache['key2']
-        except CacheInconsistencyError, e:
+        except CacheInconsistencyError as e:
             self.fail(e)

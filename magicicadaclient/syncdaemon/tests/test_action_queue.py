@@ -895,7 +895,7 @@ class TestDeferredMap(TwistedTestCase):
         self.dm.err('bar', Failure(exc))
         try:
             yield d2
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(e, exc)
         else:
             self.fail("It didn't fired the deferred with a failure!")
@@ -1015,7 +1015,7 @@ class TestZipQueue(BasicTestCase):
 
         try:
             yield self.zq.zip(upload, StringIO)
-        except Exception, e:
+        except Exception as e:
             # need to silent the exception we're generating in the test
             self.assertEqual(e, exc)
         else:
@@ -1684,7 +1684,7 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         self.assertTrue(self.handler.check_error("failed marker"))
         try:
             yield self.cmd.markers_resolved_deferred
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'bad')
         else:
             self.fail("An exception should have been raised!")
@@ -1729,7 +1729,7 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         # check
         try:
             yield self.cmd.markers_resolved_deferred
-        except Exception, e:
+        except Exception as e:
             self.assertEqual(str(e), 'data bad')
         else:
             self.fail("An exception should have been raised!")
@@ -5531,7 +5531,7 @@ class InterruptibleDeferredTests(TwistedTestCase):
         origdef.errback(ValueError('foo'))
         try:
             yield intrdef
-        except ValueError, e:
+        except ValueError as e:
             self.assertEqual(str(e), 'foo')
         else:
             self.fail("Test should have raised an exception")
