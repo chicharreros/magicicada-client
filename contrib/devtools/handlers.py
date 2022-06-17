@@ -50,25 +50,25 @@ class MementoHandler(logging.Handler):
         self.format(record)
         self.records.append(record)
 
-    def dump_contents(self, msgs):
+    def dump_contents(self):
         """Dumps the contents of the MementoHandler."""
-        if self.debug:
-            print("Expecting:")
-            for msg in msgs:
-                print("\t", msg)
-            print("MementoHandler contents:")
-            for rec in self.records:
-                print("\t", rec.exc_info)
-                print("\t", logging.getLevelName(rec.levelno))
-                print("\t\t", rec.message)
-                print("\t\t", rec.exc_text)
+        for rec in self.records:
+            print("\t", rec.exc_info)
+            print("\t", logging.getLevelName(rec.levelno))
+            print("\t\t", rec.message)
+            print("\t\t", rec.exc_text)
 
     def check(self, level, *msgs):
         """Verifies that the msgs are logged in the specified level"""
         for rec in self.records:
             if rec.levelno == level and all(m in rec.message for m in msgs):
                 return rec
-        self.dump_contents(msgs)
+        if self.debug:
+            print("Expecting:")
+            for msg in msgs:
+                print("\t", msg)
+            print("MementoHandler contents:")
+            self.dump_contents()
         return False
 
     def check_debug(self, *msgs):

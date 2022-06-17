@@ -3,3 +3,5 @@
 build/
 _trial_temp/
 *.~lock.*
+magicicadaclient/clientdefs.py
+data/logging.conf
