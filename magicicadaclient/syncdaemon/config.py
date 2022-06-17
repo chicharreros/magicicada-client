@@ -80,7 +80,7 @@ THROTTLING = 'bandwidth_throttling'
 MAIN = '__main__'
 
 # global logger
-logger = logging.getLogger('ubuntuone.SyncDaemon.config')
+logger = logging.getLogger(__name__)
 
 # get (and possibly create if don't exists) the user config file
 _user_config_path = os.path.join(save_config_path('ubuntuone'),

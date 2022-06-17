@@ -819,9 +819,9 @@ class Sync(object):
         """create"""
         # XXX: verterok: add a custom Logger to lazyily build the LogRecord,
         # now that the DebugCapture is enabled
-        self.logger = logging.getLogger('ubuntuone.SyncDaemon.sync')
-        self.broken_logger = logging.getLogger(
-            'ubuntuone.SyncDaemon.BrokenNodes')
+        self.logger = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
+        self.broken_logger = logging.getLogger('magicicadaclient.BrokenNodes')
         if Sync.fsm is None:
             Sync.fsm = StateMachine(u1fsfsm.state_machine)
         self.m = main

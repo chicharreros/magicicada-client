@@ -63,7 +63,7 @@ from magicicadaclient.syncdaemon.volume_manager import (
 )
 
 
-logger = logging.getLogger("ubuntuone.SyncDaemon.InteractionInterfaces")
+logger = logging.getLogger(__name__)
 
 
 class NoAccessToken(Exception):

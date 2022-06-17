@@ -107,8 +107,7 @@ class Watch(object):
         self.platform_watch = PlatformWatch(self.path, self.process_events)
 
         self.log = logging.getLogger(
-            'ubuntuone.SyncDaemon.platform.common.filesystem_notifications.'
-            'Watch')
+            '.'.join((__name__, self.__class__.__name__)))
         self.log.setLevel(TRACE)
 
     def process_events(self, action, file_name, cookie, syncdaemon_path):
@@ -253,8 +252,7 @@ class WatchManager(object):
     def __init__(self, processor):
         """Init the manager to keep trak of the different watches."""
         self.log = logging.getLogger(
-            'ubuntuone.SyncDaemon.platform.common.filesystem_notifications.'
-            'WatchManager')
+            '.'.join((__name__, self.__class__.__name__)))
         self.log.setLevel(TRACE)
         self._processor = processor
         # use the platform manager to perform the actual actions
@@ -355,7 +353,8 @@ class FilesystemMonitor(object):
     """Manages the signals from filesystem."""
 
     def __init__(self, eq, fs, ignore_config=None, timeout=1):
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.FSMonitor')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.filesystem_monitor_mask = None
         self.log.setLevel(TRACE)
         self.fs = fs

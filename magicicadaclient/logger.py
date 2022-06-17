@@ -127,7 +127,7 @@ class MultiFilter(logging.Filter):
     """
 
     def __init__(self, names=None):
-        logging.Filter.__init__(self)
+        super(MultiFilter, self).__init__()
         self.names = names or []
         self.filters = []
         for name in self.names:
@@ -163,7 +163,7 @@ class DebugCapture(logging.Handler):
         @param on_error: if it's True (default) the captured debug info is
         dumped if a record with log level >= ERROR is logged.
         """
-        logging.Handler.__init__(self, logging.DEBUG)
+        super(DebugCapture, self).__init__(logging.DEBUG)
         self.on_error = on_error
         self.dirty = False
         self.raise_unhandled = raise_unhandled

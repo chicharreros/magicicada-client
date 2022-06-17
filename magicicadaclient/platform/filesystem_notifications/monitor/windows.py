@@ -121,8 +121,7 @@ class Watch(object):
         self.process_events = process_events
         self.watching = False
         self.log = logging.getLogger(
-            'ubuntuone.SyncDaemon.platform.windows.filesystem_notifications.'
-            'Watch')
+            '.'.join((__name__, self.__class__.__name__)))
         self.log.setLevel(logging.DEBUG)
         self._buf_size = buf_size
         self._mask = mask

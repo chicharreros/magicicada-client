@@ -53,7 +53,7 @@ DBUS_IFACE_FOLDERS_NAME = DBUS_IFACE_NAME + '.Folders'
 DBUS_IFACE_PUBLIC_FILES_NAME = DBUS_IFACE_NAME + '.PublicFiles'
 DBUS_IFACE_LAUNCHER_NAME = DBUS_IFACE_NAME + '.Launcher'
 
-logger = logging.getLogger("ubuntuone.SyncDaemon.DBus")
+logger = logging.getLogger(__name__)
 
 
 def is_already_running(bus=None):

@@ -63,7 +63,7 @@ else:
 
 DescriptionFactory = source.DescriptionFactory
 
-logger = logging.getLogger("ubuntuone.SyncDaemon.Pb")
+logger = logging.getLogger(__name__)
 SD_SERVICE_NAME = "ubuntuone-syncdaemon"
 CLIENT_NOT_PROCESSED = -1
 

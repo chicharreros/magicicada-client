@@ -445,9 +445,9 @@ class HashQueueTests(BaseTwistedTestCase):
         self.test_dir = self.mktemp('test_dir')
         self.timeout = 2
         self.patch(hash_queue, "HASHQUEUE_DELAY", 0.0)
-        self.log = logging.getLogger("ubuntuone.SyncDaemon.TEST")
-        self.log.info("starting test %s.%s", self.__class__.__name__,
-                      self._testMethodName)
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
+        self.log.info("starting test %s", self.id())
 
     @defer.inlineCallbacks
     def test_called_back_ok(self):

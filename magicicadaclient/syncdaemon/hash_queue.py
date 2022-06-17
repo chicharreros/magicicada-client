@@ -59,7 +59,8 @@ class _Hasher(threading.Thread):
     """Class that lives in another thread, hashing all night long."""
 
     def __init__(self, queue, end_mark, event_queue):
-        self.logger = logging.getLogger('ubuntuone.SyncDaemon.HQ.hasher')
+        self.logger = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.end_mark = end_mark
         self.queue = queue
         self.eq = event_queue
@@ -176,7 +177,8 @@ class HashQueue(object):
     """Interface between the real Hasher and the rest of the world."""
 
     def __init__(self, event_queue):
-        self.logger = logging.getLogger('ubuntuone.SyncDaemon.HQ')
+        self.logger = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self._stopped = False
         self._queue = UniqueQueue()
         self._end_mark = object()
@@ -232,7 +234,8 @@ class UniqueQueue(Queue.Queue):
     def __init__(self, *args, **kwargs):
         """create the instance"""
         Queue.Queue.__init__(self, *args, **kwargs)
-        self.logger = logging.getLogger('ubuntuone.SyncDaemon.HQ.Queue')
+        self.logger = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
 
     def _init(self, maxsize):
         """Override the underlaying data initialization."""

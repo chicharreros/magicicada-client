@@ -40,7 +40,7 @@ from magicicadaclient.platform.ipc.perspective_broker import (
     ipc_client_connect,
 )
 
-logger = logging.getLogger("ubuntuone.SyncDaemon.Client")
+logger = logging.getLogger(__name__)
 
 
 class SyncDaemonClientError(Exception):

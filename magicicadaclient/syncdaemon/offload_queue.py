@@ -54,7 +54,8 @@ class OffloadQueue(object):
         # create the temp file
         fd, self._tempfile_name = tempfile.mkstemp()
         self._tempfile = os.fdopen(fd, 'w+b')
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.OffloadQueue')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.log.debug("Using temporary file: %r", self._tempfile_name)
 
         # position to read in the file

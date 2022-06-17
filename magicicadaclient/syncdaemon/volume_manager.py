@@ -410,7 +410,8 @@ class VolumeManager(object):
         """Create the instance and populate the shares/d attributes
         from the metadata (if it exists).
         """
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.VM')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.m = main
         self._data_dir = os.path.join(self.m.data_dir, 'vm')
         self._shares_dir = os.path.join(self._data_dir, 'shares')
@@ -1481,7 +1482,8 @@ class MetadataUpgrader(object):
     def __init__(self, data_dir, shares_md_dir, shared_md_dir, udfs_md_dir,
                  root_dir, shares_dir, shares_dir_link, tritcask_db):
         """Creates the instance"""
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.VM.MD')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self._data_dir = data_dir
         self._shares_dir = shares_dir
         self._shares_md_dir = shares_md_dir

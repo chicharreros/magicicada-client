@@ -147,7 +147,8 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
         self.watched_paths = []
         self.ignored_paths = []
 
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.EventsFactory')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.log.setLevel(TRACE)
 
     def events_dropper(self):
@@ -316,7 +317,8 @@ class FilesystemMonitor(object):
     """Implementation that allows to receive events from the system."""
 
     def __init__(self, eq, fs, ignore_config=None, timeout=1):
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.FSMonitor')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.log.setLevel(TRACE)
         self._processor = NotifyProcessor(self, ignore_config)
         self.fs = fs

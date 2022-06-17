@@ -146,7 +146,7 @@ MOVE_LIMBO_ROW_TYPE = 2
 
 
 # fsm logger
-fsm_logger = logging.getLogger('ubuntuone.SyncDaemon.fsm')
+fsm_logger = logging.getLogger(__name__)
 logger = functools.partial(fsm_logger.log, logging.INFO)
 log_warning = functools.partial(fsm_logger.log, logging.WARNING)
 log_debug = functools.partial(fsm_logger.log, logging.DEBUG)

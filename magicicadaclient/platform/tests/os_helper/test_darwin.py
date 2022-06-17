@@ -29,12 +29,10 @@
 # files in the program, then also delete it here.
 """Darwin specific tests for the platform module."""
 
-import logging
 import os
 
 from twisted.internet import defer
 
-from devtools.handlers import MementoHandler
 from magicicadaclient.platform import move_to_trash, open_file, stat_path
 from magicicadaclient.platform.os_helper import darwin
 from magicicadaclient.platform.tests.os_helper import test_os_helper
@@ -52,11 +50,6 @@ class OSWrapperTests(test_os_helper.OSWrapperTests):
         yield super(OSWrapperTests, self).setUp(
             test_dir_name=test_dir_name, test_file_name=test_file_name,
             valid_file_path_builder=None)
-        self.handler = MementoHandler()
-        self.handler.setLevel(logging.DEBUG)
-        self._logger = logging.getLogger('ubuntuone.SyncDaemon')
-        self._logger.addHandler(self.handler)
-        self.addCleanup(self._logger.removeHandler, self.handler)
         self.patch(darwin.shutil, "move", self._fake_move)
 
     def _fake_move(*args):

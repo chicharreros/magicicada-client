@@ -184,7 +184,8 @@ class EventQueue(object):
     def __init__(self, fs, ignore_config=None, monitor_class=None):
         self.listener_map = {}
 
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.EQ')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.fs = fs
 
         if monitor_class is None:

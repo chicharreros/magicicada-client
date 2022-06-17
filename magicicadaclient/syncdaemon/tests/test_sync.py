@@ -52,17 +52,18 @@ from magicicadaclient.platform import (
     remove_file,
     stat_path,
 )
+from magicicadaclient.syncdaemon.event_queue import EventQueue, EVENTS
 from magicicadaclient.syncdaemon.filesystem_manager import FileSystemManager
-from magicicadaclient.syncdaemon.tritcask import Tritcask
 from magicicadaclient.syncdaemon.fsm import fsm as fsm_module
+from magicicadaclient.syncdaemon.logger import brokennodes_logger, root_logger
+from magicicadaclient.syncdaemon.marker import MDMarker
 from magicicadaclient.syncdaemon.sync import (
     FSKey,
     Sync,
     SyncStateMachineRunner,
 )
 from magicicadaclient.syncdaemon.volume_manager import Share
-from magicicadaclient.syncdaemon.event_queue import EventQueue, EVENTS
-from magicicadaclient.syncdaemon.marker import MDMarker
+from magicicadaclient.syncdaemon.tritcask import Tritcask
 from magicicadaclient.testing.testcase import (
     FakeMain,
     FakeVolumeManager,
@@ -279,9 +280,8 @@ class BaseSync(BaseTwistedTestCase):
                              data_dir=self.data,
                              partials_dir=self.partials_dir)
         self.addCleanup(self.main.shutdown)
-        self._logger = logging.getLogger('ubuntuone.SyncDaemon')
-        self._logger.addHandler(self.handler)
-        self.addCleanup(self._logger.removeHandler, self.handler)
+        root_logger.addHandler(self.handler)
+        self.addCleanup(root_logger.removeHandler, self.handler)
 
     @defer.inlineCallbacks
     def tearDown(self):
@@ -1469,7 +1469,7 @@ class StateMachineRunnerTestCase(BaseTwistedTestCase):
         """Init."""
         yield super(StateMachineRunnerTestCase, self).setUp()
 
-        logger = logging.getLogger('ubuntuone.SyncDaemon.sync')
+        logger = logging.getLogger(__name__)
         self.smr = fsm_module.StateMachineRunner(None, logger)
         self.handler = MementoHandler()
         self.handler.setLevel(logging.INFO)
@@ -2044,8 +2044,8 @@ class TestHandleAqDeltaOk(TestSyncDelta):
     def test_dirty_node_logs_special(self):
         """When a node is marked dirty, it should log in a special handler."""
         handler = MementoHandler()
-        log = logging.getLogger('ubuntuone.SyncDaemon.BrokenNodes')
-        log.addHandler(handler)
+        brokennodes_logger.addHandler(handler)
+        self.addCleanup(brokennodes_logger.removeHandler, handler)
 
         # create the node
         self.create_filetxt()

@@ -70,7 +70,8 @@ class ConnectionManager(object):
             StateManager.AUTHENTICATE,
         )
 
-        self.log = logging.getLogger("ubuntuone.SyncDaemon.ConnectionManager")
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self._hshake_timer = None
         self._waiting_timer = None
         self.log.debug("start")
@@ -240,7 +241,8 @@ class QueueManager(object):
 
     def __init__(self):
         self.state = self.IDLE
-        self.log = logging.getLogger("ubuntuone.SyncDaemon.QueueManager")
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.log.debug("start")
 
     def _set_state(self, new_state):
@@ -344,7 +346,8 @@ class StateManager(object):
         self.queues = QueueManager()
         self.connection = ConnectionManager(self, handshake_timeout)
         self.eq.subscribe(self)
-        self.log = logging.getLogger("ubuntuone.SyncDaemon.StateManager")
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.log.debug("start")
 
         # define transitions!

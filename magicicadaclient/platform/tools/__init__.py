@@ -44,7 +44,7 @@ else:
     source = linux
 
 
-logger = logging.getLogger('ubuntuone.SyncDaemon.SDTool')
+logger = logging.getLogger(__name__)
 is_already_running = source.is_already_running
 IPCError = source.IPCError
 

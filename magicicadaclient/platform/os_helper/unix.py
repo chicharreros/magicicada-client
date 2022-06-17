@@ -41,7 +41,7 @@ import stat
 from contextlib import contextmanager
 
 
-logger = logging.getLogger('ubuntuone.SyncDaemon')
+logger = logging.getLogger(__name__)
 
 
 def set_no_rights(path):
