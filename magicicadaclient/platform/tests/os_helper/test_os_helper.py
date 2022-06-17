@@ -28,18 +28,15 @@
 # files in the program, then also delete it here.
 """Test for the  os operations in the platform module."""
 
+import logging
 import errno
 import os
 import shutil
-
 from collections import defaultdict
 
 from twisted.internet import defer
 
-from magicicadaclient.testing.testcase import (
-    BaseTwistedTestCase,
-    skip_if_win32_and_uses_readonly,
-)
+from devtools.handlers import MementoHandler
 from magicicadaclient.platform import (
     access,
     allow_writes,
@@ -65,6 +62,11 @@ from magicicadaclient.platform import (
     set_file_readwrite,
     stat_path,
     walk,
+)
+from magicicadaclient.syncdaemon.logger import root_logger
+from magicicadaclient.testing.testcase import (
+    BaseTwistedTestCase,
+    skip_if_win32_and_uses_readonly,
 )
 
 
@@ -92,6 +94,11 @@ class BaseTestCase(BaseTwistedTestCase):
 
         self.valid_file_path_builder = valid_file_path_builder
         self.valid_path = self.valid_file_path_builder(self.testfile)
+
+        self.handler = MementoHandler()
+        self.handler.setLevel(logging.DEBUG)
+        root_logger.addHandler(self.handler)
+        self.addCleanup(root_logger.removeHandler, self.handler)
 
 
 class OSWrapperTests(BaseTestCase):

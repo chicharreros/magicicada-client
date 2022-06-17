@@ -63,7 +63,7 @@ from magicicadaclient.syncdaemon.interfaces import IActionQueue, IMarker
 from magicicadaclient.syncdaemon.logger import mklog, TRACE
 from magicicadaclient.syncdaemon import config, offload_queue
 
-logger = logging.getLogger("ubuntuone.SyncDaemon.ActionQueue")
+logger = logging.getLogger(__name__)
 
 # I want something which repr() is "---" *without* the quotes :)
 UNKNOWN = type('', (), {'__repr__': lambda _: '---'})()
@@ -106,7 +106,8 @@ class PathLockingTree(object):
     """Tree that stores deferreds in the nodes."""
 
     def __init__(self):
-        self.logger = logging.getLogger("ubuntuone.SyncDaemon.PathLockingTree")
+        self.logger = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.root = dict(children_nodes={})
         self.count = 0
         self.stored_by_id = {}
@@ -347,7 +348,8 @@ class LoggingStorageClient(ThrottlingStorageClient):
 
     def __init__(self):
         ThrottlingStorageClient.__init__(self)
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.StorageClient')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         # configure the handler level to be < than DEBUG
         self.log_trace = partial(self.log.log, TRACE)
 

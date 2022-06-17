@@ -47,7 +47,7 @@ from magicicadaclient.platform.os_helper import unix
 
 platform = "linux2"
 
-logger = logging.getLogger('ubuntuone.SyncDaemon')
+logger = logging.getLogger(__name__)
 
 
 def _remove_path(path):

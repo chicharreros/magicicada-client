@@ -32,11 +32,9 @@ import logging
 import os
 import re
 
+from magicicadaclient.logger import TRACE
 from magicicadaclient.platform import access, path_exists
 from magicicadaclient.syncdaemon.mute_filter import MuteFilter
-from magicicadaclient import logger
-# our logging level
-TRACE = logger.TRACE
 
 
 class GeneralINotifyProcessor(object):
@@ -45,10 +43,9 @@ class GeneralINotifyProcessor(object):
     def __init__(self, monitor, handle_dir_delete, name_translations,
                  platform_is_ignored, ignore_mask, ignore_config=None):
         self.log = logging.getLogger(
-            'ubuntuone.SyncDaemon.filesystem_notifications.GeneralProcessor')
+            '.'.join((__name__, self.__class__.__name__)))
         self.log.setLevel(TRACE)
-        self.invnames_log = logging.getLogger(
-            'ubuntuone.SyncDaemon.InvalidNames')
+        self.invnames_log = logging.getLogger('magicicadaclient.InvalidNames')
         self.monitor = monitor
         self.handle_dir_delete = handle_dir_delete
         self.name_translations = name_translations

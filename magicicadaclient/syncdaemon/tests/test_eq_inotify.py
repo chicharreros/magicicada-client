@@ -34,7 +34,6 @@ import sys
 
 from twisted.internet import defer, reactor
 
-from devtools.handlers import MementoHandler
 from devtools.testcases import skipIfOS, skipIfNotOS
 from magicicadaclient.platform import (
     make_link,
@@ -185,7 +184,7 @@ class BaseTwisted(BaseEQTestCase):
     """Base class for twisted tests."""
 
     # this timeout must be bigger than the one used in event_queue
-    timeout = 2
+    timeout = 5
 
     # use the default FSMonitor
     _monitor_class = None
@@ -229,16 +228,6 @@ class BaseTwisted(BaseEQTestCase):
 
 class FreezeTests(BaseTwisted):
     """Test the freeze mechanism."""
-
-    @defer.inlineCallbacks
-    def setUp(self):
-        """Set up."""
-        yield super(FreezeTests, self).setUp()
-        self.handler = MementoHandler()
-        self.handler.setLevel(TRACE)
-        self._logger = logging.getLogger('ubuntuone.SyncDaemon')
-        self._logger.addHandler(self.handler)
-        self.addCleanup(self._logger.removeHandler, self.handler)
 
     def test_api(self):
         """API for freeze/freeze_commit stuff."""
@@ -288,7 +277,6 @@ class FreezeTests(BaseTwisted):
         """Test the log when freeze is commited ok."""
         self.eq.freeze_begin("path")
         self.eq.freeze_commit([])
-        self.handler.debug = True
         self.assertTrue(self.handler.check(TRACE, "Freeze commit", "path",
                                            "0 events"))
 
@@ -658,8 +646,6 @@ class MutedSignalsTests(BaseTwisted):
 @skipIfNotOS('linux2', "Only Linux watches UDF ancestors")
 class AncestorsUDFTestCase(BaseTwistedTestCase):
     """Events over UDF's ancestor are properly handled."""
-
-    timeout = 2
 
     @defer.inlineCallbacks
     def setUp(self):
@@ -1298,7 +1284,7 @@ class SignalingTests(BaseTwisted):
                     self.finished_error("received a wrong path")
                     return
 
-                if not self.log_handler.check_info('FS_FILE_DELETE', testfile):
+                if not self.handler.check_info('FS_FILE_DELETE', testfile):
                     self.finished_error("FS_FILE_DELETE must appear in INFO.")
                     return
 
@@ -1324,7 +1310,7 @@ class SignalingTests(BaseTwisted):
                     self.finished_error("received a wrong path")
                     return
 
-                if not self.log_handler.check_info('FS_DIR_DELETE', testdir):
+                if not self.handler.check_info('FS_DIR_DELETE', testdir):
                     self.finished_error("FS_DIR_DELETE must appear in INFO.")
                     return
 

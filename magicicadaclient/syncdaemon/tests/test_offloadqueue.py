@@ -39,6 +39,7 @@ from twisted.trial.unittest import TestCase as TwistedTestCase
 
 from devtools.handlers import MementoHandler
 from magicicadaclient.syncdaemon.interfaces import IMarker
+from magicicadaclient.syncdaemon.logger import root_logger
 from magicicadaclient.syncdaemon.marker import MDMarker
 from magicicadaclient.syncdaemon.offload_queue import OffloadQueue, STRUCT_SIZE
 
@@ -50,10 +51,9 @@ class OffloadQueueTestCase(TwistedTestCase):
         """Set up."""
         self.handler = MementoHandler()
         self.handler.setLevel(logging.DEBUG)
-        logger = logging.getLogger('ubuntuone.SyncDaemon.OffloadQueue')
-        logger.setLevel(logging.DEBUG)
-        logger.addHandler(self.handler)
-        self.addCleanup(logger.removeHandler, self.handler)
+        root_logger.setLevel(logging.DEBUG)
+        root_logger.addHandler(self.handler)
+        self.addCleanup(root_logger.removeHandler, self.handler)
         self.oq = OffloadQueue()
         self.addCleanup(self.oq._tempfile.close)
         return super(OffloadQueueTestCase, self).setUp()

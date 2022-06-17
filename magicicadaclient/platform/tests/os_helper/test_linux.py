@@ -27,12 +27,8 @@
 # files in the program, then also delete it here.
 """Linux specific tests for the platform module."""
 
-import logging
 import os
 
-from twisted.internet import defer
-
-from devtools.handlers import MementoHandler
 from magicicadaclient.platform import move_to_trash, open_file, stat_path
 from magicicadaclient.platform.tests.os_helper import test_os_helper
 from magicicadaclient.platform.os_helper import linux
@@ -40,16 +36,6 @@ from magicicadaclient.platform.os_helper import linux
 
 class OSWrapperTests(test_os_helper.OSWrapperTests):
     """Tests for os wrapper functions."""
-
-    @defer.inlineCallbacks
-    def setUp(self):
-        """Set up."""
-        yield super(OSWrapperTests, self).setUp()
-        self.handler = MementoHandler()
-        self.handler.setLevel(logging.DEBUG)
-        self._logger = logging.getLogger('ubuntuone.SyncDaemon')
-        self._logger.addHandler(self.handler)
-        self.addCleanup(self._logger.removeHandler, self.handler)
 
     def test_stat_symlink(self):
         """Test that it doesn't follow symlinks.

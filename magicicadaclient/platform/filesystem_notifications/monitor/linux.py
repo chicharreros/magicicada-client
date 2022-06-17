@@ -75,7 +75,8 @@ INOTIFY_EVENTS_ANCESTORS = (
 class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
     """inotify's processor when an event happens on an UDFs ancestor."""
     def __init__(self, monitor):
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.AncestorsINotProc')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.monitor = monitor
 
     def _get_udfs(self, path):
@@ -144,7 +145,7 @@ class FilesystemMonitor(object):
     """Manages the signals from filesystem."""
 
     def __init__(self, eq, fs, ignore_config=None):
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.FSMonitor')
+        self.log = logging.getLogger(__name__)
         self.fs = fs
         self.eq = eq
 

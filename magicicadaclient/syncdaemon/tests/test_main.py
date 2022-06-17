@@ -87,9 +87,8 @@ class MainTests(BaseTwistedTestCase):
 
         self.handler = MementoHandler()
         self.handler.setLevel(logging.DEBUG)
-        self._logger = logging.getLogger('ubuntuone.SyncDaemon')
-        self._logger.addHandler(self.handler)
-        self.addCleanup(self._logger.removeHandler, self.handler)
+        main_mod.logger.addHandler(self.handler)
+        self.addCleanup(main_mod.logger.removeHandler, self.handler)
 
     def _get_main_common_params(self):
         """Return the parameters used by the all platforms."""

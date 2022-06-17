@@ -1,5 +1,5 @@
 # Copyright 2009-2012 Canonical Ltd.
-# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -149,29 +149,35 @@ BROKENLOGFILENAME = os.path.join(
     ubuntuone_log_dir, 'syncdaemon-broken-nodes.log')
 
 
-root_logger = logging.getLogger("ubuntuone.SyncDaemon")
 twisted_logger = logging.getLogger('twisted')
+root_logger = logging.getLogger('magicicadaclient')
+invnames_logger = logging.getLogger('magicicadaclient.InvalidNames')
+brokennodes_logger = logging.getLogger('magicicadaclient.BrokenNodes')
 
 filesystem_logger = get_filesystem_logger()
 # now restore our custom logger class
 logging.setLoggerClass(Logger)
 
-root_handler = CustomRotatingFileHandler(filename=LOGFILENAME)
-exception_handler = CustomRotatingFileHandler(filename=EXLOGFILENAME)
+
+def configure_handler(handler=None, filename=None, level=_DEBUG_LOG_LEVEL):
+    if handler is None:
+        handler = CustomRotatingFileHandler(filename=filename)
+    handler.addFilter(MultiFilter([root_logger.name, 'twisted', 'pyinotify']))
+    handler.setFormatter(basic_formatter)
+    handler.setLevel(level)
+    return handler
+
+
+root_handler = configure_handler(filename=LOGFILENAME, level=_DEBUG_LOG_LEVEL)
+exception_handler = configure_handler(
+    filename=EXLOGFILENAME, level=logging.ERROR)
 
 
 def init():
     # root logger
     root_logger.propagate = False
     root_logger.setLevel(_DEBUG_LOG_LEVEL)
-    root_handler.addFilter(MultiFilter(['ubuntuone.SyncDaemon',
-                                        'twisted', 'pyinotify']))
-    root_handler.setFormatter(basic_formatter)
-    root_handler.setLevel(_DEBUG_LOG_LEVEL)
     root_logger.addHandler(root_handler)
-    # exception logs
-    exception_handler.setFormatter(basic_formatter)
-    exception_handler.setLevel(logging.ERROR)
     # add the exception handler to the root logger
     logging.getLogger('').addHandler(exception_handler)
     root_logger.addHandler(exception_handler)
@@ -190,20 +196,14 @@ def init():
     setup_filesystem_logging(filesystem_logger, root_handler)
 
     # invalid filenames log
-    invnames_logger = logging.getLogger("ubuntuone.SyncDaemon.InvalidNames")
     invnames_logger.setLevel(_DEBUG_LOG_LEVEL)
-    invnames_handler = CustomRotatingFileHandler(filename=INVALIDLOGFILENAME)
-    invnames_handler.setFormatter(basic_formatter)
-    invnames_handler.setLevel(logging.INFO)
-    invnames_logger.addHandler(invnames_handler)
+    invnames_logger.addHandler(
+        configure_handler(filename=INVALIDLOGFILENAME, level=logging.INFO))
 
     # broken nodes log
-    brokennodes_logger = logging.getLogger("ubuntuone.SyncDaemon.BrokenNodes")
     brokennodes_logger.setLevel(_DEBUG_LOG_LEVEL)
-    brokennodes_handler = CustomRotatingFileHandler(filename=BROKENLOGFILENAME)
-    brokennodes_handler.setFormatter(basic_formatter)
-    brokennodes_handler.setLevel(logging.INFO)
-    brokennodes_logger.addHandler(brokennodes_handler)
+    brokennodes_logger.addHandler(
+        configure_handler(filename=BROKENLOGFILENAME, level=logging.INFO))
 
 
 def configure_logging(level, maxBytes, backupCount):
@@ -242,7 +242,6 @@ def set_debug(dest):
     if not [v for v in ['file', 'stdout', 'stderr'] if v in dest]:
         # invalid dest value, let the loggers alone
         return
-    sd_filter = MultiFilter(['ubuntuone.SyncDaemon', 'twisted', 'pyinotify'])
     if 'file' in dest:
         # setup the existing loggers in debug
         root_handler.setLevel(_DEBUG_LOG_LEVEL)
@@ -250,21 +249,12 @@ def set_debug(dest):
         root_handler.baseFilename = os.path.abspath(logfile)
         # don't cap the file size
         set_max_bytes(0)
-    for name in ['ubuntuone.SyncDaemon', 'twisted']:
-        logger = logging.getLogger(name)
-        logger.setLevel(_DEBUG_LOG_LEVEL)
+    for l in (root_logger, twisted_logger):
+        l.setLevel(_DEBUG_LOG_LEVEL)
         if 'stderr' in dest:
-            stderr_handler = logging.StreamHandler()
-            stderr_handler.setFormatter(basic_formatter)
-            stderr_handler.setLevel(_DEBUG_LOG_LEVEL)
-            stderr_handler.addFilter(sd_filter)
-            logger.addHandler(stderr_handler)
+            l.addHandler(configure_handler(logging.StreamHandler()))
         if 'stdout' in dest:
-            stdout_handler = logging.StreamHandler(sys.stdout)
-            stdout_handler.setFormatter(basic_formatter)
-            stdout_handler.setLevel(_DEBUG_LOG_LEVEL)
-            stdout_handler.addFilter(sd_filter)
-            logger.addHandler(stdout_handler)
+            l.addHandler(configure_handler(logging.StreamHandler(sys.stdout)))
 
 
 def set_server_debug(dest):
@@ -274,24 +264,20 @@ def set_server_debug(dest):
 
     @param dest: a string containing 'file' and/or 'stdout', e.g: 'file stdout'
     """
+    SERVER_LOG_LEVEL = 5  # this shows server messages
     logger = logging.getLogger("storage.server")
-    logger.setLevel(5)  # this shows server messages
+    logger.setLevel(SERVER_LOG_LEVEL)
     if 'file' in dest:
         filename = os.path.join(ubuntuone_log_dir, 'syncdaemon-debug.log')
-        handler = DayRotatingFileHandler(filename=filename)
-        handler.setFormatter(basic_formatter)
-        handler.setLevel(5)  # this shows server messages
-        logger.addHandler(handler)
+        logger.addHandler(configure_handler(
+            DayRotatingFileHandler(filename=filename), level=SERVER_LOG_LEVEL))
     if 'stdout' in dest:
-        stdout_handler = logging.StreamHandler(sys.stdout)
-        stdout_handler.setFormatter(basic_formatter)
-        stdout_handler.setLevel(5)  # this shows server messages
-        logger.addHandler(stdout_handler)
+        logger.addHandler(
+            configure_handler(
+                logging.StreamHandler(sys.stdout), level=SERVER_LOG_LEVEL))
     if 'stderrt' in dest:
-        stdout_handler = logging.StreamHandler(sys.stdout)
-        stdout_handler.setFormatter(basic_formatter)
-        stdout_handler.setLevel(5)  # this shows server messages
-        logger.addHandler(stdout_handler)
+        logger.addHandler(
+            configure_handler(logging.StreamHandler(), level=SERVER_LOG_LEVEL))
 
 
 # if we are in debug mode, replace/add the handlers

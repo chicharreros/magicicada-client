@@ -61,7 +61,8 @@ from twisted.trial.unittest import TestCase as TwistedTestCase
 from zope.interface.verify import verifyObject, verifyClass
 
 from devtools import handlers
-from magicicadaclient import logger, clientdefs
+from magicicadaclient import clientdefs
+from magicicadaclient.logger import NOTE, TRACE
 from magicicadaclient.platform import open_file, platform, path_exists
 from magicicadaclient.syncdaemon import interfaces, config
 from magicicadaclient.syncdaemon import action_queue
@@ -73,7 +74,7 @@ from magicicadaclient.syncdaemon.action_queue import (
     TRANSFER_PROGRESS_THRESHOLD, Unlink, Move, MakeFile, MakeDir, DeltaList,
     ZipQueue, DeferredMap, ThrottlingStorageClient, PathLockingTree,
     InterruptibleDeferred, DeferredInterrupted, ConditionsLocker,
-    PingManager,
+    PingManager, logger,
 )
 from magicicadaclient.syncdaemon.event_queue import EventQueue, EVENTS
 from magicicadaclient.syncdaemon import offload_queue
@@ -116,7 +117,7 @@ class MementoHandler(handlers.MementoHandler):
 
     def check_note(self, *msgs):
         """Shortcut for checking in ERROR."""
-        return self.check(logger.NOTE, *msgs)
+        return self.check(NOTE, *msgs)
 
 
 class FakeOffloadQueue(object):
@@ -317,9 +318,8 @@ class BasicTestCase(BaseTwistedTestCase):
 
         self.handler = MementoHandler()
         self.handler.setLevel(logging.DEBUG)
-        self._logger = logging.getLogger('ubuntuone.SyncDaemon')
-        self._logger.addHandler(self.handler)
-        self.addCleanup(self._logger.removeHandler, self.handler)
+        logger.addHandler(self.handler)
+        self.addCleanup(logger.removeHandler, self.handler)
 
     def user_connect(self):
         """User requested to connect to server."""
@@ -506,7 +506,6 @@ class TestRequestQueue(TwistedTestCase):
         # add a Memento handler to the logger
         self.log_handler = MementoHandler()
         self.log_handler.setLevel(logging.DEBUG)
-        logger = logging.getLogger('ubuntuone.SyncDaemon')
         logger.addHandler(self.log_handler)
         self.addCleanup(logger.removeHandler, self.log_handler)
 
@@ -5696,8 +5695,8 @@ class PingManagerTestCase(TwistedTestCase):
 
         class FakeActionQueueProtocol(object):
             """Fake object for the tests."""
-            log = logging.getLogger("ubuntuone.SyncDaemon.ActionQueue")
-            log.setLevel(logger.TRACE)
+            log = logger
+            log.setLevel(TRACE)
 
             def ping(self):
                 return defer.Deferred()
@@ -5706,13 +5705,8 @@ class PingManagerTestCase(TwistedTestCase):
         self.handler = MementoHandler()
         self.fake_aqp.log.addHandler(self.handler)
         self.pm = PingManager(self.fake_aqp)
-
-    @defer.inlineCallbacks
-    def tearDown(self):
-        """Tear down."""
-        yield super(PingManagerTestCase, self).tearDown()
-        self.fake_aqp.log.removeHandler(self.handler)
-        self.pm.stop()
+        self.addCleanup(self.fake_aqp.log.removeHandler, self.handler)
+        self.addCleanup(self.pm.stop)
 
     def test_init(self):
         """On start values."""
@@ -5733,7 +5727,7 @@ class PingManagerTestCase(TwistedTestCase):
 
         self.assertTrue(self.pm._timeout_call.active())
         self.handler.debug = True
-        self.assertTrue(self.handler.check(logger.TRACE, 'Sending ping'))
+        self.assertTrue(self.handler.check(TRACE, 'Sending ping'))
 
         # answer the ping, and check
         d.callback(req)

@@ -43,7 +43,7 @@ from magicicadaclient.platform.os_helper import unix
 
 platform = "darwin"
 
-logger = logging.getLogger('ubuntuone.SyncDaemon')
+logger = logging.getLogger(__name__)
 
 
 set_no_rights = unix.set_no_rights

@@ -532,10 +532,9 @@ class TwistedBase(BaseTestCase):
         self.vm.shares['share_id'] = self.share
 
         self.handler = MementoHandler()
-        self._logger = logging.getLogger('ubuntuone.SyncDaemon.local_rescan')
-        self._logger.setLevel(TRACE)
-        self._logger.addHandler(self.handler)
-        self.addCleanup(self._logger.removeHandler, self.handler)
+        local_rescan.logger.setLevel(TRACE)
+        local_rescan.logger.addHandler(self.handler)
+        self.addCleanup(local_rescan.logger.removeHandler, self.handler)
 
 
 class ComparationTests(TwistedBase):
@@ -2194,7 +2193,7 @@ class ParentWatchForUDFTestCase(BaseTestCase):
         def fake_add_watches_to_udf_ancestors(volume):
             """Fake the addition of the ancestors watches."""
             for ancestor in volume.ancestors:
-                self._logger.debug("Adding watch to UDF's %r", ancestor)
+                local_rescan.logger.debug("Adding watch to UDF's %r", ancestor)
                 yield fake_add(ancestor)
             defer.returnValue(True)
 
@@ -2216,9 +2215,8 @@ class ParentWatchForUDFTestCase(BaseTestCase):
 
         # logging
         self.handler = MementoHandler()
-        self._logger = logging.getLogger('ubuntuone.SyncDaemon')
-        self._logger.addHandler(self.handler)
-        self.addCleanup(self._logger.removeHandler, self.handler)
+        local_rescan.logger.addHandler(self.handler)
+        self.addCleanup(local_rescan.logger.removeHandler, self.handler)
 
     @defer.inlineCallbacks
     def test_ancestors_have_watch(self):

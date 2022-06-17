@@ -37,14 +37,12 @@ from twisted.internet import defer
 from twisted.trial import unittest
 
 from devtools.handlers import MementoHandler
-from devtools.testcases import skipIfOS
 from magicicadaclient.syncdaemon.logger import (
     DebugCapture,
     NOTE,
     TRACE,
     root_logger,
     twisted_logger,
-    filesystem_logger,
     MultiFilter,
 )
 
@@ -238,35 +236,49 @@ class DebugCaptureTest(unittest.TestCase):
 class FilterTests(unittest.TestCase):
     """Tests log filters"""
 
-    @defer.inlineCallbacks
-    def setUp(self):
-        """Setup the logger and the handler"""
-        yield super(FilterTests, self).setUp()
-        self.handler = MementoHandler()
-        self.handler.setLevel(logging.DEBUG)
-        root_logger.addHandler(self.handler)
-        self.addCleanup(root_logger.removeHandler, self.handler)
-
-        if filesystem_logger is not None:
-            filesystem_logger.addHandler(self.handler)
-            self.addCleanup(filesystem_logger.removeHandler, self.handler)
-
-        twisted_logger.addHandler(self.handler)
-        self.addCleanup(twisted_logger.removeHandler, self.handler)
-
-        self.addCleanup(self.handler.close)
-
-    @skipIfOS('win32', 'There is not filesystem_logger implementation in '
-              'windows yet, see bug #823316.')
     def test_multiple_filters(self):
         """Tests logging with more than one filter."""
-        test_logger = logging.getLogger('ubuntuone.SyncDaemon.FilterTest')
+        handler = MementoHandler()
+        handler.setLevel(logging.DEBUG)
+        test_logger = logging.getLogger('some.namespace.FilterTest')
+        test_logger.setLevel(logging.DEBUG)
+        test_logger.addHandler(handler)
+        self.addCleanup(test_logger.removeHandler, handler)
+        self.addCleanup(handler.close)
+
+        twisted_logger.addHandler(handler)
+        twisted_logger.setLevel(logging.DEBUG)
+        self.addCleanup(twisted_logger.removeHandler, handler)
+
         test_logger.debug('debug info 0')
-        self.assertEqual(1, len(self.handler.records))
-        self.handler.addFilter(
-            MultiFilter(['ubuntuone.SyncDaemon', 'twisted', 'pyinotify']))
+        self.assertEqual(1, len(handler.records))
+
+        handler.addFilter(MultiFilter(['some.namespace', 'twisted']))
+
         test_logger.debug('debug info 1')
-        self.assertEqual(2, len(self.handler.records))
+        self.assertEqual(2, len(handler.records))
+        twisted_logger.info('twisted log')
+        self.assertEqual(3, len(handler.records))
+
+    def test_multiple_filters_really_filter(self):
+        """Tests logging with more than one filter."""
+        handler = MementoHandler()
+        handler.setLevel(logging.DEBUG)
+        root_logger.addHandler(handler)
+        self.addCleanup(root_logger.removeHandler, handler)
+
+        test_logger = logging.getLogger('other.namespace')
+        test_logger.setLevel(logging.DEBUG)
+        test_logger.addHandler(handler)
+        self.addCleanup(test_logger.removeHandler, handler)
+
+        test_logger.info('debug info 0')
+        self.assertEqual(1, len(handler.records))
+
+        handler.addFilter(MultiFilter([root_logger.name]))
+
+        test_logger.info('debug info 1')
+        self.assertEqual(1, len(handler.records))
 
 
 class MultiFilterTest(unittest.TestCase):

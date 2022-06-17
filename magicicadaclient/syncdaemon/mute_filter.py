@@ -37,7 +37,8 @@ class MuteFilter(object):
     """Stores what needs to be muted."""
     def __init__(self):
         self._cnt = {}
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.MuteFilter')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
 
     def add(self, event, **data):
         """Add an event and data to the filter."""

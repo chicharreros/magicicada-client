@@ -100,9 +100,6 @@ class BaseVolumeManagerTests(BaseTwistedTestCase):
     def setUp(self):
         """Setup the test."""
         yield super(BaseVolumeManagerTests, self).setUp()
-        self.log = logging.getLogger("ubuntuone.SyncDaemon.TEST")
-        self.log.info("starting test %s.%s", self.__class__.__name__,
-                      self._testMethodName)
         self.root_dir = self.mktemp(
             os.path.join('ubuntuonehacker', 'root_dir'))
         self.data_dir = self.mktemp('data_dir')
@@ -134,14 +131,9 @@ class BaseVolumeManagerTests(BaseTwistedTestCase):
         self.handler.setLevel(logging.INFO)
         self.vm.log.addHandler(self.handler)
         self.addCleanup(self.vm.log.removeHandler, self.handler)
-
-    @defer.inlineCallbacks
-    def tearDown(self):
-        """ cleanup main and remove the temp dir """
-        self.log.info("finished test %s.%s", self.__class__.__name__,
-                      self._testMethodName)
-        VolumeManager.METADATA_VERSION = CURRENT_METADATA_VERSION
-        yield super(BaseVolumeManagerTests, self).tearDown()
+        self.addCleanup(
+            setattr, VolumeManager, 'METADATA_VERSION',
+            CURRENT_METADATA_VERSION)
 
     def _listen_for(self, event, callback, count=1, collect=False):
         """Setup a EQ listener for the especified event."""

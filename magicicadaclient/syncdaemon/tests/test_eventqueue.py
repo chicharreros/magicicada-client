@@ -27,24 +27,24 @@
 # files in the program, then also delete it here.
 """Tests for the Event Queue."""
 
-import logging
-
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
 from devtools.handlers import MementoHandler
-from magicicadaclient.testing.testcase import (
-    BaseTwistedTestCase,
-    FakeMonitor,
-    FakeVolumeManager,
-)
+from magicicadaclient.logger import TRACE
 from magicicadaclient.platform.filesystem_notifications.monitor import (
     FilesystemMonitor,
 )
 from magicicadaclient.syncdaemon import (
     event_queue,
     filesystem_manager,
+    logger,
     tritcask,
+)
+from magicicadaclient.testing.testcase import (
+    BaseTwistedTestCase,
+    FakeMonitor,
+    FakeVolumeManager,
 )
 
 
@@ -76,9 +76,11 @@ class BaseEQTestCase(BaseTwistedTestCase):
         self.fs.register_eq(self.eq)
 
         # add a Memento handler to the logger
-        self.log_handler = MementoHandler()
-        self.log_handler.setLevel(logging.DEBUG)
-        self.eq.log.addHandler(self.log_handler)
+        self.handler = MementoHandler()
+        self.handler.setLevel(TRACE)
+        logger.root_logger.addHandler(self.handler)
+        logger.root_logger.setLevel(TRACE)
+        self.addCleanup(logger.root_logger.removeHandler, self.handler)
 
 
 class SubscriptionTests(BaseEQTestCase):
@@ -270,29 +272,30 @@ class PushTests(BaseEQTestCase):
         # the listener has a wrong signature
         # this is logged as an error/exception
         self.eq.push("FS_FILE_CREATE", path=1)
-        self.assertTrue(self.log_handler.check_error('FS_FILE_CREATE',
-                                                     'Create object'))
+        self.assertTrue(
+            self.handler.check_error('FS_FILE_CREATE', 'Create object'))
 
         self.eq.unsubscribe(c)
 
     def test_log_pushing_data(self):
         """Pushed event and info should be logged."""
         self.eq.push("AQ_QUERY_ERROR", item='item', error='err')
-        self.assertTrue(self.log_handler.check_debug(
+        self.assertTrue(self.handler.check_debug(
                         "push_event: AQ_QUERY_ERROR, kwargs: "
                         "{'item': 'item', 'error': 'err'}"))
 
     def test_log_delete_in_info(self):
         """Pushed any deletion event should be logged in info."""
         self.eq.push("FS_DIR_DELETE", path='path')
-        self.assertTrue(self.log_handler.check_info(
+        self.assertTrue(self.handler.check_info(
                         "push_event: FS_DIR_DELETE"))
 
     def test_log_pushing_private_data(self):
         """SYS_USER_CONNECT event info must not be logged."""
         self.eq.push("SYS_USER_CONNECT", access_token='foo')
-        self.assertTrue(self.log_handler.check_debug(
-            "push_event: SYS_USER_CONNECT, kwargs: *"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "push_event: SYS_USER_CONNECT, kwargs: *"))
 
 
 class PushTestsWithCallback(BaseEQTestCase):

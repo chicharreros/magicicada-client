@@ -76,7 +76,7 @@ from comtypes.client import CreateObject
 from comtypes.persist import IPersistFile
 
 
-logger = logging.getLogger('ubuntuone.SyncDaemon.VM')
+logger = logging.getLogger(__name__)
 platform = 'win32'
 
 # missing win32file constant

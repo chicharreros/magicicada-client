@@ -55,6 +55,9 @@ from magicicadaclient.syncdaemon.interaction_interfaces import (
 from magicicadaclient.syncdaemon.states import StateManager, QueueManager
 
 
+logger = logging.getLogger(__name__)
+
+
 class WaitingHelpingHandler(object):
     """An auxiliary class that helps wait for events."""
 
@@ -97,7 +100,6 @@ class Main(object):
         self.data_dir = data_dir
         self.partials_dir = partials_dir
         tritcask_dir = os.path.join(self.data_dir, 'tritcask')
-        self.logger = logging.getLogger('ubuntuone.SyncDaemon.Main')
         user_config = config.get_user_config()
         if read_limit is None:
             read_limit = user_config.get_throttling_read_limit()
@@ -106,11 +108,12 @@ class Main(object):
         if not throttling_enabled:
             throttling_enabled = user_config.get_throttling()
 
-        self.logger.info("Starting %s client version %s",
-                         clientdefs.NAME, clientdefs.VERSION)
-        self.logger.info("Using %r as root dir", self.root_dir)
-        self.logger.info("Using %r as data dir", self.data_dir)
-        self.logger.info("Using %r as shares root dir", self.shares_dir)
+        logger.info(
+            "Starting %s client version %s",
+            clientdefs.NAME, clientdefs.VERSION)
+        logger.info("Using %r as root dir", self.root_dir)
+        logger.info("Using %r as data dir", self.data_dir)
+        logger.info("Using %r as shares root dir", self.shares_dir)
         self.db = tritcask.Tritcask(tritcask_dir)
         self.vm = volume_manager.VolumeManager(self)
         self.fs = filesystem_manager.FileSystemManager(
@@ -149,22 +152,22 @@ class Main(object):
 
     def log_mark(self):
         """Log a "mark" that includes the current AQ state and queue size."""
-        self.logger.note("---- MARK (state: %s; queue: %d; offloaded: %d; "
-                         "hash: %d) ----", self.state_manager,
-                         len(self.action_q.queue),
-                         len(self.action_q.disk_queue), len(self.hash_q))
+        logger.note(
+            "---- MARK (state: %s; queue: %d; offloaded: %d; hash: %d) ----",
+            self.state_manager, len(self.action_q.queue),
+            len(self.action_q.disk_queue), len(self.hash_q))
 
     def wait_for_nirvana(self, last_event_interval=0.5):
         """Get a deferred that will fire on Nirvana.
 
         That is, when there are no more events or transfers.
         """
-        self.logger.debug('wait_for_nirvana(%s)' % last_event_interval)
+        logger.debug('wait_for_nirvana(%s)' % last_event_interval)
         d = defer.Deferred()
 
         def start():
             """Request the event empty notification."""
-            self.logger.debug('starting wait_for_nirvana')
+            logger.debug('starting wait_for_nirvana')
             self.event_q.add_empty_event_queue_callback(callback)
 
         def callback():
@@ -173,13 +176,13 @@ class Main(object):
             if not (self.state_manager.queues.state == QueueManager.IDLE and
                     state == StateManager.QUEUE_MANAGER and
                     not self.action_q.queue and self.hash_q.empty()):
-                self.logger.debug(
+                logger.debug(
                     "I can't reach Nirvana yet [state: %s queue: %d hash: %d]",
                     self.state_manager, len(self.action_q.queue),
                     len(self.hash_q))
                 return
 
-            self.logger.debug("Nirvana reached!! I'm a Buddha")
+            logger.debug("Nirvana reached!! I'm a Buddha")
             self.event_q.remove_empty_event_queue_callback(callback)
             d.callback(True)
         reactor.callLater(last_event_interval, start)
@@ -231,7 +234,7 @@ class Main(object):
 
     def set_capabilities(self):
         """Set the capabilities with the server"""
-        self.logger.debug("capabilities query: %r", syncdaemon.REQUIRED_CAPS)
+        logger.debug("capabilities query: %r", syncdaemon.REQUIRED_CAPS)
         self.action_q.set_capabilities(syncdaemon.REQUIRED_CAPS)
 
     def server_rescan(self):
@@ -265,28 +268,29 @@ class Main(object):
 
     def local_rescan(self):
         """Do the local rescan."""
-        self.logger.note("Local rescan starting...")
+        logger.note("Local rescan starting...")
         d = self.lr.start()
 
         def _wait_for_hashq():
             """Keep on calling this until the hash_q finishes."""
             if len(self.hash_q):
-                self.logger.info("hash queue pending. Waiting for it...")
+                logger.info("hash queue pending. Waiting for it...")
                 reactor.callLater(.1, _wait_for_hashq)
             else:
-                self.logger.info("hash queue empty. We are ready!")
+                logger.info("hash queue empty. We are ready!")
                 # nudge the action queue into action
                 self.event_q.push('SYS_LOCAL_RESCAN_DONE')
 
         def local_rescan_done(_):
             """After local rescan finished."""
-            self.logger.note("Local rescan finished!")
+            logger.note("Local rescan finished!")
             _wait_for_hashq()
 
         def stop_the_press(failure):
             """Something went wrong in LR, can't continue."""
-            self.logger.error("Local rescan finished with error: %s",
-                              failure.getBriefTraceback())
+            logger.error(
+                "Local rescan finished with error: %s",
+                failure.getBriefTraceback())
             self.event_q.push('SYS_UNKNOWN_ERROR')
 
         d.addCallbacks(local_rescan_done, stop_the_press)

@@ -593,7 +593,7 @@ class LoggingTests(TwistedTestCase):
     @defer.inlineCallbacks
     def test_logger_can_be_given(self):
         """Accept an external logger."""
-        logger = logging.getLogger("ubuntuone.SyncDaemon.Test")
+        logger = logging.getLogger(__name__)
         handler = MementoHandler()
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)

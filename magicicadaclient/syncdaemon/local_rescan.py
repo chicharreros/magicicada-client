@@ -64,12 +64,12 @@ class ScanNoDirectory(Exception):
 
 
 # local rescan logger
-lr_logger = logging.getLogger('ubuntuone.SyncDaemon.local_rescan')
-log_info = functools.partial(lr_logger.log, logging.INFO)
-log_trace = functools.partial(lr_logger.log, logging.getLevelName('TRACE'))
-log_debug = functools.partial(lr_logger.log, logging.DEBUG)
-log_error = functools.partial(lr_logger.log, logging.ERROR)
-log_warning = functools.partial(lr_logger.log, logging.WARNING)
+logger = logging.getLogger(__name__)
+log_info = functools.partial(logger.log, logging.INFO)
+log_trace = functools.partial(logger.log, logging.getLevelName('TRACE'))
+log_debug = functools.partial(logger.log, logging.DEBUG)
+log_error = functools.partial(logger.log, logging.ERROR)
+log_warning = functools.partial(logger.log, logging.WARNING)
 
 
 def is_valid_name(path):

@@ -123,7 +123,8 @@ class IPCTestCase(FakeMainTestCase, DBusTestCase):
     def setUp(self):
         """Initialize this test instance."""
         yield super(IPCTestCase, self).setUp()
-        self.log = logging.getLogger("ubuntuone.SyncDaemon.TEST")
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.log.info("starting test %s.%s", self.__class__.__name__,
                       self._testMethodName)
         self.nm = FakeNetworkManager(self.bus)

@@ -34,8 +34,7 @@ import sys
 from twisted.internet import defer
 
 DEFAULT_MONITOR = 'default'
-logger = logging.getLogger(
-    'ubuntuone.SyncDaemon.platform.filesystem_notifications.monitor')
+logger = logging.getLogger(__name__)
 
 
 class NoAvailableMonitorError(Exception):

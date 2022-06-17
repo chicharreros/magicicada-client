@@ -120,7 +120,7 @@ class SyncDaemonToolProxy(object):
 
     def __init__(self, bus=None):
         self.log = logging.getLogger(
-            'magicicadaclient.platform.tools.perspective_broker')
+            '.'.join((__name__, self.__class__.__name__)))
         self.client = UbuntuOneClient()
         self.connected = None
         self.connected_signals = defaultdict(set)

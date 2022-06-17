@@ -243,7 +243,8 @@ class FakeMain(main.Main):
         """ create the instance. """
         # don't call Main.__init__: we take care of creating a fake main and
         # all its attributes.
-        self.logger = logging.getLogger('ubuntuone.SyncDaemon.FakeMain')
+        self.logger = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.root_dir = root_dir
         self.data_dir = data_dir
         self.shares_dir = shares_dir
@@ -415,7 +416,8 @@ class BaseTwistedTestCase(TwistedTestCase):
         config._user_config = None
         config.get_user_config(config_file=self.config_file)
 
-        self.log = logging.getLogger("ubuntuone.SyncDaemon.TEST")
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
         self.log.info("starting test %s.%s", self.__class__.__name__,
                       self._testMethodName)
 
@@ -458,7 +460,8 @@ class FakeVolumeManager(object):
         self.root = volume_manager.Root(node_id="root_node_id", path=root_path)
         self.shares = {'': self.root}
         self.udfs = {}
-        self.log = logging.getLogger('ubuntuone.SyncDaemon.VM-test')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
 
     def add_share(self, share):
         """Add share to the shares dict."""
@@ -541,7 +544,8 @@ class FakeCommand(object):
         self.other = other
         self.path = path
         self.cancelled = False
-        self.log = logging.getLogger('ubuntuone.SyncDaemon')
+        self.log = logging.getLogger(
+            '.'.join((__name__, self.__class__.__name__)))
 
     @property
     def paused(self):
