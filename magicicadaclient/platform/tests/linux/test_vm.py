@@ -136,17 +136,17 @@ class MetadataOldLayoutTests(MetadataTestCase):
         share_file = os.path.join(self.share_md_dir,
                                   '0/6/6/0664f050-9254-45c5-9f31-3482858709e4')
         os.makedirs(os.path.dirname(share_file))
-        # this is the str of a version 2 pickle
+        # this is the bytes representation of a version 2 pickle
         share_value = (
-            "\x80\x02ccanonical.ubuntuone.storage.syncdaemon."
-            "volume_manager\nShare\nq\x01)\x81q\x02}q\x03(U\x04nameq"
-            "\x04U\tfakeshareq\x05U\x0eother_usernameq\x06U\x08fakeu"
-            "serq\x07U\x07subtreeq\x08U$beb0c48c-6755-4fbd-938f-3d20"
-            "fa7b102bq\tU\x12other_visible_nameq\nU\tfake userq\x0bU"
-            "\x0caccess_levelq\x0cU\x04Viewq\rU\x04pathq\x0eU=/home/"
-            "auser/Magicicada/Shared With Me/fakeshare from fakeuser"
-            "q\x0fU\x08acceptedq\x10\x88U\x02idq\x11U$0664f050-9254-"
-            "45c5-9f31-3482858709e4q\x12ub.").encode('utf-8')
+            b"\x80\x02ccanonical.ubuntuone.storage.syncdaemon."
+            b"volume_manager\nShare\nq\x01)\x81q\x02}q\x03(U\x04nameq"
+            b"\x04U\tfakeshareq\x05U\x0eother_usernameq\x06U\x08fakeu"
+            b"serq\x07U\x07subtreeq\x08U$beb0c48c-6755-4fbd-938f-3d20"
+            b"fa7b102bq\tU\x12other_visible_nameq\nU\tfake userq\x0bU"
+            b"\x0caccess_levelq\x0cU\x04Viewq\rU\x04pathq\x0eU=/home/"
+            b"auser/Magicicada/Shared With Me/fakeshare from fakeuser"
+            b"q\x0fU\x08acceptedq\x10\x88U\x02idq\x11U$0664f050-9254-"
+            b"45c5-9f31-3482858709e4q\x12ub.")
         with open(share_file, 'wb') as fd:
             fd.write(share_value)
 

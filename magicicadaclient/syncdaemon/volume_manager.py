@@ -133,10 +133,9 @@ class Volume:
 
     def __init__(self, volume_id, node_id, generation=None, subscribed=False):
         """Create the volume."""
-        super().__init__()
         # id and node_id should be str or None
-        assert isinstance(volume_id, str) or volume_id is None, repr(volume_id)
-        assert isinstance(node_id, str) or node_id is None, repr(node_id)
+        assert isinstance(volume_id, str) or volume_id is None
+        assert isinstance(node_id, str) or node_id is None
         self.volume_id = volume_id
         self.node_id = node_id
         self.generation = generation
@@ -1920,7 +1919,7 @@ class LegacyShareFileShelfPickler(pickle.Unpickler):
          'Share'): _Share,
     }
 
-    def _find_class(self, module, name):
+    def find_class(self, module, name):
         """Returns the class object for (module, name) or None."""
         # handle our 'migration types'
         if (module, name) in self.upgrade_map:
@@ -1940,8 +1939,7 @@ class LegacyShareFileShelf(VMFileShelf):
 
     def _unpickle(self, fd):
         """Override _unpickle with one capable of migrating pickled classes."""
-        unpickler = LegacyShareFileShelfPickler(fd)
-        return unpickler.load()
+        return LegacyShareFileShelfPickler(fd).load()
 
     def _pickle(self, value, fd, protocol):
         """Pickle value in fd using protocol."""
