@@ -225,4 +225,5 @@ setup(
     scripts=scripts,
     data_files=data_files,
     cmdclass=cmdclass,
+    packages=['contrib', 'magicicadaclient'],
     **extra)
