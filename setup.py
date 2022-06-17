@@ -41,8 +41,7 @@ PROJECT_NAME = 'magicicada-client'
 VERSION = '1.0'
 
 POT_FILE = 'po/%s.pot' % PROJECT_NAME
-SERVICE_FILES = ['data/com.ubuntuone.Credentials.service',
-                 'data/com.ubuntuone.SyncDaemon.service']
+SERVICE_FILES = ['data/com.ubuntuone.SyncDaemon.service']
 CONFIG_FILES = ['data/logging.conf']
 CLIENTDEFS = 'magicicadaclient/clientdefs.py'
 
@@ -176,7 +175,6 @@ cmdclass = {
 
 bin_scripts = [
     'bin/u1sdtool',
-    'bin/ubuntuone-launch',
 ]
 
 libexec_scripts = [
@@ -206,8 +204,6 @@ else:
         ('lib/%s' % PROJECT_NAME, libexec_scripts),
         ('share/dbus-1/services', SERVICE_FILES),
         ('/etc/xdg/ubuntuone', CONFIG_FILES + ['data/syncdaemon.conf']),
-        ('/etc/apport/crashdb.conf.d', ['data/ubuntuone-client-crashdb.conf']),
-        ('share/apport/package-hooks', ['data/source_ubuntuone-client.py']),
         ('share/man/man1', ['docs/man/u1sdtool.1']),
     ])
     scripts.extend(bin_scripts)
