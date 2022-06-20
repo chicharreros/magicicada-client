@@ -70,7 +70,12 @@ from magicicadaclient.platform import (
     stat_path,
 )
 
-logger.init()
+
+# use _trial_temp dir, it should be TRIAL_TEMP_DIR or os.getcwd()
+# define the root temp dir of the testcase
+root_tmp = os.path.join(
+    os.environ.get('TRIAL_TEMP_DIR', os.getcwd()), '_trial_temp')
+logger.init(base_dir=root_tmp)
 
 FAKED_CREDENTIALS = {'username': 'test_username',
                      'password': 'test_password'}
@@ -316,7 +321,7 @@ class BaseTwistedTestCase(TwistedTestCase):
     MAX_FILENAME = 32  # some platforms limit lengths of filenames
 
     def mktemp(self, name='temp'):
-        """ Customized mktemp that accepts an optional name argument. """
+        """Customized mktemp that accepts an optional name argument."""
         tempdir = os.path.join(self.tmpdir, name)
         if path_exists(tempdir):
             self.rmtree(tempdir)
@@ -334,10 +339,7 @@ class BaseTwistedTestCase(TwistedTestCase):
         base = os.path.join(self.__class__.__module__[:self.MAX_FILENAME],
                             self.__class__.__name__[:self.MAX_FILENAME],
                             self._testMethodName)
-        # use _trial_temp dir, it should be TRIAL_TEMP_DIR or os.getcwd()
-        # define the root temp dir of the testcase
-        root_tmp = os.environ.get('TRIAL_TEMP_DIR', os.getcwd())
-        self.__root = os.path.join(root_tmp, '_trial_temp', base)
+        self.__root = os.path.join(root_tmp, base)
         self.addCleanup(self.rmtree, self.__root)
         return self.__root
 

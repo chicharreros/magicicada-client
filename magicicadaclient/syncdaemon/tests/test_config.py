@@ -462,10 +462,7 @@ class UnicodePathsTestCase(TestCase):
         config_files = [os.path.normpath(p) for p in config.get_config_files()]
         rootdir = os.environ['ROOTDIR']
         branch_config = os.path.join(rootdir, "data", config.CONFIG_FILE)
-        branch_logging_config = os.path.join(
-            rootdir, "data", config.CONFIG_LOGS)
         self.assertIn(branch_config, config_files)
-        self.assertIn(branch_logging_config, config_files)
 
 
 class ConfigglueParsersTests(BaseTwistedTestCase):
@@ -587,9 +584,12 @@ class XdgHomeParsersTests(BaseTwistedTestCase):
 
     def test_bad_value(self):
         """Test the parser using a bad value."""
-        bad_value = '/hola'
-        self.assertEqual(config.path_from_unix(bad_value),
-                         self.parser(bad_value))
+        bad_value = '/../hola'
+        with self.assertRaises(OSError) as ctx:
+            self.parser(bad_value)
+
+        self.assertEqual(
+            str(ctx.exception), "[Errno 1] Operation not permitted: '/..'")
 
     def test_invalid_value(self):
         """Test the parser using an invalid value."""
@@ -622,11 +622,8 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.test_root = self.mktemp()
         self.default_config = os.path.join(os.environ['ROOTDIR'], 'data',
                                            'syncdaemon.conf')
-        self.logging_config = os.path.join(os.environ['ROOTDIR'], 'data',
-                                           'logging.conf')
         self.cp = config.SyncDaemonConfigParser()
         self.cp.readfp(file(self.default_config))
-        self.cp.readfp(file(self.logging_config))
 
     def test_log_level_old_config(self):
         """Test log_level upgrade hook."""
@@ -638,7 +635,7 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEqual(self.cp.get('logging', 'level').value, 10)
+        self.assertEqual(self.cp.get('logging', 'level').value, logging.DEBUG)
 
     def test_log_level_new_config(self):
         """Test log_level upgrade hook with new config."""
@@ -650,7 +647,7 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEqual(self.cp.get('logging', 'level').value, 10)
+        self.assertEqual(self.cp.get('logging', 'level').value, logging.DEBUG)
 
     def test_log_level_old_and_new_config(self):
         """Test log_level upgrade hook with a mixed config."""

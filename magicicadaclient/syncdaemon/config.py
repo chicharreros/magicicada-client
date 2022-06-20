@@ -1,7 +1,5 @@
-# ubuntuone.syncdaemon.config - SyncDaemon config utilities
-#
 # Copyright 2009-2012 Canonical Ltd.
-# Copyright 2017 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -27,7 +25,8 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""SyncDaemon config"""
+
+"""SyncDaemon config."""
 
 from __future__ import with_statement
 
@@ -45,7 +44,13 @@ from dirspec.basedir import (
 )
 from dirspec.utils import unicode_path
 
-from magicicadaclient.platform import expand_user
+from magicicadaclient.platform import (
+    can_write,
+    expand_user,
+    make_dir,
+    path_exists,
+    set_dir_readwrite,
+)
 
 # the try/except is to work with older versions of configglue (that
 # had everything that is now configglue.inischema.* as configglue.*).
@@ -72,19 +77,20 @@ else:
     del new_tcp
 # end of naming shenanigans
 
+BASE_FILE_PATH = 'magicicada'
 CONFIG_FILE = 'syncdaemon.conf'
-CONFIG_LOGS = 'logging.conf'
 
 # sections
-THROTTLING = 'bandwidth_throttling'
 MAIN = '__main__'
+LOGGING = 'logging'
+THROTTLING = 'bandwidth_throttling'
+SECTIONS = [MAIN, THROTTLING, LOGGING]
 
 # global logger
 logger = logging.getLogger(__name__)
 
 # get (and possibly create if don't exists) the user config file
-_user_config_path = os.path.join(save_config_path('ubuntuone'),
-                                 CONFIG_FILE)
+_user_config_path = os.path.join(save_config_path(BASE_FILE_PATH), CONFIG_FILE)
 
 # module private config instance.
 # this object is the shared config
@@ -95,6 +101,16 @@ def path_from_unix(path):
     return path.replace('/', os.path.sep)
 
 
+def make_dir_if_needed(dirpath):
+    assert isinstance(dirpath, str)
+    if not path_exists(dirpath):
+        parent = os.path.dirname(dirpath)
+        if path_exists(parent) and not can_write(parent):
+            # make the parent dir writable
+            set_dir_readwrite(parent)
+        make_dir(dirpath, recursive=True)
+
+
 def home_dir_parser(value):
     """Parser for the root_dir and shares_dir options.
 
@@ -103,7 +119,7 @@ def home_dir_parser(value):
     """
     path = path_from_unix(value)
     result = expand_user(path)
-    assert isinstance(result, str)
+    make_dir_if_needed(result)
     return result
 
 
@@ -114,7 +130,7 @@ def xdg_cache_dir_parser(value):
 
     """
     result = os.path.join(xdg_cache_home, path_from_unix(value))
-    assert isinstance(result, str)
+    make_dir_if_needed(result)
     return result
 
 
@@ -125,7 +141,7 @@ def xdg_data_dir_parser(value):
 
     """
     result = os.path.join(xdg_data_home, path_from_unix(value))
-    assert isinstance(result, str)
+    make_dir_if_needed(result)
     return result
 
 
@@ -199,20 +215,18 @@ def get_parsers():
 
 
 def get_config_files():
-    """ return the path to the config files or and empty list.
+    """Return the path to the config files or an empty list.
+
     The search path is based on the paths returned by load_config_paths
     but it's returned in reverse order (e.g: /etc/xdg first).
+
     """
     config_files = []
-    for xdg_config_dir in load_config_paths('ubuntuone'):
+    for xdg_config_dir in load_config_paths(BASE_FILE_PATH):
         xdg_config_dir = unicode_path(xdg_config_dir)
         config_file = os.path.join(xdg_config_dir, CONFIG_FILE).encode('utf8')
         if os.path.exists(config_file):
             config_files.append(config_file)
-
-        config_logs = os.path.join(xdg_config_dir, CONFIG_LOGS).encode('utf8')
-        if os.path.exists(config_logs):
-            config_files.append(config_logs)
 
     # reverse the list as load_config_paths returns the user dir first
     config_files.reverse()
@@ -221,11 +235,6 @@ def get_config_files():
                                os.path.pardir, 'data', CONFIG_FILE)
     if os.path.exists(config_file):
         config_files.append(config_file)
-
-    config_logs = os.path.join(os.path.dirname(__file__), os.path.pardir,
-                               os.path.pardir, 'data', CONFIG_LOGS)
-    if os.path.exists(config_logs):
-        config_files.append(config_logs)
 
     return config_files
 
@@ -350,7 +359,7 @@ class _Config(SyncDaemonConfigParser):
         from magicicadaclient.platform import native_rename
 
         # cleanup empty sections
-        for section in [MAIN, THROTTLING]:
+        for section in SECTIONS:
             if self.has_section(section) and not self.options(section):
                 self.remove_section(section)
         with open(self.config_file + '.new', 'w') as fp:

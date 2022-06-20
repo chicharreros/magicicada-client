@@ -30,6 +30,7 @@
 """Storage synchronization daemon."""
 
 import atexit
+import logging
 import os
 import signal
 import sys
@@ -41,16 +42,10 @@ if sys.platform not in ('win32', 'darwin'):  # noqa
     DBusGMainLoop(set_as_default=True)
 
 from twisted.internet import reactor, defer
-from dirspec.basedir import xdg_cache_home, xdg_data_home
 
 from magicicadaclient.platform import (
-    can_write,
-    set_dir_readwrite,
     is_already_running,
     is_root,
-    make_dir,
-    path_exists,
-    recursive_move,
     set_application_name,
 )
 from magicicadaclient.platform.filesystem_notifications.monitor import (
@@ -58,6 +53,7 @@ from magicicadaclient.platform.filesystem_notifications.monitor import (
 )
 from magicicadaclient.syncdaemon import logger, config
 from magicicadaclient.syncdaemon.main import Main
+from magicicadaclient.syncdaemon.utils import SYNCDAEMON_EXECUTABLE
 
 
 class DeathException(Exception):
@@ -73,6 +69,7 @@ def die(msg):
 
 def check_death(failure):
     """Stop the reactor and exit the process."""
+    logging.error(failure.getTraceback())
     failure.trap(DeathException)
     reactor.callWhenRunning(reactor.stop)
 
@@ -126,13 +123,14 @@ def startManhole():
 @defer.inlineCallbacks
 def async_main(parser, options, argv):
     """The client entry point that can yield."""
-    logger.init()
-    if options.debug:
-        logger.set_debug('stdout file')
-    else:
-        logger.configure_logging(options.logging_level,
-                                 options.logging_file_size,
-                                 options.logging_backup_count)
+    debug = os.environ.get("MAGICICADA_DEBUG", options.debug)
+    logger.init(
+        base_dir=options.logging_logs_dir,
+        level=options.logging_level,
+        max_bytes=options.logging_file_size,
+        backup_count=options.logging_backup_count,
+        debug='stdout file' if debug else None,
+    )
 
     # check we're not running as root, or have explicitely and in
     # length expressed our desire to do so
@@ -153,33 +151,7 @@ def async_main(parser, options, argv):
     if is_running:
         die('Another instance is running')
 
-    # check if we are using xdg_data_home and it doesn't exists
-    if xdg_data_home in options.data_dir and \
-       not path_exists(options.data_dir):
-        # if we have metadata in the old xdg_cache, move it!
-        old_data_dir = options.data_dir.replace(xdg_data_home, xdg_cache_home)
-        if path_exists(old_data_dir):
-            parent = os.path.dirname(options.data_dir)
-            if path_exists(parent) and not can_write(parent):
-                # make the parent dir writable
-                set_dir_readwrite(parent)
-            elif not path_exists(parent):
-                # if it don't exits
-                make_dir(parent, recursive=True)
-            recursive_move(old_data_dir, options.data_dir)
-    if not path_exists(options.data_dir):
-        parent = os.path.dirname(options.data_dir)
-        if path_exists(parent) and not can_write(parent):
-            # make the parent dir writable
-            set_dir_readwrite(parent)
-        make_dir(options.data_dir, recursive=True)
-
-    # create the partials_dir
-    partials_dir = os.path.join(xdg_cache_home, 'ubuntuone', 'partials')
-    if not path_exists(partials_dir):
-        make_dir(partials_dir, recursive=True)
-
-    logger.rotate_logs()
+    logger.rotate_logs(logger.root_logger.handlers)
 
     assert isinstance(options.root_dir, str)
     assert isinstance(options.shares_dir, str)
@@ -201,7 +173,7 @@ def async_main(parser, options, argv):
     monitor_class = yield get_filemonitor_class(options.fs_monitor)
 
     main = Main(options.root_dir, options.shares_dir, options.data_dir,
-                partials_dir, options.server,
+                options.partials_dir, options.server,
                 mark_interval=options.mark_interval,
                 broadcast_events=options.send_events_over_dbus,
                 handshake_timeout=options.handshake_timeout,
@@ -231,7 +203,7 @@ def async_main(parser, options, argv):
 
     reactor.callWhenRunning(install_handlers)
     # set the application name
-    set_application_name('ubuntuone-syncdaemon')
+    set_application_name(SYNCDAEMON_EXECUTABLE)
 
     # check if we should start the heapy monitor
     if options.debug_heapy_monitor:
