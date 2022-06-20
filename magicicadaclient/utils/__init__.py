@@ -145,8 +145,7 @@ def get_cert_dir():
     elif any(plat in sys.platform for plat in ("win32", "darwin")):
         pkg_dir = os.path.dirname(__file__)
         src_tree_path = os.path.dirname(os.path.dirname(pkg_dir))
-        ssl_cert_location = os.path.join(src_tree_path,
-                                         "data")
+        ssl_cert_location = os.path.join(src_tree_path, "data")
     else:
         ssl_cert_location = '/etc/ssl/certs'
 

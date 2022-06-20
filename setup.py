@@ -42,10 +42,9 @@ VERSION = '1.0'
 
 POT_FILE = 'po/%s.pot' % PROJECT_NAME
 SERVICE_FILES = ['data/com.ubuntuone.SyncDaemon.service']
-CONFIG_FILES = ['data/logging.conf']
 CLIENTDEFS = 'magicicadaclient/clientdefs.py'
 
-BUILD_FILES = [CLIENTDEFS] + CONFIG_FILES
+BUILD_FILES = [CLIENTDEFS]
 CLEANFILES = [POT_FILE, 'MANIFEST'] + BUILD_FILES + SERVICE_FILES
 
 if int(VERSION.split('.')[1]) % 2 != 0:
@@ -203,7 +202,7 @@ else:
     data_files.extend([
         ('lib/%s' % PROJECT_NAME, libexec_scripts),
         ('share/dbus-1/services', SERVICE_FILES),
-        ('/etc/xdg/ubuntuone', CONFIG_FILES + ['data/syncdaemon.conf']),
+        ('/etc/xdg/ubuntuone', ['data/syncdaemon.conf']),
         ('share/man/man1', ['docs/man/u1sdtool.1']),
     ])
     scripts.extend(bin_scripts)

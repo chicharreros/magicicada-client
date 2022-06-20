@@ -1,6 +1,5 @@
-# -*- coding: utf-8 *-*
-#
 # Copyright 2012 Canonical Ltd.
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -26,12 +25,11 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
+
 """Logger module."""
 
-import os
 import sys
 
-from dirspec.basedir import xdg_cache_home
 
 if sys.platform == "win32":
     from magicicadaclient.platform.logger import windows
@@ -46,8 +44,3 @@ else:
 
 get_filesystem_logger = source.get_filesystem_logger
 setup_filesystem_logging = source.setup_filesystem_logging
-
-ubuntuone_log_dir = os.path.join(xdg_cache_home, 'ubuntuone', 'log')
-ubuntuone_log_dir = ubuntuone_log_dir.decode('utf-8')
-if not os.path.exists(ubuntuone_log_dir):
-    os.makedirs(ubuntuone_log_dir)

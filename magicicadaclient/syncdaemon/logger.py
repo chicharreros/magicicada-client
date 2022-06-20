@@ -36,11 +36,11 @@ import zlib
 
 from magicicadaclient.logger import (
     _DEBUG_LOG_LEVEL,
-    basic_formatter,
     CustomRotatingFileHandler,
     DayRotatingFileHandler,
     Logger,
     MultiFilter,
+    basic_formatter,
 )
 # api compatibility imports
 from magicicadaclient import logger
@@ -48,7 +48,6 @@ from magicicadaclient.platform import (
     get_filesystem_logger,
     setup_filesystem_logging,
 )
-from magicicadaclient.platform.logger import ubuntuone_log_dir
 
 DebugCapture = logger.DebugCapture
 NOTE = logger.NOTE
@@ -141,19 +140,10 @@ class mklog(object):
         return callback, errback
 
 
-LOGFILENAME = os.path.join(ubuntuone_log_dir, 'syncdaemon.log')
-EXLOGFILENAME = os.path.join(ubuntuone_log_dir, 'syncdaemon-exceptions.log')
-INVALIDLOGFILENAME = os.path.join(
-    ubuntuone_log_dir, 'syncdaemon-invalid-names.log')
-BROKENLOGFILENAME = os.path.join(
-    ubuntuone_log_dir, 'syncdaemon-broken-nodes.log')
-
-
 twisted_logger = logging.getLogger('twisted')
 root_logger = logging.getLogger('magicicadaclient')
 invnames_logger = logging.getLogger('magicicadaclient.InvalidNames')
 brokennodes_logger = logging.getLogger('magicicadaclient.BrokenNodes')
-
 filesystem_logger = get_filesystem_logger()
 # now restore our custom logger class
 logging.setLoggerClass(Logger)
@@ -168,17 +158,46 @@ def configure_handler(handler=None, filename=None, level=_DEBUG_LOG_LEVEL):
     return handler
 
 
-root_handler = configure_handler(filename=LOGFILENAME, level=_DEBUG_LOG_LEVEL)
-exception_handler = configure_handler(
-    filename=EXLOGFILENAME, level=logging.ERROR)
+def init(
+        base_dir, level=_DEBUG_LOG_LEVEL, max_bytes=2 ** 20, backup_count=5,
+        debug=None):
+    """Configure logging.
 
+    Set the level to debug of all registered loggers.
 
-def init():
+    If debug is file, syncdaemon-debug.log is used.
+    If it's stdout, all the logging is redirected to stdout.
+    If it's stderr, to stderr.
+
+    @param dest: a string with a one or more of 'file', 'stdout', and 'stderr'
+        e.g. 'file stdout'
+
+    """
+    if debug is None:
+        debug = ''
+
+    root_filename = os.path.join(base_dir, 'syncdaemon.log')
+    if 'file' in debug:
+        # setup the existing loggers in debug
+        level = _DEBUG_LOG_LEVEL
+        root_filename = os.path.join(base_dir, 'syncdaemon-debug.log')
+        # don't cap the file size
+        max_bytes = 0
+
     # root logger
     root_logger.propagate = False
-    root_logger.setLevel(_DEBUG_LOG_LEVEL)
+    root_logger.setLevel(level)
+    root_handler = configure_handler(filename=root_filename, level=level)
+    root_handler.maxBytes = max_bytes
+    root_handler.backupCount = backup_count
     root_logger.addHandler(root_handler)
+
     # add the exception handler to the root logger
+    exception_filename = os.path.join(base_dir, 'syncdaemon-exceptions.log')
+    exception_handler = configure_handler(
+        filename=exception_filename, level=logging.ERROR)
+    exception_handler.maxBytes = max_bytes
+    exception_handler.backupCount = backup_count
     logging.getLogger('').addHandler(exception_handler)
     root_logger.addHandler(exception_handler)
 
@@ -192,72 +211,31 @@ def init():
     twisted_logger.addHandler(root_handler)
     twisted_logger.addHandler(exception_handler)
 
+    for ll in (root_logger, twisted_logger):
+        ll.setLevel(_DEBUG_LOG_LEVEL)
+        if 'stderr' in debug:
+            ll.addHandler(configure_handler(logging.StreamHandler()))
+        if 'stdout' in debug:
+            ll.addHandler(configure_handler(logging.StreamHandler(sys.stdout)))
+
     # set the filesystem logging
     setup_filesystem_logging(filesystem_logger, root_handler)
 
     # invalid filenames log
+    invnames_filename = os.path.join(base_dir, 'syncdaemon-invalid-names.log')
     invnames_logger.setLevel(_DEBUG_LOG_LEVEL)
     invnames_logger.addHandler(
-        configure_handler(filename=INVALIDLOGFILENAME, level=logging.INFO))
+        configure_handler(filename=invnames_filename, level=logging.INFO))
 
     # broken nodes log
+    brokennodes_filename = os.path.join(
+        base_dir, 'syncdaemon-broken-nodes.log')
     brokennodes_logger.setLevel(_DEBUG_LOG_LEVEL)
     brokennodes_logger.addHandler(
-        configure_handler(filename=BROKENLOGFILENAME, level=logging.INFO))
+        configure_handler(filename=brokennodes_filename, level=logging.INFO))
 
 
-def configure_logging(level, maxBytes, backupCount):
-    """configure level, maxBytes and backupCount in all handlers"""
-    set_level(level)
-    set_max_bytes(maxBytes)
-    set_backup_count(backupCount)
-
-
-def set_level(level):
-    """set 'level' as the level for all the logger/handlers"""
-    root_logger.setLevel(level)
-    root_handler.setLevel(level)
-
-
-def set_max_bytes(size):
-    """set the maxBytes value in all the handlers"""
-    root_handler.maxBytes = size
-    exception_handler.maxBytes = size
-
-
-def set_backup_count(count):
-    """set the backup count in all the handlers"""
-    root_handler.backupCount = count
-    exception_handler.backupCount = count
-
-
-def set_debug(dest):
-    """ Set the level to debug of all registered loggers, and replace their
-    handlers. if debug_level is file, syncdaemon-debug.log is used. If it's
-    stdout, all the logging is redirected to stdout. If it's stderr, to stderr.
-
-    @param dest: a string with a one or more of 'file', 'stdout', and 'stderr'
-                 e.g. 'file stdout'
-    """
-    if not [v for v in ['file', 'stdout', 'stderr'] if v in dest]:
-        # invalid dest value, let the loggers alone
-        return
-    if 'file' in dest:
-        # setup the existing loggers in debug
-        root_handler.setLevel(_DEBUG_LOG_LEVEL)
-        logfile = os.path.join(ubuntuone_log_dir, 'syncdaemon-debug.log')
-        root_handler.baseFilename = os.path.abspath(logfile)
-        # don't cap the file size
-        set_max_bytes(0)
-    for l in (root_logger, twisted_logger):
-        l.setLevel(_DEBUG_LOG_LEVEL)
-        if 'stderr' in dest:
-            l.addHandler(configure_handler(logging.StreamHandler()))
-        if 'stdout' in dest:
-            l.addHandler(configure_handler(logging.StreamHandler(sys.stdout)))
-
-
-def set_server_debug(dest):
+def set_server_debug(dest, base_dir):
     """ Set the level to debug of all registered loggers, and replace their
     handlers. if debug_level is file, syncdaemon-debug.log is used. If it's
     stdout, all the logging is redirected to stdout.
@@ -268,7 +246,7 @@ def set_server_debug(dest):
     logger = logging.getLogger("storage.server")
     logger.setLevel(SERVER_LOG_LEVEL)
     if 'file' in dest:
-        filename = os.path.join(ubuntuone_log_dir, 'syncdaemon-debug.log')
+        filename = os.path.join(base_dir, 'syncdaemon-debug.log')
         logger.addHandler(configure_handler(
             DayRotatingFileHandler(filename=filename), level=SERVER_LOG_LEVEL))
     if 'stdout' in dest:
@@ -280,25 +258,17 @@ def set_server_debug(dest):
             configure_handler(logging.StreamHandler(), level=SERVER_LOG_LEVEL))
 
 
-# if we are in debug mode, replace/add the handlers
-DEBUG = os.environ.get("MAGICICADA_DEBUG", None)
-if DEBUG:
-    set_debug(DEBUG)
-
 # configure server logging if SERVER_DEBUG != None
 SERVER_DEBUG = os.environ.get("SERVER_DEBUG", None)
 if SERVER_DEBUG:
     set_server_debug(SERVER_DEBUG)
 
 
-def rotate_logs():
-    """do a rollover of the three handlers"""
+def rotate_logs(handlers):
+    """Do a rollover of the given handlers."""
     # ignore the missing file error on a failed rollover
-    try:
-        root_handler.doRollover()
-    except OSError:
-        pass
-    try:
-        exception_handler.doRollover()
-    except OSError:
-        pass
+    for handler in handlers:
+        try:
+            handler.doRollover()
+        except OSError:
+            pass

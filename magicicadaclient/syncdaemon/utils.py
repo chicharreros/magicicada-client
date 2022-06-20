@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2012 Canonical Ltd.
-# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -27,7 +27,8 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""Utility functions for ubuntuone client."""
+
+"""Utility functions for the client."""
 
 import os
 import sys
@@ -50,8 +51,7 @@ DARWIN_APP_NAMES = {SYNCDAEMON_EXECUTABLE: 'UbuntuOne Syncdaemon.app'}
 def _get_bin_cmd(exe_name, extra_fallbacks=[]):
     """Get cmd+args to launch 'exe_name'."""
     syncdaemon_dir = os.path.dirname(__file__)
-    ubuntuone_dir = os.path.dirname(syncdaemon_dir)
-    tree_dir = os.path.dirname(ubuntuone_dir)
+    tree_dir = os.path.dirname(os.path.dirname(syncdaemon_dir))
     fallback_dirs = [os.path.join(tree_dir, 'bin')] + extra_fallbacks
     path = get_program_path(exe_name,
                             fallback_dirs=fallback_dirs,
