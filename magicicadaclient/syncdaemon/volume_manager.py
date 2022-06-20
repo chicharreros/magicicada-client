@@ -96,10 +96,7 @@ class _Share(object):
     def __init__(self, share_id=request.ROOT, node_id=None, path=None,
                  name=None, access_level=ACCESS_LEVEL_RO, accepted=False,
                  other_username=None, other_visible_name=None):
-        """ Creates the instance.
-
-        The received path should be 'bytes'
-        """
+        """Create the instance. The given path should be str."""
         if path is None:
             self.path = None
         else:
@@ -196,10 +193,7 @@ class Share(Volume):
 
     @classmethod
     def from_response(cls, share_response, path):
-        """ Creates a Share instance from a ShareResponse.
-
-        The received path should be 'bytes'
-        """
+        """Create a Share instance from a ShareResponse."""
         share = cls(volume_id=str(share_response.id),
                     node_id=str(share_response.subtree),
                     path=path, name=share_response.name,
@@ -211,10 +205,7 @@ class Share(Volume):
 
     @classmethod
     def from_notify_holder(cls, share_notify, path):
-        """ Creates a Share instance from a NotifyShareHolder.
-
-        The received path should be 'bytes'
-        """
+        """Create a Share instance from a NotifyShareHolder."""
         share = cls(volume_id=str(share_notify.share_id),
                     node_id=str(share_notify.subtree),
                     path=path, name=share_notify.share_name,
@@ -225,11 +216,7 @@ class Share(Volume):
 
     @classmethod
     def from_share_volume(cls, share_volume, path):
-        """Creates a Share instance from a volumes.ShareVolume.
-
-        The received path should be 'bytes'
-
-        """
+        """Create a Share instance from a volumes.ShareVolume."""
         share = cls(volume_id=str(share_volume.volume_id),
                     node_id=str(share_volume.node_id),
                     path=path, name=share_volume.share_name,
@@ -250,6 +237,13 @@ class Share(Volume):
     def active(self):
         """Return True if this Share is accepted."""
         return self.accepted and self.subscribed and not self.local_rescanning
+
+    # https://docs.python.org/3/reference/datamodel.html#object.__hash__
+    # If a class that overrides __eq__() needs to retain the implementation of
+    # __hash__() from a parent class, the interpreter must be told this
+    # explicitly by setting __hash__ = <ParentClass>.__hash__.
+    # Also: https://bugs.python.org/issue1549
+    __hash__ = Volume.__hash__
 
     def __eq__(self, other):
         result = (super(Share, self).__eq__(other) and
@@ -365,20 +359,23 @@ class UDF(Volume):
 
     @property
     def active(self):
-        """Returns True if the UDF is subscribed."""
+        """Return True if the UDF is subscribed."""
         return self.subscribed and not self.local_rescanning
 
     @classmethod
     def from_udf_volume(cls, udf_volume, path):
-        """Creates a UDF instance from a volumes.UDFVolume.
-
-        The received path should be 'bytes'
-
-        """
+        """Create a UDF instance from a volumes.UDFVolume."""
         return cls(volume_id=str(udf_volume.volume_id),
                    node_id=str(udf_volume.node_id),
                    suggested_path=udf_volume.suggested_path, path=path,
                    generation=udf_volume.generation)
+
+    # https://docs.python.org/3/reference/datamodel.html#object.__hash__
+    # If a class that overrides __eq__() needs to retain the implementation of
+    # __hash__() from a parent class, the interpreter must be told this
+    # explicitly by setting __hash__ = <ParentClass>.__hash__.
+    # Also: https://bugs.python.org/issue1549
+    __hash__ = Volume.__hash__
 
     def __eq__(self, other):
         result = (super(UDF, self).__eq__(other) and
@@ -1980,9 +1977,8 @@ class VMTritcaskShelf(TritcaskShelf):
         In the case of request.ROOT return self._root_key.
         """
         if key == request.ROOT:
-            return self._root_key
-        else:
-            return key
+            key = self._root_key
+        return key
 
     def __getitem__(self, key):
         """dict protocol."""
@@ -2004,9 +2000,8 @@ class VMTritcaskShelf(TritcaskShelf):
         """Override default keys, to handle key == request.ROOT."""
         for key in super(VMTritcaskShelf, self).keys():
             if key == self._root_key:
-                yield request.ROOT
-            else:
-                yield key
+                key = request.ROOT
+            yield key
 
     def _deserialize(self, pickled_value):
         """Custom _deserialize.
