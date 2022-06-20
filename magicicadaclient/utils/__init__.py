@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2010-2012 Canonical Ltd.
-# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -36,11 +36,12 @@ import logging
 import os
 import sys
 
-from dirspec.basedir import load_config_paths
 from dirspec.utils import get_program_path
 
 from twisted.python import procutils
 
+
+from magicicadaclient.syncdaemon.config import get_config_files
 
 logger = logging.getLogger(__name__)
 BIN_SUFFIX = 'bin'
@@ -135,7 +136,7 @@ def get_cert_dir():
 
     if getattr(sys, "frozen", None) is not None:
         if sys.platform == "win32":
-            ssl_cert_location = list(load_config_paths("ubuntuone"))[1]
+            ssl_cert_location = get_config_files()[1]
         elif sys.platform == "darwin":
                 main_app_dir = "".join(__file__.partition(".app")[:-1])
                 main_app_resources_dir = os.path.join(main_app_dir,

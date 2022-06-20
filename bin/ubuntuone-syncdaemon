@@ -157,6 +157,7 @@ def async_main(parser, options, argv):
     assert isinstance(options.root_dir, str)
     assert isinstance(options.shares_dir, str)
     assert isinstance(options.data_dir, str)
+    assert isinstance(options.partials_dir, str)
 
     # check if we have auth credentials
     auth_credentials = None

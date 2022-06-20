@@ -1549,9 +1549,8 @@ class MetadataUpgrader(object):
             if (path_exists(old_share_dir) and path_exists(old_root_dir) and
                     not is_link(old_share_dir)):
                 # md >= 1 and <= 3
-                # we have a My Files dir, 'Shared With Me' isn't a
-                # symlink and ~/.local/share/ubuntuone/shares doesn't
-                # exists.
+                # we have a 'My Files' dir, so 'Shared With Me' isn't a
+                # symlink and the configured shares folder doesn't exist.
                 # md_version <= 3, set it to 2 as it will migrate
                 # .conflict to .u1conflict, and we don't need to upgrade
                 # from version 1 any more as the LegacyShareFileShelf

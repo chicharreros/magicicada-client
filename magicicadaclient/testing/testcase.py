@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2015 Canonical Ltd.
-# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -399,7 +399,7 @@ class BaseTwistedTestCase(TwistedTestCase):
         self.__root = None
 
         # Patch the user home
-        self.home_dir = self.mktemp('ubuntuonehacker')
+        self.home_dir = self.mktemp('chicharrero')
         self.patch(platform, "user_home", self.home_dir)
 
         # use the config from the branch
