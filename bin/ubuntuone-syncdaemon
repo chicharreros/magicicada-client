@@ -29,18 +29,16 @@
 # files in the program, then also delete it here.
 """Storage synchronization daemon."""
 
+import atexit
+import os
+import signal
 import sys
 
-if sys.platform not in ('win32', 'darwin'):
+if sys.platform not in ('win32', 'darwin'):  # noqa
     from twisted.internet import gireactor
     gireactor.install()
     from dbus.mainloop.glib import DBusGMainLoop
     DBusGMainLoop(set_as_default=True)
-
-
-import atexit
-import os
-import signal
 
 from twisted.internet import reactor, defer
 from dirspec.basedir import xdg_cache_home, xdg_data_home
@@ -60,7 +58,6 @@ from magicicadaclient.platform.filesystem_notifications.monitor import (
 )
 from magicicadaclient.syncdaemon import logger, config
 from magicicadaclient.syncdaemon.main import Main
-
 
 
 class DeathException(Exception):
@@ -108,13 +105,15 @@ def startManhole():
     try:
         from twisted.conch import manhole, manhole_ssh
         from twisted.cred.portal import Portal
-        from twisted.cred.checkers import InMemoryUsernamePasswordDatabaseDontUse
+        from twisted.cred.checkers import (
+            InMemoryUsernamePasswordDatabaseDontUse,
+        )
     except ImportError:
         logger.root_logger.warning('twisted.manhole not available')
     else:
         logger.root_logger.info('starting twisted.manhole')
         realm = manhole_ssh.TerminalRealm()
-        getManhole = lambda _: manhole.Manhole(globals())
+        getManhole = lambda _: manhole.Manhole(globals())  # noqa
         realm.chainedProtocolFactory.protocolFactory = getManhole
         portal = Portal(realm)
         checker = InMemoryUsernamePasswordDatabaseDontUse(debug="debug")
