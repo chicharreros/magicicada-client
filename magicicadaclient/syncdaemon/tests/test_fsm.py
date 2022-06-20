@@ -225,9 +225,9 @@ class CreationTests(FSMTestCase):
         mdobj = self.fsm.get_by_path(path)
         self.assertEqual(mdobj.path, "path")
         self.assertEqual(mdobj.share_id, "share")
-        self.assertEqual(mdobj.generation, None)
-        self.assertEqual(mdobj.crc32, None)
-        self.assertEqual(mdobj.size, None)
+        self.assertIsNone(mdobj.generation)
+        self.assertIsNone(mdobj.crc32)
+        self.assertIsNone(mdobj.size)
         when = mdobj.info.created
         now = time.time()
         self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
@@ -251,9 +251,9 @@ class CreationTests(FSMTestCase):
         self.assertEqual(mdobj.path, "path")
         self.assertEqual(mdobj.share_id, "share")
         self.assertEqual(mdobj.node_id, "a_node_id")
-        self.assertEqual(mdobj.generation, None)
-        self.assertEqual(mdobj.crc32, None)
-        self.assertEqual(mdobj.size, None)
+        self.assertIsNone(mdobj.generation)
+        self.assertIsNone(mdobj.crc32)
+        self.assertIsNone(mdobj.size)
         when = mdobj.info.created
         now = time.time()
         self.assertTrue(now - 3 <= when <= now)  # 3 seconds test range
@@ -361,7 +361,7 @@ class CreationTests(FSMTestCase):
         newmdobj = newfsm.get_by_path(path)
         self.assertEqual(newmdobj.mdid, mdid)
         self.assertEqual(newmdobj.stat, stat_path(path))
-        self.assertEqual(newmdobj.generation, None)
+        self.assertIsNone(newmdobj.generation)
         self.assertEqual(newmdobj.local_hash, "")
         self.assertEqual(newmdobj.server_hash, "")
         self.assertIsInstance(newmdobj.path, str)
@@ -428,7 +428,7 @@ class CreationTests(FSMTestCase):
         self.assertEqual(newmdobj.mdid, mdid1)
         self.assertEqual(newmdobj.local_hash, "")
         self.assertEqual(newmdobj.server_hash, "")
-        self.assertEqual(newmdobj.generation, None)
+        self.assertIsNone(newmdobj.generation)
         self.assertIsInstance(newmdobj.path, str)
         self.assertEqual(2, len(newfsm._idx_node_id))
         self.assertTrue(other_share.path in newfsm._idx_path)
@@ -485,7 +485,7 @@ class CreationTests(FSMTestCase):
         self.assertEqual(newmdobj.mdid, mdid)
         self.assertEqual(newmdobj.local_hash, "")
         self.assertEqual(newmdobj.server_hash, "")
-        self.assertEqual(newmdobj.generation, None)
+        self.assertIsNone(newmdobj.generation)
         self.assertIsInstance(newmdobj.path, str)
         self.assertEqual(2, len(newfsm._idx_node_id))
         self.assertTrue(other_share.path in newfsm._idx_path)
@@ -545,7 +545,7 @@ class CreationTests(FSMTestCase):
         rootmdobj = newfsm.get_by_path(root_dir)
         self.assertEqual(rootmdobj.mdid, root_md['mdid'])
         self.assertEqual(rootmdobj.path, root_dir)
-        self.assertEqual(rootmdobj.generation, None)
+        self.assertIsNone(rootmdobj.generation)
         self.assertEqual(2, len(newfsm._idx_node_id))
         self.assertTrue(other_share.path in newfsm._idx_path)
         self.assertFalse(old_path in newfsm._idx_path)
@@ -604,7 +604,7 @@ class CreationTests(FSMTestCase):
         self.assertEqual(md_version, METADATA_VERSION)
         newmdobj = newfsm.get_by_path(path)
         self.assertEqual(newmdobj.mdid, mdid)
-        self.assertEqual(newmdobj.generation, None)
+        self.assertIsNone(newmdobj.generation)
         # check that the trash is the same:
         self.assertEqual(
             self.fsm.trash,
@@ -664,7 +664,7 @@ class CreationTests(FSMTestCase):
         newmdobj = newfsm.get_by_path(path)
         self.assertEqual(newmdobj.share_id, 'share')
         self.assertEqual(newmdobj.mdid, mdid)
-        self.assertEqual(newmdobj.generation, None)
+        self.assertIsNone(newmdobj.generation)
         # check that the trash is the same:
         self.assertEqual(
             self.fsm.trash,
@@ -717,7 +717,7 @@ class CreationTests(FSMTestCase):
                                    self.fsm.vm, db)
         md_version = open_file(version_file).read()
         self.assertEqual(md_version, METADATA_VERSION)
-        self.assertTrue(newfsm.get_by_mdid(mdid) is not None)
+        self.assertIsNotNone(newfsm.get_by_mdid(mdid))
         self.assertRaises(KeyError, newfsm.get_by_mdid, mdid1)
         self.assertRaises(KeyError, newfsm.get_by_mdid, mdid2)
 
@@ -874,12 +874,12 @@ class CreationTests(FSMTestCase):
                                    self.fsm.vm, db)
         md_version = open_file(version_file).read()
         self.assertEqual(md_version, METADATA_VERSION)
-        self.assertTrue(newfsm.get_by_mdid(mdid) is not None)
+        self.assertIsNotNone(newfsm.get_by_mdid(mdid))
         self.assertEqual(1, len(newfsm._idx_node_id))
         self.assertEqual(3, len(newfsm._idx_path))
         # check that the broken mdid's load the old metadata
-        self.assertEqual(None, newfsm.get_by_mdid(mdid1).node_id)
-        self.assertEqual(None, newfsm.get_by_mdid(mdid2).node_id)
+        self.assertIsNone(newfsm.get_by_mdid(mdid1).node_id)
+        self.assertIsNone(newfsm.get_by_mdid(mdid2).node_id)
 
     @skip_if_win32_and_uses_metadata_older_than_5
     def test_old_metadata_1_broken_pickle_with_backup(self):
@@ -943,8 +943,8 @@ class CreationTests(FSMTestCase):
         self.assertEqual(1, len(newfsm._idx_node_id))
         self.assertEqual(3, len(newfsm._idx_path))
         # check that the broken mdid's load the old metadata
-        self.assertEqual(None, newfsm.get_by_mdid(mdid1).node_id)
-        self.assertEqual(None, newfsm.get_by_mdid(mdid2).node_id)
+        self.assertIsNone(newfsm.get_by_mdid(mdid1).node_id)
+        self.assertIsNone(newfsm.get_by_mdid(mdid2).node_id)
 
     @skip_if_win32_and_uses_metadata_older_than_5
     def test_old_metadata_2_broken_pickle_with_backup(self):
@@ -1011,8 +1011,8 @@ class CreationTests(FSMTestCase):
         self.assertEqual(1, len(newfsm._idx_node_id))
         self.assertEqual(3, len(newfsm._idx_path))
         # check that the broken mdid's load the old metadata
-        self.assertEqual(None, newfsm.get_by_mdid(mdid1).node_id)
-        self.assertEqual(None, newfsm.get_by_mdid(mdid2).node_id)
+        self.assertIsNone(newfsm.get_by_mdid(mdid1).node_id)
+        self.assertIsNone(newfsm.get_by_mdid(mdid2).node_id)
 
     def test_current_metadata_phantom_node_older(self):
         """Test current metadata with a phantom node."""
@@ -1581,7 +1581,7 @@ class StatTests(FSMTestCase):
     def test_create_nofile(self):
         """Test creation when there's no file."""
         mdobj = self.create_node("foo")
-        self.assertEqual(mdobj.stat, None)
+        self.assertIsNone(mdobj.stat)
 
     def test_create_file(self):
         """Test creation when there's a file."""
@@ -3629,7 +3629,7 @@ class RealVMTestCase(FSMTestCase):
         version_file = os.path.join(self.data_dir, "metadata_version")
         md_version = open_file(version_file).read()
         self.assertEqual(md_version, METADATA_VERSION)
-        self.assertTrue(newfsm.get_by_mdid(mdid) is not None)
+        self.assertIsNotNone(newfsm.get_by_mdid(mdid))
         self.assertEqual(1, len(newfsm._idx_node_id))
         self.assertEqual(2, len(newfsm._idx_path))
         self.assertRaises(KeyError, newfsm.get_by_mdid, share_mdid)
@@ -3685,7 +3685,7 @@ class RealVMTestCase(FSMTestCase):
         version_file = os.path.join(self.data_dir, "metadata_version")
         md_version = open_file(version_file).read()
         self.assertEqual(md_version, METADATA_VERSION)
-        self.assertTrue(newfsm.get_by_mdid(root_mdid) is not None)
+        self.assertIsNotNone(newfsm.get_by_mdid(root_mdid))
         self.assertEqual(1, len(newfsm._idx_node_id))
         self.assertEqual(1, len(newfsm._idx_path))
         self.assertRaises(KeyError, newfsm.get_by_mdid, share_mdid)
@@ -3722,7 +3722,7 @@ class RealVMTestCase(FSMTestCase):
         version_file = os.path.join(self.data_dir, "metadata_version")
         md_version = open_file(version_file).read()
         self.assertEqual(md_version, METADATA_VERSION)
-        self.assertTrue(newfsm.get_by_mdid(mdid) is not None)
+        self.assertIsNotNone(newfsm.get_by_mdid(mdid))
         self.assertEqual(2, len(newfsm._idx_node_id))
         self.assertEqual(3, len(newfsm._idx_path))
         # check that the broken mdid's load the old metadata

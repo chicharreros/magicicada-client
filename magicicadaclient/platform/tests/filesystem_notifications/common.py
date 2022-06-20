@@ -733,7 +733,7 @@ class TestWatchManager(BaseTwistedTestCase):
     def test_get_path_missing_wd(self):
         """Test returning None for a missing wd."""
         self.manager._wdm = {}
-        self.assertEqual(None, self.manager.get_path(1))
+        self.assertIsNone(self.manager.get_path(1))
 
     def test_get_wd_exact_path(self):
         """Test the wd is returned when there is a watch for the path."""
@@ -746,7 +746,7 @@ class TestWatchManager(BaseTwistedTestCase):
 
     def test_get_wd_unwatched(self):
         """A watch on an unwatched path returns None."""
-        self.assertEqual(None, self.manager.get_wd(self.parent_path))
+        self.assertIsNone(self.manager.get_wd(self.parent_path))
 
     def test_rm_present_wd(self):
         """Test the removal of a present watch."""
@@ -769,7 +769,7 @@ class TestWatchManager(BaseTwistedTestCase):
 
         yield self.manager.rm_watch(1)
         self.assertTrue(self.stop_called)
-        self.assertEqual(None, self.manager._wdm.get(1))
+        self.assertIsNone(self.manager._wdm.get(1))
         self.assertEqual(self.platform_rm_watch_wd, 1)
 
     def test_rm_root_path(self):

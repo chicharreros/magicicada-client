@@ -109,7 +109,7 @@ class TestFileShelf(BaseTwistedTestCase):
         self.assertTrue("foo" in shelf)
         self.assertFalse("baz" in shelf)
         self.assertEqual('bar', shelf.get('foo'))
-        self.assertEqual(None, shelf.get('baz', None))
+        self.assertIsNone(shelf.get('baz', None))
 
     def test_pop(self):
         """Test that it behaves with the .pop() """
@@ -129,7 +129,7 @@ class TestFileShelf(BaseTwistedTestCase):
         shelf["foo"] = "bar"
         self.assertEqual('bar', shelf.get('foo'))
         self.assertEqual('bar', shelf.get('foo', None))
-        self.assertEqual(None, shelf.get('baz'))
+        self.assertIsNone(shelf.get('baz'))
         self.assertFalse(shelf.get('baz', False))
 
     def test_items(self):

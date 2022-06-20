@@ -203,9 +203,9 @@ class TestWatch(common_tests.TestWatch):
         test_path = self.mktemp("another_test_directory")
         watch = Watch(1, test_path, self.mask)
         yield watch.start_watching()
-        self.assertNotEqual(watch.platform_watch._watch_handle, None)
+        self.assertIsNotNone(watch.platform_watch._watch_handle)
         yield watch.stop_watching()
-        self.assertEqual(watch.platform_watch._watch_handle, None)
+        self.assertIsNone(watch.platform_watch._watch_handle)
 
 
 class TestWatchManager(common_tests.TestWatchManager):

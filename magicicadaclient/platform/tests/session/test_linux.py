@@ -122,7 +122,7 @@ class SessionDBusClientTestCase(DBusTestCase):
             session.SESSION_MANAGER_BUSNAME, session.SESSION_MANAGER_PATH,
             FakeGnomeSessionManagerInhibitor)
         inhibit_result = yield session.inhibit_logout_suspend("fake reason")
-        self.assertNotEqual(None, inhibit_result)
+        self.assertIsNotNone(inhibit_result)
         result = fakeinhibitor.IsInhibited(session.INHIBIT_LOGGING_OUT)
         self.assertTrue(result)
         result = fakeinhibitor.IsInhibited(session.INHIBIT_SUSPENDING_COMPUTER)

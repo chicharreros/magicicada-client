@@ -90,7 +90,7 @@ class TranslationsTestCase(TestCase):
         """Test that we will use gettext defaults on linux."""
         self.patch(sys, 'platform', 'linux2')
         langs = translation._get_languages()
-        self.assertEqual(langs, None)
+        self.assertIsNone(langs)
 
     def test_get_translations_data_path_darwin_frozen(self):
         """Test getting the location of the compiled translation files."""
@@ -110,7 +110,7 @@ class TranslationsTestCase(TestCase):
         """Test that we use gettext defaults on darwin when not frozen."""
         self.patch(sys, 'platform', 'darwin')
         path = translation._get_translations_data_path()
-        self.assertEqual(path, None)
+        self.assertIsNone(path)
 
     def test_get_translations_data_path_darwin_unfrozen_fallback(self):
         """Test that we use fallback on darwin when not frozen."""
@@ -122,7 +122,7 @@ class TranslationsTestCase(TestCase):
     def test_get_translations_data_path_linux(self):
         """Test that we use gettext defaults on linux."""
         path = translation._get_translations_data_path()
-        self.assertEqual(path, None)
+        self.assertIsNone(path)
 
     def _call_get_gettext(self, platform, py_version, fallback=None):
         """Helper function to patch and call translation.get_gettext."""

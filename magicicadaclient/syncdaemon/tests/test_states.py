@@ -359,7 +359,7 @@ class TestConnectionManager(Base):
         self.sm.state = StateManager.STANDOFF
         new_node = self.cm.on_event('SYS_CONNECTION_LOST')
         # if working, it should return a node
-        self.assertTrue(new_node is None)
+        self.assertIsNone(new_node)
 
 
 class TestConnectionManagerTimings(Base):

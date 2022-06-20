@@ -645,7 +645,7 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         self.main.action_q.create_share = fake_create_share
         self.vm.create_share(path, 'fake_user', 'shared_name', ACCESS_LEVEL_RO)
 
-        self.assertTrue(self.vm.shared.get('share_id') is not None)
+        self.assertIsNotNone(self.vm.shared.get('share_id'))
         share = self.vm.shared.get('share_id')
         self.assertEqual('fake_user', share.other_username)
         self.assertEqual('shared_name', share.name)
@@ -665,7 +665,7 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
             self.assertEqual('fake_user', user)
             self.assertEqual('shared_name', name)
             self.assertEqual(ACCESS_LEVEL_RO, access_level)
-            self.assertTrue(marker is not None)
+            self.assertIsNotNone(marker)
             share = self.vm.marker_share_map[marker]
             self.assertEqual(path, share.path)
             self.assertEqual(ACCESS_LEVEL_RO, share.access_level)
@@ -817,7 +817,7 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         self.assertEqual('fake_shared', shared.name)
         # check that the uuid is stored in fs
         self.assertEqual(shared_response.subtree, shared.node_id)
-        self.assertEqual(None, shared.path)
+        self.assertIsNone(shared.path)
 
     @defer.inlineCallbacks
     def test_handle_SV_SHARE_ANSWERED(self):
@@ -883,7 +883,7 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
         share = self.vm.shares['share_id']
         self.assertEqual('fake_share', share.name)
         self.assertEqual('fake_share_uuid', share.node_id)
-        self.assertEqual(None, self.vm.shares.get('share_id_1'))
+        self.assertIsNone(self.vm.shares.get('share_id_1'))
 
     @defer.inlineCallbacks
     def test_remove_watch(self):
@@ -3072,9 +3072,9 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         udf = self._create_udf()
         yield self.vm.add_share(share)
         yield self.vm.add_udf(udf)
-        self.assertEqual(None, self.vm.get_free_space(share.volume_id))
-        self.assertEqual(None, self.vm.get_free_space(udf.volume_id))
-        self.assertEqual(None, self.vm.get_free_space(root.volume_id))
+        self.assertIsNone(self.vm.get_free_space(share.volume_id))
+        self.assertIsNone(self.vm.get_free_space(udf.volume_id))
+        self.assertIsNone(self.vm.get_free_space(root.volume_id))
         self.vm.update_free_space(share.volume_id, 10)
         self.vm.update_free_space(udf.volume_id, 20)
         self.vm.update_free_space('missing_id', 20)
@@ -3529,7 +3529,7 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         root_id = uuid.uuid4()
         root_volume = volumes.RootVolume(root_id, 1, 500)
         response = [root_volume]
-        self.assertEqual(None, self.vm.root.node_id)
+        self.assertIsNone(self.vm.root.node_id)
         d = defer.Deferred()
         self._listen_for('SV_VOLUME_NEW_GENERATION', d.callback, 1, True)
         self.vm._volumes_rescan_cb(response)
@@ -3660,9 +3660,9 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         udf = self._create_udf()
         yield self.vm.add_share(share)
         yield self.vm.add_udf(udf)
-        self.assertEqual(None, udf.generation)
-        self.assertEqual(None, share.generation)
-        self.assertEqual(None, root.generation)
+        self.assertIsNone(udf.generation)
+        self.assertIsNone(share.generation)
+        self.assertIsNone(root.generation)
         self.vm.update_generation(udf.volume_id, 1)
         self.vm.update_generation(share.volume_id, 2)
         self.vm.update_generation(root.volume_id, 3)
@@ -3989,9 +3989,9 @@ class GenerationsMetadataTestCase(MetadataTestCase):
         legacy_udfs[udf.volume_id] = udf.__dict__
         shares = VMFileShelf(self.share_md_dir)
         udfs = VMFileShelf(self.udfs_md_dir)
-        self.assertEqual(None, shares[share.volume_id].generation)
-        self.assertEqual(None, shares[root.volume_id].generation)
-        self.assertEqual(None, udfs[udf.volume_id].generation)
+        self.assertIsNone(shares[share.volume_id].generation)
+        self.assertIsNone(shares[root.volume_id].generation)
+        self.assertIsNone(udfs[udf.volume_id].generation)
         # add a value to the generation attribute
         share = shares[share.volume_id]
         share.generation = 1
@@ -4060,7 +4060,7 @@ class MetadataUpgraderTests(MetadataTestCase):
         set_dir_readonly(shares_dir)
         self.addCleanup(set_dir_readwrite, shares_dir)
         version = self.md_upgrader._guess_metadata_version()
-        self.assertEqual(None, version)
+        self.assertIsNone(version)
 
     def test_guess_metadata_version_1_or_2(self):
         """Test _guess_metadata_version method for version 1 or 2."""

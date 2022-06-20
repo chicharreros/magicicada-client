@@ -1124,7 +1124,7 @@ class TestZipQueue(BasicTestCase):
 
         self.assertTrue(tempfile.closed)
         self.assertFalse(path_exists(tempfile.name))
-        self.assertTrue(upload.tempfile is None)
+        self.assertIsNone(upload.tempfile)
 
 
 class FactoryBaseTestCase(BasicTestCase):
@@ -1205,8 +1205,8 @@ class ConnectionTestCase(FactoryBaseTestCase):
 
     def assert_connection_state_reset(self):
         """Test connection state is properly reset."""
-        self.assertTrue(self.action_queue.client is None)
-        self.assertTrue(self.action_queue.connector is None)
+        self.assertIsNone(self.action_queue.client)
+        self.assertIsNone(self.action_queue.connector)
         self.assertFalse(self.action_queue.connect_in_progress)
 
     def test_init(self):
@@ -1223,7 +1223,7 @@ class ConnectionTestCase(FactoryBaseTestCase):
 
         # double connect, it returns None instead of a Deferred
         result = self.action_queue.connect()
-        self.assertTrue(result is None, 'not connecting again')
+        self.assertIsNone(result, 'not connecting again')
 
         yield self._disconnect_factory()
 
@@ -1361,7 +1361,7 @@ class ConnectionTestCase(FactoryBaseTestCase):
         """Test factory's connector gets assigned on connect."""
         yield self._connect_factory()
 
-        self.assertTrue(self.action_queue.connector is not None)
+        self.assertIsNotNone(self.action_queue.connector)
 
         yield self._disconnect_factory()
 
@@ -2109,7 +2109,7 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
     def test_path_locking(self):
         """Test it has a generic _acquire_pathlock."""
         r = yield self.cmd._acquire_pathlock()
-        self.assertIdentical(r, None)
+        self.assertIsNone(r)
 
     def test_finish_running(self):
         """Set running to False when finish."""
@@ -2972,7 +2972,7 @@ class DownloadTestCase(ConnectedBaseTestCase):
         req.release.assert_called_once()
         self.assertTrue(
             self.handler.check_debug('semaphore released', 'cancelled'))
-        self.assertIdentical(self.command.tx_semaphore, None)
+        self.assertIsNone(self.command.tx_semaphore)
 
     def test_finish_releases_semaphore_if_acquired(self):
         """Test semaphore is released on finish if it was acquired."""
@@ -3319,7 +3319,7 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.command.tempfile = None
 
         self.command.finish()
-        self.assertEqual(self.command.tempfile, None)  # nothing changed
+        self.assertIsNone(self.command.tempfile)  # nothing changed
 
     def test_retryable_failure_push_quota_exceeded_if_that_error(self):
         """Test SYS_QUOTA_EXCEEDED is pushed on QuotaExceededError."""
@@ -3571,7 +3571,7 @@ class UploadTestCase(ConnectedBaseTestCase):
         req.release.assert_called_once()
         self.assertTrue(
             self.handler.check_debug('semaphore released', 'cancelled'))
-        self.assertIdentical(self.command.tx_semaphore, None)
+        self.assertIsNone(self.command.tx_semaphore)
 
     def test_finish_releases_semaphore_if_acquired(self):
         """Test semaphore is released on finish if it was acquired."""
@@ -3629,7 +3629,7 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.command.upload_req.producer = None
         # upload id is None as this is the first upload
         upload_id = self.command.action_queue.client.called[0][2]['upload_id']
-        self.assertEqual(upload_id, None)
+        self.assertIsNone(upload_id)
         # set the upload id via the callback
         self.command._upload_id_cb('hola', 1234)
         # pause it
@@ -4995,7 +4995,7 @@ class ActionQueueProtocolTests(TwistedTestCase):
         self.aqp.factory.event_queue.push.assert_called_once_with(
             'SYS_CONNECTION_MADE')
         self.assertTrue(self.handler.check_info('Connection made.'))
-        self.assertNotIdentical(self.aqp.ping_manager, None)
+        self.assertIsNotNone(self.aqp.ping_manager)
         self.assertTrue(super_called)
 
     def test_connection_lost(self):
@@ -5006,7 +5006,7 @@ class ActionQueueProtocolTests(TwistedTestCase):
         self.aqp.connectionLost('foo')
         self.assertTrue(self.handler.check_info(
                         'Connection lost, reason: foo.'))
-        self.assertIdentical(self.aqp.ping_manager, None)
+        self.assertIsNone(self.aqp.ping_manager)
         self.assertTrue(super_called)
 
     def test_ping_connection_made_twice(self):
@@ -5022,11 +5022,11 @@ class ActionQueueProtocolTests(TwistedTestCase):
     def test_ping_connection_lost_twice(self):
         """If connection lost is called twice, don't stop None."""
         self.aqp.connectionMade()
-        self.assertNotIdentical(self.aqp.ping_manager, None)
+        self.assertIsNotNone(self.aqp.ping_manager)
         self.aqp.connectionLost('reason')
-        self.assertIdentical(self.aqp.ping_manager, None)
+        self.assertIsNone(self.aqp.ping_manager)
         self.aqp.connectionLost('reason')
-        self.assertIdentical(self.aqp.ping_manager, None)
+        self.assertIsNone(self.aqp.ping_manager)
 
     def test_init_max_payload_size(self):
         """Configure max_payload_size on init according to config."""
@@ -5474,7 +5474,7 @@ class CommandCycleTestCase(BasicTestCase):
             s.release()
 
         # semaphore released
-        self.assertIdentical(cmd.tx_semaphore, None)
+        self.assertIsNone(cmd.tx_semaphore)
         self._check_finished_ok(cmd)
 
     def test_disconnect_connect_running_no_error(self):
@@ -5712,7 +5712,7 @@ class PingManagerTestCase(TwistedTestCase):
         """On start values."""
         self.assertTrue(self.pm._running)
         self.assertTrue(self.pm._loop.running)
-        self.assertIdentical(self.pm._timeout_call, None)
+        self.assertIsNone(self.pm._timeout_call)
 
     def test_ping_do_ping(self):
         """Ping and log."""
