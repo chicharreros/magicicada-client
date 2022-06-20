@@ -29,9 +29,13 @@
 # files in the program, then also delete it here.
 """A command-line utility to interact with ubuntuone-syncdaemon."""
 
+import codecs
+import os
 import sys
+import warnings
+from optparse import OptionParser
 
-if sys.platform not in ('win32', 'darwin'):
+if sys.platform not in ('win32', 'darwin'):  # noqa
     from twisted.internet import gireactor
     gireactor.install()
     import dbus
@@ -41,16 +45,7 @@ if sys.platform not in ('win32', 'darwin'):
 else:
     bus = None
 
-import codecs
-import os
-import warnings
-
-from optparse import OptionParser
 from twisted.internet import reactor, defer
-
-# make configglue be quiet about itself using deprecated stuff
-warnings.filterwarnings('ignore', message='.*Config(Option|Section).*',
-                        category=DeprecationWarning)
 
 from magicicadaclient.clientdefs import VERSION
 from magicicadaclient.platform.tools import (
@@ -91,7 +86,7 @@ def main(options, args, stdout):
         if should_start:
             yield sync_daemon_tool.start()
         yield run(options, sync_daemon_tool, out)
-    except Exception, e:
+    except Exception as e:
         out.write("\nOops, an error ocurred:\n%s\n" % e)
     finally:
         if reactor.running:
