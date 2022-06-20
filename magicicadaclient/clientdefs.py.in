@@ -28,8 +28,13 @@
 """Configure-time definitions for the client."""
 
 import os
-import platform
-import urllib
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
+
+from magicicadaclient import platform
+
 
 NAME = 'Magicicada'
 VERSION = "@VERSION@"
@@ -45,6 +50,4 @@ def platform_data():
               'platform_version': platform.release(),
               'platform_arch': platform.machine(),
               'client_version': VERSION}
-    # urlencode will not encode unicode, only bytes
-    result = urllib.urlencode(result)
-    return result
+    return urlencode(result)

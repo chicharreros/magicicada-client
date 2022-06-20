@@ -1,8 +1,5 @@
-# ubuntuone.syncdaemon.logger - logging utilities
-#
-# Author: Guillermo Gonzalez <guillermo.gonzalez@canonical.com>
-#
 # Copyright 2010-2012 Canonical Ltd.
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -28,7 +25,7 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""Ubuntuone client logging utilities and config. """
+"""Client logging utilities and config."""
 
 from __future__ import with_statement
 

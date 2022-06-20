@@ -42,7 +42,7 @@ def find_config_file(in_config_file):
                                         "data", in_config_file))
     if not os.path.exists(path):
         # Use the installed file in $pkgdatadir as source
-        for path in load_data_paths("ubuntuone-dev-tools", in_config_file):
+        for path in load_data_paths(in_config_file):
             if os.path.exists(path):
                 break
 
