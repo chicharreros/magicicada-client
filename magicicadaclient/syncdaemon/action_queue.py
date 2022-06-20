@@ -33,12 +33,12 @@ import inspect
 import itertools
 import logging
 import os
-import tempfile
 import traceback
 import zlib
 
 from collections import deque, defaultdict
 from functools import partial
+from tempfile import NamedTemporaryFile
 
 import OpenSSL.SSL
 
@@ -305,29 +305,6 @@ class PathLockingTree(object):
             all_children_deferreds.update(node['node_deferreds'])
 
 
-class NamedTemporaryFile(object):
-    """Like tempfile.NamedTemporaryFile, but working in 2.5.
-
-    Also WRT the delete argument. Actually, one of these
-    NamedTemporaryFile()s is the same as a
-    tempfile.NamedTemporaryFile(delete=False) from 2.6.
-
-    Or so the theory goes.
-
-    """
-
-    def __init__(self):
-        fileno, self.name = tempfile.mkstemp()
-
-        # build a file object from the descriptor; note that this will *not*
-        # create a new file descriptor at the OS level
-        self._fh = os.fdopen(fileno, 'w+b')
-
-    def __getattr__(self, attr):
-        """Proxy everything else (other than .name) on to self._fh."""
-        return getattr(self._fh, attr)
-
-
 def sanitize_message(action, message):
     """Remove bytes and magic hash, return arguments to log()."""
     if message.type == protocol_pb2.Message.BYTES:
@@ -557,7 +534,7 @@ class ZipQueue(object):
         try:
             try:
                 fileobj = fileobj_factory()
-            except StandardError as e:
+            except Exception as e:
                 # maybe the user deleted the file before we got to upload it
                 upload.log.warn("Unable to build fileobj (%s: '%s') so "
                                 "cancelling the upload.", type(e), e)
@@ -1031,13 +1008,13 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
             client_caps = getattr(self.client, capability_method)
             req = yield client_caps(caps)
             if not req.accepted:
-                raise StandardError(msg)
+                raise Exception(msg)
             defer.returnValue(req)
 
         error_msg = "The server doesn't have the requested capabilities"
         query_caps_d = self._send_request_and_handle_errors(
             request=caps_raising_if_not_accepted,
-            request_error=StandardError,
+            request_error=Exception,
             event_error='SYS_SET_CAPABILITIES_ERROR',
             event_ok=None,
             args=('query_caps', caps, error_msg))
@@ -1051,7 +1028,7 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         error_msg = "The server denied setting '%s' capabilities" % caps
         set_caps_d = self._send_request_and_handle_errors(
             request=caps_raising_if_not_accepted,
-            request_error=StandardError,
+            request_error=Exception,
             event_error='SYS_SET_CAPABILITIES_ERROR',
             event_ok='SYS_SET_CAPABILITIES_OK',
             args=('set_caps', caps, error_msg))
@@ -2269,7 +2246,7 @@ class Download(ActionQueueCommand):
             try:
                 self.fileobj = fsm.get_partial_for_writing(self.node_id,
                                                            self.share_id)
-            except StandardError:
+            except Exception:
                 self.log.debug(traceback.format_exc())
                 msg = DefaultException('unable to build fileobj'
                                        ' (file went away?)'
