@@ -584,12 +584,12 @@ class XdgHomeParsersTests(BaseTwistedTestCase):
 
     def test_bad_value(self):
         """Test the parser using a bad value."""
-        bad_value = '/hola'
+        bad_value = '/../hola'
         with self.assertRaises(OSError) as ctx:
             self.parser(bad_value)
 
         self.assertEqual(
-            str(ctx.exception), "[Errno 1] Operation not permitted: '/'")
+            str(ctx.exception), "[Errno 1] Operation not permitted: '/..'")
 
     def test_invalid_value(self):
         """Test the parser using an invalid value."""
