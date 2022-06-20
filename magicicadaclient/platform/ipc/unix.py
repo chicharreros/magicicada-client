@@ -28,15 +28,12 @@
 # files in the program, then also delete it here.
 """IPC implementation for unix."""
 
-import os
-
-from dirspec import basedir
+from magicicadaclient.syncdaemon.config import MAIN, get_user_config
 
 
 def get_domain_socket():
     """Compute the domain socket for the service ipc."""
-    path = os.path.join(basedir.xdg_cache_home, 'ubuntuone', 'ipc')
-    return path
+    return get_user_config().get_parsed(MAIN, 'socket_dir')
 
 
 class DescriptionFactory(object):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2010-2012 Canonical Ltd.
-# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -472,7 +472,7 @@ class MetadataNewLayoutTests(MetadataTestCase):
         yield super(MetadataNewLayoutTests, self).setUp()
         # We need to define home_dir here to add 'home' to the path
         # and avoid crashes between existing paths.
-        self.home_dir = os.path.join(self.tmpdir, 'home', 'ubuntuonehacker')
+        self.home_dir = os.path.join(self.tmpdir, 'home', 'chicharrero')
         self.share_md_dir = os.path.join(self.vm_data_dir, 'shares')
         self.shared_md_dir = os.path.join(self.vm_data_dir, 'shared')
         self.u1_dir = os.path.join(

@@ -27,6 +27,7 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
+
 """Storage synchronization daemon."""
 
 import atexit
@@ -156,6 +157,7 @@ def async_main(parser, options, argv):
     assert isinstance(options.root_dir, str)
     assert isinstance(options.shares_dir, str)
     assert isinstance(options.data_dir, str)
+    assert isinstance(options.partials_dir, str)
 
     # check if we have auth credentials
     auth_credentials = None

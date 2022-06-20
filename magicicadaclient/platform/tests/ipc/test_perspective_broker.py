@@ -30,10 +30,8 @@
 """IPC tests on perspective broker."""
 
 import itertools
-import os
 
 import mock
-from dirspec import basedir
 from twisted.internet import defer
 from twisted.spread.pb import (
     DeadReferenceError,
@@ -78,7 +76,6 @@ from magicicadaclient.testing.testcase import FakedService, FakeMainTestCase
 
 
 TEST_PORT = 40404
-TEST_DOMAIN_SOCKET = os.path.join(basedir.xdg_cache_home, 'ubuntuone', 'ipc')
 
 
 class RandomException(Exception):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2009-2012 Canonical Ltd.
-# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -1549,9 +1549,8 @@ class MetadataUpgrader(object):
             if (path_exists(old_share_dir) and path_exists(old_root_dir) and
                     not is_link(old_share_dir)):
                 # md >= 1 and <= 3
-                # we have a My Files dir, 'Shared With Me' isn't a
-                # symlink and ~/.local/share/ubuntuone/shares doesn't
-                # exists.
+                # we have a 'My Files' dir, so 'Shared With Me' isn't a
+                # symlink and the configured shares folder doesn't exist.
                 # md_version <= 3, set it to 2 as it will migrate
                 # .conflict to .u1conflict, and we don't need to upgrade
                 # from version 1 any more as the LegacyShareFileShelf

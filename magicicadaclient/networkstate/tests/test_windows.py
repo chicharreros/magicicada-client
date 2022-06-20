@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2011-2012 Canonical Ltd.
-# Copyright 2015-2016 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -99,7 +99,7 @@ class TestNetworkManagerState(MockerTestCase):
         super(TestNetworkManagerState, self).setUp()
         self.network_manager = self.mocker.mock()
         self.is_connected = self.mocker.replace(
-            'ubuntuone.networkstate.windows.is_machine_connected')
+            'magicicadaclient.networkstate.windows.is_machine_connected')
         self.thread = self.mocker.mock()
         self.cb = self.mocker.mock()
         self.state = NetworkManagerState(self.cb)

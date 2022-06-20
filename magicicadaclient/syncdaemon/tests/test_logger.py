@@ -27,7 +27,8 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-""" Tests for logger utils """
+
+"""Tests for logger utils."""
 
 from __future__ import with_statement
 

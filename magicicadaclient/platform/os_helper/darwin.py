@@ -26,8 +26,8 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""
-Darwin import for ubuntuone-client
+
+"""Darwin imports.
 
 This module has to have all darwin specific modules and provide the
 api required to support the darwin platform.

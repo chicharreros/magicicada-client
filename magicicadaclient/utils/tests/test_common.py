@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright 2011-2012 Canonical Ltd.
-# Copyright 2015-2018 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -49,7 +49,7 @@ NOT_DEFINED = object()
 
 
 class FakedConstantsModule(object):
-    """Fake the 'ubuntuone.controlpanel.constants' module."""
+    """Fake the controlpanel.constants' module."""
 
     PROJECT_DIR = '/tmp/foo/bar'
     BIN_DIR = '/tmp/foo/bin'
@@ -164,8 +164,7 @@ class GetCertDirTestCase(TestCase):
     def test_win(self):
         """Test geting a path when Common AppData is defined."""
         self.patch(utils, "__file__",
-                   os.path.join("path", "to", "ubuntuone",
-                                "utils", "__init__.py"))
+                   os.path.join("path", "to", "code", "utils", "__init__.py"))
         self.patch(sys, "platform", "win32")
         path = utils.get_cert_dir()
         self.assertEqual(path, os.path.join("path", "to", "data"))
@@ -185,8 +184,7 @@ class GetCertDirTestCase(TestCase):
         """Test that we get a source-relative path on unfrozen darwin."""
         self.patch(sys, "platform", "darwin")
         self.patch(utils, "__file__",
-                   os.path.join("path", "to", "ubuntuone",
-                                "utils", "__init__.py"))
+                   os.path.join("path", "to", "code", "utils", "__init__.py"))
         path = utils.get_cert_dir()
         self.assertEqual(path, os.path.join("path", "to", "data"))
 
