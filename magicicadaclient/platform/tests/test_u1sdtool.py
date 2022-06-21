@@ -187,7 +187,7 @@ class U1SDToolTests(TestToolsBase):
                 result.update(dict(path_info=path))
             else:
                 result.update(dict(path_info=path))
-            for k, v in result.iteritems():
+            for k, v in result.items():
                 self.assertIsInstance(v, unicode)
             value = expected % result
             self.assertEqual(out.getvalue(), value)

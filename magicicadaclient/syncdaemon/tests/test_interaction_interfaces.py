@@ -1031,8 +1031,8 @@ class SyncdaemonFoldersTestCase(BaseTestCase):
                                 suggested_path=u'~/other/location ♫ test')
         yield self.main.vm.add_udf(udf2)
 
-        expected = sorted([get_udf_dict(udf)
-                           for udf in self.main.vm.udfs.itervalues()])
+        expected = sorted(
+            get_udf_dict(udf) for udf in self.main.vm.udfs.values())
         result = self.sd_obj.get_folders()
         self.assertEqual(len(result), 2)
         self.assertEqual(expected, sorted(result))
@@ -1944,7 +1944,7 @@ class PublicFilesEventListenerTestCase(SyncdaemonEventListenerTestCase):
 
         public_files = []
         expected = []
-        for i in xrange(5):
+        for i in range(5):
             if i % 2:
                 volume_id = udf.volume_id
                 path = os.path.join(udf.path, "foo_%d" % i)

@@ -771,7 +771,7 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         user_config = config.get_user_config()
         self.memory_pool_limit = user_config.get_memory_pool_limit()
         self.commands = dict(
-            (x, y) for x, y in globals().iteritems()
+            (x, y) for x, y in globals().items()
             if inspect.isclass(y) and issubclass(y, ActionQueueCommand))
 
     def check_conditions(self):

@@ -354,7 +354,7 @@ class FileSystemManager(object):
         """Registers an EventQueue here."""
         self.eq = eq
 
-    def _safe_old_fs_iteritems(self):
+    def _safe_old_fs_items(self):
         """Returns a 'safe' iterator over the items of the FileShelf.
 
         It's 'safe' because broken metadata objects are deleted and not
@@ -384,9 +384,9 @@ class FileSystemManager(object):
                     return False
                 else:
                     return mdid, mdobj
-        safe_iteritems = itertools.imap(safeget_mdobj, self.old_fs.keys())
+        safe_items = itertools.imap(safeget_mdobj, self.old_fs.keys())
         # filter all False values
-        return itertools.ifilter(None, safe_iteritems)
+        return itertools.ifilter(None, safe_items)
 
     def _fix_path_for_new_layout(self, mdobj):
         """fix the mdobj path for the new layout, only for shares root"""
@@ -403,7 +403,7 @@ class FileSystemManager(object):
         """Migrate trash from FileShelf to Tritcask."""
         old_trash = TrashFileShelf(self._trash_dir, cache_size=100,
                                    cache_compact_threshold=4)
-        for key, value in old_trash.iteritems():
+        for key, value in old_trash.items():
             self.trash[key] = value
         # delete the old trash
         platform.remove_tree(self._trash_dir)
@@ -412,7 +412,7 @@ class FileSystemManager(object):
         """Migrate move limbo from FileShelf to Tritcask."""
         old_move_limbo = TrashFileShelf(self._movelimbo_dir, cache_size=100,
                                         cache_compact_threshold=4)
-        for key, value in old_move_limbo.iteritems():
+        for key, value in old_move_limbo.items():
             self.move_limbo[key] = value
         # delete the old move limbo
         platform.remove_tree(self._movelimbo_dir)
@@ -421,7 +421,7 @@ class FileSystemManager(object):
         """Loads metadata from when it wasn't even versioned."""
         logger("loading metadata from old version %r", old_version)
 
-        for mdid, mdobj in self._safe_old_fs_iteritems():
+        for mdid, mdobj in self._safe_old_fs_items():
             # assure path are bytes (new to version 2)
             try:
                 mdobj["path"] = mdobj["path"].encode("utf8")
@@ -466,7 +466,7 @@ class FileSystemManager(object):
         """Loads metadata from version 1."""
         logger("loading metadata from old version %r", old_version)
 
-        for mdid, mdobj in self._safe_old_fs_iteritems():
+        for mdid, mdobj in self._safe_old_fs_items():
             # assure path are bytes (new to version 2)
             try:
                 mdobj["path"] = mdobj["path"].encode("utf8")
@@ -509,7 +509,7 @@ class FileSystemManager(object):
         """Loads metadata from version 2."""
         logger("loading metadata from old version %r", old_version)
 
-        for mdid, mdobj in self._safe_old_fs_iteritems():
+        for mdid, mdobj in self._safe_old_fs_items():
             # convert the "yet without content" hashes to "" (new to v3)
             if mdobj["local_hash"] is None:
                 mdobj["local_hash"] = ""
@@ -544,7 +544,7 @@ class FileSystemManager(object):
         """Loads metadata from version 3."""
         logger("loading metadata from old version %r", old_version)
 
-        for mdid, mdobj in self._safe_old_fs_iteritems():
+        for mdid, mdobj in self._safe_old_fs_items():
             # fix the path
             self._fix_path_for_new_layout(mdobj)
 
@@ -573,7 +573,7 @@ class FileSystemManager(object):
         """Loads metadata from version 4."""
         logger("loading metadata from old version %r", old_version)
 
-        for mdid, mdobj in self._safe_old_fs_iteritems():
+        for mdid, mdobj in self._safe_old_fs_items():
             # add the generation number (new to v5)
             mdobj["generation"] = None
 
@@ -599,7 +599,7 @@ class FileSystemManager(object):
         """Loads metadata of last version."""
         logger("loading metadata from old version %r", old_version)
 
-        for mdid, mdobj in self._safe_old_fs_iteritems():
+        for mdid, mdobj in self._safe_old_fs_items():
             abspath = self.get_abspath(mdobj["share_id"], mdobj["path"])
             # write back the object
             self.fs[mdid] = mdobj
@@ -720,7 +720,7 @@ class FileSystemManager(object):
 
         all_mdobjs = []
         # filter by path first, so we don't touch disk
-        for path, mdid in self._idx_path.iteritems():
+        for path, mdid in self._idx_path.items():
             if path == base_path or path.startswith(compare_path):
                 mdobj = self.fs[mdid]
                 if mdobj["share_id"] == share_id:
@@ -734,7 +734,7 @@ class FileSystemManager(object):
         sep = os.path.sep
         base_path += sep
         len_base = len(base_path)
-        for path, mdid in self._idx_path.iteritems():
+        for path, mdid in self._idx_path.items():
             if path[:len_base] == base_path and sep not in path[len_base:]:
                 mdobj = self.fs[mdid]
                 all_mdobjs.append(_MDObject(**mdobj))
@@ -1263,7 +1263,7 @@ class FileSystemManager(object):
 
         def _get_all():
             """find the mdids that match"""
-            for p, m in self._idx_path.iteritems():
+            for p, m in self._idx_path.items():
                 if os.path.dirname(p) == path and p != path:
                     mdobj = self.fs[m]
                     yield (
@@ -1333,7 +1333,7 @@ class FileSystemManager(object):
         # add sep, to always match children in the tree and not partial names
         base_path += os.path.sep
 
-        for path, mdid in self._idx_path.iteritems():
+        for path, mdid in self._idx_path.items():
             if path.startswith(base_path):
                 mdobj = self.fs[mdid]
                 all_paths.append((path, mdobj['is_dir']))
@@ -1347,7 +1347,7 @@ class FileSystemManager(object):
 
         def _get_matching():
             """Find the paths that match"""
-            for p, m in self._idx_path.iteritems():
+            for p, m in self._idx_path.items():
                 mdobj = self.fs[m]
                 # ignore shares that are not root (root is id='')
                 # and ignore files not present on the server
@@ -1387,7 +1387,7 @@ class FileSystemManager(object):
 
     def get_iter_trash(self):
         """Return the trash element by element."""
-        for (share_id, node_id), node_info in self.trash.iteritems():
+        for (share_id, node_id), node_info in self.trash.items():
             parent_id = node_info[1]
             if len(node_info) <= 2:
                 # old trash, use a fake path to not block the unlink
@@ -1425,7 +1425,7 @@ class FileSystemManager(object):
 
     def get_iter_move_limbo(self):
         """Return the move limbo node by node."""
-        for k, v in self.move_limbo.iteritems():
+        for k, v in self.move_limbo.items():
             share_id, node_id = k
             if len(v) == 3:
                 # old move limbo, use fakes path to not block the move
@@ -1463,7 +1463,7 @@ class FileSystemManager(object):
     def dereference_ok_limbos(self, marker, value):
         """Dereference markers in the limbos with a value."""
         for (share, node), (mdid, parent, path, is_dir) in \
-                self.trash.iteritems():
+                self.trash.items():
             if node == marker:
                 del self.trash[(share, node)]
                 self.trash[(share, value)] = (mdid, parent, path, is_dir)
@@ -1474,7 +1474,7 @@ class FileSystemManager(object):
                 log_debug("dereference ok trash: share=%r  node=%r  marker=%r"
                           "  new parent=%r", share, node, marker, value)
 
-        for k, v in self.move_limbo.iteritems():
+        for k, v in self.move_limbo.items():
             share, node = k
             old_parent, new_parent, new_name, path_from, path_to = v
 
@@ -1501,13 +1501,13 @@ class FileSystemManager(object):
 
         As the dependency is not valid, we just remove the item.
         """
-        for (share, node), (_, parent, _, _) in self.trash.iteritems():
+        for (share, node), (_, parent, _, _) in self.trash.items():
             if node == marker or parent == marker:
                 log_debug("dereference err trash: share=%r  node=%r  "
                           "marker=%r", share, node, marker)
                 del self.trash[(share, node)]
 
-        move_items = self.move_limbo.iteritems()
+        move_items = self.move_limbo.items()
         for (share, node), (old_parent, new_parent, _, _, _) in move_items:
             if node == marker or old_parent == marker or new_parent == marker:
                 log_debug("dereference err move limbo: share=%r  node=%r  "

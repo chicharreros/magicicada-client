@@ -105,8 +105,8 @@ class TestToolsBase(IPCTestCase):
         {'a': 1} is not subset of {'a': 10, 'b': 2}
 
         """
-        actual_set = set(actual.iteritems())
-        expected_set = set(expected.iteritems())
+        actual_set = set(actual.items())
+        expected_set = set(expected.items())
         self.assertTrue(actual_set.issubset(expected_set),
                         '%r is not a subset of %r' % (actual, expected))
 

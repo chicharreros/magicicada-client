@@ -58,7 +58,7 @@ class EventListener(object):
 
     def handle_default(self, event, **args):
         """Store the received event."""
-        self._events.append((event,) + tuple(sorted(args.itervalues())))
+        self._events.append((event,) + tuple(sorted(args.values())))
 
     def events(self):
         """Clean and return events."""
@@ -874,7 +874,7 @@ class EventListenersTests(unittest.TestCase):
     def test_event_listener(self):
         """All event listeners should define methods with correct signature."""
         cls = events_nanny.DownloadFinishedNanny
-        for evtname, evtargs in event_queue.EVENTS.iteritems():
+        for evtname, evtargs in event_queue.EVENTS.items():
             meth = getattr(cls, 'handle_' + evtname, None)
             if meth is not None:
                 defined_args = inspect.getargspec(meth)[0]

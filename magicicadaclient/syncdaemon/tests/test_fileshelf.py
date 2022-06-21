@@ -81,13 +81,13 @@ class TestFileShelf(BaseTwistedTestCase):
         """
         base_path = os.path.join(self.path, 'shelf_depth-')
         sha1 = hashlib.sha1()
-        for idx in xrange(0, len(sha1.hexdigest())):
+        for idx in range(0, len(sha1.hexdigest())):
             path = base_path + str(idx)
             shelf = self.fileshelf_class(path, depth=idx)
             key = sha1.hexdigest()
             # test __setitem__
             shelf[key] = 'foo'
-            key_path = os.path.join(path, *[key[i] for i in xrange(0, idx)])
+            key_path = os.path.join(path, *[key[i] for i in range(0, idx)])
             self.assertTrue(path_exists(os.path.join(key_path, key)))
             # test __getitem__
             self.assertEqual('foo', shelf[key])
@@ -216,7 +216,7 @@ class TestFileShelf(BaseTwistedTestCase):
         self.shelf["foo"] = "bar"
         path = self.shelf.key_file('foo')
         open_file(self.shelf.key_file('foo'), 'w').close()
-        for _ in xrange(20):
+        for _ in range(20):
             open_file(path + '.old', 'w').close()
             path += '.old'
         self.assertRaises(KeyError, self.shelf.__getitem__, 'foo')
@@ -267,26 +267,8 @@ class TestFileShelf(BaseTwistedTestCase):
         self.assertIn('foo', shelf.values)
         self.assertEqual(shelf.values['foo'], cPickle.dumps('bar', protocol=2))
 
-    def test_broken_metadata_iteritems(self):
-        """Test that broken metadata is ignored during iteritems."""
-        self.shelf['ok_key'] = {'status': 'this is valid metadata'}
-        self.shelf['bad_file'] = {}
-        path = self.shelf.key_file('bad_file')
-        open_file(path, 'w').close()
-        self.assertRaises(KeyError, self.shelf.__getitem__, 'bad_file')
-        self.assertEqual(1, len(list(self.shelf.iteritems())))
-        self.assertFalse(path_exists(path))
-
-        self.shelf['broken_pickle'] = {}
-        path = self.shelf.key_file('broken_pickle')
-        with open_file(path, 'w') as f:
-            f.write(BROKEN_PICKLE)
-        self.assertRaises(KeyError, self.shelf.__getitem__, 'broken_pickle')
-        self.assertEqual(1, len(list(self.shelf.iteritems())))
-        self.assertFalse(path_exists(path))
-
     def test_broken_metadata_items(self):
-        """Test that broken metadata is ignored during iteritems."""
+        """Test that broken metadata is ignored during items."""
         self.shelf['ok_key'] = {'status': 'this is valid metadata'}
         self.shelf['bad_file'] = {}
         path = self.shelf.key_file('bad_file')

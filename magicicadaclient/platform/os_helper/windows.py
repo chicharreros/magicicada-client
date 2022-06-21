@@ -106,7 +106,7 @@ WINDOWS_ILLEGAL_CHARS_MAP = {
 }
 # inverse map
 LINUX_ILLEGAL_CHARS_MAP = {}
-for key, value in WINDOWS_ILLEGAL_CHARS_MAP.iteritems():
+for key, value in WINDOWS_ILLEGAL_CHARS_MAP.items():
     LINUX_ILLEGAL_CHARS_MAP[value] = key
 
 
@@ -208,7 +208,7 @@ def _bytes_to_unicode(path):
     path = path.decode('utf8')
     drive, path = os.path.splitdrive(path)
     # remove the illegal windows chars with similar ones
-    for invalid, valid in WINDOWS_ILLEGAL_CHARS_MAP.iteritems():
+    for invalid, valid in WINDOWS_ILLEGAL_CHARS_MAP.items():
         path = path.replace(invalid, valid)
     path = drive + path
     return path
@@ -251,7 +251,7 @@ def _unicode_to_bytes(path):
     """Convert a unicode path to a bytes path."""
     # path is unicode and absolute
     drive, path = os.path.splitdrive(path)
-    for invalid, valid in LINUX_ILLEGAL_CHARS_MAP.iteritems():
+    for invalid, valid in LINUX_ILLEGAL_CHARS_MAP.items():
         path = path.replace(invalid, valid)
 
     return (drive + path).encode('utf8')

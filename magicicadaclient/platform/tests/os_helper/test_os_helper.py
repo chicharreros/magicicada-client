@@ -550,7 +550,7 @@ class WalkTests(BaseTestCase):
         """
         open_file(self.testfile, 'w').close()
 
-        for i in xrange(3):
+        for i in range(3):
             dir_name = 'dir%i' % i
             dir_path = os.path.join(self.basedir, dir_name)
             make_dir(dir_path, recursive=True)
@@ -587,7 +587,7 @@ class WalkTests(BaseTestCase):
         """Walk the tree top-down."""
         result = walk(self.basedir)
 
-        for _ in xrange(len(list(os.walk(self.basedir)))):
+        for _ in range(len(list(os.walk(self.basedir)))):
             dirpath, dirnames, filenames = result.next()
 
         self.assertRaises(StopIteration, result.next)
@@ -600,7 +600,7 @@ class WalkTests(BaseTestCase):
         actual = self._build_dict_from_walk(walk(self.basedir, topdown))
 
         self.assertEqual(sorted(actual.keys()), sorted(expected.keys()))
-        for dirpath, values in expected.iteritems():
+        for dirpath, values in expected.items():
             self.assertEqual(values['dirnames'], actual[dirpath]['dirnames'])
             self.assertEqual(values['filenames'], actual[dirpath]['filenames'])
 

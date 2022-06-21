@@ -913,13 +913,13 @@ class MetadataNewLayoutTests(MetadataTestCase):
 
         shares = LegacyShareFileShelf(self.share_md_dir)
         self.assertEqual(len(list(shares.keys())), len(legacy_shares.keys()))
-        for sid, share in shares.iteritems():
+        for sid, share in shares.items():
             old_share = legacy_shares[sid]
             self.assertIsInstance(share, _Share)
             self.assertIsInstance(old_share, _Share)
         shared = LegacyShareFileShelf(self.shared_md_dir)
         self.assertEqual(len(list(shared.keys())), len(legacy_shared.keys()))
-        for sid, share in shared.iteritems():
+        for sid, share in shared.items():
             old_share = legacy_shared[sid]
             self.assertIsInstance(share, _Share)
             self.assertIsInstance(old_share, _Share)

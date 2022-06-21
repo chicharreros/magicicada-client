@@ -70,7 +70,7 @@ class MuteFilter(object):
             del self._cnt[event]
 
         # log what happened and how many items we have left
-        q = sum(len(x) for x in self._cnt.itervalues())
+        q = sum(len(x) for x in self._cnt.values())
         self.log.debug("Blocking %s %s (%d left)", event, data, q)
 
         return True
