@@ -29,7 +29,7 @@
 
 from __future__ import with_statement
 
-import cPickle
+import cPickle as pickle
 import os
 import stat
 import errno
@@ -52,7 +52,7 @@ class FileShelf(object, DictMixin):
     """ File based shelf.
 
     It support arbritary python objects as values (anything accepted by
-    cPickle).  And support any valid file name as key.
+    pickle).  And support any valid file name as key.
     """
 
     def __init__(self, path, depth=3):
@@ -132,7 +132,7 @@ class FileShelf(object, DictMixin):
         This method allow subclasses to customize the unpickling.
 
         """
-        return cPickle.load(fd)
+        return pickle.load(fd)
 
     def _load_pickle(self, key, path):
         """Load a pickle form path that belongs to key.
@@ -144,7 +144,7 @@ class FileShelf(object, DictMixin):
         try:
             with open_file(path, "rb") as fd:
                 data = self._unpickle(fd)
-        except (EOFError, cPickle.UnpicklingError, ValueError):
+        except (EOFError, pickle.UnpicklingError, ValueError):
             # the metadata is broked, try to get .old version if it's available
             old_path = path + '.old'
             # only search for a single .old in the name
@@ -164,7 +164,7 @@ class FileShelf(object, DictMixin):
 
     def _pickle(self, value, fd, protocol):
         """Pickle value in fd using protocol."""
-        cPickle.dump(value, fd, protocol=protocol)
+        pickle.dump(value, fd, protocol=protocol)
 
     def __setitem__(self, key, value):
         """ setitem backed by the file storage """

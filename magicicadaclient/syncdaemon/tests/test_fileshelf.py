@@ -29,7 +29,7 @@
 
 from __future__ import with_statement
 
-import cPickle
+import cPickle as pickle
 import os
 import hashlib
 import unittest
@@ -255,17 +255,17 @@ class TestFileShelf(BaseTwistedTestCase):
 
             def _unpickle(self, fd):
                 """Custom _unpickle."""
-                return cPickle.loads(self.values[fd.name])
+                return pickle.loads(self.values[fd.name])
 
             def _pickle(self, value, fd, protocol=2):
                 """Custom _pickle."""
                 key = fd.name.strip('.new')
-                self.values[key] = cPickle.dumps(value, protocol=protocol)
+                self.values[key] = pickle.dumps(value, protocol=protocol)
 
         shelf = InMemoryFileShelf(self.path)
         shelf['foo'] = 'bar'
         self.assertIn('foo', shelf.values)
-        self.assertEqual(shelf.values['foo'], cPickle.dumps('bar', protocol=2))
+        self.assertEqual(shelf.values['foo'], pickle.dumps('bar', protocol=2))
 
     def test_broken_metadata_iteritems(self):
         """Test that broken metadata is ignored during iteritems."""

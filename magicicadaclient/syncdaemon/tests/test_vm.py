@@ -32,7 +32,7 @@
 from __future__ import with_statement
 
 import collections
-import cPickle
+import cPickle as pickle
 import inspect
 import logging
 import os
@@ -1322,11 +1322,11 @@ class ModifySharesSubscriptionTests(ViewSharesSubscriptionTests):
         root = Root(node_id='root_node_id')
         del root.subscribed
         assert not hasattr(root, 'subscribed')
-        serialized = cPickle.dumps(root)
+        serialized = pickle.dumps(root)
         Root.subscribed = old_attr
 
         # unserialize
-        new_root = cPickle.loads(serialized)
+        new_root = pickle.loads(serialized)
         self.assertTrue(new_root.subscribed)
 
 
@@ -4206,7 +4206,7 @@ class VMTritcaskShelfTests(BaseTwistedTestCase):
         self.shelf[udf.volume_id] = udf
         self.assertEqual(udf, self.shelf[udf.volume_id])
         pickled_dict = self.shelf._db.get(1000, udf.volume_id)
-        udf_dict = cPickle.loads(pickled_dict)
+        udf_dict = pickle.loads(pickled_dict)
         self.assertEqual(udf.__dict__, udf_dict)
 
     def test_get_key(self):
