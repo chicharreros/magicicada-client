@@ -33,7 +33,7 @@ from __future__ import with_statement
 
 import itertools
 import functools
-import cPickle
+import cPickle as pickle
 import logging
 import os
 import re
@@ -1907,7 +1907,7 @@ class VMFileShelf(file_shelf.CachedFileShelf):
         value['type'].
 
         """
-        value = cPickle.load(fd)
+        value = pickle.load(fd)
         class_name = value[self.TYPE]
         clazz = self.classes[class_name]
         obj = clazz.__new__(clazz)
@@ -1916,7 +1916,7 @@ class VMFileShelf(file_shelf.CachedFileShelf):
 
     def _pickle(self, value, fd, protocol):
         """Pickle value in fd using protocol."""
-        cPickle.dump(value.__dict__, fd, protocol=protocol)
+        pickle.dump(value.__dict__, fd, protocol=protocol)
 
 
 class LegacyShareFileShelf(VMFileShelf):
@@ -1945,14 +1945,14 @@ class LegacyShareFileShelf(VMFileShelf):
 
     def _unpickle(self, fd):
         """Override _unpickle with one capable of migrating pickled classes."""
-        unpickler = cPickle.Unpickler(fd)
+        unpickler = pickle.Unpickler(fd)
         unpickler.find_global = self._find_global
         value = unpickler.load()
         return value
 
     def _pickle(self, value, fd, protocol):
         """Pickle value in fd using protocol."""
-        cPickle.dump(value, fd, protocol=protocol)
+        pickle.dump(value, fd, protocol=protocol)
 
 
 class VMTritcaskShelf(TritcaskShelf):
@@ -2009,7 +2009,7 @@ class VMTritcaskShelf(TritcaskShelf):
         Unpickle a dict and build the class instance specified in
         value['type'].
         """
-        value = cPickle.loads(pickled_value)
+        value = pickle.loads(pickled_value)
         class_name = value[self.TYPE]
         clazz = self.classes[class_name]
         obj = clazz.__new__(clazz)
@@ -2018,4 +2018,4 @@ class VMTritcaskShelf(TritcaskShelf):
 
     def _serialize(self, value):
         """Serialize value to string using protocol."""
-        return cPickle.dumps(value.__dict__, protocol=2)
+        return pickle.dumps(value.__dict__, protocol=2)

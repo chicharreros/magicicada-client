@@ -317,7 +317,7 @@ class DecoratorsTestCase(TestCase):
         else:
             exc = self.assertRaises(
                 AssertionError, assert_windows_path, path, method_name)
-            self.assertTrue(method_name in exc.message)
+            self.assertIn(method_name, str(exc))
 
     def test_assert_windows_path_slash(self):
         """A path with a / is invalid."""
