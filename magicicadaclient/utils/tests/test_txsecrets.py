@@ -279,13 +279,13 @@ class SecretServiceMock(dbus.service.Object):
     def unlock_objects(self, objects):
         """Unlock the objects or its containers."""
         for c in self.collections.values():
-            for l in c.locations:
-                path = l[1]
+            for location in c.locations:
+                path = location[1]
                 if path in objects:
                     c.locked = False
             for i in c.items:
-                for l in i.locations:
-                    path = l[1]
+                for loc in i.locations:
+                    path = loc[1]
                     if path in objects:
                         c.locked = False
 
@@ -333,7 +333,7 @@ class SecretServiceMock(dbus.service.Object):
         """The only property implemented is Collections."""
         if interface == txsecrets.SERVICE_IFACE and \
                 propname == self.collections_property:
-            coll_paths = [make_coll_path(l) for l in self.collections]
+            coll_paths = [make_coll_path(loc) for loc in self.collections]
             return dbus.Array(coll_paths, signature="o", variant_level=1)
         raise InvalidProperty("Invalid property: {}".format(propname))
 
