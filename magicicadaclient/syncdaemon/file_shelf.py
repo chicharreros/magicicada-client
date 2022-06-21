@@ -25,9 +25,8 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""Storage shelf using a files tree."""
 
-from __future__ import with_statement
+"""Storage shelf using a files tree."""
 
 import cPickle as pickle
 import os

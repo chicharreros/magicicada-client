@@ -26,9 +26,8 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""Base tests cases and test utilities."""
 
-from __future__ import with_statement
+"""Base tests cases and test utilities."""
 
 import contextlib
 import os

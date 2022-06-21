@@ -25,9 +25,8 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""Client logging utilities and config."""
 
-from __future__ import with_statement
+"""Client logging utilities and config."""
 
 import contextlib
 import functools

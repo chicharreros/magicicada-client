@@ -28,8 +28,6 @@
 
 """SyncDaemon config."""
 
-from __future__ import with_statement
-
 import os
 import functools
 import logging
