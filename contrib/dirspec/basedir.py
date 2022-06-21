@@ -149,11 +149,9 @@ def save_data_path(*resource):
     return path
 
 
-# pylint: disable=C0103
 xdg_cache_home = get_xdg_cache_home()
 xdg_config_home = get_xdg_config_home()
 xdg_data_home = get_xdg_data_home()
 
 xdg_config_dirs = [x for x in get_xdg_config_dirs() if x]
 xdg_data_dirs = [x for x in get_xdg_data_dirs() if x]
-# pylint: disable=C0103
