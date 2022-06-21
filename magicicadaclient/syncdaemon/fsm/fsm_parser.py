@@ -87,9 +87,10 @@ else:
 
 if has_oo_bindings:
     # we have to do this because python-uno breaks mocker
-    CONNECT_MSG = """
-    Need to start OpenOffice! Use a command like:
-        ooffice -accept="socket,host=localhost,port=2002;urp;"
+    CONNECT_MSG = """Need to start OpenOffice! Use a command like:
+
+        looffice -accept="socket,host=localhost,port=2002;urp;"
+
     """
 
     class ParseError(Exception):
