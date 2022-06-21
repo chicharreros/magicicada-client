@@ -131,7 +131,6 @@ def get_special_folders():
     of shell folder locations indexed on Windows keyword for each;
     otherwise, returns an empty dictionary.
     """
-    # pylint: disable=W0621, F0401, E0611
     special_folders = {}
 
     if sys.platform == 'win32':
@@ -157,7 +156,6 @@ def get_special_folders():
     return special_folders
 
 
-# pylint: disable=C0103
 if sys.platform == 'win32':
     special_folders = get_special_folders()
     user_home = special_folders['Personal']
