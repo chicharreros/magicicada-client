@@ -55,7 +55,7 @@ from magicicadaprotocol.context import get_ssl_context
 from twisted.internet import reactor, defer, task
 from twisted.internet import error as twisted_errors
 from twisted.python.failure import Failure, DefaultException
-from zope.interface import implements
+from zope.interface import implementer
 
 from magicicadaclient import clientdefs
 from magicicadaclient.platform import platform, remove_file
@@ -730,10 +730,10 @@ class UploadProgressWrapper(object):
         return getattr(self.fd, attr)
 
 
+@implementer(IActionQueue)
 class ActionQueue(ThrottlingStorageClientFactory, object):
     """The ActionQueue itself."""
 
-    implements(IActionQueue)
     protocol = ActionQueueProtocol
 
     def __init__(self, event_queue, main, connection_info,

@@ -27,14 +27,14 @@
 # files in the program, then also delete it here.
 """Marker for mdids. """
 
-from zope.interface import implements
+from zope.interface import implementer
 
 from magicicadaclient.syncdaemon.interfaces import IMarker
 
 
+@implementer(IMarker)
 class MDMarker(str):
     """A marker that has the mdid inside, for action queue."""
-    implements(IMarker)
 
     def __repr__(self):
         return "marker:%s" % self

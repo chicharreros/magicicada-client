@@ -43,7 +43,7 @@ from functools import wraps
 
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase as TwistedTestCase
-from zope.interface import implements
+from zope.interface import implementer
 from zope.interface.verify import verifyObject
 
 from devtools.testcases import skipIfOS
@@ -141,10 +141,9 @@ class FakeExternalInterface(object):
         return FAKED_CREDENTIALS
 
 
+@implementer(interfaces.IActionQueue)
 class FakeActionQueue(object):
     """Stub implementation."""
-
-    implements(interfaces.IActionQueue)
 
     def __init__(self, eq, *args, **kwargs):
         """ Creates the instance """

@@ -205,7 +205,7 @@ class SyncDaemonTool(object):
                     d.callback(args)
             except Exception as e:
                 logger.exception('wait_for_signals: success_handler failed:')
-                d.errback(IPCError(e.__class__.__name__, args, e.message))
+                d.errback(IPCError(e.__class__.__name__, args, str(e)))
 
         def _error_handler(*args):
             """Errback 'd' only if the error_filter returns True."""
@@ -214,7 +214,7 @@ class SyncDaemonTool(object):
                     d.errback(IPCError(signal_error, args))
             except Exception as e:
                 logger.exception('wait_for_signals: error_handler failed:')
-                d.errback(IPCError(e.__class__.__name__, args, e.message))
+                d.errback(IPCError(e.__class__.__name__, args, str(e)))
 
         # register signal handlers for success/error
         match_ok = self.connect_signal(signal_name=signal_ok,
