@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2009-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -28,7 +26,7 @@
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
 
-""" The all mighty Volume Manager """
+"""The all mighty Volume Manager."""
 
 import itertools
 import functools

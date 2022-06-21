@@ -1,5 +1,5 @@
 # Copyright 2011-2012 Canonical Ltd.
-# Copyright 2018 Chicharreros (https://launchpad.net/~chicharreros)
+# Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License version 3, as published
@@ -25,7 +25,8 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-""" ActionQueue tests """
+
+""".ActionQueue tests."""
 
 import logging
 

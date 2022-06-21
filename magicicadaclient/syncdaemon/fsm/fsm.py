@@ -25,9 +25,12 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""
-Will read the output produced by fsm_parser.parse or a .py serialization of
+
+"""Create and validate a state machine.
+
+Read the output produced by fsm_parser.parse or a .py serialization of
 it and create and validate a state machine.
+
 """
 
 import itertools

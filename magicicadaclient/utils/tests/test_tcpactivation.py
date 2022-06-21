@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2011-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -29,8 +27,6 @@
 # files in the program, then also delete it here.
 
 """Tests for the tcpactivation module."""
-
-from __future__ import print_function
 
 import twisted.internet
 from twisted.internet import defer, protocol, task

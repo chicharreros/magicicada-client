@@ -25,6 +25,7 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
+
 """Class that filters and mutes some events on some paths."""
 
 import logging
