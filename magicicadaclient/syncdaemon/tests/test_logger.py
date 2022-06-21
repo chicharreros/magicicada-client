@@ -30,8 +30,6 @@
 
 """Tests for logger utils."""
 
-from __future__ import with_statement
-
 import logging
 
 from twisted.internet import defer
