@@ -859,12 +859,12 @@ class SyncdaemonConfigTestCase(BaseTestCase):
         download = upload = -1
         self.sd_obj.set_throttling_limits(download, upload)
 
-        self.assertEqual(self.main.action_q.readLimit, None)
-        self.assertEqual(self.main.action_q.writeLimit, None)
+        self.assertIsNone(self.main.action_q.readLimit)
+        self.assertIsNone(self.main.action_q.writeLimit)
 
         user_config = config.get_user_config()
-        self.assertEqual(user_config.get_throttling_read_limit(), None)
-        self.assertEqual(user_config.get_throttling_write_limit(), None)
+        self.assertIsNone(user_config.get_throttling_read_limit())
+        self.assertIsNone(user_config.get_throttling_write_limit())
 
     def test_set_throttling_limits(self):
         """Test the set_throttling_limits method."""
@@ -2256,7 +2256,7 @@ class SyncdaemonServiceAllEventsTestCase(BaseTestCase):
 
         # normal event listener is subscribed but not the all events one
         self.assertIn(obj.event_listener, subscribed)
-        self.assertEqual(obj.all_events_sender, None)
+        self.assertIsNone(obj.all_events_sender)
 
     def test_active(self):
         """All event listener is subscribed if indicated."""
@@ -2320,7 +2320,7 @@ class SyncdaemonServiceConnectTestCase(BaseTestCase):
 
     def test_auth_credentials_are_none_at_startup(self):
         """If the auth_credentials are not passed as param, they are None."""
-        self.assertTrue(self.sd_obj.auth_credentials is None)
+        self.assertIsNone(self.sd_obj.auth_credentials)
 
     @defer.inlineCallbacks
     def test_auth_credentials_are_used_to_connect_when_autoconnect(self):

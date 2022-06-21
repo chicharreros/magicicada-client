@@ -253,7 +253,7 @@ class PushTests(BaseEQTestCase):
         c = Create()
         self.eq.subscribe(c)
         self.eq.push("FS_FILE_DELETE", path=1)
-        self.assertEqual(c.a, None)
+        self.assertIsNone(c.a)
         self.eq.unsubscribe(c)
 
     def test_signatures(self):

@@ -155,7 +155,7 @@ class MetadataOldLayoutTests(MetadataTestCase):
         # try to load the shelf
         old_shelf = LegacyShareFileShelf(self.share_md_dir)
         share = old_shelf['0664f050-9254-45c5-9f31-3482858709e4']
-        self.assertTrue(share is not None)
+        self.assertIsNotNone(share)
         if self.md_version_None:
             self.set_md_version('')
 

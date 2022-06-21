@@ -725,8 +725,7 @@ class IPCInterfaceTestCase(IPCTestCase):
         """Ensure that a reference object is returned."""
         client = yield self.get_client()
         remote = yield client.callRemote('get_status')
-        self.assertNotEqual(remote, None,
-                            'Remote object should not be None')
+        self.assertIsNotNone(remote, 'Remote object should not be None')
         self.assertIsInstance(remote, RemoteReference)
 
     @defer.inlineCallbacks
@@ -734,8 +733,7 @@ class IPCInterfaceTestCase(IPCTestCase):
         """Ensure that a reference object is returned."""
         client = yield self.get_client()
         remote = yield client.callRemote('get_events')
-        self.assertNotEqual(remote, None,
-                            'Remote object should not be None')
+        self.assertIsNotNone(remote, 'Remote object should not be None')
         self.assertIsInstance(remote, RemoteReference)
 
     @defer.inlineCallbacks
@@ -743,8 +741,7 @@ class IPCInterfaceTestCase(IPCTestCase):
         """Ensure that a reference object is returned."""
         client = yield self.get_client()
         remote = yield client.callRemote('get_sync_daemon')
-        self.assertNotEqual(
-            remote, None, 'Remote object should not be None')
+        self.assertIsNotNone(remote, 'Remote object should not be None')
         self.assertIsInstance(remote, RemoteReference)
 
     @defer.inlineCallbacks
@@ -752,8 +749,7 @@ class IPCInterfaceTestCase(IPCTestCase):
         """Ensure that a reference object is returned."""
         client = yield self.get_client()
         remote = yield client.callRemote('get_file_system')
-        self.assertNotEqual(remote, None,
-                            'Remote object should not be None')
+        self.assertIsNotNone(remote, 'Remote object should not be None')
         self.assertIsInstance(remote, RemoteReference)
 
     @defer.inlineCallbacks
@@ -761,8 +757,7 @@ class IPCInterfaceTestCase(IPCTestCase):
         """Ensure that a reference object is returned."""
         client = yield self.get_client()
         remote = yield client.callRemote('get_shares')
-        self.assertNotEqual(remote, None,
-                            'Remote object should not be None')
+        self.assertIsNotNone(remote, 'Remote object should not be None')
         self.assertIsInstance(remote, RemoteReference)
 
     @defer.inlineCallbacks
@@ -770,8 +765,7 @@ class IPCInterfaceTestCase(IPCTestCase):
         """Ensure that a reference object is returned."""
         client = yield self.get_client()
         remote = yield client.callRemote('get_config')
-        self.assertNotEqual(remote, None,
-                            'Remote object should not be None')
+        self.assertIsNotNone(remote, 'Remote object should not be None')
         self.assertIsInstance(remote, RemoteReference)
 
     @defer.inlineCallbacks
@@ -779,8 +773,7 @@ class IPCInterfaceTestCase(IPCTestCase):
         """Ensure that a reference object is returned."""
         client = yield self.get_client()
         remote = yield client.callRemote('get_folders')
-        self.assertNotEqual(remote, None,
-                            'Remote object should not be None')
+        self.assertIsNotNone(remote, 'Remote object should not be None')
         self.assertIsInstance(remote, RemoteReference)
 
     @defer.inlineCallbacks
@@ -788,8 +781,7 @@ class IPCInterfaceTestCase(IPCTestCase):
         """Ensure that a reference object is returned."""
         client = yield self.get_client()
         remote = yield client.callRemote('get_public_files')
-        self.assertNotEqual(remote, None,
-                            'Remote object should not be None')
+        self.assertIsNotNone(remote, 'Remote object should not be None')
         self.assertIsInstance(remote, RemoteReference)
 
 

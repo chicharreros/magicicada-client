@@ -724,7 +724,7 @@ class TestWatchManager(common_tests.TestWatchManager):
     def test_get_watch_missing_wd(self):
         """Test that the correct path is returned."""
         self.manager._wdm = {}
-        self.assertEqual(None, self.manager.get_path(1))
+        self.assertIsNone(self.manager.get_path(1))
 
     def test_get_wd_exact_path(self):
         """Test the wd is returned when there is a watch for the path."""
@@ -737,7 +737,7 @@ class TestWatchManager(common_tests.TestWatchManager):
 
     def test_get_wd_unwatched(self):
         """A watch on an unwatched path returns None."""
-        self.assertEqual(None, self.manager.get_wd(self.parent_path))
+        self.assertIsNone(self.manager.get_wd(self.parent_path))
 
     def test_rm_present_wd(self):
         """Test the removal of a present watch."""

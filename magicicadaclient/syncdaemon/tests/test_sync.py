@@ -1022,7 +1022,7 @@ class SyncStateMachineRunnerTestCase(BaseSync):
         if with_upload_id:
             self.assertEqual(kwargs['upload_id'], 'hola')
         else:
-            self.assertEqual(kwargs['upload_id'], None)
+            self.assertIsNone(kwargs['upload_id'])
 
     def test_put_file_use_upload_id(self):
         """Test that sync calls put_file with the correct args."""

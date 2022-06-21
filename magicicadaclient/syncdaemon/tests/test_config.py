@@ -205,8 +205,8 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('write_limit = -1\n')
         conf = config._Config(conf_file)
         self.assertTrue(conf.get_throttling())
-        self.assertEqual(None, conf.get_throttling_read_limit())
-        self.assertEqual(None, conf.get_throttling_write_limit())
+        self.assertIsNone(conf.get_throttling_read_limit())
+        self.assertIsNone(conf.get_throttling_write_limit())
 
     def test_load_partial_config(self):
         """Test loading a partial config file and fallback to defaults."""
@@ -477,10 +477,10 @@ class ConfigglueParsersTests(BaseTwistedTestCase):
         zero_value = '0'
         parser = config.throttling_limit_parser
         self.assertEqual(20480, parser(good_value))
-        self.assertEqual(None, parser(unset_value))
+        self.assertIsNone(parser(unset_value))
         self.assertRaises(ValueError, parser, bad_value)
         self.assertRaises(TypeError, parser, invalid_value)
-        self.assertEqual(None, parser(zero_value))
+        self.assertIsNone(parser(zero_value))
 
     def test_log_level_parser(self):
         """Test log_level_parser."""
