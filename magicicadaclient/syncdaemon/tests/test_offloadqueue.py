@@ -207,7 +207,7 @@ class OffloadQueueTestCase(TwistedTestCase):
         """Just check that all is normal after rotation."""
         data = []
         size = 0
-        for i in xrange(10):
+        for i in range(10):
             d, s = self._get_data('data' + str(i))
             data.append(d)
             size += s

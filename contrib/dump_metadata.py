@@ -61,9 +61,9 @@ class FakeVM(object):
             version_found = fh.read()
         version_should = volume_manager.VolumeManager.METADATA_VERSION
         if version_found is None or version_found != version_should:
-            print "The VolumeManager metadata version is too old (or too new?)"
-            print "      it should be:", repr(version_should)
-            print "      found:", repr(version_found)
+            print("The VolumeManager metadata version is too old or too new")
+            print("      it should be:", repr(version_should))
+            print("      found:", repr(version_found))
             exit(-1)
 
         self.shares = volume_manager.VMTritcaskShelf(
@@ -109,7 +109,7 @@ def main(data_dir):
 
         for mdobj in mdobjs:
             filedir = "DIR " if mdobj.is_dir else "FILE"
-            print (
+            print(
                 "  mdid=%r  node_id=%r crc32=%s local_hash=%s server_hash=%s "
                 "%s  %r" % (
                     mdobj.mdid, mdobj.node_id,
@@ -118,45 +118,43 @@ def main(data_dir):
                     getattr(mdobj, 'server_hash', '**No server_hash**'),
                     filedir, mdobj.path))
 
-    print "\nShowing Root: %r (id=%r)" % (root.path, root.id)
+    print("\nShowing Root: %r (id=%r)" % (root.path, root.id))
     show_data(root.id)
 
     for udf_id in vm.udfs:
         udf = vm.udfs[udf_id]
-        print "\nShowing UDF: %r (id=%r)" % (udf.path, udf_id)
+        print("\nShowing UDF: %r (id=%r)" % (udf.path, udf_id))
         show_data(udf_id)
 
     for share in shares:
-        print "\nShowing Share: %r (id=%r)" % (share.path, share.id)
+        print("\nShowing Share: %r (id=%r)" % (share.path, share.id))
         show_data(share.id)
 
-    print "\nShowing trash:"
+    print("\nShowing trash:")
     something = False
-    for (vol_id, node_id), (mdid, parent_id, path, is_dir) in \
-            fsm.trash.iteritems():
+    for (vol_id, node_id), (mdid, par_id, path, is_dir) in fsm.trash.items():
         something = True
-        print ("  mdid=%r  volume_id=%r  node_id=%r  parent_id=%r  path=%r "
-               "is_dir=%r" % (
-                    mdid, share_id, node_id, parent_id, path, is_dir))
+        print("  mdid=%r  volume_id=%r  node_id=%r  parent_id=%r  path=%r "
+              "is_dir=%r" % (mdid, share_id, node_id, par_id, path, is_dir))
     if not something:
-        print "  (empty)"
+        print("  (empty)")
 
-    print "\nShowing move limbo:"
+    print("\nShowing move limbo:")
     something = False
-    for key, value in fsm.move_limbo.iteritems():
+    for key, value in fsm.move_limbo.items():
         something = True
         if len(value) == 3:
             # old move limbo, without paths
-            print ("  volume_id=%r  node_id=%r  old_parent_id=%r  "
-                   "new_parent_id=%r  new_name=%r" % (key + value))
+            print("  volume_id=%r  node_id=%r  old_parent_id=%r  "
+                  "new_parent_id=%r  new_name=%r" % (key + value))
         else:
-            print ("  volume_id=%r  node_id=%r  old_parent_id=%r  "
-                   "new_parent_id=%r  new_name=%r  path_from=%r  path_to=%r" %
-                   (key + value))
+            print("  volume_id=%r  node_id=%r  old_parent_id=%r  "
+                  "new_parent_id=%r  new_name=%r  path_from=%r  path_to=%r" %
+                  (key + value))
     if not something:
-        print "  (empty)"
+        print("  (empty)")
 
-    print "\nDone."
+    print("\nDone.")
 
 
 if __name__ == "__main__":
@@ -165,7 +163,7 @@ if __name__ == "__main__":
     elif len(sys.argv) == 2:
         basedir = sys.argv[1]
     else:
-        print __doc__
+        print(__doc__)
         sys.exit()
 
     main(basedir)

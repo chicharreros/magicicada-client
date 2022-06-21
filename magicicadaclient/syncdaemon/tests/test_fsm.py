@@ -348,7 +348,7 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # start up again, and check
@@ -414,7 +414,7 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # start up again, and check
@@ -471,7 +471,7 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # start up again, and check
@@ -527,7 +527,7 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # start up again, and check
@@ -584,15 +584,15 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
         # create a old-style trash
         old_trash = TrashFileShelf(self.fsm._trash_dir)
-        for k, v in self.fsm.trash.iteritems():
+        for k, v in self.fsm.trash.items():
             old_trash[k] = v
         # create a old-style move_limbo
         old_mvlimbo = TrashFileShelf(self.fsm._movelimbo_dir)
-        for k, v in self.fsm.move_limbo.iteritems():
+        for k, v in self.fsm.move_limbo.items():
             old_mvlimbo[k] = v
 
         # start up again, and check
@@ -643,15 +643,15 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
         # create a old-style trash
         old_trash = TrashFileShelf(self.fsm._trash_dir)
-        for k, v in self.fsm.trash.iteritems():
+        for k, v in self.fsm.trash.items():
             old_trash[k] = v
         # create a old-style move_limbo
         old_mvlimbo = TrashFileShelf(self.fsm._movelimbo_dir)
-        for k, v in self.fsm.move_limbo.iteritems():
+        for k, v in self.fsm.move_limbo.items():
             old_mvlimbo[k] = v
 
         # start up again, and check
@@ -694,7 +694,7 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # break the node on purpose
@@ -741,7 +741,7 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # break the second node on purpose but with an invalid pickle
@@ -794,7 +794,7 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # put the version file in 1
@@ -843,7 +843,7 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
         # fake version 2 with a backup
         mdobj = old_fs[mdid1]
@@ -904,7 +904,7 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
         # fake version 2 with a backup
         mdobj = old_fs[mdid1]
@@ -975,7 +975,7 @@ class CreationTests(FSMTestCase):
 
         # create a old-style fs with the data
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # fake version 2 with a backup
@@ -3488,7 +3488,7 @@ class RealVMTestCase(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # remove the share!
@@ -3558,7 +3558,7 @@ class RealVMTestCase(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # remove the share!
@@ -3615,7 +3615,7 @@ class RealVMTestCase(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # remove the share!
@@ -3671,7 +3671,7 @@ class RealVMTestCase(FSMTestCase):
 
         # create a old-style fs with the data:
         old_fs = FileShelf(self.fsm.old_fs._path)
-        for k, v in self.fsm.fs.iteritems():
+        for k, v in self.fsm.fs.items():
             old_fs[k] = v
 
         # remove the share!

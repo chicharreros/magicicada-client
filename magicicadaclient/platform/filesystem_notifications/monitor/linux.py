@@ -82,7 +82,7 @@ class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
     def _get_udfs(self, path):
         """Yield all the subscribed udfs under a specific path."""
         pathsep = path + os.path.sep
-        for udf in self.monitor.fs.vm.udfs.itervalues():
+        for udf in self.monitor.fs.vm.udfs.values():
             udfpath = udf.path + os.path.sep
             if udfpath.startswith(pathsep) and udf.subscribed:
                 yield udf
@@ -129,7 +129,7 @@ class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
         # collect the ancestors of all the still subscribed UDFs except
         # the received ones
         sub_udfs = (
-            u for u in self.monitor.fs.vm.udfs.itervalues() if u.subscribed)
+            u for u in self.monitor.fs.vm.udfs.values() if u.subscribed)
         udf_remain = set(sub_udfs) - udfs
         ancestors_to_keep = set()
         for udf in udf_remain:
@@ -290,7 +290,7 @@ class FilesystemMonitor(object):
 
     def _is_udf_ancestor(self, path):
         """Decide if path is an UDF ancestor or not."""
-        for udf in self.fs.vm.udfs.itervalues():
+        for udf in self.fs.vm.udfs.values():
             parent = os.path.dirname(udf.path) + os.path.sep
             if parent.startswith(path + os.path.sep):
                 return True

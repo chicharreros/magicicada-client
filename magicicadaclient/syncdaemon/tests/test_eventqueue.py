@@ -227,7 +227,7 @@ class PushTests(BaseEQTestCase):
         This is to avoid a typical mistake of making it a "(param)", not
         a "(param,)".
         """
-        for name, params in event_queue.EVENTS.iteritems():
+        for name, params in event_queue.EVENTS.items():
             self.assertIsInstance(params, (tuple, list))
 
     def test_listened_pushs(self):
@@ -398,7 +398,7 @@ class PushTestsWithCallback(BaseEQTestCase):
 
         # create 10 listeners in order to create an event madness
         listeners = []
-        for i in xrange(0, 10):
+        for i in range(0, 10):
             listener = Listener(self.eq)
             listeners.append(listener)
             self.eq.subscribe(listener)

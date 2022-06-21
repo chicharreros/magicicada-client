@@ -428,7 +428,7 @@ class BasicTests(BasicTestCase):
 
     def test_event_listener(self):
         """All event listeners should define methods with correct signature."""
-        for evtname, evtargs in EVENTS.iteritems():
+        for evtname, evtargs in EVENTS.items():
             meth = getattr(ActionQueue, 'handle_' + evtname, None)
             if meth is not None:
                 defined_args = inspect.getargspec(meth)[0]
@@ -749,7 +749,7 @@ class TestRequestQueue(TwistedTestCase):
         """Queue a command and it will be added to hashed waiting."""
         cmd = FakeCommand()
         self.rq.queue(cmd)
-        self.assertTrue(self.rq.hashed_waiting.values(), [cmd])
+        self.assertEqual(list(self.rq.hashed_waiting.values()), [cmd])
 
     def test_node_is_queued_nothing(self):
         """Test with empty queues."""
@@ -5461,7 +5461,7 @@ class CommandCycleTestCase(BasicTestCase):
         transfers_semaphore = self.queue.transfers_semaphore
         semaphores = []
         user_config = config.get_user_config()
-        for i in xrange(user_config.get_simult_transfers()):
+        for i in range(user_config.get_simult_transfers()):
             s = transfers_semaphore.acquire()
             s.addCallback(semaphores.append)
 

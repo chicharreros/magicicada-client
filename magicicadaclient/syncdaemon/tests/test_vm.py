@@ -1071,7 +1071,7 @@ class VolumeManagerSharesTests(BaseVolumeManagerTests):
 
     def test_event_listener(self):
         """All event listeners should define methods with correct signature."""
-        for evtname, evtargs in event_queue.EVENTS.iteritems():
+        for evtname, evtargs in event_queue.EVENTS.items():
             meth = getattr(VolumeManager, 'handle_' + evtname, None)
             if meth is not None:
                 defined_args = inspect.getargspec(meth)[0]

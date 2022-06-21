@@ -131,7 +131,7 @@ def unicode_to_bytes(f):
     def handle_mapping(mapping, to_bytes):
         """Convert all the values in 'mapping' from unicode to utf-8 bytes."""
         result = {}
-        for key, value in mapping.iteritems():
+        for key, value in mapping.items():
             result[key] = handle_item(value, to_bytes)
         return result
 
@@ -1159,7 +1159,7 @@ class AllEventsSender(object):
     def handle_default(self, event_name, **kwargs):
         """Handle all events."""
         event_dict = {'event_name': event_name}
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             event_dict[str(key)] = str(value)
         self.events.Event(event_dict)
 

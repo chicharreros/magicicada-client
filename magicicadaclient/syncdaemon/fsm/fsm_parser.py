@@ -158,7 +158,7 @@ if has_oo_bindings:
             while True:
                 cells = [
                     self.rules.getCellByPosition(x, iter_line).getFormula()
-                    for x in xrange(line_length)]
+                    for x in range(line_length)]
                 if not any(cells):
                     break
 
@@ -186,7 +186,7 @@ if has_oo_bindings:
             while True:
                 cells = [
                     self.invalid.getCellByPosition(x, iter_line).getFormula()
-                    for x in xrange(line_length)]
+                    for x in range(line_length)]
                 if not any(cells):
                     break
 

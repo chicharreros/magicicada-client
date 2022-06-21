@@ -537,7 +537,7 @@ class LocalRescan(object):
                 events.append(('FS_FILE_CLOSE_WRITE', fullname))
 
         # all these don't exist anymore
-        for name, (is_dir, statinfo, changed) in shouldbe.iteritems():
+        for name, (is_dir, statinfo, changed) in shouldbe.items():
             fullname = os.path.join(dirpath, name)
             if is_dir:
                 if changed not in ("SERVER", "NONE"):

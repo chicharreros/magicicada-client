@@ -95,7 +95,7 @@ class FileShelf(object, DictMixin):
         if len(key) < self._depth:
             raise ValueError("The key (%r) needs to be longer!" % key)
 
-        letters = [key[i] for i in xrange(0, self._depth)]
+        letters = [key[i] for i in range(0, self._depth)]
         return os.path.join(os.path.join(self._path, *letters), key)
 
     def has_key(self, key):
@@ -203,8 +203,8 @@ class FileShelf(object, DictMixin):
             counter += 1
         return counter
 
-    def iteritems(self):
-        """Custom iteritems that discard 'broken' metadata."""
+    def items(self):
+        """Custom items that discard 'broken' metadata."""
         for k in self:
             try:
                 yield (k, self[k])
@@ -303,7 +303,7 @@ class LRUCache(object):
         """removes the key, value from the cache"""
         del self._cache[key]
         # remove the key (and it dupes) from the queue
-        for _ in xrange(self._refcount.pop(key)):
+        for _ in range(self._refcount.pop(key)):
             self._queue.remove(key)
 
     def __contains__(self, key):
@@ -330,19 +330,19 @@ class LRUCache(object):
         # Periodically compact the queue by duplicate keys
         queue_len = len(self._queue)
         if queue_len > self._maxsize * self._compact_threshold:
-            for _ in xrange(queue_len):
+            for _ in range(queue_len):
                 k = self._queue.popleft()
                 if self._refcount[k] == 1:
                     self._queue.append(k)
                 else:
                     self._refcount[k] -= 1
             if (not (len(self._queue) == len(self._cache) ==
-                     len(self._refcount) == sum(self._refcount.itervalues()))):
+                     len(self._refcount) == sum(self._refcount.values()))):
                 # create a custom exception for this error
                 raise CacheInconsistencyError(len(self._queue),
                                               len(self._cache),
                                               len(self._refcount),
-                                              sum(self._refcount.itervalues()))
+                                              sum(self._refcount.values()))
 
 
 class CacheInconsistencyError(Exception):

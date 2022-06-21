@@ -1616,7 +1616,7 @@ class MetadataUpgrader(object):
         if not path_exists(self._shares_dir):
             make_dir(self._shares_dir, recursive=True)
         new_shelf = LegacyShareFileShelf(self._shares_md_dir)
-        for key, share in old_shelf.iteritems():
+        for key, share in old_shelf.items():
             new_shelf[key] = share
         # now upgrade to metadata 2
         self._upgrade_metadata_2(md_version)
@@ -1629,10 +1629,10 @@ class MetadataUpgrader(object):
         """
         self.log.debug('upgrading share shelfs from metadata 1')
         shares = LegacyShareFileShelf(self._shares_md_dir)
-        for key, share in shares.iteritems():
+        for key, share in shares.items():
             shares[key] = share
         shared = LegacyShareFileShelf(self._shared_md_dir)
-        for key, share in shared.iteritems():
+        for key, share in shared.items():
             shared[key] = share
         # now upgrade to metadata 3
         self._upgrade_metadata_2(md_version)
@@ -1724,7 +1724,7 @@ class MetadataUpgrader(object):
 
         # update the shares metadata
         shares = LegacyShareFileShelf(self._shares_md_dir)
-        for key, share in shares.iteritems():
+        for key, share in shares.items():
             if share.path is not None:
                 if share.path == old_root_dir:
                     share.path = share.path.replace(old_root_dir,
@@ -1735,7 +1735,7 @@ class MetadataUpgrader(object):
                 shares[key] = share
 
         shared = LegacyShareFileShelf(self._shared_md_dir)
-        for key, share in shared.iteritems():
+        for key, share in shared.items():
             if share.path is not None:
                 share.path = share.path.replace(old_root_dir, self._root_dir)
             shared[key] = share
@@ -1788,17 +1788,17 @@ class MetadataUpgrader(object):
             # upgrade shares
             old_shares = LegacyShareFileShelf(self._shares_md_dir)
             shares = VMFileShelf(new_shares_md_dir)
-            for key, share in old_shares.iteritems():
+            for key, share in old_shares.items():
                 shares[key] = self._upgrade_share_to_volume(share)
             # upgrade shared folders
             old_shared = LegacyShareFileShelf(self._shared_md_dir)
             shared = VMFileShelf(new_shared_md_dir)
-            for key, share in old_shared.iteritems():
+            for key, share in old_shared.items():
                 shared[key] = self._upgrade_share_to_volume(share, shared=True)
             # upgrade the udfs
             old_udfs = LegacyShareFileShelf(self._udfs_md_dir)
             udfs = VMFileShelf(new_udfs_md_dir)
-            for key, udf in old_udfs.iteritems():
+            for key, udf in old_udfs.items():
                 udfs[key] = UDF(udf.id, udf.node_id, udf.suggested_path,
                                 udf.path, udf.subscribed)
             # move md dir to bkp
@@ -1855,11 +1855,11 @@ class MetadataUpgrader(object):
         shares = VMTritcaskShelf(SHARE_ROW_TYPE, self.db)
         shared = VMTritcaskShelf(SHARED_ROW_TYPE, self.db)
         udfs = VMTritcaskShelf(UDF_ROW_TYPE, self.db)
-        for share_id, share in old_shares.iteritems():
+        for share_id, share in old_shares.items():
             shares[share_id] = share
-        for share_id, share in old_shared.iteritems():
+        for share_id, share in old_shared.items():
             shared[share_id] = share
-        for udf_id, udf in old_udfs.iteritems():
+        for udf_id, udf in old_udfs.items():
             udfs[udf_id] = udf
         # update the metadata version
         self.update_metadata_version()
