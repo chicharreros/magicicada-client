@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2011-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -28,7 +26,7 @@
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
 
-"""tcpactivation: start a process if nothing listening in a given port."""
+"""TCP Activation: start a process if nothing listening in a given port."""
 
 import subprocess
 

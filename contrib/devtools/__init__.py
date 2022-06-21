@@ -1,1 +1,1 @@
-"""Testing utilities for Ubuntu One client code."""
+"""Testing utilities for the client code."""

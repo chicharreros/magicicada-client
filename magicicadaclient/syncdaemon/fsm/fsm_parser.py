@@ -25,8 +25,10 @@
 # do not wish to do so, delete this exception statement from your
 # version.  If you delete this exception statement from all source
 # files in the program, then also delete it here.
-"""
-if this module is imported without the HAS_OOFFICE it will do nothing
+
+"""Convert a fsm from a spreadsheet to a dictionary with the parsed machine.
+
+If this module is imported without the HAS_OOFFICE it will do nothing.
 
 This module reads fsm specified in a openoffice spreadsheet and returns
 a dictionary with the parsed machine.
