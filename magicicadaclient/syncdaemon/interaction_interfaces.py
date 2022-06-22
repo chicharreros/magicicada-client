@@ -324,11 +324,10 @@ class SyncdaemonFileSystem(SyncdaemonObject):
         for k, v in mdobj.__dict__.items():
             if k == 'info':
                 continue
-            else:
-                md_dict[k] = v
+            md_dict[str(k)] = str(v)
         if mdobj.__dict__.get('info', None):
             for k, v in mdobj.info.__dict__.items():
-                md_dict['info_' + k] = v
+                md_dict['info_' + str(k)] = str(v)
         return md_dict
 
     @log_call(logger.debug)
