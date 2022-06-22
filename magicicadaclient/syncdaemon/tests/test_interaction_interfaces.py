@@ -159,8 +159,7 @@ class BaseTestCase(FakeMainTestCase):
             node_id = 'node_id'
         if suggested_path is None:
             suggested_path = '~/ñoño'
-        else:
-            assert isinstance(suggested_path, str)
+        assert isinstance(suggested_path, str)
         path = get_udf_path(suggested_path)
         udf = UDF(volume_id, node_id, suggested_path, path, subscribed)
         return udf
@@ -197,8 +196,8 @@ class SyncdaemonStatusTestCase(BaseTestCase):
 
         self.assertEqual(1, len(result))
         self.assertEqual("up_path", result[0]['path'])
-        self.assertEqual('100', result[0]['deflated_size'])
-        self.assertEqual('10', result[0]['n_bytes_written'])
+        self.assertEqual('100', str(result[0]['deflated_size']))
+        self.assertEqual('10', str(result[0]['n_bytes_written']))
 
     def test_two_current_uploads(self):
         """Test the current_uploads method for two uploads."""
@@ -218,11 +217,11 @@ class SyncdaemonStatusTestCase(BaseTestCase):
 
         self.assertEqual(2, len(result))
         self.assertEqual('up_path', result[0]['path'])
-        self.assertEqual('100', result[0]['deflated_size'])
-        self.assertEqual('10', result[0]['n_bytes_written'])
+        self.assertEqual('100', str(result[0]['deflated_size']))
+        self.assertEqual('10', str(result[0]['n_bytes_written']))
         self.assertEqual('up_path_1', result[1]['path'])
-        self.assertEqual('80', result[1]['deflated_size'])
-        self.assertEqual('20', result[1]['n_bytes_written'])
+        self.assertEqual('80', str(result[1]['deflated_size']))
+        self.assertEqual('20', str(result[1]['n_bytes_written']))
 
     def test_current_uploads_deflated_size_NA(self):
         """Test current_uploads with fake data in the AQ."""
@@ -237,7 +236,7 @@ class SyncdaemonStatusTestCase(BaseTestCase):
         self.assertEqual(1, len(result))
         self.assertEqual("up_path", result[0]['path'])
         self.assertNotIn('deflated_size', result[0])
-        self.assertEqual('0', result[0]['n_bytes_written'])
+        self.assertEqual('0', str(result[0]['n_bytes_written']))
 
     def test_current_downloads(self):
         """Test the current_downloads method."""
@@ -251,8 +250,8 @@ class SyncdaemonStatusTestCase(BaseTestCase):
 
         self.assertEqual(1, len(result))
         self.assertEqual("down_path", result[0]['path'])
-        self.assertEqual('10', result[0]['deflated_size'])
-        self.assertEqual('1', result[0]['n_bytes_read'])
+        self.assertEqual('10', str(result[0]['deflated_size']))
+        self.assertEqual('1', str(result[0]['n_bytes_read']))
 
     def test_two_current_downloads(self):
         """Test the current_downloads method for two downloads."""
@@ -272,11 +271,11 @@ class SyncdaemonStatusTestCase(BaseTestCase):
 
         self.assertEqual(2, len(result))
         self.assertEqual('down_path', result[0]['path'])
-        self.assertEqual('10', result[0]['deflated_size'])
-        self.assertEqual('8', result[0]['n_bytes_read'])
+        self.assertEqual('10', str(result[0]['deflated_size']))
+        self.assertEqual('8', str(result[0]['n_bytes_read']))
         self.assertEqual('down_path_1', result[1]['path'])
-        self.assertEqual('10', result[1]['deflated_size'])
-        self.assertEqual('5', result[1]['n_bytes_read'])
+        self.assertEqual('10', str(result[1]['deflated_size']))
+        self.assertEqual('5', str(result[1]['n_bytes_read']))
 
     def test_current_downloads_deflated_size_NA(self):
         """Test current_downloads with fake data in the AQ."""
@@ -291,7 +290,7 @@ class SyncdaemonStatusTestCase(BaseTestCase):
         self.assertEqual(1, len(result))
         self.assertEqual('down_path', result[0]['path'])
         self.assertNotIn('deflated_size', result[0])
-        self.assertEqual('0', result[0]['n_bytes_read'])
+        self.assertEqual('0', str(result[0]['n_bytes_read']))
 
     @defer.inlineCallbacks
     def test_free_space(self):
@@ -315,7 +314,7 @@ class SyncdaemonStatusTestCase(BaseTestCase):
         node_a, node_b, node_c = self.sd_obj.waiting()
 
         should = dict(share_id='share_id', node_id='node_id_a',
-                      running='True', other=123)
+                      running='True', other='123')
         self.assertEqual(node_a, ('FakeCommand', str(id(c1)), should))
 
         should = dict(share_id='share_id', node_id='node_id_b',
