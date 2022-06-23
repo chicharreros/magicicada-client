@@ -269,5 +269,5 @@ def rotate_logs(handlers):
     for handler in handlers:
         try:
             handler.doRollover()
-        except OSError:
+        except (AttributeError, OSError):
             pass
