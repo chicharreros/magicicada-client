@@ -31,10 +31,12 @@ Abstraction layer on top of tritcask's upstream to handle str instead of bytes.
 
 """
 
+import os
+import pickle
+import sys
+from io import BytesIO
+
 import tritcask
-
-
-TritcaskShelf = tritcask.TritcaskShelf
 
 
 class Tritcask(tritcask.Tritcask):
@@ -68,3 +70,22 @@ class Tritcask(tritcask.Tritcask):
         if isinstance(key, str):
             key = key.encode('utf-8')
         super().delete(row_type, key)
+
+
+class CustomPickler(pickle.Unpickler):
+
+    def find_class(self, module, name):
+        """Handle previous pickles of metadata produced by Python 2."""
+        if (module, name) == ('os', '_make_stat_result'):
+            result = os.stat_result
+        else:
+            __import__(module)
+            result = getattr(sys.modules[module], name)
+        return result
+
+
+class TritcaskShelf(tritcask.TritcaskShelf):
+
+    def _deserialize(self, raw_value):
+        """Deserialize the bytes."""
+        return CustomPickler(BytesIO(raw_value)).load()

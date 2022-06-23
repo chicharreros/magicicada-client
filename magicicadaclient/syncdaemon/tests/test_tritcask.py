@@ -32,7 +32,7 @@ import uuid
 from tritcask import Tritcask as UpstreamTritcask
 
 from magicicadaclient.testing.testcase import BaseTwistedTestCase
-from magicicadaclient.syncdaemon.tritcask import Tritcask
+from magicicadaclient.syncdaemon.tritcask import Tritcask, TritcaskShelf
 
 
 class TritcaskTestCase(BaseTwistedTestCase):
@@ -150,3 +150,26 @@ class TritcaskTestCase(BaseTwistedTestCase):
                 self.assertIn((0, k.encode('utf-8')), db._keydir)
 
         self.assertNotIn((0, 'I ♡ 3'), db)
+
+
+class TritcaskShelfTestCase(BaseTwistedTestCase):
+
+    def test_deserialize_os_stat(self):
+        # "Remove import copyreg from os module"
+        # https://bugs.python.org/issue19209
+        # Python 2's pickle including a stat result produce the following
+        # error in Python 3, since the `copyreg` section (?) was removed:
+        # builtins.AttributeError: Can't get attribute '_make_stat_result' on
+        # <module 'os' from '/usr/lib/python3.8/os.py'>
+
+        os_stat_pickle = (  # the Python 2 cPickle of `os.stat('.')`
+            b"cos\n_make_stat_result\np1\n((I16893\nI1705881\nI64769\nI3\nI100"
+            b"0\nI1000\nI4096\nI1655922497\nI1655922488\nI1655922488\nt(dp2\n"
+            b"S'st_ctime'\np3\nF1655922488.2818279\nsS'st_rdev'\np4\nI0\nsS'"
+            b"st_mtime'\np5\nF1655922488.2818279\nsS'st_blocks'\np6\nI8\nsS'"
+            b"st_atime'\np7\nF1655922497.6138899\nsS'st_blksize'\np8\nI4096\n"
+            b"stRp9\n."
+        )
+
+        result = TritcaskShelf(row_type=1, db={})._deserialize(os_stat_pickle)
+        self.assertIsInstance(result, os.stat_result)
