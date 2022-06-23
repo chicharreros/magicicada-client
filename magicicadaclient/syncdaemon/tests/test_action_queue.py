@@ -239,7 +239,7 @@ class TestingProtocol(ActionQueue.protocol):
 
     def connectionMade(self):
         """connectionMade."""
-        ActionQueue.protocol.connectionMade(self)
+        super().connectionMade()
 
         # assure we're connected
         events = [x[0] for x in self.factory.event_queue.events]
