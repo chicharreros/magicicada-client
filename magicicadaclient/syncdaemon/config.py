@@ -52,28 +52,17 @@ from magicicadaclient.platform import (
 
 # the try/except is to work with older versions of configglue (that
 # had everything that is now configglue.inischema.* as configglue.*).
-# The naming shenanigans are to work around pyflakes being completely
-# stupid WRT people catching ImportErrors
-normoptname = None
 try:
-    from configglue.glue import normoptname as old_normoptname
-    from configglue import TypedConfigParser as old_tcp
+    from configglue.glue import normoptname
+    from configglue import TypedConfigParser
 except ImportError:
-    from configglue.inischema import TypedConfigParser as new_tcp
+    from configglue.inischema import TypedConfigParser
 
     def normoptname(_, section, option):
         if section == "__main__":
             return option
         return section + "_" + option
 
-if normoptname is None:
-    normoptname = old_normoptname
-    TypedConfigParser = old_tcp
-    del old_normoptname, old_tcp
-else:
-    TypedConfigParser = new_tcp
-    del new_tcp
-# end of naming shenanigans
 
 BASE_FILE_PATH = 'magicicada'
 CONFIG_FILE = 'syncdaemon.conf'

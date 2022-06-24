@@ -314,6 +314,7 @@ class BaseTwistedTestCase(TwistedTestCase):
         mmtree(path): support read-only shares
         makedirs(path): support read-only shares
     """
+
     MAX_FILENAME = 32  # some platforms limit lengths of filenames
 
     def mktemp(self, name='temp'):
@@ -332,9 +333,7 @@ class BaseTwistedTestCase(TwistedTestCase):
         # check if we already generated the root path
         if self.__root:
             return self.__root
-        base = os.path.join(self.__class__.__module__[:self.MAX_FILENAME],
-                            self.__class__.__name__[:self.MAX_FILENAME],
-                            self._testMethodName)
+        base = os.path.join(*self.id().split('.'))
         self.__root = os.path.join(root_tmp, base)
         self.addCleanup(self.rmtree, self.__root)
         return self.__root
@@ -379,8 +378,8 @@ class BaseTwistedTestCase(TwistedTestCase):
         try:
             shutil.rmtree(path)
         except Exception as e:
-            print 'ERROR!! could not recursively remove %r ' \
-                  '(error is %r).' % (path, e)
+            print('ERROR!! could not recursively remove %r (error is %r).' % (
+                path, e))
 
     def makedirs(self, path):
         """Custom makedirs that handle ro parent."""

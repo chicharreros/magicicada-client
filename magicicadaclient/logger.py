@@ -246,7 +246,7 @@ class DebugCapture(logging.Handler):
             self.emit_debug()
         self.uninstall()
         if self.raise_unhandled and exc_type is not None:
-            raise exc_type, exc_value, traceback
+            raise exc_type(exc_value).with_traceback(traceback)
         else:
             return True
 

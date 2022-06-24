@@ -92,15 +92,14 @@ class DBusExposedObject(dbus.service.Object):
         """Add <docstring> tag to reflection_data if func.__doc__ isnt None."""
         # add docstring element
         if getattr(func, '__doc__', None) is not None:
-
             element = ElementTree.fromstring(reflection_data)
             doc = element.makeelement('docstring', dict())
             data = '<![CDATA[' + func.__doc__ + ']]>'
             doc.text = '%s'
             element.insert(0, doc)
-            return ElementTree.tostring(element) % data
-        else:
-            return reflection_data
+            reflection_data = ElementTree.tostring(element) % data
+
+        return reflection_data
 
     @classmethod
     def _reflect_on_method(cls, func):
@@ -196,7 +195,7 @@ class Status(DBusExposedObject):
     def UploadFinished(self, path, info):
         """Fire a signal to notify that an upload has finished."""
 
-    @dbus.service.signal(DBUS_IFACE_STATUS_NAME, signature='say')
+    @dbus.service.signal(DBUS_IFACE_STATUS_NAME, signature='ss')
     def InvalidName(self, dirname, filename):
         """Fire a signal to notify an invalid file or dir name."""
 
@@ -246,8 +245,7 @@ class Events(DBusExposedObject):
 
     path = '/events'
 
-    @dbus.service.signal(DBUS_IFACE_EVENTS_NAME,
-                         signature='a{ss}')
+    @dbus.service.signal(DBUS_IFACE_EVENTS_NAME, signature='a{ss}')
     def Event(self, event_dict):
         """Fire a signal, notifying an event."""
 

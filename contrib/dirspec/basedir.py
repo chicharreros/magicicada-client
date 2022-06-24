@@ -19,10 +19,16 @@ from __future__ import unicode_literals
 
 import os
 
-from dirspec.utils import (default_cache_home,
-                           default_config_path, default_config_home,
-                           default_data_path, default_data_home,
-                           get_env_path, unicode_path)
+from dirspec.utils import (
+    default_cache_home,
+    default_config_home,
+    default_config_path,
+    default_data_home,
+    default_data_path,
+    get_env_path,
+    unicode_path,
+)
+
 
 __all__ = ['xdg_cache_home',
            'xdg_config_home',
@@ -70,6 +76,23 @@ def get_xdg_data_dirs():
     return result
 
 
+def load_paths(search_dirs, *resource):
+    """Iterator of various paths.
+
+    Return an iterator which gives each directory named 'resource' in the
+    search dirs. Information provided by earlier directories should take
+    precedence over later ones (ie, the user's config dir comes first).
+    """
+    resource = os.path.join(*resource)
+    assert not resource.startswith('/')
+    for target in search_dirs:
+        path = os.path.join(target, resource.encode('utf-8'))
+        # access the file system always with unicode
+        # to properly behave in some operating systems
+        if os.path.exists(unicode_path(path)):
+            yield path
+
+
 def load_config_paths(*resource):
     """Iterator of configuration paths.
 
@@ -78,14 +101,7 @@ def load_config_paths(*resource):
     directories should take precedence over later ones (ie, the user's
     config dir comes first).
     """
-    resource = os.path.join(*resource)
-    assert not resource.startswith('/')
-    for config_dir in get_xdg_config_dirs():
-        path = os.path.join(config_dir, resource.encode('utf-8'))
-        # access the file system always with unicode
-        # to properly behave in some operating systems
-        if os.path.exists(unicode_path(path)):
-            yield path
+    return load_paths(get_xdg_config_dirs(), *resource)
 
 
 def load_data_paths(*resource):
@@ -95,14 +111,7 @@ def load_data_paths(*resource):
     the stored data search path. Information provided by earlier
     directories should take precedence over later ones.
     """
-    resource = os.path.join(*resource)
-    assert not resource.startswith('/')
-    for data_dir in get_xdg_data_dirs():
-        path = os.path.join(data_dir, resource.encode('utf-8'))
-        # access the file system always with unicode
-        # to properly behave in some operating systems
-        if os.path.exists(unicode_path(path)):
-            yield path
+    return load_paths(get_xdg_data_dirs(), *resource)
 
 
 def load_first_config(*resource):

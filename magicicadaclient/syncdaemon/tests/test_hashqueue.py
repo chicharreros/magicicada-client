@@ -33,14 +33,14 @@ import os
 import random
 import threading
 import time
-from StringIO import StringIO
+from io import StringIO
 
+import mock
 from magicicadaprotocol.content_hash import content_hash_factory, crc32
 from twisted.trial.unittest import TestCase as TwistedTestCase
 from twisted.internet import defer, reactor
 
 from devtools.handlers import MementoHandler
-from devtools.testcases import skipTest
 from magicicadaclient.platform import open_file, stat_path
 from magicicadaclient.syncdaemon import hash_queue
 from magicicadaclient.syncdaemon.hash_queue import HASHQUEUE_DELAY
@@ -507,7 +507,6 @@ class HashQueueTests(BaseTwistedTestCase):
         self.assertEqual(kwargs['mdid'], "foo")
         self.assertTrue(call_later_called)
 
-    @skipTest('Causing intermittent failures. LP: #935568')
     def test_being_hashed(self):
         """Tell if something is being hashed."""
         tfile1 = os.path.join(self.test_dir, "tfile1")
@@ -519,18 +518,19 @@ class HashQueueTests(BaseTwistedTestCase):
             """Bogus."""
             def push(self, e, **k):
                 """None."""
+
         hq = hash_queue.HashQueue(C())
         self.addCleanup(hq.shutdown)
 
         event = threading.Event()
+        self.addCleanup(event.set)
 
         def f(*a):
             """Fake _hash."""
             event.wait()
-            return "foo"
+            return 'hashdata', 'crc', 'size', mock.Mock()
 
         self.patch(hash_queue._Hasher, '_hash', f)
-        self.addCleanup(event.set)
 
         # nothing yet
         self.assertFalse(hq.is_hashing(tfile1, "mdid"))

@@ -74,6 +74,14 @@ from magicicadaclient.testing.testcase import (
 class TestSyncClassAPI(unittest.TestCase):
     """Tests that make sure the Sync class has the correct API."""
 
+    def assert_handler_is_correct(self, handler_name):
+        handler = getattr(Sync, handler_name, None)
+        self.assertTrue(ismethod(handler))
+        event = EVENTS[handler_name.replace('handle_', '')]
+        spec = getargspec(handler).args[1:]
+        # the argspec must also match (same order same variable names)
+        self.assertEqual(list(event), spec)
+
     def test_handle_signatures(self):
         """Make sure signatures match for the handlers.
 
@@ -82,15 +90,7 @@ class TestSyncClassAPI(unittest.TestCase):
         """
         handls = (k for k in dict(getmembers(Sync)) if k.startswith('handle_'))
         for handle in handls:
-            handler = getattr(Sync, handle, None)
-            # it must be a method
-            self.assertTrue(ismethod(handler))
-            event = EVENTS[handle.replace('handle_', '')]
-            spec = getargspec(handler).args[1:]
-            # the argspec must also match (same order same variable names)
-            self.assertEqual(
-                list(event), spec,
-                "Handler %s args do not match event args %s" % (handle, event))
+            self.assert_handler_is_correct(handle)
 
 
 class FSKeyTestCase(BaseTwistedTestCase):
@@ -289,7 +289,7 @@ class BaseSync(BaseTwistedTestCase):
         for record in self.handler.records:
             exc_info = getattr(record, 'exc_info', None)
             if exc_info is not None:
-                raise exc_info[0], exc_info[1], exc_info[2]
+                raise exc_info[0](exc_info[1]).with_traceback(exc_info[2])
         yield super(BaseSync, self).tearDown()
 
     @defer.inlineCallbacks

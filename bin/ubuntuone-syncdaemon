@@ -84,8 +84,9 @@ def main(argv):
         configs.append(args.pop(0))
     if len(configs) == 0:
         configs.extend(config.get_config_files())
-    (parser, options, argv) = config.configglue(file(configs[0]), *configs[1:],
-                                                args=args, usage=usage)
+    with open(configs[0]) as f:
+        (parser, options, argv) = config.configglue(
+            f, *configs[1:], args=args, usage=usage)
     d = async_main(parser, options, argv)
     d.addErrback(check_death)
     d.addErrback(logger.root_logger.exception)

@@ -47,10 +47,7 @@ from magicicadaclient.platform.filesystem_notifications.agnostic import (
     IN_MOVED_FROM,
     IN_MOVED_TO,
 )
-
-from magicicadaclient.platform.os_helper import (
-    is_valid_syncdaemon_path,
-)
+from magicicadaclient.platform.os_helper import is_valid_syncdaemon_path
 
 if sys.platform == 'win32':
 

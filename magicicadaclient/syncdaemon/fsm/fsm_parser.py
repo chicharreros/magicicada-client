@@ -312,7 +312,7 @@ def main():
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.print_help()
-        print "SPREADSHEET required"
+        print("SPREADSHEET required")
         return
 
     result = parse(args[0])

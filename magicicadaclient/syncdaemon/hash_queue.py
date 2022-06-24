@@ -30,7 +30,7 @@
 
 import logging
 import threading
-import Queue
+import Queue as queue
 import time
 
 from collections import OrderedDict
@@ -225,12 +225,12 @@ class HashQueue(object):
         return False
 
 
-class UniqueQueue(Queue.Queue):
+class UniqueQueue(queue.Queue):
     """Variant of Queue that only inserts unique items in the Queue."""
 
     def __init__(self, *args, **kwargs):
         """create the instance"""
-        Queue.Queue.__init__(self, *args, **kwargs)
+        queue.Queue.__init__(self, *args, **kwargs)
         self.logger = logging.getLogger(
             '.'.join((__name__, self.__class__.__name__)))
 

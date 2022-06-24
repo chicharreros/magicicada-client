@@ -42,7 +42,7 @@ from devtools.testcases import BaseTestCase, skipIf
 
 try:
     import dbus
-except ImportError as e:
+except ImportError:
     dbus = None
 
 try:
@@ -96,8 +96,10 @@ class DBusTestCase(BaseTestCase):
         # NOTE: The address_or_type value must remain explicitly as
         # str instead of anything from devtools.compat. dbus
         # expects this to be str regardless of version.
-        self.bus = dbus.bus.BusConnection(address_or_type=str(bus_address),
+        self.bus = dbus.bus.BusConnection(address_or_type=bus_address,
                                           mainloop=self.loop)
+        self.addCleanup(self.bus.flush)
+        self.addCleanup(self.bus.close)
 
         # Monkeypatch the dbus.SessionBus/SystemBus methods, to ensure we
         # always point at our own private bus instance.
@@ -105,21 +107,13 @@ class DBusTestCase(BaseTestCase):
         self.patch(dbus, 'SystemBus', lambda: self.bus)
 
         # Check that we are on the correct bus for real
-# Disable this for now, because our tests are extremely broken :(
-#        bus_names = self.bus.list_names()
-#        if len(bus_names) > 2:
-#            raise InvalidSessionBus('Too many bus connections: %s (%r)' %
-#                                    (len(bus_names), bus_names))
+        bus_names = self.bus.list_names()
+        if len(bus_names) > 2:
+            raise InvalidSessionBus('Too many bus connections: %s (%r)' %
+                                    (len(bus_names), bus_names))
 
         # monkeypatch busName.__del__ to avoid errors on gc
         # we take care of releasing the name in shutdown
         service.BusName.__del__ = lambda _: None
         yield self.bus.set_exit_on_disconnect(False)
         self.signal_receivers = set()
-
-    @defer.inlineCallbacks
-    def tearDown(self):
-        """Cleanup the test."""
-        yield self.bus.flush()
-        yield self.bus.close()
-        yield super(DBusTestCase, self).tearDown()

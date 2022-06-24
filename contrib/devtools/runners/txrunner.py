@@ -32,6 +32,8 @@ from __future__ import unicode_literals
 
 import sys
 
+from twisted.internet import defer
+from twisted.python import failure
 from twisted.scripts import trial
 from twisted.trial.runner import TrialRunner
 
@@ -39,6 +41,12 @@ from devtools.errors import TestError
 from devtools.runners import BaseTestOptions, BaseTestRunner
 
 __all__ = ['TestRunner', 'TestOptions']
+
+
+def _initialDebugSetup():
+    # Taken from Twisted's src/twisted/scripts/trial.py
+    failure.startDebugMode()
+    defer.setDebugging(True)
 
 
 class TestRunner(BaseTestRunner, TrialRunner):
@@ -63,8 +71,12 @@ class TestRunner(BaseTestRunner, TrialRunner):
                     reactor.REACTOR_URL)
 
         mode = None
+        debugger = None
         if self.config['debug']:
+            _initialDebugSetup()
             mode = TrialRunner.DEBUG
+            import pdb
+            debugger = pdb
         if self.config['dry-run']:
             mode = TrialRunner.DRY_RUN
 
@@ -73,6 +85,7 @@ class TestRunner(BaseTestRunner, TrialRunner):
             options=options,
             reporterFactory=self.config['reporter'],
             mode=mode,
+            debugger=debugger,
             profile=self.config['profile'],
             logfile=self.config['logfile'],
             tracebackFormat=self.config['tbformat'],

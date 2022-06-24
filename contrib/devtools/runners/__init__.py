@@ -225,9 +225,7 @@ class BaseTestOptions(OptionParser):
             raise UsageError('A positive integer value must be specified.')
 
     def opt_temp_directory(self, option):
-        """Path to use as a working directory for tests.
-           [default: _trial_temp]
-           """
+        """Path for the working directory for tests (default _trial_temp)."""
         self['temp-directory'] = option
 
     def opt_test(self, option):
@@ -241,6 +239,8 @@ class BaseTestOptions(OptionParser):
             self['tests'].update(args)
         elif isinstance(self.tests, list):
             self['tests'].extend(args)
+        else:
+            raise ValueError(args)
 
 
 def _get_runner_options(runner_name):

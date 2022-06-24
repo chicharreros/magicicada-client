@@ -48,6 +48,7 @@ from magicicadaclient.platform import (
     setup_filesystem_logging,
 )
 
+
 DebugCapture = logger.DebugCapture
 NOTE = logger.NOTE
 TRACE = logger.TRACE

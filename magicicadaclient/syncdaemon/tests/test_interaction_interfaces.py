@@ -31,6 +31,7 @@
 """Test the interaction_interfaces module."""
 
 import logging
+import operator
 import os
 
 from magicicadaprotocol.protocol_pb2 import AccountInfo
@@ -424,7 +425,7 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         self.assertEqual(share.node_id, result['node_id'])
 
     @defer.inlineCallbacks
-    def test_get_metadata_unicode(self):
+    def test_get_metadata_non_ascii(self):
         """Test the get_metadata method, getting MD by non-ascii path."""
         share = self._create_share()
         yield self.main.vm.add_share(share)
@@ -705,7 +706,7 @@ class SyncdaemonSharesTestCase(BaseTestCase):
 
         self.assertEqual(self._called, (args, {}))
 
-    def test_create_share_unicode(self):
+    def test_create_share_non_ascii(self):
         """Test the create_share method using a non-ascii path."""
         self.patch(self.main.vm, 'create_share', self._set_called)
         a_dir = os.path.join(self.root_dir, u'ñoño'.encode('utf-8'))
@@ -795,7 +796,7 @@ class SyncdaemonSharesTestCase(BaseTestCase):
         self.assertEqual(ACCESS_LEVEL_RO, str(shared['access_level']))
 
     @defer.inlineCallbacks
-    def test_get_shared_unicode(self):
+    def test_get_shared_non_ascii(self):
         """Test the get_shared method, but with non-ascii path."""
         a_dir = os.path.join(self.root_dir, u'ñoño'.encode('utf-8'))
         self.main.fs.create(a_dir, "", is_dir=True)
@@ -1032,11 +1033,12 @@ class SyncdaemonFoldersTestCase(BaseTestCase):
                                 suggested_path=u'~/other/location ♫ test')
         yield self.main.vm.add_udf(udf2)
 
-        expected = sorted(
-            get_udf_dict(udf) for udf in self.main.vm.udfs.values())
+        expected = [get_udf_dict(udf) for udf in self.main.vm.udfs.values()]
         result = self.sd_obj.get_folders()
         self.assertEqual(len(result), 2)
-        self.assertEqual(expected, sorted(result))
+        self.assertEqual(
+            sorted(expected, key=operator.itemgetter('path')),
+            sorted(result, key=operator.itemgetter('path')))
 
     def test_get_udf_dict(self):
         """Test for Folders.get_udf_dict."""
@@ -1739,9 +1741,12 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
 
         info = yield d
 
-        str_volumes = sorted((get_share_dict(share), get_udf_dict(udf),
-                              get_share_dict(self.main.vm.root)))
-        self.assertEqual(str_volumes, sorted(info))
+        str_volumes = (
+            get_share_dict(share), get_udf_dict(udf),
+            get_share_dict(self.main.vm.root))
+        self.assertEqual(
+            sorted(str_volumes, key=operator.itemgetter('path')),
+            sorted(info, key=operator.itemgetter('path')))
 
     @defer.inlineCallbacks
     def test_handle_VM_VOLUME_DELETED_folder(self):
@@ -1905,7 +1910,7 @@ class PublicFilesEventListenerTestCase(SyncdaemonEventListenerTestCase):
     @defer.inlineCallbacks
     def test_handle_AQ_CHANGE_PUBLIC_ACCESS_OK_share_id_not_none(self):
         """Test the handle_AQ_CHANGE_PUBLIC_ACCESS_OK method."""
-        yield self.test_handle_AQ_CHANGE_PUBLIC_ACCESS_OK(share_id=12345678)
+        yield self.test_handle_AQ_CHANGE_PUBLIC_ACCESS_OK(share_id='12345678')
 
     @defer.inlineCallbacks
     def test_handle_AQ_CHANGE_PUBLIC_ACCESS_ERROR(self, share_id=None):
@@ -1935,7 +1940,7 @@ class PublicFilesEventListenerTestCase(SyncdaemonEventListenerTestCase):
     @defer.inlineCallbacks
     def test_handle_AQ_CHANGE_PUBLIC_ACCESS_ERROR_share_id_not_none(self):
         """Test the handle_AQ_CHANGE_PUBLIC_ACCESS_ERROR method."""
-        yield self.test_handle_AQ_CHANGE_PUBLIC_ACCESS_ERROR(share_id=12345678)
+        yield self.test_handle_AQ_CHANGE_PUBLIC_ACCESS_ERROR(share_id='123456')
 
     @defer.inlineCallbacks
     def test_handle_AQ_PUBLIC_FILES_LIST_OK(self):

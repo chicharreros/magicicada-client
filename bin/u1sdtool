@@ -32,7 +32,6 @@
 import codecs
 import os
 import sys
-import warnings
 from optparse import OptionParser
 
 if sys.platform not in ('win32', 'darwin'):  # noqa
@@ -212,7 +211,7 @@ def run(options, sync_daemon_tool, out):
     elif options.start:
         d = sync_daemon_tool.start()
     elif options.version:
-        print '%s - Version %s' % (os.path.basename(sys.argv[0]), VERSION)
+        print('%s - Version %s' % (os.path.basename(sys.argv[0]), VERSION))
         d = defer.succeed(None)
     else:
         parser.print_help()
@@ -221,8 +220,6 @@ def run(options, sync_daemon_tool, out):
 
 
 if __name__ == '__main__':
-    # disable the dbus warnings
-    warnings.filterwarnings('ignore', module='dbus')
     usage = "Usage: %prog [option]"
     parser = OptionParser(usage=usage)
     parser.add_option("-w", "--wait", dest="wait", action="store_true",

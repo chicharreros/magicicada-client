@@ -35,6 +35,7 @@ Windows) and syncdaemon.
 Syncdaemon handles ONLY string volume ID's and ONLY string paths (always bytes
 encoded with utf-8). We assume the external interfaces will ALWAYS handle
 unicode, so ID's and paths will be encoded to bytes with utf-8 in this layer.
+
 """
 
 import collections
@@ -80,14 +81,15 @@ def get_share_dict(share):
     if 'subscribed' not in share_dict:
         share_dict['subscribed'] = share.subscribed
     for k, v in share_dict.items():
+        k = unicode(k)
         if v is None:
-            share_dict[unicode(k)] = ''
+            share_dict[k] = ''
         elif k == 'path':
-            share_dict[unicode(k)] = v.decode('utf-8')
+            share_dict[k] = v.decode('utf-8')
         elif k == 'accepted' or k == 'subscribed':
-            share_dict[unicode(k)] = bool_str(v)
+            share_dict[k] = bool_str(v)
         else:
-            share_dict[unicode(k)] = unicode(v)
+            share_dict[k] = unicode(v)
     return share_dict
 
 
@@ -95,16 +97,17 @@ def get_udf_dict(udf):
     """Get a dict with all the attributes of: udf."""
     udf_dict = udf.__dict__.copy()
     for k, v in udf_dict.items():
+        k = unicode(k)
         if v is None:
-            udf_dict[unicode(k)] = ''
+            udf_dict[k] = ''
         elif k == 'subscribed':
-            udf_dict[unicode(k)] = bool_str(v)
+            udf_dict[k] = bool_str(v)
         elif k == 'path':
-            udf_dict[unicode(k)] = v.decode('utf-8')
+            udf_dict[k] = v.decode('utf-8')
         elif k == 'suggested_path' and isinstance(v, str):
-            udf_dict[unicode(k)] = v.decode('utf-8')
+            udf_dict[k] = v.decode('utf-8')
         else:
-            udf_dict[unicode(k)] = unicode(v)
+            udf_dict[k] = unicode(v)
     return udf_dict
 
 
@@ -754,11 +757,7 @@ class SyncdaemonEventListener(SyncdaemonObject):
 
     @unicode_to_bytes
     def _get_path(self, share_id, node_id):
-        """Get the path from the given ids.
-
-        This is an unicode boundary, so return an unicode path.
-
-        """
+        """Get the path from the given ids."""
         try:
             relpath = self.fs_manager.get_by_node_id(share_id, node_id).path
         except KeyError:

@@ -710,9 +710,8 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
             if len(msg) > 0:
                 msg += '\n'
             exception = self.failureException(
-                '%snot equal:\na = %s\nb = %s\n'
-                % (msg, repr(first), repr(second)))
-            self._deferred.errback(msg)
+                '%snot equal:\na = %r\nb = %r\n' % (msg, first, second))
+            self._deferred.errback(exception)
             raise exception
         return first
     assertEqual = failUnlessEqual

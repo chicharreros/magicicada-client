@@ -89,6 +89,7 @@ class SubscriptionTests(BaseEQTestCase):
 
     def test_subscription_simple(self):
         """Subscribe creating the listener map."""
+
         class Listener(object):
             """Listener."""
 
@@ -170,6 +171,7 @@ class SubscriptionTests(BaseEQTestCase):
 
     def test_unsubscription(self):
         """Test that unsubscription works."""
+
         class Listener1(object):
             """Listener 1."""
 

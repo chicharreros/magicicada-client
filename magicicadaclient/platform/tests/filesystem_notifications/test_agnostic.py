@@ -36,7 +36,8 @@ from twisted.internet import defer
 from twisted.trial.unittest import TestCase
 
 from magicicadaclient.platform.filesystem_notifications.agnostic import (
-    RawOutputFormat)
+    RawOutputFormat,
+)
 
 
 class RawOutputFormatTest(TestCase):
@@ -48,8 +49,8 @@ class RawOutputFormatTest(TestCase):
         self.format = {'normal': 'normal'}
         self.formatter = RawOutputFormat(self.format)
 
-    def test_simple_unicode(self):
-        """Test the formatting of a simple value that is unicode."""
+    def test_simple_non_ascii(self):
+        """Test the formatting of a simple value that is non-ascii str."""
         attr = 'attribute'
         self.format[attr] = attr
         value = u'ñoño'

@@ -911,13 +911,13 @@ class MetadataNewLayoutTests(MetadataTestCase):
                     old_upgrade_share_to_volume
 
         shares = LegacyShareFileShelf(self.share_md_dir)
-        self.assertEqual(len(list(shares.keys())), len(legacy_shares.keys()))
+        self.assertItemsEqual(shares.keys(), legacy_shares.keys())
         for sid, share in shares.items():
             old_share = legacy_shares[sid]
             self.assertIsInstance(share, _Share)
             self.assertIsInstance(old_share, _Share)
         shared = LegacyShareFileShelf(self.shared_md_dir)
-        self.assertEqual(len(list(shared.keys())), len(legacy_shared.keys()))
+        self.assertItemsEqual(shares.keys(), legacy_shares.keys())
         for sid, share in shared.items():
             old_share = legacy_shared[sid]
             self.assertIsInstance(share, _Share)

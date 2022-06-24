@@ -34,6 +34,7 @@ import sys
 
 from twisted.internet import defer
 
+from magicicadaclient import logger
 from magicicadaclient.platform.filesystem_notifications import notify_processor
 from magicicadaclient.platform.filesystem_notifications.agnostic import (
     Event,
@@ -44,9 +45,6 @@ from magicicadaclient.platform.filesystem_notifications.agnostic import (
     IN_MOVED_FROM,
     IN_MOVED_TO,
 )
-
-from magicicadaclient import logger
-
 from magicicadaclient.platform.os_helper import (
     is_valid_syncdaemon_path,
     is_valid_os_path,

@@ -172,6 +172,7 @@ class SyncDaemonToolProxy(object):
         except RemoteError as e:
             # Wrap RemoteErrors in IPCError to match DBus interface's behavior
             raise IPCError(name=e.remoteType, info=[e.args], details=str(e))
+
         defer.returnValue(result)
 
     def shutdown(self):

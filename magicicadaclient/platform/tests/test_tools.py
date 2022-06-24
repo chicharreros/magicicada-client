@@ -56,7 +56,7 @@ class TestToolsBase(IPCTestCase):
     """Base test case for SyncDaemonTool tests."""
 
     service_class = interaction_interfaces.SyncdaemonService
-    timeout = 5
+    timeout = 2
 
     @defer.inlineCallbacks
     def setUp(self):
@@ -73,9 +73,9 @@ class TestToolsBase(IPCTestCase):
                    lambda: self.called.append('start') or defer.succeed(None))
         self.patch(self.main, 'quit',
                    lambda: self.called.append('quit') or defer.succeed(None))
-
         self.patch(tools, 'is_already_running',
                    lambda bus: defer.succeed(True))
+
         yield self.main.wait_for_nirvana(last_event_interval=0.001)
 
     def _create_share(self, accepted=True, subscribed=True):
@@ -124,13 +124,13 @@ class TestToolsBasic(TestToolsBase):
 
     @defer.inlineCallbacks
     def test_all_downloads(self):
-        """ test wait_all_downloads """
+        """Test wait_all_downloads."""
         result = yield self.tool.wait_all_downloads()
         self.assertTrue(result)
 
     @defer.inlineCallbacks
     def test_all_uploads(self):
-        """ test wait_all_uploads """
+        """Test wait_all_uploads."""
         result = yield self.tool.wait_all_uploads()
         self.assertTrue(result)
 
@@ -696,7 +696,7 @@ class TestToolsSomeMore(TestToolsBase):
         self.assertEqual('http://example.com', file_info['public_url'])
 
     @defer.inlineCallbacks
-    def test_change_public_access_with_unicode(self):
+    def test_change_public_access_with_non_ascii(self):
         """Test change_public_access."""
         # XXX: change public access is the only class that expects uuid's as
         # params this may indicate that we need to refactor that class to be

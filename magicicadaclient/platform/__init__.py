@@ -60,7 +60,6 @@ def expand_user(path):
             (len(path) > 1 and path[1:2] != os.path.sep)):
         return path
     result = path.replace('~', user_home, 1)
-
     assert isinstance(result, str)
     try:
         result.decode('utf-8')

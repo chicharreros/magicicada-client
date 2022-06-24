@@ -96,10 +96,6 @@ class FakeActivationClient(object):
 class FakeDecoratedObject(object):
     """An object that has decorators."""
 
-    def __init__(self):
-        """Create a new instance."""
-        super(FakeDecoratedObject, self).__init__()
-
     @signal
     def on_no_args(self):
         """Get no args passwed."""
@@ -379,7 +375,7 @@ class RemoteClientTestCase(TestCase):
 class IPCTestCase(FakeMainTestCase, TCPPbServerTestCase):
     """Set the ipc to a random port for this instance."""
 
-    timeout = 5
+    timeout = 2
     service_class = FakedService
     client_name = None
     client_class = None

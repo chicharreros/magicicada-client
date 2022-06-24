@@ -37,7 +37,7 @@ build:
 
 bootstrap: deps venv build
 
-venv: 
+venv:
 	virtualenv -p python2 $(ENV)
 	$(ENV)/bin/pip install -U pip setuptools
 	$(ENV)/bin/pip install -r requirements.txt -r requirements-devel.txt

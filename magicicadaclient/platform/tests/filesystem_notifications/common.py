@@ -125,7 +125,7 @@ class TestCaseHandler(ProcessEvent):
 class TestWatch(BaseTwistedTestCase):
     """Test the watch so that it returns the same events as pyinotify."""
 
-    timeout = 5
+    timeout = 2
 
     @defer.inlineCallbacks
     def setUp(self):
@@ -1248,7 +1248,7 @@ class TestNotifyProcessor(BaseTwistedTestCase):
 class FilesystemMonitorTestCase(BaseTwistedTestCase):
     """Tests for the FilesystemMonitor."""
 
-    timeout = 5
+    timeout = 2
 
     def test_add_watch_twice(self):
         """Check the deferred returned by a second add_watch."""

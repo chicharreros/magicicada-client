@@ -228,8 +228,9 @@ class EventQueue(object):
         """Make the monitor shutdown."""
         yield self.monitor.shutdown()
         # clean up all registered listeners
-        if len(self.listener_map.items()) > 0:
-            for k, v in self.listener_map.items():
+        listeners = list(self.listener_map.items())
+        if len(listeners) > 0:
+            for k, v in listeners:
                 v.clear()
                 del self.listener_map[k]
 
@@ -258,7 +259,7 @@ class EventQueue(object):
 
         @param obj: the callback object to remove from the queue.
         """
-        for k, v in self.listener_map.items():
+        for k, v in list(self.listener_map.items()):
             v.pop(obj, None)
             if not v:
                 del self.listener_map[k]
@@ -316,7 +317,7 @@ class EventQueue(object):
             return
 
         # check listeners to see if have the proper method, and call it
-        for listener, method in listeners.items():
+        for listener, method in list(listeners.items()):
             try:
                 method(**kwargs)
             except self.ignored_base_exception:

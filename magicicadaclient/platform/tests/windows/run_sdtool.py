@@ -39,25 +39,25 @@ def print_test():
     sdtool = tools.SyncDaemonTool()
     yield sdtool.client.connect()
     result = yield sdtool.get_current_downloads()
-    print 'Current downloads are: '
+    print('Current downloads are: ')
     for download in result:
-        print download
+        print(download)
     result = yield sdtool.get_current_uploads()
-    print 'Current Uplaods are: '
+    print('Current Uplaods are: ')
     for upload in result:
-        print upload
-    print 'The current config is:'
+        print(upload)
+    print('The current config is:')
     shares_link = yield sdtool.get_shares_dir_link()
-    print '\tShares link: %s' % shares_link
+    print('\tShares link: %s' % shares_link)
     shares_dir = yield sdtool.get_shares_dir()
-    print '\tShares dir: %s' % shares_dir
+    print('\tShares dir: %s' % shares_dir)
     root_dir = yield sdtool.get_root_dir()
-    print '\tRoot dir: %s' % root_dir
+    print('\tRoot dir: %s' % root_dir)
     is_udf_autosubscribe_enabled = yield sdtool.is_udf_autosubscribe_enabled()
-    print '\tAutosubscribe enabled: %s' % is_udf_autosubscribe_enabled
+    print('\tAutosubscribe enabled: %s' % is_udf_autosubscribe_enabled)
     is_share_autosubscribe_enabled = (
         yield sdtool.is_share_autosubscribe_enabled())
-    print '\tAutosubscribe enabled: %s' % is_share_autosubscribe_enabled
+    print('\tAutosubscribe enabled: %s' % is_share_autosubscribe_enabled)
     reactor.stop()
 
 

@@ -131,7 +131,7 @@ class TestReadingFlags(TestCase):
         code on, or that the server we're testing for is on this
         machine or wired directly to it. These cases won't happen.
         """
-        for flag in range(0, 17) + [1 << 16, 1 << 17, 1 << 18]:
+        for flag in list(range(0, 17)) + [1 << 16, 1 << 17, 1 << 18]:
             # only test cases without the reachable bit set:
             flag = flag & ~ 2
             self.assertFalse(flags_say_reachable(flag))
