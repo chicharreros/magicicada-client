@@ -156,8 +156,9 @@ class TestParse(unittest.TestCase):
         """Test that na param columns are ignored."""
         f = fsm.StateMachine(p("test_param_na.ods"))
         f.validate()
-        self.assertEqual(f.events["EVENT_2"].transitions[0].parameters.keys(),
-                         [u"MV2"],)
+        self.assertEqual(
+            list(f.events["EVENT_2"].transitions[0].parameters.keys()),
+            [u"MV2"])
 
     def test_func_na(self):
         """Test that na param columns are ignored."""

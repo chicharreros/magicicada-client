@@ -39,11 +39,9 @@ import sys
 import uuid
 
 import mock
-
 from magicicadaprotocol import volumes, request
 from magicicadaprotocol.client import ListShares
 from magicicadaprotocol.sharersp import NotifyShareHolder, ShareResponse
-
 from twisted.internet import defer, reactor
 
 from devtools.handlers import MementoHandler
@@ -1329,8 +1327,8 @@ class ModifySharesSubscriptionTests(ViewSharesSubscriptionTests):
         self.assertTrue(new_root.subscribed)
 
 
-class VolumeManagerUnicodeTests(BaseVolumeManagerTests):
-    """Tests for Volume Manager unicode capabilities."""
+class VolumeManagerStringManagementTests(BaseVolumeManagerTests):
+    """Tests for Volume Manager string management capabilities."""
 
     def test_handle_SHARES_sharename(self):
         """test the handling of AQ_SHARE_LIST with non-ascii share name."""
@@ -1572,7 +1570,8 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
         response = [share_volume, udf_volume, root_volume]
         d1 = defer.Deferred()
         d2 = defer.Deferred()
-        self.vm.refresh_volumes = lambda: d1.errback('refresh_volumes called!')
+        self.vm.refresh_volumes = (
+            lambda: d1.errback(Exception('refresh_volumes called!')))
         self._listen_for('VM_UDF_CREATED', d1.callback)
         self._listen_for('SV_VOLUME_NEW_GENERATION', d2.callback)
         self.vm.handle_AQ_LIST_VOLUMES(response)
@@ -1603,6 +1602,7 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
 
     def test_handle_AQ_LIST_VOLUMES_ERROR(self):
         """Test the handling of the AQ_LIST_VOLUMES_ERROR event."""
+
         # patch AQ.list_volumes
         class Helper(object):
             """Helper class to keep count of the retries"""
@@ -1626,7 +1626,7 @@ class HandleListVolumesTestCase(BaseVolumeManagerTests):
         self.assertEqual(0, self.vm.list_volumes_retries)
 
     @defer.inlineCallbacks
-    def test_handle_AQ_LIST_VOLUMES_unicode(self):
+    def test_handle_AQ_LIST_VOLUMES_non_ascii(self):
         """Test the handling of the AQ_LIST_VOLUMES event."""
         share_id = uuid.uuid4()
         name = u'ñoño'
@@ -1892,8 +1892,7 @@ class VolumeManagerOpTestsRequiringRealFSMonitor(BaseVolumeManagerTests):
                              shares_dir=self.shares_dir,
                              data_dir=self.data_dir,
                              partials_dir=self.partials_dir)
-        # re-do the patching from super that alters main or its
-        # event_q:
+        # re-do the patching from super that alters main or its event_q:
         orig_add_watch = self.main.event_q.add_watch
 
         def fake_add_watch(path):
@@ -1985,10 +1984,10 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         return d
 
     @defer.inlineCallbacks
-    def test_create_udf_unicode(self):
+    def test_create_udf_non_ascii(self):
         """Test VolumeManager.create_udf.
 
-        Check that VM calls AQ.create_udf with unicode values.
+        Check that VM calls AQ.create_udf with non-ascii strings.
         """
         d = defer.Deferred()
         path = get_udf_path(u"~/ñoño/mirá que lindo mi udf")
@@ -3008,7 +3007,8 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         root_volume = volumes.RootVolume(uuid.uuid4(), None, 10)
         response = [share_volume, udf_volume, root_volume]
         d = defer.Deferred()
-        self.vm.refresh_volumes = lambda: d.errback('refresh_volumes called!')
+        self.vm.refresh_volumes = (
+            lambda: d.errback(Exception('refresh_volumes called!')))
         self._listen_for('VM_UDF_CREATED', d.callback)
         self.vm.handle_AQ_LIST_VOLUMES(response)
         yield d
@@ -4154,7 +4154,7 @@ class MetadataUpgraderTests(MetadataTestCase):
 
 @skipIfOS('linux2', 'On linux paths are bytes so this tests do not apply')
 class MetadataVersionFileTestCase(MetadataTestCase):
-    """Check that the metadata version file can have unicode characters."""
+    """Check that the metadata version file can have non ascii characters."""
 
     @defer.inlineCallbacks
     def setUp(self):

@@ -51,11 +51,9 @@ class ValidationError(object):
     """Contains validation errors"""
 
     def __init__(self, description):
-        "create a validation error with description"
         self.description = description
 
     def __str__(self):
-        "__str__"
         return "Validation Error: %s" % self.description
 
 
@@ -75,7 +73,7 @@ def build_combinations_from_varlist(varlist):
 
 
 def expand_var_list(varlist, values):
-    """ exapand a state description
+    """Expand a state description.
 
     takes a {varname:value} dict and returns a list of {varname:value} but with
     stars and bangs replaced for all its possible values
@@ -199,7 +197,8 @@ class StateMachine(object):
                 spec = fsm_parser.parse(input_data)
             elif input_data.endswith(".py"):
                 result = {}
-                exec open(input_data) in result
+                with open(input_data) as f:
+                    exec(f.read(), result)
                 spec = result["state_machine"]
             else:
                 raise ValueError("Unknown input format")
@@ -212,11 +211,13 @@ class StateMachine(object):
         self.param_vars = {}
         self.build()
 
-    def validate(self):
+    def validate(self, verbose=False):
         """Raises an exception if the file had errors."""
         if self.errors:
-            raise ValidationFailed("There are %s validation errors" %
-                                   len(self.errors))
+            msg = "There are %s validation errors." % len(self.errors)
+            if verbose:
+                msg += 'Errors:\n%s' % '\n'.join(str(e) for e in self.errors)
+            raise ValidationFailed(msg)
         return True
 
     def get_variable_values(self, kind, name):
@@ -516,8 +517,8 @@ if __name__ == "__main__":
     s = StateMachine(sys.argv[1], sys.argv[2:])
     if s.errors:
         for e in s.errors:
-            print >> sys.stderr, e
-        print "There are %s errors" % (len(s.errors))
+            print e >> sys.stderr
+        print("There are %s errors" % (len(s.errors)))
         exit(1)
     else:
-        print "validated ok."
+        print("validated ok.")

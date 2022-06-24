@@ -110,11 +110,13 @@ def get_env_path(key, default):
             path = os.environb.get(key.encode('utf-8'))
         except AttributeError:
             path = os.environ[key]
-        return path.decode(sys.getfilesystemencoding()).encode('utf-8')
+        result = path.decode(sys.getfilesystemencoding()).encode('utf-8')
+    elif not isinstance(default, bytes):
+        result = default.encode('utf-8')
     else:
-        if not isinstance(default, bytes):
-            return default.encode('utf-8')
-        return default
+        result = default
+
+    return result
 
 
 def unicode_path(utf8path):

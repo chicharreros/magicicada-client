@@ -35,15 +35,11 @@ import os
 from magicicadaclient.syncdaemon.fsm import fsm
 
 
-def p(name):
-    """make a full path from here."""
-    return os.path.join(os.path.dirname(fsm.__file__), name)
-
-
 class TestParse(unittest.TestCase):
     'Test fsm validation'
 
     def test_u1fsfsm(self):
         'test parsing a simple machine'
-        f = fsm.StateMachine(p("../u1fsfsm.py"))
+        path = os.path.join(os.path.dirname(fsm.__file__), "../u1fsfsm.py")
+        f = fsm.StateMachine(path)
         f.validate()

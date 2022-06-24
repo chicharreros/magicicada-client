@@ -67,8 +67,8 @@ class DownloadFinishedNanny(object):
         path_from += "/"
 
         def fix(d):
-            """Fixes the dict."""
-            for path in d:
+            """Fixes the dict in-place, needs a copy."""
+            for path in d.copy():
                 if path.startswith(path_from):
                     info = d.pop(path)
                     d[path_to + path[len(path_from) - 1:]] = info

@@ -117,7 +117,8 @@ class DBusClient(object):
             else:
                 reply_handler(tuple(args_list))
 
-        self.bus.send_message_with_reply(msg, reply_handler=parse_reply)
+        self.bus.send_message_with_reply(
+            msg, reply_handler=parse_reply, require_main_loop=True)
 
         return d
 

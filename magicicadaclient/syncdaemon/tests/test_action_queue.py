@@ -36,11 +36,10 @@ import itertools
 import logging
 import operator
 import os
-import unittest
 import uuid
-
 from functools import wraps
 from StringIO import StringIO
+from unittest import TestCase
 
 import mock
 import OpenSSL.SSL
@@ -52,8 +51,7 @@ from magicicadaprotocol import (
     protocol_pb2,
     request,
 )
-from twisted.internet import defer, reactor
-from twisted.internet import error as twisted_error
+from twisted.internet import defer, reactor, error as twisted_error
 from twisted.python.failure import DefaultException, Failure
 from twisted.web import server
 from twisted.trial.unittest import TestCase as TwistedTestCase
@@ -63,8 +61,12 @@ from devtools import handlers
 from magicicadaclient import clientdefs
 from magicicadaclient.logger import NOTE, TRACE
 from magicicadaclient.platform import open_file, platform, path_exists
-from magicicadaclient.syncdaemon import interfaces, config
-from magicicadaclient.syncdaemon import action_queue
+from magicicadaclient.syncdaemon import (
+    action_queue,
+    config,
+    interfaces,
+    offload_queue,
+)
 from magicicadaclient.syncdaemon.action_queue import (
     ActionQueue, ActionQueueCommand, ChangePublicAccess, CreateUDF,
     DeleteVolume, Download, ListVolumes, ActionQueueProtocol, ListShares,
@@ -76,7 +78,6 @@ from magicicadaclient.syncdaemon.action_queue import (
     PingManager, logger,
 )
 from magicicadaclient.syncdaemon.event_queue import EventQueue, EVENTS
-from magicicadaclient.syncdaemon import offload_queue
 from magicicadaclient.syncdaemon.marker import MDMarker
 from magicicadaclient.syncdaemon.volume_manager import ACCESS_LEVEL_RO
 from magicicadaclient.testing.testcase import (
@@ -94,21 +95,6 @@ VOLUME = uuid.UUID('12345678-1234-1234-1234-123456789abc')
 NODE = uuid.UUID('FEDCBA98-7654-3211-2345-6789ABCDEF12')
 USER = u'Dude'
 SHARE = uuid.uuid4()
-
-
-def fire_and_check(f, deferred, check):
-    """Callback a deferred."""
-    @wraps(f)
-    def inner(*args, **kwargs):
-        """Execute f and fire the deferred."""
-        result = f(*args, **kwargs)
-        error = check()
-        if not error:
-            deferred.callback(True)
-        else:
-            deferred.errback(error)
-        return result
-    return inner
 
 
 class MementoHandler(handlers.MementoHandler):
@@ -325,6 +311,25 @@ class BasicTestCase(BaseTwistedTestCase):
         auth_info = dict(username='test_username', password='test_password')
         self.action_queue.event_queue.push(
             'SYS_USER_CONNECT', access_token=auth_info)
+
+    def silent_connection_lost(self, failure):
+        """Some tests will generate connection lost, support it."""
+        if not failure.check(twisted_error.ConnectionDone,
+                             twisted_error.ConnectionLost):
+            return failure
+
+    def mock_action_queue_execute(self):
+        execute_calls = []
+
+        def keep_a_copy(f):
+            """Keep a copy of the execute calls."""
+            @wraps(f)
+            def recording(command_class, *args, **kwargs):
+                execute_calls.append((command_class.__name__, args, kwargs))
+            return recording
+
+        self.action_queue.execute = keep_a_copy(self.action_queue.execute)
+        return execute_calls
 
 
 class BasicTests(BasicTestCase):
@@ -723,7 +728,7 @@ class TestRequestQueue(TwistedTestCase):
         cmd2 = FakeCommand(2, 3)
         self.rq.remove(cmd2)
         self.assertEqual(list(self.rq.waiting), [cmd1])
-        self.assertEqual(self.rq.hashed_waiting.values(), [cmd1])
+        self.assertEqual(list(self.rq.hashed_waiting.values()), [cmd1])
 
     def test_remove_command(self):
         """Remove for the command."""
@@ -1166,6 +1171,7 @@ class FactoryBaseTestCase(BasicTestCase):
         orig = self.action_queue.buildProtocol
 
         d = defer.Deferred()
+        d.addErrback(self.silent_connection_lost)
 
         def faked_buildProtocol(*args, **kwargs):
             """Override buildProtocol to hook a deferred."""
@@ -1179,10 +1185,11 @@ class FactoryBaseTestCase(BasicTestCase):
 
     def _disconnect_factory(self):
         """Disconnect the instance factory."""
+        d = defer.Deferred()
+        d.addErrback(self.silent_connection_lost)
+
         if self.action_queue.client is not None:
             orig = self.action_queue.client.connectionLost
-
-            d = defer.Deferred()
 
             def faked_connectionLost(reason):
                 """Receive connection lost and fire tearDown."""
@@ -1191,7 +1198,7 @@ class FactoryBaseTestCase(BasicTestCase):
 
             self.action_queue.client.connectionLost = faked_connectionLost
         else:
-            d = defer.succeed(True)
+            d.callback(True)
 
         if self.action_queue.connect_in_progress:
             self.action_queue.disconnect()
@@ -1216,6 +1223,7 @@ class ConnectionTestCase(FactoryBaseTestCase):
     def test_connect_if_already_connected(self):
         """Test that double connections are avoided."""
         yield self._connect_factory()
+        self.addCleanup(self._disconnect_factory)
 
         assert self.action_queue.connector is not None
         assert self.action_queue.connect_in_progress
@@ -1224,12 +1232,11 @@ class ConnectionTestCase(FactoryBaseTestCase):
         result = self.action_queue.connect()
         self.assertIsNone(result, 'not connecting again')
 
-        yield self._disconnect_factory()
-
     @defer.inlineCallbacks
     def test_disconnect_if_connected(self):
         """self.action_queue.connector.disconnect was called."""
         yield self._connect_factory()
+        self.addCleanup(self._disconnect_factory)
 
         self.action_queue.event_queue.events = []  # cleanup events
         assert self.action_queue.connector.state == 'connected'
@@ -1237,8 +1244,6 @@ class ConnectionTestCase(FactoryBaseTestCase):
 
         self.assert_connection_state_reset()
         self.assertEqual([], self.action_queue.event_queue.events)
-
-        yield self._disconnect_factory()
 
     @defer.inlineCallbacks
     def test_clientConnectionFailed(self):
@@ -1284,6 +1289,7 @@ class ConnectionTestCase(FactoryBaseTestCase):
 
         """
         yield self._connect_factory()
+        self.addCleanup(self._disconnect_factory)
 
         self.action_queue.event_queue.events = []
         orig = self.action_queue.clientConnectionLost
@@ -1305,13 +1311,11 @@ class ConnectionTestCase(FactoryBaseTestCase):
         self.action_queue.connector.disconnect()
         yield d
 
-        yield self._disconnect_factory()
-
     @defer.inlineCallbacks
     def test_server_disconnect(self):
         """Test factory's connection when the server goes down."""
-
         yield self._connect_factory()
+        self.addCleanup(self._disconnect_factory)
 
         self.action_queue.event_queue.events = []
         orig = self.action_queue.clientConnectionLost
@@ -1331,7 +1335,6 @@ class ConnectionTestCase(FactoryBaseTestCase):
         # simulate a server failure!
         yield self.server_transport.loseConnection()
         yield d
-        yield self._disconnect_factory()
 
     def test_buildProtocol(self):
         """Test buildProtocol."""
@@ -1359,10 +1362,9 @@ class ConnectionTestCase(FactoryBaseTestCase):
     def test_connector_gets_assigned_on_connect(self):
         """Test factory's connector gets assigned on connect."""
         yield self._connect_factory()
+        self.addCleanup(self._disconnect_factory)
 
         self.assertIsNotNone(self.action_queue.connector)
-
-        yield self._disconnect_factory()
 
     def test_connection_started_logging(self):
         """Test that the connection started logs connector info, not AQ's."""
@@ -1437,32 +1439,12 @@ class ConnectedBaseTestCase(FactoryBaseTestCase):
         """Init."""
         yield super(ConnectedBaseTestCase, self).setUp()
         yield self._connect_factory()
+        self.addCleanup(self._disconnect_factory)
         assert self.action_queue.connector.state == 'connected'
-
-    @defer.inlineCallbacks
-    def tearDown(self):
-        """Clean up."""
-        yield self._disconnect_factory()
-        yield super(ConnectedBaseTestCase, self).tearDown()
-
-    def silent_connection_lost(self, failure):
-        """Some tests will generate connection lost, support it."""
-        if not failure.check(twisted_error.ConnectionDone,
-                             twisted_error.ConnectionLost):
-            return failure
 
 
 class VolumeManagementTestCase(ConnectedBaseTestCase):
     """Test Volume managemenr for ActionQueue."""
-
-    @defer.inlineCallbacks
-    def setUp(self):
-        """Init."""
-        yield super(VolumeManagementTestCase, self).setUp()
-
-        # silence the event to avoid propagation
-        listener_map = self.action_queue.event_queue.listener_map
-        del listener_map['SV_VOLUME_DELETED']
 
     def test_volume_created_push_event(self):
         """Volume created callback push proper event."""
@@ -1473,6 +1455,8 @@ class VolumeManagementTestCase(ConnectedBaseTestCase):
 
     def test_volume_deleted_push_event(self):
         """Volume deleted callback push proper event."""
+        # silence the event to avoid propagation
+        self.action_queue.event_queue.listener_map.pop('SV_VOLUME_DELETED')
         volume_id = VOLUME
         self.action_queue._volume_deleted_callback(volume_id)
         self.assertEqual([('SV_VOLUME_DELETED', {'volume_id': volume_id})],
@@ -1480,6 +1464,8 @@ class VolumeManagementTestCase(ConnectedBaseTestCase):
 
     def test_volume_new_generation_push_event_root(self):
         """Volume New Generation callback push proper event with root."""
+        self.action_queue.event_queue.listener_map.pop(
+            'SV_VOLUME_NEW_GENERATION')
         volume = request.ROOT
         self.action_queue._volume_new_generation_callback(volume, 77)
         event = ('SV_VOLUME_NEW_GENERATION',
@@ -1488,6 +1474,8 @@ class VolumeManagementTestCase(ConnectedBaseTestCase):
 
     def test_volume_new_generation_push_event_uuid(self):
         """Volume New Generation callback push proper event with uuid."""
+        self.action_queue.event_queue.listener_map.pop(
+            'SV_VOLUME_NEW_GENERATION')
         volume = uuid.uuid4()
         self.action_queue._volume_new_generation_callback(volume, 77)
         event = ('SV_VOLUME_NEW_GENERATION',
@@ -1519,18 +1507,28 @@ class VolumeManagementTestCase(ConnectedBaseTestCase):
 
     def test_create_udf(self):
         """Test volume creation."""
+        calls = self.mock_action_queue_execute()
         path = PATH
         name = NAME
         self.action_queue.create_udf(path, name, marker=None)
 
+        self.assertEqual(calls, [('CreateUDF', (PATH, NAME, None), {})])
+
     def test_list_volumes(self):
         """Test volume listing."""
+        calls = self.mock_action_queue_execute()
+
         self.action_queue.list_volumes()
+
+        self.assertEqual(calls, [('ListVolumes', (), {})])
 
     def test_delete_volume(self):
         """Test volume deletion."""
+        calls = self.mock_action_queue_execute()
         volume_id = VOLUME
         self.action_queue.delete_volume(volume_id, 'path')
+
+        self.assertEqual(calls, [('DeleteVolume', (VOLUME, 'path'), {})])
 
 
 class ActionQueueCommandTestCase(ConnectedBaseTestCase):
@@ -2795,6 +2793,10 @@ class DownloadTestCase(ConnectedBaseTestCase):
 
     def test_progress(self):
         """Test the progress machinery."""
+        self.patch(
+            self.action_queue.client,
+            'get_content_request', lambda *a, **kw: mock.Mock())
+
         # would first get the node attribute including this
         class FakeDecompressor(object):
             """Fake decompressor."""
@@ -4898,7 +4900,7 @@ class MakeDirTestCase(ConnectedBaseTestCase):
         self.assertEqual(info['path'], self.test_path)
 
 
-class TestDeltaList(unittest.TestCase):
+class TestDeltaList(TestCase):
     """Tests for DeltaList."""
 
     def test_is_list(self):

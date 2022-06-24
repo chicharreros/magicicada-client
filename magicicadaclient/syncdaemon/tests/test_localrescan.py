@@ -1407,7 +1407,7 @@ class BadStateTests(TwistedBase):
     def _hash(self, path):
         """Hashes a file."""
         hasher = storage_hash.content_hash_factory()
-        with open_file(path) as fh:
+        with open_file(path, 'rb') as fh:
             while True:
                 cont = fh.read(65536)
                 if not cont:

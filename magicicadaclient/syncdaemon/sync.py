@@ -1192,7 +1192,7 @@ class Sync(object):
                         continue
 
                 # if the delta is older than the node, skip!
-                if node.generation > dt.generation:
+                if node.generation and node.generation > dt.generation:
                     continue
 
                 # if the path changed, we have a move, notify it

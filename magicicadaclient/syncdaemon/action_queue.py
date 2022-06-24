@@ -934,7 +934,6 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         # original client around for comparison.
         client = self.client
         req_name = request.__name__
-        failure = None
         event = None
         result = None
         try:
@@ -947,32 +946,37 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
                           ", client (%r) is not self.client (%r)."
                     logger.warning(msg, req_name, client, self.client)
                     return
-        except request_error as failure:
+        except request_error as e:
+            failure = e
             event = event_error
             self.event_queue.push(event_error, error=str(failure))
         except (twisted_errors.ConnectionLost,
                 twisted_errors.ConnectionDone,
-                OpenSSL.SSL.Error), failure:
+                OpenSSL.SSL.Error) as e:
             # connection ended, just don't do anything: the SYS_CONNECTION_ETC
             # will be sent by normal client/protocol mechanisms, and logging
             # will be done later in this function.
-            pass
-        except protocol_errors.AuthenticationRequiredError as failure:
+            failure = e
+        except protocol_errors.AuthenticationRequiredError as e:
             # we need to separate this case from the rest because an
             # AuthenticationRequiredError is an StorageRequestError,
             # and we treat it differently.
+            failure = e
             event = 'SYS_UNKNOWN_ERROR'
             self.event_queue.push(event)
-        except protocol_errors.StorageRequestError as failure:
+        except protocol_errors.StorageRequestError as e:
+            failure = e
             event = 'SYS_SERVER_ERROR'
             self.event_queue.push(event, error=str(failure))
-        except Exception as failure:
+        except Exception as e:
+            failure = e
             if handle_exception:
                 event = 'SYS_UNKNOWN_ERROR'
                 self.event_queue.push(event)
             else:
                 raise
         else:
+            failure = None
             logger.info("The request '%s' finished OK.", req_name)
             if event_ok is not None:
                 self.event_queue.push(event_ok)

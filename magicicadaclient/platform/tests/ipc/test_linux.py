@@ -57,13 +57,13 @@ from magicicadaclient.platform.tools.linux import DBusClient
 
 
 class FakeNetworkManager(DBusExposedObject):
-    """ A fake NetworkManager that only emits StatusChanged signal. """
+    """A fake NetworkManager that only emits StatusChanged signal."""
 
     State = 3
     path = '/org/freedesktop/NetworkManager'
 
     def __init__(self, bus):
-        """ Creates the instance. """
+        """Create the instance."""
         self.bus = bus
         self.bus.request_name('org.freedesktop.NetworkManager',
                               flags=dbus.bus.NAME_FLAG_REPLACE_EXISTING |
@@ -75,20 +75,20 @@ class FakeNetworkManager(DBusExposedObject):
                                    service=None)
 
     def shutdown(self):
-        """ Shutdown the fake NetworkManager """
+        """Shutdown the fake NetworkManager."""
         self.busName.get_bus().release_name(self.busName.get_name())
         self.remove_from_connection()
 
     @dbus.service.signal('org.freedesktop.NetworkManager', signature='i')
     def StateChanged(self, state):
-        """ Fire DBus signal StatusChanged. """
+        """Fire DBus signal StatusChanged."""
 
     def emit_connected(self):
-        """ Emits the signal StateCganged(3). """
+        """Emits the signal StateChanged(3)."""
         self.StateChanged(70)
 
     def emit_disconnected(self):
-        """ Emits the signal StateCganged(4). """
+        """Emits the signal StateChanged(4)."""
         self.StateChanged(20)
 
     @dbus.service.method(dbus.PROPERTIES_IFACE,
@@ -108,9 +108,9 @@ class FakeNetworkManager(DBusExposedObject):
 
 
 class IPCTestCase(FakeMainTestCase, DBusTestCase):
-    """Test the IPC handling"""
+    """Test the IPC handling."""
 
-    timeout = 5
+    timeout = 2
     service_class = FakedService
     path = None
     iface = None
@@ -200,7 +200,10 @@ class IPCTestCase(FakeMainTestCase, DBusTestCase):
 
         self.assertTrue(signal._dbus_is_signal)
         self.assertEqual(signal._dbus_interface, self.iface)
-        signal(*args)
+        try:
+            signal(*args)
+        except TypeError as e:
+            self.fail(str(e) + ' Signal name %s(%s)' % (signal_name, args))
 
     def test_remote_signals(self):
         """Check every signal defined in self.signal_mapping.

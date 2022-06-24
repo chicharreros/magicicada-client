@@ -33,7 +33,7 @@
 import os
 
 from operator import itemgetter
-from StringIO import StringIO
+from io import StringIO
 
 from twisted.internet import defer
 
@@ -135,8 +135,8 @@ class U1SDToolTests(TestToolsBase):
         d.addCallback(check)
         return d
 
-    def test_show_path_info_unicode(self):
-        """test the output of --info with unicode paths """
+    def test_show_path_info_non_ascii(self):
+        """Test the output of --info with non-ascii paths """
         return self.generic_test_show_path_info_unicode('utf-8')
 
     def test_show_path_info_unicode_pipe(self):
@@ -421,7 +421,9 @@ class U1SDToolTests(TestToolsBase):
             # dirty some
             self.main.fs.set_by_mdid(mdid2, dirty=True)
             self.main.fs.set_by_mdid(mdid4, dirty=True)
+
         dirty_nodes = yield self.tool.get_dirty_nodes()
+
         out = StringIO()
         out.encoding = encoding
         # sort the list
@@ -446,8 +448,8 @@ class U1SDToolTests(TestToolsBase):
             value = " No dirty nodes.\n"
         self.assertEqual(out.getvalue(), value)
 
-    def test_show_dirty_nodes(self):
-        """Test show_dirty_nodes with unicode paths."""
+    def test_show_dirty_nodes_non_ascii(self):
+        """Test show_dirty_nodes with non-ascii paths."""
         return self.generic_show_dirty_nodes("utf-8")
 
     def test_show_dirty_nodes_pipe(self):

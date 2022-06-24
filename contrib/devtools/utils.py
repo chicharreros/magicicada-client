@@ -34,6 +34,7 @@ import getopt
 import sys
 
 from devtools.errors import UsageError
+
 __all__ = ['OptionParser']
 
 
@@ -100,7 +101,7 @@ class OptionParser(dict):
             else:
                 opt = opt[1:]
 
-            if (opt not in self.synonyms.keys()):
+            if (opt not in list(self.synonyms.keys())):
                 raise UsageError('No such options: "%s"' % opt)
 
             opt = self.synonyms[opt]

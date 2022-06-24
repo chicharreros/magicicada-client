@@ -622,7 +622,8 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.default_config = os.path.join(os.environ['ROOTDIR'], 'data',
                                            'syncdaemon.conf')
         self.cp = config.SyncDaemonConfigParser()
-        self.cp.readfp(file(self.default_config))
+        with open(self.default_config) as f:
+            self.cp.readfp(f)
 
     def test_log_level_old_config(self):
         """Test log_level upgrade hook."""

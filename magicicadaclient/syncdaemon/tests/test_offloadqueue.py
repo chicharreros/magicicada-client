@@ -285,6 +285,7 @@ class OffloadQueueTestCase(TwistedTestCase):
 
     def _test_safe_push_write(self, count):
         """Fail when pushing an item will leave it all ok."""
+
         class CrashingFile(StringIO.StringIO):
             """File-like object that crashes in second write."""
             def __init__(self):

@@ -65,7 +65,7 @@ class FakeEventsProcessor(object):
 class TestWatch(common_tests.TestWatch):
     """Test the watch so that it returns the same events as pyinotify."""
 
-    timeout = 5
+    timeout = 2
 
     @defer.inlineCallbacks
     def setUp(self):
@@ -268,7 +268,8 @@ class TestWatchManager(common_tests.TestWatchManager):
 
 class TestWatchManagerAddWatches(BaseTwistedTestCase):
     """Test the watch manager."""
-    timeout = 5
+
+    timeout = 2
 
     def test_add_watch_twice(self):
         """Adding a watch twice succeeds when the watch is running."""
@@ -284,7 +285,7 @@ class TestWatchManagerAddWatches(BaseTwistedTestCase):
         self.assertFalse(d1.called, "Should not be called yet.")
         self.assertFalse(d2.called, "Should not be called yet.")
 
-        manager._wdm.values()[0].started.callback(True)
+        list(manager._wdm.values())[0].started.callback(True)
 
         self.assertTrue(d1.called, "Should already be called.")
         self.assertTrue(d2.called, "Should already be called.")
@@ -301,7 +302,8 @@ class TestNotifyProcessor(common_tests.TestNotifyProcessor):
 
 class FilesystemMonitorTestCase(common_tests.FilesystemMonitorTestCase):
     """Tests for the FilesystemMonitor."""
-    timeout = 5
+
+    timeout = 2
 
     def test_add_watch_twice(self):
         """Check the deferred returned by a second add_watch."""
@@ -317,7 +319,7 @@ class FilesystemMonitorTestCase(common_tests.FilesystemMonitorTestCase):
         self.assertFalse(d1.called, "Should not be called yet.")
         self.assertFalse(d2.called, "Should not be called yet.")
 
-        monitor._watch_manager._wdm.values()[0].started.callback(True)
+        list(monitor._watch_manager._wdm.values())[0].started.callback(True)
 
         self.assertTrue(d1.called, "Should already be called.")
         self.assertTrue(d2.called, "Should already be called.")

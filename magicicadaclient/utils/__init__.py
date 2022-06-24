@@ -136,11 +136,10 @@ def get_cert_dir():
         if sys.platform == "win32":
             ssl_cert_location = get_config_files()[1]
         elif sys.platform == "darwin":
-                main_app_dir = "".join(__file__.partition(".app")[:-1])
-                main_app_resources_dir = os.path.join(main_app_dir,
-                                                      "Contents",
-                                                      "Resources")
-                ssl_cert_location = main_app_resources_dir
+            main_app_dir = "".join(__file__.partition(".app")[:-1])
+            main_app_resources_dir = os.path.join(
+                main_app_dir, "Contents", "Resources")
+            ssl_cert_location = main_app_resources_dir
     elif any(plat in sys.platform for plat in ("win32", "darwin")):
         pkg_dir = os.path.dirname(__file__)
         src_tree_path = os.path.dirname(os.path.dirname(pkg_dir))

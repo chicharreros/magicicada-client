@@ -126,6 +126,7 @@ def _int_to_bin(n):
 
 
 # Functions to be used for path validation
+# XXX consider switching validation to the `pathvalidate` library
 
 def _add_method_info(messages, method_name=None):
     """Loop through the messages and add the extra info."""
@@ -150,6 +151,7 @@ def assert_windows_path(path, method_name=None):
 
     Opcionally the name of the method that called the assertion can be passed
     to improve the assertion message.
+
     """
     messages = {
         'unicode_path': 'Path %r should be unicode.',
@@ -210,8 +212,7 @@ def _bytes_to_unicode(path):
     # remove the illegal windows chars with similar ones
     for invalid, valid in WINDOWS_ILLEGAL_CHARS_MAP.items():
         path = path.replace(invalid, valid)
-    path = drive + path
-    return path
+    return drive + path
 
 
 def get_windows_valid_path(path):

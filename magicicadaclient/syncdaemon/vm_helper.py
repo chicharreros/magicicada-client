@@ -101,7 +101,6 @@ def get_udf_suggested_path(path):
     assert isinstance(path, str)
 
     path = path.decode('utf8')
-
     user_home = expand_user('~').decode('utf-8')
     start_list = os.path.abspath(user_home).split(os.path.sep)
     path_list = os.path.abspath(path).split(os.path.sep)

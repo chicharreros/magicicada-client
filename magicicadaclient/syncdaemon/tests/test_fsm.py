@@ -353,7 +353,8 @@ class CreationTests(FSMTestCase):
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
-        md_version = open_file(version_file).read()
+        with open_file(version_file) as f:
+            md_version = f.read()
         self.assertEqual(md_version, METADATA_VERSION)
         newmdobj = newfsm.get_by_path(path)
         self.assertEqual(newmdobj.mdid, mdid)
@@ -393,7 +394,7 @@ class CreationTests(FSMTestCase):
         share_md['path'] = old_path
         self.fsm.fs[share_mdid] = share_md
 
-        # break the node on purpose, with unicode valid and not
+        # break the node on purpose, with valid and not valid paths
         real_mdobj = self.fsm.fs[mdid1]
         real_mdobj["path"] = unicode(real_mdobj["path"])
         real_mdobj["local_hash"] = None
@@ -401,7 +402,7 @@ class CreationTests(FSMTestCase):
         del real_mdobj["generation"]
         self.fsm.fs[mdid1] = real_mdobj
         real_mdobj = self.fsm.fs[mdid2]
-        real_mdobj["path"] = "asdas\x00\xff\xffasd"
+        real_mdobj["path"] = "asdas\x00\xff\xffasd"  # invalid, has null bytes
         self.fsm.fs[mdid2] = real_mdobj
 
         # put the old version in file
@@ -419,7 +420,8 @@ class CreationTests(FSMTestCase):
         self.addCleanup(db.shutdown)
         newfsm = FileSystemManager(self.fsmdir, self.partials_dir,
                                    self.fsm.vm, db)
-        md_version = open_file(version_file).read()
+        with open_file(version_file) as f:
+            md_version = f.read()
         self.assertEqual(md_version, METADATA_VERSION)
         newmdobj = newfsm.get_by_path(path1)
         self.assertEqual(newmdobj.mdid, mdid1)
@@ -428,8 +430,8 @@ class CreationTests(FSMTestCase):
         self.assertIsNone(newmdobj.generation)
         self.assertIsInstance(newmdobj.path, str)
         self.assertEqual(2, len(newfsm._idx_node_id))
-        self.assertTrue(other_share.path in newfsm._idx_path)
-        self.assertFalse(old_path in newfsm._idx_path)
+        self.assertIn(other_share.path, newfsm._idx_path)
+        self.assertNotIn(old_path, newfsm._idx_path)
 
     @skip_if_win32_and_uses_metadata_older_than_5
     @defer.inlineCallbacks
@@ -611,7 +613,7 @@ class CreationTests(FSMTestCase):
         # check the move limbo
         expected = [(("share", "uuid_1"),
                     ("old_parent", "new_parent", "new_name", "pfrom", "pto"))]
-        self.assertEqual(expected, self.fsm.move_limbo.items())
+        self.assertEqual(expected, list(self.fsm.move_limbo.items()))
         r = [("share", "uuid_1", "old_parent", "new_parent",
               "new_name", "pfrom", "pto")]
         self.assertEqual(list(self.fsm.get_iter_move_limbo()), r)
@@ -671,7 +673,7 @@ class CreationTests(FSMTestCase):
         # check the move limbo
         expected = [(("share", "uuid_1"),
                     ("old_parent", "new_parent", "new_name", "pfrom", "pto"))]
-        self.assertEqual(expected, self.fsm.move_limbo.items())
+        self.assertEqual(expected, list(self.fsm.move_limbo.items()))
         r = [("share", "uuid_1", "old_parent", "new_parent",
               "new_name", "pfrom", "pto")]
         self.assertEqual(list(self.fsm.get_iter_move_limbo()), r)
@@ -3512,9 +3514,7 @@ class RealVMTestCase(FSMTestCase):
     @skip_if_win32_and_uses_metadata_older_than_5
     @defer.inlineCallbacks
     def test_old_metadata_1_missing_share(self):
-        """test loading metadata v1. that points to a share that
-        we don't have
-        """
+        """When loading metadata v1, ignore a share that we don't have."""
         # create some stuff
         path1 = os.path.join(self.share.path, 'path1')
         path2 = os.path.join(self.share.path, 'path2')
@@ -3538,7 +3538,7 @@ class RealVMTestCase(FSMTestCase):
         share_md['path'] = old_path
         self.fsm.fs[share_mdid] = share_md
 
-        # break the node on purpose, with unicode valid and not
+        # break the node on purpose, with valid and not valid paths
         real_mdobj = self.fsm.fs[mdid1]
         real_mdobj["path"] = unicode(real_mdobj["path"])
         real_mdobj["local_hash"] = None

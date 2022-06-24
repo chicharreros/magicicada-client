@@ -76,7 +76,7 @@ class FakeGnomeSessionManagerInhibitor(dbus.service.Object):
 class SessionDBusClientTestCase(DBusTestCase):
     """Test the DBus session manager client"""
 
-    timeout = 5
+    timeout = 2
 
     @inlineCallbacks
     def setUp(self):

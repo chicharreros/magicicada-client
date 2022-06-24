@@ -41,7 +41,7 @@ from magicicadaclient.testing import testcase
 class BaseFSMonitorTestCase(testcase.BaseTwistedTestCase):
     """Test the structures where we have the path/watch."""
 
-    timeout = 3
+    timeout = 2
 
     @defer.inlineCallbacks
     def setUp(self):

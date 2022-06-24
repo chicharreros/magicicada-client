@@ -33,8 +33,7 @@ import os
 import stat
 import errno
 
-from collections import deque
-from UserDict import DictMixin
+from collections import MutableMapping, deque
 
 from magicicadaclient.platform import (
     make_dir,
@@ -47,18 +46,20 @@ from magicicadaclient.platform import (
 )
 
 
-class FileShelf(object, DictMixin):
-    """ File based shelf.
+class FileShelf(MutableMapping):
+    """File based shelf.
 
     It support arbritary python objects as values (anything accepted by
-    pickle).  And support any valid file name as key.
+    pickle). And support any valid file name as key.
+
     """
 
     def __init__(self, path, depth=3):
-        """ Create a FileShelf.
+        """Create a FileShelf.
 
         @param path: the path to use as the root of the shelf
         @param depth: the directory depth to use, can't be < 0. default is 3
+
         """
         self._path = path
         if depth < 0:
@@ -92,7 +93,7 @@ class FileShelf(object, DictMixin):
 
         # length always needs to be longer (we have a uuid after all)
         if len(key) < self._depth:
-            raise ValueError("The key (%r) needs to be longer!" % key)
+            raise ValueError("The key (%r) needs to be longer!" % (key,))
 
         letters = [key[i] for i in range(0, self._depth)]
         return os.path.join(os.path.join(self._path, *letters), key)
@@ -147,11 +148,9 @@ class FileShelf(object, DictMixin):
             # the metadata is broked, try to get .old version if it's available
             old_path = path + '.old'
             # only search for a single .old in the name
-            if os.path.splitext(path)[1] != '.old' and \
-               path_exists(old_path):
+            if os.path.splitext(path)[1] != '.old' and path_exists(old_path):
                 return self._load_pickle(key, old_path)
-            else:
-                raise KeyError(key)
+            raise KeyError(key)
         except (IOError, OSError):
             raise KeyError(key)
         else:
@@ -201,6 +200,10 @@ class FileShelf(object, DictMixin):
         for key in self.keys():
             counter += 1
         return counter
+
+    def __iter__(self):
+        for k in self.keys():
+            yield k
 
     def items(self):
         """Custom items that discard 'broken' metadata."""

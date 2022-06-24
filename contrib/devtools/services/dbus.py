@@ -95,12 +95,12 @@ class DBusRunner(object):
         # Call wait here as under the qt4 reactor we get an error about
         # interrupted system call if we don't.
         sp.wait()
-        self.dbus_address = b"".join(sp.stdout.readlines()).strip()
+        self.dbus_address = (
+            b"".join(sp.stdout.readlines()).strip().decode("utf8"))
         self.dbus_pid = int(b"".join(sp.stderr.readlines()).strip())
 
         if self.dbus_address != "":
-            os.environ["DBUS_SESSION_BUS_ADDRESS"] = \
-                self.dbus_address.decode("utf8")
+            os.environ["DBUS_SESSION_BUS_ADDRESS"] = self.dbus_address
         else:
             os.kill(self.dbus_pid, signal.SIGKILL)
             raise DBusLaunchError("There was a problem launching dbus-daemon.")
