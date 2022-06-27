@@ -39,7 +39,7 @@ Usage:
 import os
 import sys
 
-from contrib.dirspec.basedir import xdg_cache_home, xdg_data_home
+from dirspec.basedir import xdg_cache_home, xdg_data_home
 
 from magicicadaclient.syncdaemon import (
     filesystem_manager,

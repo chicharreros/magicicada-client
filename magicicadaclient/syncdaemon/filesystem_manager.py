@@ -384,10 +384,9 @@ class FileSystemManager(object):
                     return False
                 else:
                     return mdid, mdobj
-
-        safe_iteritems = map(safeget_mdobj, self.old_fs.keys())
+        safe_items = map(safeget_mdobj, self.old_fs.keys())
         # filter all False values
-        return filter(None, safe_iteritems)
+        return filter(None, safe_items)
 
     def _fix_path_for_new_layout(self, mdobj):
         """fix the mdobj path for the new layout, only for shares root"""

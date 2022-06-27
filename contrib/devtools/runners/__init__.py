@@ -60,7 +60,7 @@ class BaseTestRunner(object):
 
         # set $HOME to the _trial_temp dir, to avoid breaking user files
         trial_temp_dir = os.environ.get('TRIAL_TEMP_DIR', os.getcwd())
-        homedir = os.path.join(trial_temp_dir, str(options['temp-directory']))
+        homedir = os.path.join(trial_temp_dir, options['temp-directory'])
         os.environ['HOME'] = homedir
 
         # setup $XDG_*_HOME variables and create the directories

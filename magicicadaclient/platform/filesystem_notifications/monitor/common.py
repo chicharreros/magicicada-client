@@ -167,8 +167,7 @@ class Watch(object):
         """
         if ACTIONS[event] == IN_CREATE:
             self._subdirs.add(path)
-        elif (ACTIONS[event] == IN_DELETE and
-                path in self._subdirs):
+        elif ACTIONS[event] == IN_DELETE and path in self._subdirs:
             self._subdirs.remove(path)
 
     @is_valid_os_path(path_indexes=[1])
@@ -327,8 +326,7 @@ class WatchManager(object):
         except KeyError as err:
             self.log.error(str(err))
             if not quiet:
-                raise WatchManagerError(
-                    'Watch %s was not found' % wd, {})
+                raise WatchManagerError('Watch %s was not found' % wd, {})
 
     @is_valid_os_path(path_indexes=[1])
     def rm_path(self, path):
