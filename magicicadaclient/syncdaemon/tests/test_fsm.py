@@ -1511,7 +1511,7 @@ class GetMDObjectsInDirTests(FSMTestCase):
         for f in files:
             self.create_node(f, is_dir=False, share=share)
 
-        self.contents[str(share)] = sorted(dirs + files)
+        self.contents[share] = sorted(dirs + files)
 
     @defer.inlineCallbacks
     def setUp(self):

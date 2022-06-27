@@ -1354,7 +1354,6 @@ class StatusEventListenerTestCase(SyncdaemonEventListenerTestCase):
 
         di, fi = yield d
 
-        dirname = dirname
         self.assertEqual(type(dirname), type(di))
         self.assertEqual(dirname, di)
         self.assertEqual(filename, fi)
@@ -2053,7 +2052,7 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
         d = defer.Deferred()
         self.patch(self.sd_obj.interface.status,
                    'RequestQueueAdded', lambda *a: d.callback(a))
-        cmd = FakeCommand('share', 'node', other='123')
+        cmd = FakeCommand('share', 'node', other=123)
         self.main.event_q.push('SYS_QUEUE_ADDED', command=cmd)
 
         op_name, op_id, data = yield d

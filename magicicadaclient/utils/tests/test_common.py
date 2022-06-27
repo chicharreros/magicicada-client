@@ -45,7 +45,7 @@ NOT_DEFINED = object()
 
 
 class FakedConstantsModule:
-    """Fake the 'ubuntuone.controlpanel.constants' module."""
+    """Fake the controlpanel.constants' module."""
 
     PROJECT_DIR = '/tmp/foo/bar'
     BIN_DIR = '/tmp/foo/bin'

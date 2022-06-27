@@ -341,5 +341,5 @@ class FilesystemMonitorTestCase(common_tests.FilesystemMonitorTestCase):
         added = yield monitor.add_watches_to_udf_ancestors(volume)
         self.assertTrue(added, 'We should always return true.')
         # lets ensure that we never added the watches
-        self.assertEqual(0, len(list(monitor._watch_manager._wdm.values())),
+        self.assertEqual(0, len(monitor._watch_manager._wdm.values()),
                          'No watches should have been added.')
