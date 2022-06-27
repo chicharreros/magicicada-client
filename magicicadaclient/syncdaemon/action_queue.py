@@ -233,7 +233,7 @@ class PathLockingTree:
         self.logger.debug("Fixing path from %r to %r",
                           from_elements, to_elements)
 
-        # fix the stored ids and elements
+        # fix the stored ids and elements, needs a copy
         something_found = False
         for key in list(self.stored_by_elements.keys()):
             if key == from_elements:

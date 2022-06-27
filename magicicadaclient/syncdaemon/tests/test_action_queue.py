@@ -2801,7 +2801,7 @@ class DownloadTestCase(ConnectedBaseTestCase):
 
             def decompress(self, data):
                 """Nothing!"""
-                return data
+                return b""
 
         self.command.fileobj = BytesIO()
         self.command._run()

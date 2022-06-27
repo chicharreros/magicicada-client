@@ -384,10 +384,9 @@ class FileSystemManager:
                     return False
                 else:
                     return mdid, mdobj
-
-        safe_iteritems = map(safeget_mdobj, self.old_fs.keys())
+        safe_items = map(safeget_mdobj, self.old_fs.keys())
         # filter all False values
-        return filter(None, safe_iteritems)
+        return filter(None, safe_items)
 
     def _fix_path_for_new_layout(self, mdobj):
         """fix the mdobj path for the new layout, only for shares root"""
@@ -426,7 +425,7 @@ class FileSystemManager:
             # ensure path is valid (used to check for bytes paths)
             if not is_valid_filepath(mdobj["path"], platform='auto'):
                 # this is an invalid path, we shouldn't have it
-                del self.old_fs[mdid]
+                del self.fs[mdid]
                 continue
 
             # fix the path

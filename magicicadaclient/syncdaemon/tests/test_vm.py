@@ -1984,7 +1984,6 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
         """Test VolumeManager.create_udf.
 
         Check that VM calls AQ.create_udf with non-ascii strings.
-
         """
         d = defer.Deferred()
         path = get_udf_path("~/ñoño/mirá que lindo mi udf")

@@ -206,7 +206,7 @@ class FileShelf(MutableMapping):
             yield k
 
     def items(self):
-        """Custom iterator that discard 'broken' metadata."""
+        """Custom items that discard 'broken' metadata."""
         for k in self:
             try:
                 yield (k, self[k])
