@@ -58,7 +58,9 @@ from zope.interface.verify import verifyObject, verifyClass
 from devtools import handlers
 from magicicadaclient import clientdefs
 from magicicadaclient.logger import NOTE, TRACE
-from magicicadaclient.platform import open_file, platform, path_exists
+from magicicadaclient.platform import (
+    open_file, platform, path_exists, remove_file,
+)
 from magicicadaclient.syncdaemon import (
     action_queue,
     config,
@@ -135,7 +137,14 @@ class FakeTempFile:
         self.closed = 0  # be able to count how may close calls we had
         self.name = os.path.join(tmpdir, 'remove-me.zip')
         open_file(self.name, 'w').close()
-        self.close = lambda: setattr(self, 'closed', self.closed + 1)
+
+    def close(self):
+        self.closed += 1
+        # Mimic the behaviour of NamedTemporaryFile
+        # https://docs.python.org/3/library/tempfile.html
+        # If delete is true (the default), the file is deleted as soon as it
+        # is closed.
+        remove_file(self.name)
 
 
 class FakedEventQueue(EventQueue):

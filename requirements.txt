@@ -3,6 +3,7 @@ configparser==3.5.0b1
 dbus-python
 magicicadaprotocol>=3.0.2
 pathvalidate
+protobuf<4
 pycairo
 PyGObject
 pyinotify

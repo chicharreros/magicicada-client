@@ -57,7 +57,7 @@ from twisted.python.failure import Failure, DefaultException
 from zope.interface import implementer
 
 from magicicadaclient import clientdefs
-from magicicadaclient.platform import platform, remove_file
+from magicicadaclient.platform import platform
 from magicicadaclient.syncdaemon.interfaces import IActionQueue, IMarker
 from magicicadaclient.syncdaemon.logger import mklog, TRACE
 from magicicadaclient.syncdaemon import config, offload_queue
@@ -516,7 +516,6 @@ class ZipQueue:
             failed = True
             if tempfile is not None:
                 tempfile.close()
-                remove_file(tempfile.name)
             reactor.callFromThread(deferred.errback, e)
         finally:
             # avoid triggering the deferred if already failed!
@@ -2437,9 +2436,8 @@ class Upload(ActionQueueCommand):
     def finish(self):
         """Release the semaphore if already acquired."""
         if self.tempfile is not None:
-            # clean the temporary file
+            # clean the temporary file, it's deleted as soon as it is closed
             self.tempfile.close()
-            remove_file(self.tempfile.name)
 
         if self.tx_semaphore is not None:
             self.tx_semaphore = self.tx_semaphore.release()
