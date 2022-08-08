@@ -39,6 +39,6 @@ def install(options=None):
         from PyQt4.QtGui import QApplication
         # We must assign this to a variable, or we will get crashes in Qt
         app = QApplication(sys.argv)
-        assert(app)
+        assert app, 'QApplication should be defined'
     qt4reactor = __import__('qt4reactor', None, None, [''])
     qt4reactor.install()

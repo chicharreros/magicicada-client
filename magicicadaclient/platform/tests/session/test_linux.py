@@ -63,7 +63,7 @@ class FakeGnomeSessionManagerInhibitor(dbus.service.Object):
     def Uninhibit(self, inhibit_cookie):
         """Cancel a previous call to Inhibit() identified by the cookie."""
         if inhibit_cookie in self.inhibitions:
-            del(self.inhibitions[inhibit_cookie])
+            self.inhibitions.pop(inhibit_cookie)
 
     @dbus.service.method(dbus_interface=session.SESSION_MANAGER_IFACE,
                          in_signature="u", out_signature="b")

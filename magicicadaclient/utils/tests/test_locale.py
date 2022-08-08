@@ -54,28 +54,28 @@ class LocaleTestCase(TestCase):
         """Restore the value of an environment variable."""
         if old_value is NO_VALUE:
             if env_var_name in locale.os.environ:
-                del(locale.os.environ[env_var_name])
+                locale.os.environ.pop(env_var_name)
         else:
             locale.os.environ[env_var_name] = old_value
 
     def test_fix_turkish_locale_when_turkish(self):
         """The fix_turkish_locale function skips when no locale set."""
         locale.os.environ["LANG"] = "tr_TR.UTF-8"
-        del(locale.os.environ["LC_CTYPE"])
+        locale.os.environ.pop("LC_CTYPE")
         locale.fix_turkish_locale()
         self.assertEqual(locale.os.environ["LC_CTYPE"], locale.SAFE_LOCALE)
 
     def test_fix_turkish_locale_when_other(self):
         """The fix_turkish_locale function skips when no locale set."""
         locale.os.environ["LANG"] = "en_EN.UTF-8"
-        del(locale.os.environ["LC_CTYPE"])
+        locale.os.environ.pop("LC_CTYPE")
         locale.fix_turkish_locale()
         self.assertEqual(locale.os.environ.get("LC_CTYPE", NO_VALUE), NO_VALUE)
 
     def test_fix_turkish_locale_when_LANG_unset(self):
         """The fix_turkish_locale function skips when no locale set."""
-        del(locale.os.environ["LANG"])
-        del(locale.os.environ["LC_CTYPE"])
+        locale.os.environ.pop("LANG")
+        locale.os.environ.pop("LC_CTYPE")
         locale.fix_turkish_locale()
         self.assertEqual(locale.os.environ.get("LC_CTYPE", NO_VALUE), NO_VALUE)
 
