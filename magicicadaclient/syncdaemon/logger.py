@@ -34,9 +34,8 @@ import os
 import zlib
 
 from magicicadaclient.logger import (
-    _DEBUG_LOG_LEVEL,
+    LOGBACKUP,
     CustomRotatingFileHandler,
-    DayRotatingFileHandler,
     Logger,
     MultiFilter,
     basic_formatter,
@@ -149,7 +148,7 @@ filesystem_logger = get_filesystem_logger()
 logging.setLoggerClass(Logger)
 
 
-def configure_handler(handler=None, filename=None, level=_DEBUG_LOG_LEVEL):
+def configure_handler(handler=None, filename=None, level=logging.DEBUG):
     if handler is None:
         handler = CustomRotatingFileHandler(filename=filename)
     handler.addFilter(MultiFilter([root_logger.name, 'twisted', 'pyinotify']))
@@ -159,8 +158,8 @@ def configure_handler(handler=None, filename=None, level=_DEBUG_LOG_LEVEL):
 
 
 def init(
-        base_dir, level=_DEBUG_LOG_LEVEL, max_bytes=2 ** 20, backup_count=5,
-        debug=None):
+        base_dir, level=logging.DEBUG, max_bytes=2 ** 20,
+        backup_count=LOGBACKUP, debug=None):
     """Configure logging.
 
     Set the level to debug of all registered loggers.
@@ -179,7 +178,7 @@ def init(
     root_filename = os.path.join(base_dir, 'syncdaemon.log')
     if 'file' in debug:
         # setup the existing loggers in debug
-        level = _DEBUG_LOG_LEVEL
+        level = TRACE
         root_filename = os.path.join(base_dir, 'syncdaemon-debug.log')
         # don't cap the file size
         max_bytes = 0
@@ -212,7 +211,7 @@ def init(
     twisted_logger.addHandler(exception_handler)
 
     for ll in (root_logger, twisted_logger):
-        ll.setLevel(_DEBUG_LOG_LEVEL)
+        ll.setLevel(logging.DEBUG)
         if 'stderr' in debug:
             ll.addHandler(configure_handler(logging.StreamHandler()))
         if 'stdout' in debug:
@@ -223,45 +222,16 @@ def init(
 
     # invalid filenames log
     invnames_filename = os.path.join(base_dir, 'syncdaemon-invalid-names.log')
-    invnames_logger.setLevel(_DEBUG_LOG_LEVEL)
+    invnames_logger.setLevel(logging.DEBUG)
     invnames_logger.addHandler(
         configure_handler(filename=invnames_filename, level=logging.INFO))
 
     # broken nodes log
     brokennodes_filename = os.path.join(
         base_dir, 'syncdaemon-broken-nodes.log')
-    brokennodes_logger.setLevel(_DEBUG_LOG_LEVEL)
+    brokennodes_logger.setLevel(logging.DEBUG)
     brokennodes_logger.addHandler(
         configure_handler(filename=brokennodes_filename, level=logging.INFO))
-
-
-def set_server_debug(dest, base_dir):
-    """ Set the level to debug of all registered loggers, and replace their
-    handlers. if debug_level is file, syncdaemon-debug.log is used. If it's
-    stdout, all the logging is redirected to stdout.
-
-    @param dest: a string containing 'file' and/or 'stdout', e.g: 'file stdout'
-    """
-    SERVER_LOG_LEVEL = 5  # this shows server messages
-    logger = logging.getLogger("storage.server")
-    logger.setLevel(SERVER_LOG_LEVEL)
-    if 'file' in dest:
-        filename = os.path.join(base_dir, 'syncdaemon-debug.log')
-        logger.addHandler(configure_handler(
-            DayRotatingFileHandler(filename=filename), level=SERVER_LOG_LEVEL))
-    if 'stdout' in dest:
-        logger.addHandler(
-            configure_handler(
-                logging.StreamHandler(sys.stdout), level=SERVER_LOG_LEVEL))
-    if 'stderrt' in dest:
-        logger.addHandler(
-            configure_handler(logging.StreamHandler(), level=SERVER_LOG_LEVEL))
-
-
-# configure server logging if SERVER_DEBUG != None
-SERVER_DEBUG = os.environ.get("SERVER_DEBUG", None)
-if SERVER_DEBUG:
-    set_server_debug(SERVER_DEBUG)
 
 
 def rotate_logs(handlers):

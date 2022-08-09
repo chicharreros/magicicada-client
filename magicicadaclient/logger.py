@@ -147,9 +147,7 @@ class MultiFilter(logging.Filter):
 
 
 class DebugCapture(logging.Handler):
-    """
-    A context manager to capture debug logs.
-    """
+    """A context manager to capture debug logs."""
 
     def __init__(self, logger, raise_unhandled=False, on_error=True):
         """Creates the instance.
@@ -295,9 +293,6 @@ basic_formatter = logging.Formatter(
     fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 debug_formatter = logging.Formatter(
     fmt="%(asctime)s %(name)s %(module)s %(lineno)s %(funcName)s %(message)s")
-
-# a constant to change the default DEBUG level value
-_DEBUG_LOG_LEVEL = logging.DEBUG
 
 
 # partial config of the handler to rotate when the file size is 1MB
