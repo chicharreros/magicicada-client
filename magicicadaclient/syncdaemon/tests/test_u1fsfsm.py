@@ -36,10 +36,10 @@ from magicicadaclient.syncdaemon.fsm import fsm
 
 
 class TestParse(unittest.TestCase):
-    'Test fsm validation'
+    """Test fsm validation."""
 
     def test_u1fsfsm(self):
-        'test parsing a simple machine'
+        """Test parsing *the* U1 File System finite state machine."""
         path = os.path.join(os.path.dirname(fsm.__file__), "../u1fsfsm.py")
         f = fsm.StateMachine(path)
         f.validate()

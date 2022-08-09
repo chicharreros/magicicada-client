@@ -28,6 +28,8 @@
 
 """Base dbus tests cases and test utilities."""
 
+from __future__ import absolute_import
+
 import os
 try:
     from urllib.parse import unquote
@@ -96,8 +98,8 @@ class DBusTestCase(BaseTestCase):
         # NOTE: The address_or_type value must remain explicitly as
         # str instead of anything from devtools.compat. dbus
         # expects this to be str regardless of version.
-        self.bus = dbus.bus.BusConnection(address_or_type=bus_address,
-                                          mainloop=self.loop)
+        self.bus = dbus.bus.BusConnection(
+            address_or_type=bus_address.encode('utf-8'), mainloop=self.loop)
         self.addCleanup(self.bus.flush)
         self.addCleanup(self.bus.close)
 

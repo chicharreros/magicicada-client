@@ -28,6 +28,8 @@
 
 """SyncDaemon Tools."""
 
+from __future__ import unicode_literals
+
 import logging
 import sys
 import warnings
