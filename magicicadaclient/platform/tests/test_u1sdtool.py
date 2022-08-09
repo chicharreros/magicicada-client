@@ -33,7 +33,7 @@
 import os
 
 from operator import itemgetter
-from io import StringIO
+from StringIO import StringIO
 
 from twisted.internet import defer
 

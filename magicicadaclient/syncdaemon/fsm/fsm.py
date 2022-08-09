@@ -181,7 +181,7 @@ class StateMachine(object):
     """The state machine"""
 
     def __init__(self, input_data, event_filter=None):
-        """create a fsm from filename.
+        """Create a fsm from filename.
 
         filename can be an .ods file or a dictionary
         event_filter, if not None, limits the events you want to parse.
