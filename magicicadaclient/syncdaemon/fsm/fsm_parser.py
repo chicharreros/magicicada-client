@@ -80,7 +80,7 @@ try:
     from com.sun.star.lang import IndexOutOfBoundsException
     from com.sun.star.container import NoSuchElementException
     from com.sun.star.beans import PropertyValue
-    from unohelper import systemPathToFileUrl, absolutize
+    from unohelper import systemPathToFileUrl, absolutize, fileUrlToSystemPath
 except ImportError:
     has_oo_bindings = False
 else:
@@ -120,6 +120,9 @@ if has_oo_bindings:
             cwd = systemPathToFileUrl(os.getcwd())
             file_url = absolutize(
                 cwd, systemPathToFileUrl(os.path.join(os.getcwd(), filename)))
+            path = fileUrlToSystemPath(file_url)
+            assert os.path.exists(path), 'Path %r should exist' % path
+
             in_props = PropertyValue("Hidden", 0, True, 0),
             document = desktop.loadComponentFromURL(
                 file_url, "_blank", 0, in_props)

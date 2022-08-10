@@ -38,7 +38,7 @@ build:
 bootstrap: deps venv build
 
 venv:
-	virtualenv -p python3 $(ENV) --system-site-packages
+	virtualenv -p python3 $(ENV)
 	$(ENV)/bin/pip install -U pip setuptools
 	$(ENV)/bin/pip install -U -r requirements.txt -r requirements-devel.txt
 
