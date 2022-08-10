@@ -232,8 +232,7 @@ class WatchTests(BaseFSMonitorTestCase):
     def _create_udf(self, path):
         """Create an UDF and returns it and the volume"""
         os.makedirs(path)
-        udf = volume_manager.UDF("vol_id", "node_id", path.decode('utf-8'),
-                                 path, True)
+        udf = volume_manager.UDF("vol_id", "node_id", path, path, True)
         yield self.vm.add_udf(udf)
 
     def test_add_general_watch(self):

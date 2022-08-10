@@ -64,13 +64,9 @@ def get_share_dir_name(share):
         visible_name = share.from_visible_name
 
     if visible_name:
-        dir_name = u'%s (%s, %s)' % (share_name, visible_name, share_id)
+        dir_name = '%s (%s, %s)' % (share_name, visible_name, share_id)
     else:
-        dir_name = u'%s (%s)' % (share_name, share_id)
-
-    # Unicode boundary! the name is Unicode in protocol and server,
-    # but here we use bytes for paths
-    dir_name = dir_name.encode("utf8")
+        dir_name = '%s (%s)' % (share_name, share_id)
 
     return dir_name
 
@@ -100,8 +96,7 @@ def get_udf_suggested_path(path):
         raise ValueError("no path specified")
     assert isinstance(path, str)
 
-    path = path.decode('utf8')
-    user_home = expand_user('~').decode('utf-8')
+    user_home = expand_user('~')
     start_list = os.path.abspath(user_home).split(os.path.sep)
     path_list = os.path.abspath(path).split(os.path.sep)
 
@@ -110,12 +105,12 @@ def get_udf_suggested_path(path):
     if os.path.sep.join(common_prefix) != user_home:
         raise ValueError("path isn't inside user home: %r" % path)
 
-    # suggested_path is always unicode, because the suggested path is a
+    # suggested_path is always string, because the suggested path is a
     # server-side metadata, and we will always use the unix path separator '/'
 
-    suggested_path = path.replace(user_home, u'~')
-    suggested_path = suggested_path.replace(os.path.sep, u'/')
-    assert isinstance(suggested_path, unicode)
+    suggested_path = path.replace(user_home, '~')
+    suggested_path = suggested_path.replace(os.path.sep, '/')
+    assert isinstance(suggested_path, str)
     return suggested_path
 
 
@@ -126,8 +121,6 @@ def get_udf_path(suggested_path):
     to and received from the server.
 
     """
-    assert isinstance(suggested_path, unicode)
-    # Unicode boundary! the suggested_path is Unicode in protocol and server,
-    # but here we use bytes for paths
-    path = suggested_path.replace(u'/', os.path.sep).encode('utf-8')
+    assert isinstance(suggested_path, str)
+    path = suggested_path.replace('/', os.path.sep)
     return expand_user(path)

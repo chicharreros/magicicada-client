@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2010-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -76,8 +74,7 @@ class NetworkManagerState(object):
         """Called by DBus when the state is retrieved from NM."""
         # Assuming since Network Manager is not running,
         # the user has connected in some other way
-        msg = error.message.encode('utf-8')
-        logger.error("Error contacting NetworkManager: %s", msg)
+        logger.error("Error contacting NetworkManager: %s", error)
         self.call_result_cb(ONLINE)
 
     def state_changed(self, state):

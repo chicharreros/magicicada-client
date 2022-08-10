@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2009-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -32,7 +30,7 @@
 
 import contextlib
 import copy
-from inspect import getmembers, getargspec, ismethod
+from inspect import getmembers, getargspec, isfunction
 import logging
 import os
 import unittest
@@ -76,7 +74,7 @@ class TestSyncClassAPI(unittest.TestCase):
 
     def assert_handler_is_correct(self, handler_name):
         handler = getattr(Sync, handler_name, None)
-        self.assertTrue(ismethod(handler))
+        self.assertTrue(isfunction(handler))
         event = EVENTS[handler_name.replace('handle_', '')]
         spec = getargspec(handler).args[1:]
         # the argspec must also match (same order same variable names)
@@ -90,7 +88,8 @@ class TestSyncClassAPI(unittest.TestCase):
         """
         handls = (k for k in dict(getmembers(Sync)) if k.startswith('handle_'))
         for handle in handls:
-            self.assert_handler_is_correct(handle)
+            with self.subTest(handler=handle):
+                self.assert_handler_is_correct(handle)
 
 
 class FSKeyTestCase(BaseTwistedTestCase):
@@ -1672,13 +1671,13 @@ class TestSyncDelta(BaseSync):
         self.filetxtdelta = delta.FileInfoDelta(
             generation=5, is_live=True, file_type=delta.FILE,
             parent_id=root_id, share_id=ROOT, node_id=uuid.uuid4(),
-            name=u"fileñ.txt", is_public=False, content_hash="hash",
+            name="fileñ.txt", is_public=False, content_hash="hash",
             crc32=1, size=10, last_modified=0)
 
         self.dirdelta = delta.FileInfoDelta(
             generation=6, is_live=True, file_type=delta.DIRECTORY,
             parent_id=root_id, share_id=ROOT, node_id=uuid.uuid4(),
-            name=u"directory_ñ", is_public=False, content_hash="hash",
+            name="directory_ñ", is_public=False, content_hash="hash",
             crc32=1, size=10, last_modified=0)
 
     def create_filetxt(self, dt=None):
@@ -1687,8 +1686,7 @@ class TestSyncDelta(BaseSync):
             dt = self.filetxtdelta
         mdobj = self.main.fs.get_by_node_id(dt.share_id, dt.parent_id)
         path = os.path.join(
-            self.main.fs.get_abspath(dt.share_id, mdobj.path),
-            dt.name.encode("utf-8"))
+            self.main.fs.get_abspath(dt.share_id, mdobj.path), dt.name)
         self.main.fs.create(
             path=path, share_id=dt.share_id, node_id=dt.node_id,
             is_dir=False)
@@ -1702,8 +1700,7 @@ class TestSyncDelta(BaseSync):
             dt = self.dirdelta
         mdobj = self.main.fs.get_by_node_id(dt.share_id, dt.parent_id)
         path = os.path.join(
-            self.main.fs.get_abspath(dt.share_id, mdobj.path),
-            dt.name.encode("utf-8"))
+            self.main.fs.get_abspath(dt.share_id, mdobj.path), dt.name)
         self.main.fs.create(
             path=path, share_id=dt.share_id, node_id=dt.node_id,
             is_dir=True)
@@ -1773,7 +1770,7 @@ class TestHandleAqDeltaOk(TestSyncDelta):
 
         # check that the file is created
         node = self.main.fs.get_by_node_id(ROOT, self.filetxtdelta.node_id)
-        self.assertEqual(node.path, self.filetxtdelta.name.encode('utf8'))
+        self.assertEqual(node.path, self.filetxtdelta.name)
         self.assertEqual(node.is_dir, False)
         self.assertEqual(node.generation, self.filetxtdelta.generation)
 
@@ -1833,7 +1830,7 @@ class TestHandleAqDeltaOk(TestSyncDelta):
 
         # check that the dir is created
         node = self.main.fs.get_by_node_id(ROOT, self.dirdelta.node_id)
-        self.assertEqual(node.path, self.dirdelta.name.encode('utf8'))
+        self.assertEqual(node.path, self.dirdelta.name)
         self.assertEqual(node.is_dir, True)
         self.assertEqual(node.generation, self.dirdelta.generation)
 
@@ -2160,7 +2157,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             d = delta.FileInfoDelta(
                 generation=i, is_live=True, file_type=delta.DIRECTORY,
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
-                name=u"directory_ñ_%d" % i, is_public=False,
+                name="directory_ñ_%d" % i, is_public=False,
                 content_hash="hash", crc32=i, size=10, last_modified=0)
             directories.append(d)
             self.create_dir(dt=d)
@@ -2168,7 +2165,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             f = delta.FileInfoDelta(
                 generation=i, is_live=True, file_type=delta.FILE,
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
-                name=u"fileñ.%d.txt" % i, is_public=False, content_hash="hash",
+                name="fileñ.%d.txt" % i, is_public=False, content_hash="hash",
                 crc32=i, size=10, last_modified=0)
             f.parent_id = directories[i - 5].node_id
             self.create_filetxt(dt=f)
@@ -2213,7 +2210,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             ROOT, [changed_file], changed_file.generation, True, 100)
         expected = [
             ("new_file", ROOT, changed_file.node_id, changed_file.parent_id,
-             changed_file.name.encode("utf-8"))]
+             changed_file.name)]
         self.assertEqual(called, expected)
 
     def test_move_in_the_middle(self):
@@ -2224,7 +2221,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             d = delta.FileInfoDelta(
                 generation=i, is_live=True, file_type=delta.DIRECTORY,
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
-                name=u"directory_ñ_%d" % i, is_public=False,
+                name="directory_ñ_%d" % i, is_public=False,
                 content_hash="hash", crc32=i, size=10, last_modified=0)
             directories.append(d)
             self.create_dir(dt=d)
@@ -2232,7 +2229,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             f = delta.FileInfoDelta(
                 generation=i, is_live=True, file_type=delta.FILE,
                 parent_id=self.root_id, share_id=ROOT, node_id=uuid.uuid4(),
-                name=u"fileñ.%d.txt" % i, is_public=False, content_hash="hash",
+                name="fileñ.%d.txt" % i, is_public=False, content_hash="hash",
                 crc32=i, size=10, last_modified=0)
             f.parent_id = directories[i - 5].node_id
             self.create_filetxt(dt=f)
@@ -2277,7 +2274,7 @@ class TestChunkedRescanFromScratchOk(TestHandleAqRescanFromScratchOk):
             ROOT, [changed_file], changed_file.generation, True, 100)
         expected = [
             ("new_file", ROOT, changed_file.node_id, changed_file.parent_id,
-             changed_file.name.encode("utf-8"))]
+             changed_file.name)]
         self.assertEqual(called, expected)
 
 

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2010-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -35,6 +33,7 @@ import errno
 import os
 import shutil
 from collections import defaultdict
+from io import IOBase
 
 from twisted.internet import defer
 
@@ -219,7 +218,7 @@ class OSWrapperTests(BaseTestCase):
     def test_open_file_gets_a_fileobject(self):
         """Open a file, and get a file object."""
         f = open_file(self.testfile)
-        self.assertIsInstance(f, file)
+        self.assertIsInstance(f, IOBase)
 
     def test_open_file_read(self):
         """Open a file, and read."""
@@ -436,16 +435,6 @@ class OSWrapperTests(BaseTestCase):
         self.assertEqual(self.home_dir, result)
         self.assertFalse(result.endswith(os.path.sep))
 
-    def test_expand_user_fails_if_not_bytes(self):
-        """Test the expand_user function input assertions."""
-        path = u'userpath'
-        self.assertRaises(AssertionError, expand_user, path)
-
-    def test_expand_user_fails_if_not_utf8_encoded(self):
-        """Test the expand_user function input encoding."""
-        path = u'usérpath'.encode('latin-1')
-        self.assertRaises(AssertionError, expand_user, path)
-
 
 class RecursiveMoveTests(BaseTestCase):
     """Tests for os wrapper functions."""
@@ -475,7 +464,7 @@ class RecursiveMoveTests(BaseTestCase):
         # lets assume we can create a dir in a diff fs
         # add some fake data
         with open_file(self.src_file, "wb") as f:
-            f.write("spam")
+            f.write(b"spam")
 
     def _clean_recursive_move_dirs(self):
         """Clean the created files."""
@@ -590,9 +579,9 @@ class WalkTests(BaseTestCase):
         result = walk(self.basedir)
 
         for _ in range(len(list(os.walk(self.basedir)))):
-            dirpath, dirnames, filenames = result.next()
+            dirpath, dirnames, filenames = next(result)
 
-        self.assertRaises(StopIteration, result.next)
+        self.assertRaises(StopIteration, result.__next__)
 
     def test_top_down(self, topdown=True, expected=None):
         """Walk the tree top-down."""

@@ -30,7 +30,7 @@
 
 import logging
 import threading
-import Queue as queue
+import queue
 import time
 
 from collections import OrderedDict
@@ -230,7 +230,7 @@ class UniqueQueue(queue.Queue):
 
     def __init__(self, *args, **kwargs):
         """create the instance"""
-        queue.Queue.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.logger = logging.getLogger(
             '.'.join((__name__, self.__class__.__name__)))
 
@@ -247,7 +247,7 @@ class UniqueQueue(queue.Queue):
         key, value = item
         if key in self.queue:
             # we must delete it first, so the new one is added to the end
-            del(self.queue[key])
+            self.queue.pop(key)
             self.logger.debug('Previous item removed from the queue: %r', key)
         self.queue[key] = value
 

@@ -52,7 +52,7 @@ from win32file import (
 from magicicadaclient.platform.os_helper import windows as os_helper
 from magicicadaclient.platform.os_helper.windows import (
     _set_file_attributes,
-    _unicode_to_bytes,
+    _windows_to_linux_path,
     EVERYONE_SID,
     LONG_PATH_PREFIX,
     USER_SID,
@@ -75,8 +75,7 @@ from magicicadaclient.platform.tests.os_helper.test_os_helper import (
 
 
 def _build_invalid_windows_bytes_name():
-    invalid_unicodes = u''.join(WINDOWS_ILLEGAL_CHARS_MAP)
-    invalid_filename = 'test_file' + invalid_unicodes.encode('utf8')
+    invalid_filename = 'test_file' + ''.join(WINDOWS_ILLEGAL_CHARS_MAP)
     return invalid_filename
 
 
@@ -107,7 +106,7 @@ class TestIllegalPaths(OSWrapperTests):
     def test_listdir(self, expected_result=None):
         """Return a list of the files in a dir."""
         _, valid_path_name = os.path.split(self.valid_path)
-        expected_result = [_unicode_to_bytes(valid_path_name)]
+        expected_result = [_windows_to_linux_path(valid_path_name)]
         super(TestIllegalPaths, self).test_listdir(expected_result)
 
     def test_make_link(self):
@@ -321,56 +320,56 @@ class DecoratorsTestCase(TestCase):
 
     def test_assert_windows_path_slash(self):
         """A path with a / is invalid."""
-        path = LONG_PATH_PREFIX + u'/a/b/'
+        path = LONG_PATH_PREFIX + '/a/b/'
         self.assert_error_raised(path)
 
     def test_assert_windows_method_name_path_slash(self):
         """A path with a / is invalid."""
-        path = LONG_PATH_PREFIX + u'/a/b/'
+        path = LONG_PATH_PREFIX + '/a/b/'
         method_name = 'method_name'
         self.assert_error_raised(path, method_name)
 
-    def test_assert_windows_path_non_unicode(self):
+    def test_assert_windows_path_non_str(self):
         """A non-unicode path is invalid."""
-        path = (LONG_PATH_PREFIX + u'C:\\Yadda').encode('utf8')
+        path = (LONG_PATH_PREFIX + 'C:\\Yadda').encode('utf8')
         self.assert_error_raised(path)
 
-    def test_assert_windows_method_name_path_non_unicode(self):
-        """A non-unicode path is invalid."""
-        path = (LONG_PATH_PREFIX + u'C:\\Yadda').encode('utf8')
-        method_name = 'method_name'
+    def test_assert_windows_method_name_non_str(self):
+        """A non-str method_name is invalid."""
+        path = (LONG_PATH_PREFIX + 'C:\\Yadda').encode('utf8')
+        method_name = b'method_name'
         self.assert_error_raised(path, method_name)
 
     def test_assert_windows_path_non_literal(self):
         """A non-literal path is invalid."""
-        path = u'C:\\Yadda'
+        path = 'C:\\Yadda'
         self.assert_error_raised(path)
 
     def test_assert_windows_method_name_path_non_literal(self):
         """A non-literal path is invalid."""
-        path = u'C:\\Yadda'
+        path = 'C:\\Yadda'
         method_name = 'method_name'
         self.assert_error_raised(path, method_name)
 
     def test_assert_windows_path_non_absolute(self):
         """A non-absolute path is invalid."""
-        path = u'./yadda'
+        path = './yadda'
         self.assert_error_raised(path)
 
     def test_assert_windows_method_name_path_non_absolute(self):
         """A non-absolute path is invalid."""
-        path = u'./yadda'
+        path = './yadda'
         method_name = 'method_name'
         self.assert_error_raised(path, method_name)
 
     def test_assert_windows_path_with_illegal_chars(self):
         """A path with illegal chars is invalid."""
-        path = u'./yadda' + u''.join(WINDOWS_ILLEGAL_CHARS_MAP)
+        path = './yadda' + ''.join(WINDOWS_ILLEGAL_CHARS_MAP)
         self.assert_error_raised(path)
 
     def test_assert_windows_method_name_path_with_illegal_chars(self):
         """A path with illegal chars is invalid."""
-        path = u'./yadda' + u''.join(WINDOWS_ILLEGAL_CHARS_MAP)
+        path = './yadda' + ''.join(WINDOWS_ILLEGAL_CHARS_MAP)
         method_name = 'method_name'
         self.assert_error_raised(path, method_name)
 
@@ -393,7 +392,7 @@ class TestIllegalPathsWalk(WalkTests):
         result = os.walk(valid_base_dir, topdown)
         expected = self._build_dict_from_walk(
             result, path_transformer=get_syncdaemon_valid_path,
-            name_transformer=_unicode_to_bytes)
+            name_transformer=_windows_to_linux_path)
         super(TestIllegalPathsWalk, self).test_top_down(topdown=topdown,
                                                         expected=expected)
 

@@ -1,7 +1,4 @@
 """This is a generated python file"""
-
-from __future__ import unicode_literals
-
 state_machine = {'events': {'EVENT_1': [{'ACTION': '',
                           'ACTION_FUNC': 'newline',
                           'COMMENTS': '',

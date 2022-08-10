@@ -32,26 +32,26 @@ ATTENTION: this is a boundary between platform dependent external interfaces
 (such as the DBus interface in Linux and the perspective broker interface in
 Windows) and syncdaemon.
 
-Syncdaemon handles ONLY string volume ID's and ONLY string paths (always bytes
-encoded with utf-8). We assume the external interfaces will ALWAYS handle
-unicode, so ID's and paths will be encoded to bytes with utf-8 in this layer.
+Prior the migration to Python 3, syncdaemon would ONLY handle bytes volume ID's
+and ONLY bytes paths (utf-8 encoded). There was the assumption that the
+external interfaces would ALWAYS handle strings, so ID's and paths would be
+encoded to utf-8 bytes in this layer.
+
+Since the migrationt to Python3 only support, external interfaces and this
+module would all use Python3's str type.
 
 """
 
-import collections
 import logging
 import os
 import uuid
 
-from functools import wraps
-
 from magicicadaprotocol import request
 from twisted.internet import defer
 
+from magicicadaclient.logger import log_call
 from magicicadaclient.networkstate import NetworkManagerState
 from magicicadaclient.networkstate.networkstates import ONLINE
-
-from magicicadaclient.logger import log_call
 from magicicadaclient.platform import ExternalInterface
 from magicicadaclient.syncdaemon import config
 from magicicadaclient.syncdaemon.action_queue import Download, Upload
@@ -81,15 +81,13 @@ def get_share_dict(share):
     if 'subscribed' not in share_dict:
         share_dict['subscribed'] = share.subscribed
     for k, v in share_dict.items():
-        k = unicode(k)
+        k = str(k)
         if v is None:
             share_dict[k] = ''
-        elif k == 'path':
-            share_dict[k] = v.decode('utf-8')
         elif k == 'accepted' or k == 'subscribed':
             share_dict[k] = bool_str(v)
         else:
-            share_dict[k] = unicode(v)
+            share_dict[k] = str(v)
     return share_dict
 
 
@@ -97,17 +95,13 @@ def get_udf_dict(udf):
     """Get a dict with all the attributes of: udf."""
     udf_dict = udf.__dict__.copy()
     for k, v in udf_dict.items():
-        k = unicode(k)
+        k = str(k)
         if v is None:
             udf_dict[k] = ''
         elif k == 'subscribed':
             udf_dict[k] = bool_str(v)
-        elif k == 'path':
-            udf_dict[k] = v.decode('utf-8')
-        elif k == 'suggested_path' and isinstance(v, str):
-            udf_dict[k] = v.decode('utf-8')
         else:
-            udf_dict[k] = unicode(v)
+            udf_dict[k] = str(v)
     return udf_dict
 
 
@@ -117,65 +111,12 @@ def sanitize_dict(data):
         if IMarker.providedBy(v):
             # this goes first, as it also is instance of basestring
             data[k] = repr(v)
-        elif isinstance(v, basestring):
-            pass  # to avoid str() to already strings
         elif isinstance(v, bool):
             data[k] = bool_str(v)
         elif v is None:
             data[k] = 'None'
         else:
             data[k] = str(v)
-
-
-def unicode_to_bytes(f):
-    """Decorator to normalize unicode params into utf-8 bytes."""
-
-    def handle_mapping(mapping, to_bytes):
-        """Convert all the values in 'mapping' from unicode to utf-8 bytes."""
-        result = {}
-        for key, value in mapping.items():
-            result[key] = handle_item(value, to_bytes)
-        return result
-
-    def handle_sequence(sequence, to_bytes):
-        """Convert all the items in 'sequence' from unicode to utf-8 bytes."""
-        result = []
-        for value in sequence:
-            result.append(handle_item(value, to_bytes))
-        return result
-
-    def handle_item(item, to_bytes):
-        """Convert any item from unicode to utf-8 bytes."""
-        # Do not change the order of the guards, since str() conforms Sequence
-        if isinstance(item, str):
-            if not to_bytes:
-                item = item.decode('utf-8')
-        elif isinstance(item, unicode):
-            if to_bytes:
-                item = item.encode('utf-8')
-        elif isinstance(item, collections.Mapping):
-            item = handle_mapping(item, to_bytes)
-        elif isinstance(item, collections.Sequence):
-            item = handle_sequence(item, to_bytes)
-
-        return item
-
-    @wraps(f)
-    def inner(*args, **kwargs):
-        """Encode every unicode param into utf-8 bytes.
-
-        Call 'f' with the normalized params, and decode the result, if
-        possible, into a unicode.
-
-        """
-        new_args = handle_sequence(args, to_bytes=True)
-        new_kwargs = handle_mapping(kwargs, to_bytes=True)
-
-        result = f(*new_args, **new_kwargs)
-
-        return handle_item(result, to_bytes=False)
-
-    return inner
 
 
 class SyncdaemonObject(object):
@@ -263,7 +204,6 @@ class SyncdaemonStatus(SyncdaemonObject):
                 current_downloads.append(entry)
         return current_downloads
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def free_space(self, volume_id):
         """Return the free space for the given volume."""
@@ -314,7 +254,6 @@ class SyncdaemonStatus(SyncdaemonObject):
 class SyncdaemonFileSystem(SyncdaemonObject):
     """An interface to the FileSystem Manager."""
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def get_metadata(self, path):
         """Return the metadata (as a dict) for the specified path."""
@@ -324,7 +263,6 @@ class SyncdaemonFileSystem(SyncdaemonObject):
         md_dict['path'] = path
         return md_dict
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def get_metadata_by_node(self, share_id, node_id):
         """Return the metadata (as a dict) for the specified share/node."""
@@ -334,7 +272,6 @@ class SyncdaemonFileSystem(SyncdaemonObject):
         md_dict['path'] = path
         return md_dict
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def get_metadata_and_quick_tree_synced(self, path):
         """Return the metadata (as a dict) for the specified path.
@@ -387,10 +324,7 @@ class SyncdaemonFileSystem(SyncdaemonObject):
         for k, v in mdobj.__dict__.items():
             if k == 'info':
                 continue
-            elif k == 'path':
-                md_dict[str(k)] = v.decode('utf-8')
-            else:
-                md_dict[str(k)] = str(v)
+            md_dict[str(k)] = str(v)
         if mdobj.__dict__.get('info', None):
             for k, v in mdobj.info.__dict__.items():
                 md_dict['info_' + str(k)] = str(v)
@@ -405,7 +339,6 @@ class SyncdaemonFileSystem(SyncdaemonObject):
             dirty_nodes.append(self._mdobj_dict(mdobj))
         return dirty_nodes
 
-    @unicode_to_bytes
     @log_call(logger.debug, with_result=False)
     def search_files(self, pattern):
         """Search for the occurrence of pattern in the files names."""
@@ -415,7 +348,6 @@ class SyncdaemonFileSystem(SyncdaemonObject):
 class SyncdaemonShares(SyncdaemonObject):
     """An interface to interact with shares."""
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def get_volume(self, share_id):
         """Return the volume for the given share."""
@@ -432,7 +364,6 @@ class SyncdaemonShares(SyncdaemonObject):
             shares.append(info)
         return shares
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def accept_share(self, share_id):
         """Accept a share.
@@ -443,13 +374,11 @@ class SyncdaemonShares(SyncdaemonObject):
         """
         self.vm.accept_share(share_id, True)
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def reject_share(self, share_id):
         """Reject a share."""
         self.vm.accept_share(share_id, False)
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def delete_share(self, share_id):
         """Delete a Share, both kinds: "to me" and "from me"."""
@@ -459,13 +388,11 @@ class SyncdaemonShares(SyncdaemonObject):
             # isn't a volume! it might be a "share from me (a.k.a shared)"
             self.vm.delete_share(share_id)
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def subscribe(self, share_id):
         """Subscribe to the specified share."""
         self.vm.subscribe_share(share_id)
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def unsubscribe(self, share_id):
         """Unsubscribe from the specified share."""
@@ -480,9 +407,6 @@ class SyncdaemonShares(SyncdaemonObject):
         @param name: the name of the share
         @param access_level: ACCESS_LEVEL_RO or ACCESS_LEVEL_RW
         """
-        path = path.encode("utf-8")
-        username = unicode(username)
-        name = unicode(name)
         try:
             self.fs_manager.get_by_path(path)
         except KeyError:
@@ -667,19 +591,16 @@ class SyncdaemonConfig(SyncdaemonObject):
 class SyncdaemonFolders(SyncdaemonObject):
     """A interface to interact with User Defined Folders"""
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def create(self, path):
         """Create a user defined folder in the specified path."""
         self.vm.create_udf(path)
 
-    @unicode_to_bytes
     @log_call(logger.info)
     def delete(self, folder_id):
         """Delete the folder specified by folder_id."""
         self.vm.delete_volume(folder_id)
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def validate_path(self, path):
         """Return True if the path is valid for a folder."""
@@ -691,19 +612,16 @@ class SyncdaemonFolders(SyncdaemonObject):
         """Return the list of folders (a list of dicts)."""
         return [get_udf_dict(udf) for udf in self.vm.udfs.values()]
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def subscribe(self, folder_id):
         """Subscribe to the specified folder."""
         self.vm.subscribe_udf(folder_id)
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def unsubscribe(self, folder_id):
         """Unsubscribe from the specified folder."""
         self.vm.unsubscribe_udf(folder_id)
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def get_info(self, path):
         """Return a dict containing the folder information."""
@@ -745,7 +663,6 @@ class SyncdaemonPublicFiles(SyncdaemonObject):
 class SyncdaemonEvents(SyncdaemonObject):
     """The events of the system translated to IPC signals."""
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def push_event(self, event_name, args):
         """Push an event to the event queue."""
@@ -755,7 +672,6 @@ class SyncdaemonEvents(SyncdaemonObject):
 class SyncdaemonEventListener(SyncdaemonObject):
     """An Event Queue Listener."""
 
-    @unicode_to_bytes
     def _get_path(self, share_id, node_id):
         """Get the path from the given ids."""
         try:
@@ -783,8 +699,6 @@ class SyncdaemonEventListener(SyncdaemonObject):
             self.interface.status.SignalError(signal_name, args)
 
         if path is not None:
-            # unicode boundary! external interfaces expect unicode paths
-            path = path.decode('utf-8')
             signal = getattr(self.interface.status, signal_name)
             if info is None:
                 signal(path)
@@ -845,15 +759,13 @@ class SyncdaemonEventListener(SyncdaemonObject):
     @log_call(logger.debug)
     def handle_SV_ACCOUNT_CHANGED(self, account_info):
         """Handle SV_ACCOUNT_CHANGED."""
-        info = dict(purchased_bytes=unicode(account_info.purchased_bytes))
+        info = dict(purchased_bytes=str(account_info.purchased_bytes))
         self.interface.status.AccountChanged(info)
 
     @log_call(logger.debug)
     def handle_FS_INVALID_NAME(self, dirname, filename):
         """Handle FS_INVALID_NAME."""
-        # unicode boundary! external interfaces expect unicode paths
-        dirname = dirname.decode('utf-8')
-        self.interface.status.InvalidName(dirname, str(filename))
+        self.interface.status.InvalidName(dirname, filename)
 
     @log_call(logger.debug)
     def handle_SYS_BROKEN_NODE(self, volume_id, node_id, mdid, path):
@@ -862,8 +774,6 @@ class SyncdaemonEventListener(SyncdaemonObject):
             mdid = ''
         if path is None:
             path = ''
-        # unicode boundary! external interfaces expect unicode paths
-        path = path.decode('utf-8')
         self.interface.status.BrokenNode(volume_id, node_id, mdid, path)
 
     @log_call(logger.debug)
@@ -878,7 +788,7 @@ class SyncdaemonEventListener(SyncdaemonObject):
         share = self.vm.shares.get(share_id)
         if share is not None:
             info = get_share_dict(share)
-            info['free_bytes'] = unicode(free_bytes)
+            info['free_bytes'] = str(free_bytes)
             self.interface.shares.ShareChanged(info)
 
     @log_call(logger.debug)
@@ -895,8 +805,6 @@ class SyncdaemonEventListener(SyncdaemonObject):
     def handle_AQ_CREATE_SHARE_ERROR(self, marker, error):
         """Handle AQ_CREATE_SHARE_ERROR event, emit ShareCreateError signal."""
         path = self.fs_manager.get_by_mdid(marker).path
-        # unicode boundary! external interfaces expect unicode paths
-        path = path.decode('utf-8')
         info = dict(path=path, marker=marker)
         self.interface.shares.ShareCreateError(info, error)
 
@@ -950,8 +858,6 @@ class SyncdaemonEventListener(SyncdaemonObject):
     @log_call(logger.debug)
     def handle_VM_UDF_CREATE_ERROR(self, path, error):
         """Handle VM_UDF_CREATE_ERROR event, emit FolderCreateError signal."""
-        # unicode boundary! external interfaces expect unicode paths
-        path = path.decode('utf-8')
         self.interface.folders.FolderCreateError(dict(path=path), str(error))
 
     @log_call(logger.debug)
@@ -1109,7 +1015,7 @@ class SyncdaemonEventListener(SyncdaemonObject):
             volume_dict = get_share_dict(volume)
 
         # be sure that the volume has the most updated free bytes info
-        volume_dict['free_bytes'] = unicode(free_bytes)
+        volume_dict['free_bytes'] = str(free_bytes)
 
         self.interface.sync_daemon.QuotaExceeded(volume_dict)
 
@@ -1246,22 +1152,22 @@ class SyncdaemonService(SyncdaemonObject):
     @log_call(logger.debug)
     def get_homedir(self):
         """Return the home dir point."""
-        return self.main.get_homedir().decode('utf-8')
+        return self.main.get_homedir()
 
     @log_call(logger.debug)
     def get_rootdir(self):
         """Return the root dir/mount point."""
-        return self.main.get_rootdir().decode('utf-8')
+        return self.main.get_rootdir()
 
     @log_call(logger.debug)
     def get_sharesdir(self):
         """Return the shares dir/mount point."""
-        return self.main.get_sharesdir().decode('utf-8')
+        return self.main.get_sharesdir()
 
     @log_call(logger.debug)
     def get_sharesdir_link(self):
         """Return the shares dir/mount point."""
-        return self.main.get_sharesdir_link().decode('utf-8')
+        return self.main.get_sharesdir_link()
 
     @log_call(logger.debug)
     def wait_for_nirvana(self, last_event_interval):
@@ -1277,7 +1183,6 @@ class SyncdaemonService(SyncdaemonObject):
         """Shutdown the syncdaemon."""
         return self.main.quit()
 
-    @unicode_to_bytes
     @log_call(logger.debug)
     def rescan_from_scratch(self, volume_id):
         """Request a rescan from scratch of the volume with volume_id."""

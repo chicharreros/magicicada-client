@@ -35,7 +35,7 @@ from devtools.testcases import skipIfOS
 from magicicadaclient.platform.session import Inhibitor, INHIBIT_LOGOUT_SUSPEND
 
 
-@skipIfOS('linux2', 'Ignored becuase it requires a DBusTestCases.')
+@skipIfOS('linux', 'Ignored becuase it requires a DBusTestCases.')
 class InhibitorTestCase(TestCase):
     """Test the inhibitor class."""
 

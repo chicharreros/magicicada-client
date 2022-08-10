@@ -80,7 +80,7 @@ try:
     from com.sun.star.lang import IndexOutOfBoundsException
     from com.sun.star.container import NoSuchElementException
     from com.sun.star.beans import PropertyValue
-    from unohelper import systemPathToFileUrl, absolutize
+    from unohelper import systemPathToFileUrl, absolutize, fileUrlToSystemPath
 except ImportError:
     has_oo_bindings = False
 else:
@@ -91,7 +91,7 @@ if has_oo_bindings:
     # we have to do this because python-uno breaks mocker
     CONNECT_MSG = """Need to start OpenOffice! Use a command like:
 
-        looffice -accept="socket,host=localhost,port=2002;urp;"
+        loffice -accept="socket,host=localhost,port=2002;urp;"
 
     """
 
@@ -120,12 +120,15 @@ if has_oo_bindings:
             cwd = systemPathToFileUrl(os.getcwd())
             file_url = absolutize(
                 cwd, systemPathToFileUrl(os.path.join(os.getcwd(), filename)))
+            path = fileUrlToSystemPath(file_url)
+            assert os.path.exists(path), 'Path %r should exist' % path
+
             in_props = PropertyValue("Hidden", 0, True, 0),
             document = desktop.loadComponentFromURL(
                 file_url, "_blank", 0, in_props)
-            self.rules = document.Sheets.getByName(u'rules')
+            self.rules = document.Sheets.getByName('rules')
             try:
-                self.invalid = document.Sheets.getByName(u'invalid')
+                self.invalid = document.Sheets.getByName('invalid')
             except NoSuchElementException:
                 self.invalid = None
 
@@ -135,7 +138,7 @@ if has_oo_bindings:
             # find the last column with data. from the second state
             # the last column in the third row (varnames)
             i = 1
-            cells = [u""]
+            cells = [""]
             found_state = False
             while True:
                 try:

@@ -28,9 +28,9 @@
 
 """Test file based persistent shelf."""
 
-import cPickle as pickle
 import hashlib
 import os
+import pickle
 import unittest
 
 from twisted.internet import defer

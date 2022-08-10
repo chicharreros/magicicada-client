@@ -29,7 +29,6 @@
 # files in the program, then also delete it here.
 """A command-line utility to interact with ubuntuone-syncdaemon."""
 
-import codecs
 import os
 import sys
 from optparse import OptionParser
@@ -72,21 +71,15 @@ def main(options, args, stdout):
     """Entry point."""
     sync_daemon_tool = SyncDaemonTool(bus)
 
-    # get the encoding of the output stream, defaults to UTF-8
-    out_encoding = getattr(stdout, 'encoding', 'utf-8')
-    if out_encoding is None:
-        out_encoding = 'utf-8'
-    out = codecs.getwriter(out_encoding)(stdout, errors='replace')
-    # start syncdaemon if it's required
     running = yield is_already_running()
     should_start = not running and not options.quit and not options.start
 
     try:
         if should_start:
             yield sync_daemon_tool.start()
-        yield run(options, sync_daemon_tool, out)
+        yield run(options, sync_daemon_tool, stdout)
     except Exception as e:
-        out.write("\nOops, an error ocurred:\n%s\n" % e)
+        stdout.write("\nOops, an error ocurred:\n%s\n" % e)
     finally:
         if reactor.running:
             reactor.stop()

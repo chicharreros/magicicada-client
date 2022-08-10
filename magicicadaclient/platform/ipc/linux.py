@@ -80,8 +80,7 @@ class DBusExposedObject(dbus.service.Object):
     def __init__(self, bus_name, service):
         """Create the instance."""
         self.service = service
-        dbus.service.Object.__init__(self, bus_name=bus_name,
-                                     object_path=self.path)
+        super().__init__(bus_name=bus_name, object_path=self.path)
 
     @dbus.service.signal(DBUS_IFACE_SYNC_NAME, signature='sa{ss}')
     def SignalError(self, signal, extra_args):
@@ -97,7 +96,8 @@ class DBusExposedObject(dbus.service.Object):
             data = '<![CDATA[' + func.__doc__ + ']]>'
             doc.text = '%s'
             element.insert(0, doc)
-            reflection_data = ElementTree.tostring(element) % data
+            reflection_data = (
+                ElementTree.tostring(element).decode('utf-8') % data)
 
         return reflection_data
 

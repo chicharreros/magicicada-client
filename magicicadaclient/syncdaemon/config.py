@@ -32,7 +32,7 @@ import os
 import functools
 import logging
 
-from ConfigParser import NoOptionError, NoSectionError
+from backports.configparser import NoOptionError, NoSectionError
 from optparse import OptionParser
 from dirspec.basedir import (
     load_config_paths,
@@ -40,7 +40,6 @@ from dirspec.basedir import (
     xdg_data_home,
     xdg_cache_home,
 )
-from dirspec.utils import unicode_path
 
 from magicicadaclient.platform import (
     can_write,
@@ -175,7 +174,7 @@ def log_level_parser(value):
     log level is defined is to check the private attribute.
     """
     try:
-        level = logging._levelNames[value]
+        level = logging._nameToLevel[value]
     except KeyError:
         # if level don't exists in our custom levels, fallback to DEBUG
         level = logging.DEBUG
@@ -210,8 +209,7 @@ def get_config_files():
     """
     config_files = []
     for xdg_config_dir in load_config_paths(BASE_FILE_PATH):
-        xdg_config_dir = unicode_path(xdg_config_dir)
-        config_file = os.path.join(xdg_config_dir, CONFIG_FILE).encode('utf8')
+        config_file = os.path.join(xdg_config_dir, CONFIG_FILE)
         if os.path.exists(config_file):
             config_files.append(config_file)
 
@@ -288,7 +286,7 @@ def upgrade_log_level(cp):
         current = cp.get('logging', 'level')
         parser = current.parser
         old = cp.get(MAIN, 'log_level')
-        if isinstance(old.value, basestring):
+        if isinstance(old.value, str):
             # wasn't parsed
             old.value = parser(old.value)
         if parser(current.attrs['default']) == current.value:

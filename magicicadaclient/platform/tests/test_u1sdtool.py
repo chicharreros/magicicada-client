@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2009-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -33,7 +31,7 @@
 import os
 
 from operator import itemgetter
-from StringIO import StringIO
+from io import StringIO
 
 from twisted.internet import defer
 
@@ -84,15 +82,15 @@ class U1SDToolTests(TestToolsBase):
     def test_show_shares(self):
         """test the output of --list-shared """
         out = StringIO()
-        share_path = os.path.join(self.shares_dir, u"ñoño".encode('utf-8'))
-        share = Share(path=share_path, name=u"ñoño", volume_id='share_id',
+        share_path = os.path.join(self.shares_dir, "ñoño")
+        share = Share(path=share_path, name="ñoño", volume_id='share_id',
                       access_level=ACCESS_LEVEL_RO, other_username='fake_user',
-                      other_visible_name=u"ñoño", accepted=False,
+                      other_visible_name="ñoño", accepted=False,
                       subscribed=False)
         yield self.main.vm.add_share(share)
         expected = (
-            u"Shares list:\n id=share_id name=\xf1o\xf1o accepted=False "
-            u"subscribed=False access_level=View from=fake_user\n")
+            "Shares list:\n id=share_id name=\xf1o\xf1o accepted=False "
+            "subscribed=False access_level=View from=fake_user\n")
         result = yield self.tool.get_shares()
         show_shares(result, out)
         self.assertEqual(out.getvalue(), expected)
@@ -111,7 +109,7 @@ class U1SDToolTests(TestToolsBase):
 
     def test_show_shared(self):
         """test the output of --list-shared """
-        path = os.path.join(self.root_dir, u"ñoño".encode('utf-8'))
+        path = os.path.join(self.root_dir, "ñoño")
         self.fs.create(path, "")
         self.fs.set_node_id(path, "node_id")
 
@@ -124,8 +122,8 @@ class U1SDToolTests(TestToolsBase):
                                   ACCESS_LEVEL_RO)
         out = StringIO()
         expected = (
-            u"Shared list:\n  id=share_id name=shared_name accepted=False "
-            u"access_level=View to=fake_user path=%s\n" % path.decode('utf-8'))
+            "Shared list:\n  id=share_id name=shared_name accepted=False "
+            "access_level=View to=fake_user path=%s\n" % path)
         d = self.tool.list_shared()
         d.addCallback(lambda result: show_shared(result, out))
 
@@ -137,33 +135,19 @@ class U1SDToolTests(TestToolsBase):
 
     def test_show_path_info_non_ascii(self):
         """Test the output of --info with non-ascii paths """
-        return self.generic_test_show_path_info_unicode('utf-8')
-
-    def test_show_path_info_unicode_pipe(self):
-        """test the output of --info with unicode paths going to e.g. a pipe"""
-        return self.generic_test_show_path_info_unicode(None)
-
-    def generic_test_show_path_info_unicode(self, encoding):
-        """generic test for the output of --info with unicode paths """
-        path = os.path.join(self.root_dir, u"ñoño".encode('utf-8'))
+        path = os.path.join(self.root_dir, 'ñoño')
         mdid = self.fs.create(path, "")
         self.fs.set_node_id(path, "uuid1")
         mdobj = self.fs.get_by_mdid(mdid)
         self.fs.create_partial(mdobj.node_id, mdobj.share_id)
         fh = self.fs.get_partial_for_writing(mdobj.node_id, mdobj.share_id)
-        fh.write("foobar")
+        fh.write(b"foobar")
         fh.close()
         self.fs.commit_partial(mdobj.node_id, mdobj.share_id, "localhash")
         self.fs.remove_partial("uuid1", "")
 
-        if encoding is not None:
-            path = path.decode(encoding)
-        else:
-            path = path.decode('utf-8')
-
         d = self.tool.get_metadata(path)
         out = StringIO()
-        out.encoding = encoding
         expected = """ File: %(path_info)s
   crc32: None
   generation: None
@@ -185,12 +169,9 @@ class U1SDToolTests(TestToolsBase):
 """
 
         def callback(result):
-            if encoding is not None:
-                result.update(dict(path_info=path))
-            else:
-                result.update(dict(path_info=path))
+            result.update(dict(path_info=path))
             for k, v in result.items():
-                self.assertIsInstance(v, unicode)
+                self.assertIsInstance(v, str)
             value = expected % result
             self.assertEqual(out.getvalue(), value)
 
@@ -208,7 +189,7 @@ class U1SDToolTests(TestToolsBase):
         d.addCallback(lambda result: show_uploads(result, out))
         d.addCallback(lambda _: self.tool.get_current_downloads())
         d.addCallback(lambda result: show_downloads(result, out))
-        expected = u'Current uploads: 0\nCurrent downloads: 0\n'
+        expected = 'Current uploads: 0\nCurrent downloads: 0\n'
 
         def check(result):
             """check the output"""
@@ -235,9 +216,9 @@ class U1SDToolTests(TestToolsBase):
 
         out = StringIO()
         expected = (
-            u"Current uploads:\n  path: up_path\n    deflated size: 100\n    "
-            u"bytes written: 10\nCurrent downloads:\n  path: down_path\n    "
-            u"deflated size: 10\n    bytes read: 1\n")
+            "Current uploads:\n  path: up_path\n    deflated size: 100\n    "
+            "bytes written: 10\nCurrent downloads:\n  path: down_path\n    "
+            "deflated size: 10\n    bytes read: 1\n")
         result = yield self.tool.get_current_uploads()
         show_uploads(result, out)
 
@@ -344,15 +325,15 @@ class U1SDToolTests(TestToolsBase):
                 FakeCommand2("", "node_id_3")])
         out = StringIO()
         expected = (
-            u"Warning: this option is deprecated! Use '--waiting' instead\n"
-            u"operation='FakeUpload' node_id='node_id' share_id='' "
-            u"path='upload_path'\n"
-            u"operation='FakeCommand2' node_id='node_id_2' share_id='' "
-            u"path='other_path'\n"
-            u"operation='FakeDownload' node_id='node_id_1' share_id='' "
-            u"path='download_path'\n"
-            u"operation='FakeCommand2' node_id='node_id_3' share_id='' "
-            u"path='other_path'\n"
+            "Warning: this option is deprecated! Use '--waiting' instead\n"
+            "operation='FakeUpload' node_id='node_id' share_id='' "
+            "path='upload_path'\n"
+            "operation='FakeCommand2' node_id='node_id_2' share_id='' "
+            "path='other_path'\n"
+            "operation='FakeDownload' node_id='node_id_1' share_id='' "
+            "path='download_path'\n"
+            "operation='FakeCommand2' node_id='node_id_3' share_id='' "
+            "path='other_path'\n"
         )
 
         result = yield self.tool.waiting_content()
@@ -375,42 +356,41 @@ class U1SDToolTests(TestToolsBase):
     def test_show_folders_subscribed(self):
         """Test the output of --list-folders."""
         out = StringIO()
-        suggested_path = u"~/ñoño"
+        suggested_path = "~/ñoño"
         path = get_udf_path(suggested_path)
 
         udf = UDF("folder_id", "node_id", suggested_path, path,
                   subscribed=True)
         yield self.main.vm.add_udf(udf)
-        expected = u"Folder list:\n  id=folder_id subscribed=True " + \
-                   u"path=%s\n" % path.decode('utf-8')
+        expected = "Folder list:\n  id=folder_id subscribed=True path=%s\n"
         result = yield self.tool.get_folders()
         show_folders(result, out)
-        self.assertEqual(out.getvalue(), expected)
+        self.assertEqual(out.getvalue(), expected % path)
 
     @defer.inlineCallbacks
     def test_show_folders_unsubscribed(self):
         """Test the output of --list-folders with a unsubscribed folder."""
         out = StringIO()
-        path = u'ñoño'.encode('utf-8')
-        suggested_path = os.path.join("~", u'ñoño')
+        path = 'ñoño'
+        suggested_path = os.path.join("~", path)
 
         udf = UDF("folder_id", "node_id", suggested_path, path,
                   subscribed=True)
         yield self.main.vm.add_udf(udf)
         self.main.vm.unsubscribe_udf(udf.id)
-        expected = u"Folder list:\n  id=folder_id subscribed=False " + \
-                   u"path=\xf1o\xf1o\n"
+        expected = "Folder list:\n  id=folder_id subscribed=False " + \
+                   "path=\xf1o\xf1o\n"
         result = yield self.tool.get_folders()
         show_folders(result, out)
         self.assertEqual(out.getvalue(), expected)
 
     @defer.inlineCallbacks
-    def generic_show_dirty_nodes(self, encoding, empty=False):
+    def generic_show_dirty_nodes(self, empty=False):
         """Test dirty nodes output."""
         # create some nodes
-        path1 = os.path.join(self.root_dir, u'ñoño-1'.encode('utf-8'))
+        path1 = os.path.join(self.root_dir, 'ñoño-1')
         self.main.fs.create(path1, "")
-        path2 = os.path.join(self.root_dir, u'ñoño-2'.encode('utf-8'))
+        path2 = os.path.join(self.root_dir, 'ñoño-2')
         mdid2 = self.main.fs.create(path2, "")
         path3 = os.path.join(self.root_dir, "path3")
         self.main.fs.create(path3, "")
@@ -425,7 +405,6 @@ class U1SDToolTests(TestToolsBase):
         dirty_nodes = yield self.tool.get_dirty_nodes()
 
         out = StringIO()
-        out.encoding = encoding
         # sort the list
         dirty_nodes.sort(key=itemgetter('mdid'))
         show_dirty_nodes(dirty_nodes, out)
@@ -438,10 +417,6 @@ class U1SDToolTests(TestToolsBase):
             for mdid in sorted([mdid4, mdid2]):
                 mdobj = self.main.fs.get_by_mdid(mdid)
                 d = mdobj.__dict__
-                if encoding is not None:
-                    d['path'] = d['path'].decode(encoding)
-                else:
-                    d['path'] = d['path'].decode('utf-8')
                 lines.append(node_line_tpl % d)
             value = expected % ''.join(lines)
         else:
@@ -450,12 +425,8 @@ class U1SDToolTests(TestToolsBase):
 
     def test_show_dirty_nodes_non_ascii(self):
         """Test show_dirty_nodes with non-ascii paths."""
-        return self.generic_show_dirty_nodes("utf-8")
-
-    def test_show_dirty_nodes_pipe(self):
-        """Test show_dirty_nodes with unicode paths going to e.g: a pipe"""
-        return self.generic_show_dirty_nodes(None)
+        return self.generic_show_dirty_nodes()
 
     def test_show_dirty_nodes_empty(self):
         """Test show_dirty_nodes with no dirty nodes."""
-        return self.generic_show_dirty_nodes(None, empty=True)
+        return self.generic_show_dirty_nodes(empty=True)

@@ -82,7 +82,6 @@ class DBusClient(object):
         """Call method with *args and **kwargs over dbus."""
         msg = MethodCallMessage(self.destination, self.path, self.interface,
                                 method)
-        msg.set_no_reply(True)
         # get the signature
         signature = kwargs.get('signature', None)
         if signature is not None:
@@ -108,8 +107,7 @@ class DBusClient(object):
                 exc = IPCError(name=message.get_error_name(),
                                info=message.get_args_list())
                 return error_handler(exc)
-            args_list = message.get_args_list(utf8_strings=False,
-                                              byte_arrays=False)
+            args_list = message.get_args_list()
             if len(args_list) == 0:
                 reply_handler(None)
             elif len(args_list) == 1:

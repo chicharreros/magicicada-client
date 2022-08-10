@@ -1,7 +1,4 @@
 """This is a generated python file."""
-
-from __future__ import unicode_literals
-
 # make pylflakes accept this
 # noqa
 state_machine = {'events': {'AQ_DIR_DELETE_ERROR': [{'ACTION': 'md.create(path=path, uuid=uuid, type=type) aq.query(uuid=uuid)',

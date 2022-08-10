@@ -28,8 +28,6 @@
 
 """Tests for the common helper functions."""
 
-from __future__ import unicode_literals
-
 import logging
 import sys
 import os
@@ -188,7 +186,7 @@ class GetCertDirTestCase(TestCase):
 
     def test_linux(self):
         """Test that linux gets the right path."""
-        self.patch(sys, "platform", "linux2")
+        self.patch(sys, "platform", "linux")
         path = utils.get_cert_dir()
         self.assertEqual(path, "/etc/ssl/certs")
 

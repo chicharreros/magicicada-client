@@ -34,8 +34,8 @@ import random
 import threading
 import time
 from io import StringIO
+from unittest import mock
 
-import mock
 from magicicadaprotocol.content_hash import content_hash_factory, crc32
 from twisted.trial.unittest import TestCase as TwistedTestCase
 from twisted.internet import defer, reactor
@@ -151,7 +151,7 @@ class HasherTests(BaseTwistedTestCase):
         # send what to hash
         testfile = os.path.join(self.test_dir, "testfile")
         with open_file(testfile, "wb") as fh:
-            fh.write("foobar")
+            fh.write(b"foobar")
         item = ((testfile, "mdid"), FAKE_TIMESTAMP)
         queue.put(item)
 
@@ -186,7 +186,7 @@ class HasherTests(BaseTwistedTestCase):
         # send what to hash
         testfile = os.path.join(self.test_dir, "testfile")
         with open_file(testfile, "wb") as fh:
-            fh.write("foobar")
+            fh.write(b"foobar")
         item = ((testfile, "mdid"), FAKE_TIMESTAMP)
         queue.put(item)
 
@@ -201,7 +201,7 @@ class HasherTests(BaseTwistedTestCase):
         self.assertEqual(event, "HQ_HASH_NEW")
         # calculate what we should receive
         realh = content_hash_factory()
-        realh.hash_object.update("foobar")
+        realh.hash_object.update(b"foobar")
         should_be = realh.content_hash()
         curr_stat = stat_path(testfile)
         self.assertEqual(should_be, kwargs['hash'])
@@ -241,11 +241,11 @@ class HasherTests(BaseTwistedTestCase):
         should_be = []
         for i in range(10):
             hasher = content_hash_factory()
-            text = "supercalifragilistico" + str(i)
+            text = b"supercalifragilistico%d" % i
             hasher.hash_object.update(text)
             tfile = os.path.join(self.test_dir, "tfile" + str(i))
             with open_file(tfile, "wb") as fh:
-                fh.write("supercalifragilistico" + str(i))
+                fh.write(text)
             d = dict(path=tfile, hash=hasher.content_hash(),
                      crc32=crc32(text), size=len(text), stat=stat_path(tfile))
             should_be.append(("HQ_HASH_NEW", d))
@@ -277,7 +277,8 @@ class HasherTests(BaseTwistedTestCase):
     def test_large_content(self):
         """The hasher works ok for a lot of info."""
         # calculate what we should receive
-        testinfo = "".join(chr(random.randint(0, 255)) for i in range(100000))
+        testinfo = b"".join(
+            bytes(random.randint(0, 255)) for i in range(100000))
         hasher = content_hash_factory()
         hasher.hash_object.update(testinfo)
         testfile = os.path.join(self.test_dir, "testfile")
@@ -323,7 +324,7 @@ class HasherTests(BaseTwistedTestCase):
         queue = hash_queue.UniqueQueue()
         testfile = os.path.join(self.test_dir, "testfile")
         with open_file(testfile, "wb") as fh:
-            fh.write("foobar")
+            fh.write(b"foobar")
         item = ((testfile, "mdid"), FAKE_TIMESTAMP)
         queue.put(item)
 
@@ -355,7 +356,7 @@ class HasherSleepTests(BaseTwistedTestCase):
 
         self.testfile = os.path.join(self.test_dir, "testfile")
         with open_file(self.testfile, "wb") as fh:
-            fh.write("foobar")
+            fh.write(b"foobar")
 
         self.event_d = defer.Deferred()
         self.eq = FakeEventQueue(self.event_d, expected_events)
@@ -457,7 +458,7 @@ class HashQueueTests(BaseTwistedTestCase):
         # send what to hash
         testfile = os.path.join(self.test_dir, "testfile")
         with open_file(testfile, "wb") as fh:
-            fh.write("foobar")
+            fh.write(b"foobar")
         hq.insert(testfile, "mdid")
 
         # release the processor and check
@@ -466,7 +467,7 @@ class HashQueueTests(BaseTwistedTestCase):
         self.assertEqual(event, "HQ_HASH_NEW")
         # calculate what we should receive
         realh = content_hash_factory()
-        realh.hash_object.update("foobar")
+        realh.hash_object.update(b"foobar")
         should_be = realh.content_hash()
         curr_stat = stat_path(testfile)
         self.assertEqual(should_be, kwargs['hash'])
@@ -551,13 +552,14 @@ class HashQueueTests(BaseTwistedTestCase):
         should_be = []
         for i in range(10):
             hasher = content_hash_factory()
-            text = "supercalifragilistico" + str(i)
-            hasher.hash_object.update(text)
+            binary_text = b"supercalifragilistico%d" % i
+            hasher.hash_object.update(binary_text)
             tfile = os.path.join(self.test_dir, "tfile" + str(i))
             with open_file(tfile, "wb") as fh:
-                fh.write("supercalifragilistico" + str(i))
+                fh.write(binary_text)
             d = dict(path=tfile, hash=hasher.content_hash(),
-                     crc32=crc32(text), size=len(text), stat=stat_path(tfile))
+                     crc32=crc32(binary_text), size=len(binary_text),
+                     stat=stat_path(tfile))
             should_be.append(("HQ_HASH_NEW", d))
 
         receiver = FakeReceiver(events_limit=10)
@@ -580,11 +582,11 @@ class HashQueueTests(BaseTwistedTestCase):
         should_be = []
         for i in range(10):
             hasher = content_hash_factory()
-            text = "supercalifragilistico" + str(i)
+            text = b"supercalifragilistico%d" % i
             hasher.hash_object.update(text)
             tfile = os.path.join(self.test_dir, "tfile" + str(i))
             with open_file(tfile, "wb") as fh:
-                fh.write("supercalifragilistico" + str(i))
+                fh.write(text)
             d = dict(path=tfile, hash=hasher.content_hash(),
                      crc32=crc32(text), size=len(text), stat=stat_path(tfile))
             should_be.append(("HQ_HASH_NEW", d))

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2009-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -89,9 +87,9 @@ class TestToolsBase(IPCTestCase):
         volume_id = 'volume_id'
         node_id = 'node_id'
         if suggested_path is None:
-            suggested_path = u'~/ñoño'
+            suggested_path = '~/ñoño'
         else:
-            assert isinstance(suggested_path, unicode)
+            assert isinstance(suggested_path, str)
         path = volume_manager.get_udf_path(suggested_path)
         udf = volume_manager.UDF(str(volume_id), str(node_id), suggested_path,
                                  path, subscribed)
@@ -178,13 +176,13 @@ class TestToolsBasic(TestToolsBase):
     def test_search_files(self):
         """Check that get_metadata works as expected."""
         mdid = 'id'
-        path = os.path.join(self.root_dir, u'path/to/file_test')
+        path = os.path.join(self.root_dir, 'path/to/file_test')
         mdobj = {'server_hash': 'asdqwe123'}
         mdid2 = 'id2'
-        path2 = os.path.join(self.root_dir, u'path/to/my_files')
+        path2 = os.path.join(self.root_dir, 'path/to/my_files')
         mdobj2 = {'server_hash': 'asdqwe456'}
         mdid3 = 'id3'
-        path3 = u'/home2/to/my_files'
+        path3 = '/home2/to/my_files'
         mdobj3 = {'server_hash': 'asdqwe456'}
         self.fs._idx_path = {path: mdid, path2: mdid2, path3: mdid3}
         self.fs.fs = {mdid: mdobj, mdid2: mdobj2, mdid3: mdobj3}
@@ -549,7 +547,7 @@ class TestToolsSomeMore(TestToolsBase):
     @defer.inlineCallbacks
     def test_create_folder(self):
         """Test for Folders.create."""
-        path = os.path.join(self.home_dir, u'ñoño')
+        path = os.path.join(self.home_dir, 'ñoño')
         volume_id = 'volume_id'
         node_id = 'node_id'
 
@@ -567,7 +565,7 @@ class TestToolsSomeMore(TestToolsBase):
     @defer.inlineCallbacks
     def test_create_folder_error(self):
         """Test for Folders.create with error."""
-        path = os.path.join(self.home_dir, u'ñoño')
+        path = os.path.join(self.home_dir, 'ñoño')
 
         def create_udf(path, name, marker):
             """Fake create_udf."""
@@ -703,8 +701,7 @@ class TestToolsSomeMore(TestToolsBase):
         # consistent with the rest of syncdaemon where ID's are always strings
         node_id = '59809aae-9c5a-47e0-b37c-5abbfbe7c50a'
         share_id = ""
-        path = os.path.join(self.root_dir, u"ñoño")
-        path = path.encode('utf-8')
+        path = os.path.join(self.root_dir, "ñoño")
         self.fs.create(path, "")
         self.fs.set_node_id(path, node_id)
 
@@ -719,7 +716,7 @@ class TestToolsSomeMore(TestToolsBase):
 
         file_info = yield self.tool.change_public_access(path, True)
 
-        self.assertEqual(path.decode('utf-8'), file_info['path'])
+        self.assertEqual(path, file_info['path'])
         self.assertEqual(share_id, file_info['share_id'])
         self.assertEqual(node_id, file_info['node_id'])
         self.assertEqual('True', file_info['is_public'])
@@ -755,16 +752,16 @@ class TestToolsSomeMore(TestToolsBase):
         """Test for get_throttling_limits."""
         yield self.tool.set_throttling_limits(-1, -1)
         limits = yield self.tool.get_throttling_limits()
-        self.assertEqual(-1, limits[u'download'])
-        self.assertEqual(-1, limits[u'upload'])
+        self.assertEqual(-1, limits['download'])
+        self.assertEqual(-1, limits['upload'])
 
     @defer.inlineCallbacks
     def test_set_throttling_limits(self):
         """Test for set_throttling_limits."""
         yield self.tool.set_throttling_limits(10, 20)
         limits = yield self.tool.get_throttling_limits()
-        self.assertEqual(10, limits[u'download'])
-        self.assertEqual(20, limits[u'upload'])
+        self.assertEqual(10, limits['download'])
+        self.assertEqual(20, limits['upload'])
 
     @defer.inlineCallbacks
     def test_is_throttling_enabled(self):
@@ -962,8 +959,7 @@ class TestToolsSomeMore(TestToolsBase):
         vol_id = yield d
         self.assertEqual(vol_id, udf.volume_id)
 
-    @skipIfNotOS('linux2',
-                 "Exception is raised twice from PB in same process.")
+    @skipIfNotOS('linux', "Exception is raised twice from PB in same process.")
     @defer.inlineCallbacks
     def test_rescan_from_scratch_missing_volume(self):
         """Test for rescan_from_scratch method with a non-existing volume.."""
@@ -976,9 +972,9 @@ class TestToolsSomeMore(TestToolsBase):
     def test_get_dirty_nodes(self):
         """Test for get_dirty_nodes method."""
         # create some nodes
-        path1 = os.path.join(self.root_dir, u'ñoño-1'.encode('utf-8'))
+        path1 = os.path.join(self.root_dir, 'ñoño-1')
         mdid1 = self.main.fs.create(path1, "")
-        path2 = os.path.join(self.root_dir, u'ñoño-2'.encode('utf-8'))
+        path2 = os.path.join(self.root_dir, 'ñoño-2')
         mdid2 = self.main.fs.create(path2, "")
         path3 = os.path.join(self.root_dir, "path3")
         mdid3 = self.main.fs.create(path3, "")
@@ -997,15 +993,14 @@ class TestToolsSomeMore(TestToolsBase):
         self.assertIn(mdid4, dirty_mdids)
         self.assertNotIn(mdid1, dirty_mdids)
         self.assertNotIn(mdid3, dirty_mdids)
-        # check that path de/encoding is done correctly
-        self.assertEqual(repr(self.main.fs.get_by_mdid(mdid2).path),
-                         repr(dirty_mdids[mdid2]['path'].encode('utf-8')))
+        self.assertEqual(self.main.fs.get_by_mdid(mdid2).path,
+                         dirty_mdids[mdid2]['path'])
 
     @defer.inlineCallbacks
     def test_get_home_dir(self):
         """Test the get_home_dir method."""
         result = yield self.tool.get_home_dir()
-        self.assertEqual(self.main.get_homedir().decode('utf-8'), result)
+        self.assertEqual(self.main.get_homedir(), result)
 
     @defer.inlineCallbacks
     def test_get_root_dir(self):

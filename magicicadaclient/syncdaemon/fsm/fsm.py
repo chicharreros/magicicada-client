@@ -80,10 +80,9 @@ def expand_var_list(varlist, values):
     """
     myvalues = values.copy()
     for name in myvalues:
-        # star may be unicode
-        if str(myvalues[name]) == "*":
+        if myvalues[name] == "*":
             myvalues[name] = varlist[name]
-        elif str(myvalues[name])[0] == "!":
+        elif myvalues[name][0] == "!":
             var_list = varlist[name].copy()
             var_list.remove(myvalues[name][1:])
             myvalues[name] = var_list
@@ -235,11 +234,11 @@ class StateMachine(object):
                         (name, kind))
                     self.errors.append(err)
                 else:
-                    if str(value).strip() == "=" and kind != "STATE_OUT":
+                    if value.strip() == "=" and kind != "STATE_OUT":
                         self.errors.append(ValidationError(
                             "Cant have '=' in STATE or PARAMETERS section"))
-                    if not str(value).strip() in ("*", "="):
-                        if not str(value).strip()[0] == "!":
+                    if not value.strip() in ("*", "="):
+                        if not value.strip()[0] == "!":
                             vals.add(value)
         return vals
 
@@ -369,7 +368,7 @@ class Event(object):
         # clean invalid list
         for line in lines:
             for k, v in line["PARAMETERS"].items():
-                if str(v).strip() != "NA":
+                if v.strip() != "NA":
                     # this parameter has a value, remove from invalid list
                     if k in invalid:
                         invalid.remove(k)
@@ -389,7 +388,7 @@ class Event(object):
         vlist.update(self.state_vars)
         vlist.update(self.event_vars)
         self.state_x_params = build_combinations_from_varlist(vlist)
-        # now we remove the lines that have been defines as invalid
+        # now we remove the lines that have been defined as invalid
         toremove = []
         for i in self.invalid_states:
             for ei in expand_var_list(state_vars, i):
@@ -401,7 +400,8 @@ class Event(object):
                         if sxp not in toremove:
                             toremove.append(sxp)
 
-        map(self.state_x_params.remove, toremove)
+        for i in toremove:
+            self.state_x_params.remove(i)
 
         # create transitions by expanding states
         for line in lines:
@@ -413,7 +413,7 @@ class Event(object):
                     # copy source state if dest state is '='
                     so = new_line["STATE_OUT"].copy()
                     for k in so:
-                        if str(so[k]).strip() == "=":
+                        if so[k].strip() == "=":
                             so[k] = se[k]
                     new_line["STATE"] = se
                     new_line["PARAMETERS"] = pe
@@ -421,7 +421,7 @@ class Event(object):
 
                     # here we have the expanded lines, remove from
                     # states_x_params the lines with action NA
-                    if str(new_line["ACTION"]).strip() == "NA":
+                    if new_line["ACTION"].strip() == "NA":
                         s_x_p = {}
                         s_x_p.update(new_line["STATE"])
                         s_x_p.update(new_line["PARAMETERS"])
@@ -441,7 +441,7 @@ class Event(object):
                 # copy source state if dest state is '='
                 so = new_line["STATE_OUT"].copy()
                 for k in so:
-                    if str(so[k]).strip() == "=":
+                    if so[k].strip() == "=":
                         so[k] = se[k]
                 new_line["STATE"] = se
                 new_line["PARAMETERS"] = pe
@@ -449,7 +449,7 @@ class Event(object):
 
                 # here we have the expanded lines, remove from
                 # states_x_params the lines with action NA
-                if not str(new_line["ACTION"]).strip() == "NA":
+                if not new_line["ACTION"].strip() == "NA":
                     self.draw_transitions.append(Transition(name, new_line))
 
     def __str__(self):
@@ -517,7 +517,7 @@ if __name__ == "__main__":
     s = StateMachine(sys.argv[1], sys.argv[2:])
     if s.errors:
         for e in s.errors:
-            print e >> sys.stderr
+            print(e, file=sys.stderr)
         print("There are %s errors" % (len(s.errors)))
         exit(1)
     else:

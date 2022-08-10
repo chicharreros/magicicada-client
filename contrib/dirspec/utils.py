@@ -15,8 +15,6 @@
 
 """Utilities for multiplatform support of XDG directory handling."""
 
-from __future__ import unicode_literals
-
 import errno
 import os
 import sys
@@ -29,7 +27,6 @@ __all__ = ['user_home',
            'default_data_path',
            'get_env_path',
            'get_program_path',
-           'unicode_path',
            ]
 
 
@@ -102,28 +99,23 @@ def get_program_path(program_name, *args, **kwargs):
 
 
 def get_env_path(key, default):
-    """Get a UTF-8 encoded path from an environment variable."""
+    """Get a string path from an environment variable."""
     if key in os.environ:
         # on windows, environment variables are mbcs bytes
-        # so we must turn them into utf-8 Syncdaemon paths
+        # so we must turn them into Syncdaemon paths (str)
         try:
             path = os.environb.get(key.encode('utf-8'))
         except AttributeError:
             path = os.environ[key]
-        result = path.decode(sys.getfilesystemencoding()).encode('utf-8')
-    elif not isinstance(default, bytes):
-        result = default.encode('utf-8')
+        result = path.decode(sys.getfilesystemencoding())
+    elif isinstance(default, bytes):
+        result = default.decode('utf-8')
     else:
         result = default
 
+    assert isinstance(result, str)
+
     return result
-
-
-def unicode_path(utf8path):
-    """Turn an utf8 path into a unicode path."""
-    if isinstance(utf8path, bytes):
-        return utf8path.decode("utf-8")
-    return utf8path
 
 
 def get_special_folders():
@@ -147,8 +139,8 @@ def get_special_folders():
         # SHGetFolderPath is deprecated, replaced by SHGetKnownFolderPath
         # (http://msdn.microsoft.com/en-us/library/windows/desktop/bb762188)
         def get_path(name):
-            return shell.SHGetFolderPath(0, getattr(shellcon, name),
-                                         None, 0).encode('utf8')
+            return shell.SHGetFolderPath(0, getattr(shellcon, name), None, 0)
+
         special_folders['Personal'] = get_path("CSIDL_PROFILE")
         special_folders['Local AppData'] = get_path("CSIDL_LOCAL_APPDATA")
         special_folders['AppData'] = os.path.dirname(
@@ -163,26 +155,22 @@ if sys.platform == 'win32':
     user_home = special_folders['Personal']
     default_config_path = special_folders['Common AppData']
     default_config_home = special_folders['Local AppData']
-    default_data_path = os.path.join(default_config_path, b'xdg')
-    default_data_home = os.path.join(default_config_home, b'xdg')
-    default_cache_home = os.path.join(default_data_home, b'cache')
+    default_data_path = os.path.join(default_config_path, 'xdg')
+    default_data_home = os.path.join(default_config_home, 'xdg')
+    default_cache_home = os.path.join(default_data_home, 'cache')
 elif sys.platform == 'darwin':
-    user_home = os.path.expanduser(b'~')
-    default_cache_home = os.path.join(user_home, b'Library', b'Caches')
-    default_config_path = b'/Library/Preferences:/etc/xdg'
-    default_config_home = os.path.join(user_home, b'Library', b'Preferences')
-    default_data_path = b':'.join([b'/Library/Application Support',
-                                   b'/usr/local/share',
-                                   b'/usr/share'])
-    default_data_home = os.path.join(user_home, b'Library',
-                                     b'Application Support')
+    user_home = os.path.expanduser('~')
+    default_cache_home = os.path.join(user_home, 'Library', 'Caches')
+    default_config_path = '/Library/Preferences:/etc/xdg'
+    default_config_home = os.path.join(user_home, 'Library', 'Preferences')
+    default_data_path = ':'.join(
+        ['/Library/Application Support', '/usr/local/share', '/usr/share'])
+    default_data_home = os.path.join(
+        user_home, 'Library', 'Application Support')
 else:
-    user_home = os.path.expanduser(b'~')
-    default_cache_home = os.path.join(user_home,
-                                      b'.cache')
-    default_config_path = b'/etc/xdg'
-    default_config_home = os.path.join(user_home,
-                                       b'.config')
-    default_data_path = b'/usr/local/share:/usr/share'
-    default_data_home = os.path.join(user_home,
-                                     b'.local', b'share')
+    user_home = os.path.expanduser('~')
+    default_cache_home = os.path.join(user_home, '.cache')
+    default_config_path = '/etc/xdg'
+    default_config_home = os.path.join(user_home, '.config')
+    default_data_path = '/usr/local/share:/usr/share'
+    default_data_home = os.path.join(user_home, '.local', 'share')

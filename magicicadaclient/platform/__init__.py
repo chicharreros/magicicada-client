@@ -51,20 +51,12 @@ else:
 def expand_user(path):
     """Fix Python expanduser for weird chars in windows."""
     assert isinstance(path, str)
-    try:
-        path.decode('utf-8')
-    except UnicodeDecodeError:
-        raise AssertionError('The path %r must be encoded in utf-8' % path)
     tilde = '~'
     if (not path.startswith(tilde) or
             (len(path) > 1 and path[1:2] != os.path.sep)):
         return path
     result = path.replace('~', user_home, 1)
     assert isinstance(result, str)
-    try:
-        result.decode('utf-8')
-    except UnicodeDecodeError:
-        raise AssertionError('The path %r must be encoded in utf-8' % result)
     return result
 
 

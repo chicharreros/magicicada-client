@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright 2010-2012 Canonical Ltd.
 # Copyright 2015-2022 Chicharreros (https://launchpad.net/~chicharreros)
 #
@@ -50,51 +48,49 @@ class VMHelperTest(BaseVolumeManagerTests):
 
     def _test_get_udf_path(self, suggested_path):
         """Assert that the resulting udf path is correct."""
-        assert isinstance(suggested_path, unicode)
-        assert suggested_path.startswith(u'~')
+        assert isinstance(suggested_path, str)
+        assert suggested_path.startswith('~')
 
         path = get_udf_path(suggested_path)
-        expected = suggested_path.replace(u'/', os.path.sep)
-        expected = expand_user(expected.encode('utf8'))
+        expected = suggested_path.replace('/', os.path.sep)
+        expected = expand_user(expected)
         self.assertEqual(path, expected)
 
     def test_get_udf_path(self):
         """A bytes sequence is returned."""
-        self._test_get_udf_path(suggested_path=u'~/Documents')
+        self._test_get_udf_path(suggested_path='~/Documents')
 
     def test_get_udf_path_non_ascii(self):
         """A bytes sequence is returned."""
-        self._test_get_udf_path(suggested_path=u'~/Documents/Ñoño ñandú')
+        self._test_get_udf_path(suggested_path='~/Documents/Ñoño ñandú')
 
     def test_get_udf_path_funny_chars(self):
         """A bytes sequence is returned."""
-        self._test_get_udf_path(suggested_path=u'~/Documents/Nr 1: really?')
+        self._test_get_udf_path(suggested_path='~/Documents/Nr 1: really?')
 
     def test_get_udf_suggested_path(self):
         """Test for get_udf_suggested_path."""
         in_home = os.path.join(self.home_dir, 'foo')
-        self.assertEqual(u'~/foo', get_udf_suggested_path(in_home))
+        self.assertEqual('~/foo', get_udf_suggested_path(in_home))
 
-    def test_get_udf_suggested_path_expand_user_decode(self):
+    def test_get_udf_suggested_path_expand_user(self):
         """Test for get_udf_suggested_path."""
-        home = os.path.join(
-            self.home_dir.decode('utf-8'), u'雄鳥お人好し ñandú')
+        home = os.path.join(self.home_dir, '雄鳥お人好し ñandú')
 
         def fake_expand_user(path):
             """Fake expand_user."""
-            return home.encode('utf-8')
+            return home
 
         self.patch(vm_helper, 'expand_user', fake_expand_user)
-        in_home = os.path.join(home, u'ñoño')
-        in_home = in_home.encode('utf-8')
+        in_home = os.path.join(home, 'ñoño')
         suggested_path = get_udf_suggested_path(in_home)
-        self.assertEqual(u'~/ñoño', suggested_path)
+        self.assertEqual('~/ñoño', suggested_path)
 
     def test_get_udf_suggested_path_long_path(self):
         """Test for get_udf_suggested_path."""
         deep_in_home = os.path.join(self.home_dir, 'docs', 'foo', 'bar')
         actual = get_udf_suggested_path(deep_in_home)
-        self.assertEqual(u'~/docs/foo/bar', actual)
+        self.assertEqual('~/docs/foo/bar', actual)
 
     def test_get_udf_suggested_path_value_error(self):
         """Test for get_udf_suggested_path."""
@@ -156,26 +152,26 @@ class VMHelperLinkTestCase(BaseTwistedTestCase):
 class GetShareDirNameTests(BaseVolumeManagerTests):
 
     share_id = uuid.uuid4()
-    name = u'The little pretty share (♥)'
+    name = 'The little pretty share (♥)'
 
     def test_get_share_dir_name(self):
         """Test for get_share_dir_name."""
-        other_name = u'Dorian Grey'
+        other_name = 'Dorian Grey'
         share = self._create_share_volume(volume_id=self.share_id,
                                           name=self.name,
                                           other_visible_name=other_name)
         result = get_share_dir_name(share)
 
-        expected = u'%s (%s, %s)' % (self.name, other_name, self.share_id)
-        self.assertEqual(result, expected.encode('utf8'))
+        expected = '%s (%s, %s)' % (self.name, other_name, self.share_id)
+        self.assertEqual(result, expected)
 
     def test_get_share_dir_name_visible_name_empty(self):
         """Test for get_share_dir_name."""
-        other_name = u''
+        other_name = ''
         share = self._create_share_volume(volume_id=self.share_id,
                                           name=self.name,
                                           other_visible_name=other_name)
         result = get_share_dir_name(share)
 
-        expected = u'%s (%s)' % (self.name, self.share_id)
-        self.assertEqual(result, expected.encode('utf8'))
+        expected = '%s (%s)' % (self.name, self.share_id)
+        self.assertEqual(result, expected)

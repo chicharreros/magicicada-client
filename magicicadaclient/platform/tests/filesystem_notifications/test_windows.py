@@ -213,8 +213,8 @@ class TestWatchManager(common_tests.TestWatchManager):
     def setUp(self):
         """Set each of the tests."""
         yield super(TestWatchManager, self).setUp()
-        self.parent_path = u'\\\\?\\C:\\'  # a valid windows path
-        self.path = self.parent_path + u'path'
+        self.parent_path = '\\\\?\\C:\\'  # a valid windows path
+        self.path = self.parent_path + 'path'
         self.watch = Watch(1, self.path, None)
         self.manager._wdm = {1: self.watch}
         self.addCleanup(self.watch.stopped.callback, None)
@@ -254,7 +254,7 @@ class TestWatchManager(common_tests.TestWatchManager):
 
         first_watch = Watch(1, self.path, None)
         self.manager._wdm = {1: first_watch}
-        second_path = self.parent_path + u"second_path"
+        second_path = self.parent_path + "second_path"
         second_watch = Watch(2, second_path, None)
         self.manager._wdm[2] = second_watch
         d = self.manager.stop()
@@ -277,7 +277,7 @@ class TestWatchManagerAddWatches(BaseTwistedTestCase):
         manager = WatchManager(None)
         # no need to stop watching because start_watching is fake
 
-        path = u'\\\\?\\C:\\test'  # a valid windows path
+        path = '\\\\?\\C:\\test'  # a valid windows path
         mask = 'fake bit mask'
         d1 = manager.add_watch(path, mask)
         d2 = manager.add_watch(path, mask)

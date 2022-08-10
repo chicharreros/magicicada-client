@@ -28,10 +28,10 @@
 
 """Storage shelf using a files tree."""
 
-import cPickle as pickle
-import os
-import stat
 import errno
+import os
+import pickle
+import stat
 
 from collections import MutableMapping, deque
 

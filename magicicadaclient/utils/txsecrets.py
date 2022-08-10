@@ -331,8 +331,8 @@ class Collection(object):
         properties[ITEM_LABEL_PROPERTY] = label
         attributes = dbus.Dictionary(attr, signature="ss")
         properties[ITEM_ATTRIBUTES_PROPERTY] = attributes
-        parameters = dbus.ByteArray(ALGORITHM_PARAMS)
-        value_bytes = dbus.ByteArray(value)
+        parameters = dbus.ByteArray(ALGORITHM_PARAMS.encode('utf-8'))
+        value_bytes = dbus.ByteArray(value.encode('utf-8'))
         secret = (self.service.session, parameters, value_bytes,
                   SECRET_CONTENT_TYPE)
 
@@ -370,7 +370,7 @@ class Item(object):
         def getsecret_handler(secret):
             """The secret for this item was found."""
             value = secret[2]
-            d.callback(value)
+            d.callback(value.decode('utf-8'))
 
         self.item_iface.GetSecret(self.service.session, byte_arrays=True,
                                   reply_handler=getsecret_handler,
