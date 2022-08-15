@@ -213,7 +213,7 @@ class Node(object):
         return self.name
 
     def __repr__(self):
-        return "<Node %s (%s) error=%s connected=%s online=%s" % (
+        return "<Node %s (%s) error=%s connected=%s online=%s>" % (
             self.name, self.description, self.is_error, self.is_connected,
             self.is_online)
 
