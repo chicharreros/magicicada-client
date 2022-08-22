@@ -111,8 +111,9 @@ class BaseTestCase(FakeMainTestCase):
 
     @defer.inlineCallbacks
     def setUp(self):
-        self.patch(interaction_interfaces, 'ExternalInterface',
-                   FakedExternalInterface)
+        self.patch(
+            interaction_interfaces, 'ExternalInterface', FakedExternalInterface
+        )
         yield super(BaseTestCase, self).setUp()
 
         self.kwargs['main'] = self.main
@@ -126,16 +127,22 @@ class BaseTestCase(FakeMainTestCase):
         self.handler = MementoHandler()
         self.handler.setLevel(logging.DEBUG)
         interaction_interfaces.logger.addHandler(self.handler)
-        self.addCleanup(interaction_interfaces.logger.removeHandler,
-                        self.handler)
+        self.addCleanup(
+            interaction_interfaces.logger.removeHandler, self.handler
+        )
 
     def _raise_error(self, *args, **kwargs):
         """Make patched calls fail."""
         raise CustomError(*args, **kwargs)
 
-    def _create_share(self, volume_id=None, node_id=None,
-                      access_level=ACCESS_LEVEL_RO,
-                      accepted=True, subscribed=False):
+    def _create_share(
+        self,
+        volume_id=None,
+        node_id=None,
+        access_level=ACCESS_LEVEL_RO,
+        accepted=True,
+        subscribed=False,
+    ):
         """Create a Share and return it."""
         if volume_id is None:
             volume_id = 'share_id'
@@ -145,13 +152,23 @@ class BaseTestCase(FakeMainTestCase):
             path = self.main.root_dir
         else:
             path = os.path.join(self.main.shares_dir, 'a_share_dir')
-        share = Share(path=path, volume_id=volume_id, node_id=node_id,
-                      accepted=accepted, access_level=access_level,
-                      subscribed=subscribed)
+        share = Share(
+            path=path,
+            volume_id=volume_id,
+            node_id=node_id,
+            accepted=accepted,
+            access_level=access_level,
+            subscribed=subscribed,
+        )
         return share
 
-    def _create_udf(self, volume_id=None, node_id=None,
-                    suggested_path=None, subscribed=True):
+    def _create_udf(
+        self,
+        volume_id=None,
+        node_id=None,
+        suggested_path=None,
+        subscribed=True,
+    ):
         """Create an UDF and returns it and the volume."""
         if volume_id is None:
             volume_id = 'folder_id'
@@ -173,12 +190,15 @@ class SyncdaemonStatusTestCase(BaseTestCase):
     def test_current_status(self):
         """Test the current_status method."""
         state = self.main.state_manager.state
-        expected = dict(name=state.name, description=state.description,
-                        is_error=bool_str(state.is_error),
-                        is_connected=bool_str(state.is_connected),
-                        is_online=bool_str(state.is_online),
-                        queues=self.main.state_manager.queues.state.name,
-                        connection=self.main.state_manager.connection.state)
+        expected = dict(
+            name=state.name,
+            description=state.description,
+            is_error=bool_str(state.is_error),
+            is_connected=bool_str(state.is_connected),
+            is_online=bool_str(state.is_online),
+            queues=self.main.state_manager.queues.state.name,
+            connection=self.main.state_manager.connection.state,
+        )
 
         result = self.sd_obj.current_status()
 
@@ -313,40 +333,61 @@ class SyncdaemonStatusTestCase(BaseTestCase):
 
         node_a, node_b, node_c = self.sd_obj.waiting()
 
-        should = dict(share_id='share_id', node_id='node_id_a',
-                      running='True', other='123')
+        should = dict(
+            share_id='share_id',
+            node_id='node_id_a',
+            running='True',
+            other='123',
+        )
         self.assertEqual(node_a, ('FakeCommand', str(id(c1)), should))
 
-        should = dict(share_id='share_id', node_id='node_id_b',
-                      running='', other='None')
+        should = dict(
+            share_id='share_id', node_id='node_id_b', running='', other='None'
+        )
         self.assertEqual(node_b, ('FakeCommand', str(id(c2)), should))
 
-        should = dict(share_id='share_id', node_id='node_id_c',
-                      running='True', other='marker:bar')
+        should = dict(
+            share_id='share_id',
+            node_id='node_id_c',
+            running='True',
+            other='marker:bar',
+        )
         self.assertEqual(node_c, ('FakeCommand', str(id(c3)), should))
 
     def test_waiting_metadata(self):
         """Test the waiting_metadata method."""
-        self.action_q.queue.waiting.extend([
-            FakeCommand("share_id", "node_id_b", "moño"),
-            FakeCommand("share_id", "node_id_c", path='/some/path'),
-            FakeCommand("share_id", "node_id_d"),
-        ])
+        self.action_q.queue.waiting.extend(
+            [
+                FakeCommand("share_id", "node_id_b", "moño"),
+                FakeCommand("share_id", "node_id_c", path='/some/path'),
+                FakeCommand("share_id", "node_id_d"),
+            ]
+        )
 
         result = self.sd_obj.waiting_metadata()
 
         self.assertEqual(len(result), 3)
 
-        pl = dict(share_id='share_id', node_id='node_id_b',
-                  other='moño', running='True')
+        pl = dict(
+            share_id='share_id',
+            node_id='node_id_b',
+            other='moño',
+            running='True',
+        )
         self.assertEqual(result[0], ('FakeCommand', pl))
 
-        pl = dict(share_id='share_id', node_id='node_id_c',
-                  other='', path='/some/path', running='True')
+        pl = dict(
+            share_id='share_id',
+            node_id='node_id_c',
+            other='',
+            path='/some/path',
+            running='True',
+        )
         self.assertEqual(result[1], ('FakeCommand', pl))
 
-        pl = dict(share_id='share_id', node_id='node_id_d',
-                  other='', running='True')
+        pl = dict(
+            share_id='share_id', node_id='node_id_d', other='', running='True'
+        )
         self.assertEqual(result[2], ('FakeCommand', pl))
 
         self.handler.debug = True
@@ -354,10 +395,12 @@ class SyncdaemonStatusTestCase(BaseTestCase):
 
     def test_waiting_content(self):
         """Test the waiting_content method."""
-        self.action_q.queue.waiting.extend([
-            FakeUpload("share_id", "node_id_b"),
-            FakeDownload("share_id", "node_id_c"),
-        ])
+        self.action_q.queue.waiting.extend(
+            [
+                FakeUpload("share_id", "node_id_b"),
+                FakeDownload("share_id", "node_id_c"),
+            ]
+        )
 
         result = self.sd_obj.waiting_content()
 
@@ -395,8 +438,11 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         self.assertEqual(share.volume_id, result['share_id'])
         self.assertEqual(share.node_id, result['node_id'])
 
-    @skipIfOS('win32', 'Windows symlink handling does not support resolving'
-                       'symlink in between a path.')
+    @skipIfOS(
+        'win32',
+        'Windows symlink handling does not support resolving'
+        'symlink in between a path.',
+    )
     @defer.inlineCallbacks
     def test_get_metadata_path_symlink(self):
         """Test the get_metadata method, getting MD by path in a symlink."""
@@ -404,8 +450,9 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         yield self.main.vm.add_share(share)
         path = os.path.join(share.path, "foo")
         symlink_path = os.path.join(self.shares_dir, "share_symlink")
-        share_context = self.main.fs._enable_share_write(share.volume_id,
-                                                         share.path)
+        share_context = self.main.fs._enable_share_write(
+            share.volume_id, share.path
+        )
         with share_context:
             make_dir(share.path, recursive=True)
             make_link(share.path, symlink_path)
@@ -444,7 +491,8 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         self.main.fs.set_node_id(path, share.node_id)
 
         result = self.sd_obj.get_metadata_by_node(
-            share.volume_id, share.node_id)
+            share.volume_id, share.node_id
+        )
 
         self.assertEqual(path, result['path'])
         self.assertEqual(share.volume_id, result['share_id'])
@@ -461,7 +509,8 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
 
         # inject fake data
         self.action_q.queue.waiting.append(
-            FakeCommand(share.volume_id, share.node_id))
+            FakeCommand(share.volume_id, share.node_id)
+        )
 
         result = self.sd_obj.get_metadata_and_quick_tree_synced(path)
 
@@ -481,8 +530,10 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
 
         # inject fake data
         self.action_q.queue.waiting.append(
-            FakeCommand("this share id no longer exists",
-                        "neither does this path id"))
+            FakeCommand(
+                "this share id no longer exists", "neither does this path id"
+            )
+        )
 
         result = self.sd_obj.get_metadata_and_quick_tree_synced(path)
 
@@ -502,7 +553,8 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
 
         # inject fake data
         self.action_q.queue.waiting.append(
-            FakeCommand(share.volume_id, share.node_id))
+            FakeCommand(share.volume_id, share.node_id)
+        )
 
         result = self.sd_obj.get_metadata_and_quick_tree_synced(path)
 
@@ -527,8 +579,11 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         self.assertEqual(share.node_id, result['node_id'])
         self.assertEqual('synced', result['quick_tree_synced'])
 
-    @skipIfOS('win32', 'Windows symlink handling does not support resolving'
-                       'symlink in between a path.')
+    @skipIfOS(
+        'win32',
+        'Windows symlink handling does not support resolving'
+        'symlink in between a path.',
+    )
     @defer.inlineCallbacks
     def test_get_metadata_and_quick_tree_synced_symlink(self):
         """Test the get_metadata_and_quick_tree_synced method."""
@@ -538,8 +593,9 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         self.main.fs.create(path, share.volume_id)
         self.main.fs.set_node_id(path, share.node_id)
         symlink_path = os.path.join(self.shares_dir, "share_symlink")
-        share_context = self.main.fs._enable_share_write(share.volume_id,
-                                                         share.path)
+        share_context = self.main.fs._enable_share_write(
+            share.volume_id, share.path
+        )
         with share_context:
             make_dir(share.path, recursive=True)
             make_link(share.path, symlink_path)
@@ -577,8 +633,10 @@ class SyncdaemonFileSystemTestCase(BaseTestCase):
         self.assertNotIn(mdid1, dirty_mdids)
         self.assertNotIn(mdid3, dirty_mdids)
         # check that path de/encoding is done correctly
-        self.assertEqual(repr(self.main.fs.get_by_mdid(mdid2).path),
-                         repr(dirty_mdids[mdid2]['path']))
+        self.assertEqual(
+            repr(self.main.fs.get_by_mdid(mdid2).path),
+            repr(dirty_mdids[mdid2]['path']),
+        )
 
 
 class SyncdaemonSharesTestCase(BaseTestCase):
@@ -646,7 +704,7 @@ class SyncdaemonSharesTestCase(BaseTestCase):
 
         self.sd_obj.delete_share(share.volume_id)
 
-        self.assertEqual(self._called, ((share.volume_id, ), {}))
+        self.assertEqual(self._called, ((share.volume_id,), {}))
 
     @defer.inlineCallbacks
     def test_delete_share_from_me(self):
@@ -655,12 +713,13 @@ class SyncdaemonSharesTestCase(BaseTestCase):
         share = self._create_share(accepted=True)
         yield self.main.vm.add_shared(share)
 
-        self.assertRaises(VolumeDoesNotExist,
-                          self.main.vm.get_volume, share.volume_id)
+        self.assertRaises(
+            VolumeDoesNotExist, self.main.vm.get_volume, share.volume_id
+        )
 
         self.sd_obj.delete_share(share.volume_id)
 
-        self.assertEqual(self._called, ((share.volume_id, ), {}))
+        self.assertEqual(self._called, ((share.volume_id,), {}))
 
     def test_delete_share_doesnotexist(self):
         """Test the delete_share method with non-existent share."""
@@ -668,7 +727,7 @@ class SyncdaemonSharesTestCase(BaseTestCase):
         share_id = 'missing_share_id'
         self.sd_obj.delete_share(share_id)
 
-        self.assertEqual(self._called, ((share_id, ), {}))
+        self.assertEqual(self._called, ((share_id,), {}))
 
     def test_subscribe(self):
         """Test the subscribe method."""
@@ -719,11 +778,13 @@ class SyncdaemonSharesTestCase(BaseTestCase):
         self.main.fs.set_node_id(a_dir, "node_id")
 
         usernames = ['test_user1', 'test_user2', 'test_user3']
-        self.sd_obj.create_shares(a_dir, usernames, 'share_a_dir',
-                                  ACCESS_LEVEL_RO)
+        self.sd_obj.create_shares(
+            a_dir, usernames, 'share_a_dir', ACCESS_LEVEL_RO
+        )
 
-        expected = [(a_dir, u, 'share_a_dir', ACCESS_LEVEL_RO)
-                    for u in usernames]
+        expected = [
+            (a_dir, u, 'share_a_dir', ACCESS_LEVEL_RO) for u in usernames
+        ]
         self.assertEqual(called, expected)
 
     def test_refresh_shares(self):
@@ -741,8 +802,9 @@ class SyncdaemonSharesTestCase(BaseTestCase):
 
         def aq_create_share(*args):
             """Fake the action_queue's create_share."""
-            self.main.event_q.push('AQ_CREATE_SHARE_OK',
-                                   share_id='share_id', marker=args[-2])
+            self.main.event_q.push(
+                'AQ_CREATE_SHARE_OK', share_id='share_id', marker=args[-2]
+            )
 
         self.patch(self.main.action_q, 'create_share', aq_create_share)
         self.main.vm.create_share(a_dir, 0, 'share_a_dir', ACCESS_LEVEL_RO)
@@ -764,8 +826,9 @@ class SyncdaemonSharesTestCase(BaseTestCase):
 
         def aq_create_share(*args):
             """Fake the action_queue's create_share."""
-            self.main.event_q.push('AQ_CREATE_SHARE_OK',
-                                   share_id='share_id', marker=args[-2])
+            self.main.event_q.push(
+                'AQ_CREATE_SHARE_OK', share_id='share_id', marker=args[-2]
+            )
 
         self.patch(self.main.action_q, 'create_share', aq_create_share)
         self.main.vm.create_share(a_dir, 0, 'share_a_dir', ACCESS_LEVEL_RO)
@@ -792,9 +855,14 @@ class SyncdaemonSharesTestCase(BaseTestCase):
         a_dir = os.path.join(self.root_dir, 'ñoño')
         self.main.fs.create(a_dir, "", is_dir=True)
         self.main.fs.set_node_id(a_dir, "node_id")
-        share = Shared(path=a_dir, volume_id='shared_id', name='ñoño_shared',
-                       access_level=ACCESS_LEVEL_RO,
-                       other_username='test_username', node_id='node_id')
+        share = Shared(
+            path=a_dir,
+            volume_id='shared_id',
+            name='ñoño_shared',
+            access_level=ACCESS_LEVEL_RO,
+            other_username='test_username',
+            node_id='node_id',
+        )
         yield self.main.vm.add_shared(share)
 
         result = self.sd_obj.get_shared()
@@ -1005,8 +1073,9 @@ class SyncdaemonFoldersTestCase(BaseTestCase):
     def test_validate_path(self):
         """Test the validate_path method."""
         # Use a lambda instead of _set_called since we need to return a tuple.
-        self.patch(self.main.vm, 'validate_path_for_folder',
-                   lambda arg: (True, arg))
+        self.patch(
+            self.main.vm, 'validate_path_for_folder', lambda arg: (True, arg)
+        )
         path = 'this/is/a/test'
         rv = self.sd_obj.validate_path(path)
 
@@ -1020,8 +1089,11 @@ class SyncdaemonFoldersTestCase(BaseTestCase):
 
         udf1 = self._create_udf()
         yield self.main.vm.add_udf(udf1)
-        udf2 = self._create_udf(volume_id='other', node_id='another',
-                                suggested_path='~/other/location ♫ test')
+        udf2 = self._create_udf(
+            volume_id='other',
+            node_id='another',
+            suggested_path='~/other/location ♫ test',
+        )
         yield self.main.vm.add_udf(udf2)
 
         expected = [get_udf_dict(udf) for udf in self.main.vm.udfs.values()]
@@ -1029,7 +1101,8 @@ class SyncdaemonFoldersTestCase(BaseTestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(
             sorted(expected, key=operator.itemgetter('path')),
-            sorted(result, key=operator.itemgetter('path')))
+            sorted(result, key=operator.itemgetter('path')),
+        )
 
     def test_get_udf_dict(self):
         """Test for Folders.get_udf_dict."""
@@ -1048,8 +1121,9 @@ class SyncdaemonFoldersTestCase(BaseTestCase):
         udf_dict = get_udf_dict(udf)
         self.assertEqual(udf_dict['path'], udf.path)
         self.assertEqual(udf_dict['volume_id'], udf.id)
-        self.assertEqual(repr(udf_dict['suggested_path']),
-                         repr(udf.suggested_path))
+        self.assertEqual(
+            repr(udf_dict['suggested_path']), repr(udf.suggested_path)
+        )
         self.assertEqual(udf_dict['node_id'], udf.node_id)
         self.assertFalse(udf_dict['subscribed'])
 
@@ -1104,8 +1178,11 @@ class SyncdaemonPublicFilesTestCase(BaseTestCase):
     def test_change_public_access(self):
         """Test the change_public_access method."""
         called = []
-        self.patch(self.main.action_q, 'change_public_access',
-                   lambda a, b, c: called.append((str(a), str(b), c)))
+        self.patch(
+            self.main.action_q,
+            'change_public_access',
+            lambda a, b, c: called.append((str(a), str(b), c)),
+        )
         share_id = '4aa0de63-b28f-43e7-98de-6ff6b8ebfdd3'
         node_id = '59809aae-9c5a-47e0-b37c-5abbfbe7c50a'
         self.sd_obj.change_public_access(share_id, node_id, True)
@@ -1115,8 +1192,11 @@ class SyncdaemonPublicFilesTestCase(BaseTestCase):
     def test_change_public_access_share_id_none(self):
         """Test the change_public_access method."""
         called = []
-        self.patch(self.main.action_q, 'change_public_access',
-                   lambda a, b, c: called.append((a, str(b), c)))
+        self.patch(
+            self.main.action_q,
+            'change_public_access',
+            lambda a, b, c: called.append((a, str(b), c)),
+        )
         share_id = None
         node_id = '59809aae-9c5a-47e0-b37c-5abbfbe7c50a'
         self.sd_obj.change_public_access(share_id, node_id, True)
@@ -1218,12 +1298,14 @@ class UploadTestCase(SyncdaemonEventListenerTestCase):
         if self.add_fsm_key:
             self.patch(self.sd_obj.interface.status, self.signal_name, handler)
         else:
-            self.patch(self.sd_obj.interface.status, 'SignalError',
-                       self.error_handler)
+            self.patch(
+                self.sd_obj.interface.status, 'SignalError', self.error_handler
+            )
 
         kwargs = {'share_id': '', 'node_id': 'node_id', self.hash_kwarg: ''}
-        self.main.event_q.push('AQ_%s_STARTED' % self.direction.upper(),
-                               **kwargs)
+        self.main.event_q.push(
+            'AQ_%s_STARTED' % self.direction.upper(), **kwargs
+        )
         return self.deferred
 
     def test_handle_file_progress(self):
@@ -1234,20 +1316,27 @@ class UploadTestCase(SyncdaemonEventListenerTestCase):
         def handler(path, info):
             """Handler for <direction>FileProgress signal."""
             self.assertEqual(self.a_dir, path)
-            self.assertEqual(info, {self.bytes_key: '10',
-                                    'deflated_size': '20'})
+            self.assertEqual(
+                info, {self.bytes_key: '10', 'deflated_size': '20'}
+            )
             self.deferred.callback(True)
 
         if self.add_fsm_key:
             self.patch(self.sd_obj.interface.status, self.signal_name, handler)
         else:
-            self.patch(self.sd_obj.interface.status, 'SignalError',
-                       self.error_handler)
+            self.patch(
+                self.sd_obj.interface.status, 'SignalError', self.error_handler
+            )
 
-        kwargs = {'share_id': '', 'node_id': 'node_id', self.bytes_key: 10,
-                  'deflated_size': 20}
-        self.main.event_q.push('AQ_%s_FILE_PROGRESS' % self.direction.upper(),
-                               **kwargs)
+        kwargs = {
+            'share_id': '',
+            'node_id': 'node_id',
+            self.bytes_key: 10,
+            'deflated_size': 20,
+        }
+        self.main.event_q.push(
+            'AQ_%s_FILE_PROGRESS' % self.direction.upper(), **kwargs
+        )
         return self.deferred
 
     def test_handle_finished(self):
@@ -1264,8 +1353,9 @@ class UploadTestCase(SyncdaemonEventListenerTestCase):
         if self.add_fsm_key:
             self.patch(self.sd_obj.interface.status, self.signal_name, handler)
         else:
-            self.patch(self.sd_obj.interface.status, 'SignalError',
-                       self.error_handler)
+            self.patch(
+                self.sd_obj.interface.status, 'SignalError', self.error_handler
+            )
 
         kwargs = {'share_id': '', 'node_id': 'node_id'}
         kwargs.update(self.extra_finished_args)
@@ -1286,13 +1376,19 @@ class UploadTestCase(SyncdaemonEventListenerTestCase):
         if self.add_fsm_key:
             self.patch(self.sd_obj.interface.status, self.signal_name, handler)
         else:
-            self.patch(self.sd_obj.interface.status, 'SignalError',
-                       self.error_handler)
+            self.patch(
+                self.sd_obj.interface.status, 'SignalError', self.error_handler
+            )
 
-        kwargs = {'share_id': '', 'node_id': 'node_id', self.hash_kwarg: '',
-                  'error': 'AN_ERROR'}
-        self.main.event_q.push('AQ_%s_ERROR' % self.direction.upper(),
-                               **kwargs)
+        kwargs = {
+            'share_id': '',
+            'node_id': 'node_id',
+            self.hash_kwarg: '',
+            'error': 'AN_ERROR',
+        }
+        self.main.event_q.push(
+            'AQ_%s_ERROR' % self.direction.upper(), **kwargs
+        )
         return self.deferred
 
 
@@ -1347,10 +1443,14 @@ class StatusEventListenerTestCase(SyncdaemonEventListenerTestCase):
         dirname = self.a_dir
         filename = 'testpath'
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.status,
-                   'InvalidName', lambda *a: d.callback(a))
-        self.main.event_q.push('FS_INVALID_NAME',
-                               dirname=dirname, filename=filename)
+        self.patch(
+            self.sd_obj.interface.status,
+            'InvalidName',
+            lambda *a: d.callback(a),
+        )
+        self.main.event_q.push(
+            'FS_INVALID_NAME', dirname=dirname, filename=filename
+        )
 
         di, fi = yield d
 
@@ -1362,10 +1462,18 @@ class StatusEventListenerTestCase(SyncdaemonEventListenerTestCase):
     def test_handle_SYS_BROKEN_NODE(self):
         """Test the handle_SYS_BROKEN_NODE method with all data."""
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.status,
-                   'BrokenNode', lambda *a: d.callback(a))
-        self.main.event_q.push('SYS_BROKEN_NODE', volume_id='volume',
-                               node_id='node', path='somepath', mdid='mdid')
+        self.patch(
+            self.sd_obj.interface.status,
+            'BrokenNode',
+            lambda *a: d.callback(a),
+        )
+        self.main.event_q.push(
+            'SYS_BROKEN_NODE',
+            volume_id='volume',
+            node_id='node',
+            path='somepath',
+            mdid='mdid',
+        )
 
         volume_id, node_id, mdid, path = yield d
 
@@ -1379,10 +1487,18 @@ class StatusEventListenerTestCase(SyncdaemonEventListenerTestCase):
     def test_handle_SYS_BROKEN_NODE_partial_data(self):
         """Test the handle_SYS_BROKEN_NODE method with partial data."""
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.status,
-                   'BrokenNode', lambda *a: d.callback(a))
-        self.main.event_q.push('SYS_BROKEN_NODE', volume_id='volume',
-                               node_id='node', path=None, mdid=None)
+        self.patch(
+            self.sd_obj.interface.status,
+            'BrokenNode',
+            lambda *a: d.callback(a),
+        )
+        self.main.event_q.push(
+            'SYS_BROKEN_NODE',
+            volume_id='volume',
+            node_id='node',
+            path=None,
+            mdid=None,
+        )
 
         volume_id, node_id, mdid, path = yield d
 
@@ -1419,8 +1535,9 @@ class SharesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         free_bytes = 87654321
         d = defer.Deferred()
         self.patch(self.sd_obj.interface.shares, 'ShareChanged', d.callback)
-        self.main.event_q.push('SV_FREE_SPACE',
-                               share_id=share.volume_id, free_bytes=free_bytes)
+        self.main.event_q.push(
+            'SV_FREE_SPACE', share_id=share.volume_id, free_bytes=free_bytes
+        )
 
         info = yield d
 
@@ -1439,8 +1556,9 @@ class SharesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         share_id = 'share_id'
         d = defer.Deferred()
         self.patch(self.sd_obj.interface.shares, 'ShareCreated', d.callback)
-        self.main.event_q.push('AQ_CREATE_SHARE_OK',
-                               share_id=share_id, marker=marker)
+        self.main.event_q.push(
+            'AQ_CREATE_SHARE_OK', share_id=share_id, marker=marker
+        )
 
         result = yield d
 
@@ -1456,10 +1574,14 @@ class SharesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         marker = MDMarker(mdid)
         error_msg = 'an error message'
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.shares,
-                   'ShareCreateError', lambda *a: d.callback(a))
-        self.main.event_q.push('AQ_CREATE_SHARE_ERROR',
-                               marker=marker, error=error_msg)
+        self.patch(
+            self.sd_obj.interface.shares,
+            'ShareCreateError',
+            lambda *a: d.callback(a),
+        )
+        self.main.event_q.push(
+            'AQ_CREATE_SHARE_ERROR', marker=marker, error=error_msg
+        )
 
         info, error = yield d
 
@@ -1474,8 +1596,9 @@ class SharesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         yield self.main.vm.add_share(share)
 
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.shares,
-                   'ShareAnswerResponse', d.callback)
+        self.patch(
+            self.sd_obj.interface.shares, 'ShareAnswerResponse', d.callback
+        )
         self.main.vm.accept_share('share_id', True)
 
         result = yield d
@@ -1491,8 +1614,9 @@ class SharesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         yield self.main.vm.add_share(share)
 
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.shares,
-                   'ShareAnswerResponse', d.callback)
+        self.patch(
+            self.sd_obj.interface.shares, 'ShareAnswerResponse', d.callback
+        )
         self.main.vm.accept_share('share_id', False)
 
         result = yield d
@@ -1508,10 +1632,15 @@ class SharesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         answer = 'foo'
         error_msg = 'an error message'
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.shares,
-                   'ShareAnswerResponse', d.callback)
-        self.main.event_q.push('AQ_ANSWER_SHARE_ERROR', error=error_msg,
-                               share_id=share_id, answer=answer)
+        self.patch(
+            self.sd_obj.interface.shares, 'ShareAnswerResponse', d.callback
+        )
+        self.main.event_q.push(
+            'AQ_ANSWER_SHARE_ERROR',
+            error=error_msg,
+            share_id=share_id,
+            answer=answer,
+        )
 
         info = yield d
 
@@ -1528,8 +1657,9 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         udf = self._create_udf(subscribed=False)
         yield self.main.vm.add_udf(udf)
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.folders,
-                   'FolderSubscribed', d.callback)
+        self.patch(
+            self.sd_obj.interface.folders, 'FolderSubscribed', d.callback
+        )
         self.main.vm.subscribe_udf(udf.volume_id)
 
         info = yield d
@@ -1543,10 +1673,14 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         """Test the handle_VM_UDF_SUBSCRIBE_ERROR method."""
         udf = self._create_udf(subscribed=False)
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.folders,
-                   'FolderSubscribeError', lambda *a: d.callback(a))
-        yield self.assertFailure(self.main.vm.subscribe_udf(udf.volume_id),
-                                 VolumeDoesNotExist)
+        self.patch(
+            self.sd_obj.interface.folders,
+            'FolderSubscribeError',
+            lambda *a: d.callback(a),
+        )
+        yield self.assertFailure(
+            self.main.vm.subscribe_udf(udf.volume_id), VolumeDoesNotExist
+        )
 
         info, error = yield d
 
@@ -1559,8 +1693,9 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         udf = self._create_udf(subscribed=True)
         yield self.main.vm.add_udf(udf)
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.folders,
-                   'FolderUnSubscribed', d.callback)
+        self.patch(
+            self.sd_obj.interface.folders, 'FolderUnSubscribed', d.callback
+        )
         self.main.vm.unsubscribe_udf(udf.volume_id)
 
         info = yield d
@@ -1574,8 +1709,11 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         """Test the handle_VM_UDF_UNSUBSCRIBE_ERROR method."""
         udf = self._create_udf(subscribed=False)
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.folders,
-                   'FolderUnSubscribeError', lambda *a: d.callback(a))
+        self.patch(
+            self.sd_obj.interface.folders,
+            'FolderUnSubscribeError',
+            lambda *a: d.callback(a),
+        )
         self.main.vm.unsubscribe_udf(udf.volume_id)
 
         info, error = yield d
@@ -1588,8 +1726,7 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         """Test the handle_VM_UDF_CREATED method."""
         udf = self._create_udf(subscribed=True)
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.folders,
-                   'FolderCreated', d.callback)
+        self.patch(self.sd_obj.interface.folders, 'FolderCreated', d.callback)
         yield self.main.vm.add_udf(udf)
 
         info = yield d
@@ -1603,10 +1740,14 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         path = self.a_dir
         error_msg = "I'm broken"
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.folders,
-                   'FolderCreateError', lambda *a: d.callback(a))
-        self.main.event_q.push('VM_UDF_CREATE_ERROR',
-                               path=path, error=error_msg)
+        self.patch(
+            self.sd_obj.interface.folders,
+            'FolderCreateError',
+            lambda *a: d.callback(a),
+        )
+        self.main.event_q.push(
+            'VM_UDF_CREATE_ERROR', path=path, error=error_msg
+        )
 
         info, error = yield d
 
@@ -1619,8 +1760,7 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         share = self._create_share(subscribed=False)
         yield self.main.vm.add_share(share)
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.shares,
-                   'ShareSubscribed', d.callback)
+        self.patch(self.sd_obj.interface.shares, 'ShareSubscribed', d.callback)
         self.main.vm.subscribe_share(share.volume_id)
 
         info = yield d
@@ -1634,10 +1774,14 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         """Test the handle_VM_SHARE_SUBSCRIBE_ERROR method."""
         share = self._create_share(subscribed=False)
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.shares,
-                   'ShareSubscribeError', lambda *a: d.callback(a))
-        yield self.assertFailure(self.main.vm.subscribe_share(share.volume_id),
-                                 VolumeDoesNotExist)
+        self.patch(
+            self.sd_obj.interface.shares,
+            'ShareSubscribeError',
+            lambda *a: d.callback(a),
+        )
+        yield self.assertFailure(
+            self.main.vm.subscribe_share(share.volume_id), VolumeDoesNotExist
+        )
 
         info, error = yield d
 
@@ -1650,8 +1794,9 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         share = self._create_share(subscribed=True)
         yield self.main.vm.add_share(share)
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.shares,
-                   'ShareUnSubscribed', d.callback)
+        self.patch(
+            self.sd_obj.interface.shares, 'ShareUnSubscribed', d.callback
+        )
         self.main.vm.unsubscribe_share(share.volume_id)
 
         info = yield d
@@ -1665,8 +1810,11 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         """Test the handle_VM_SHARE_UNSUBSCRIBE_ERROR method."""
         share = self._create_share(subscribed=False)
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.shares,
-                   'ShareUnSubscribeError', lambda *a: d.callback(a))
+        self.patch(
+            self.sd_obj.interface.shares,
+            'ShareUnSubscribeError',
+            lambda *a: d.callback(a),
+        )
         self.main.vm.unsubscribe_share(share.volume_id)
 
         info, error = yield d
@@ -1704,10 +1852,14 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         share_id = 'share_id'
         error_msg = "I'm broken"
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.shares,
-                   'ShareDeleteError', lambda *a: d.callback(a))
-        self.main.event_q.push('VM_SHARE_DELETE_ERROR',
-                               share_id=share_id, error=error_msg)
+        self.patch(
+            self.sd_obj.interface.shares,
+            'ShareDeleteError',
+            lambda *a: d.callback(a),
+        )
+        self.main.event_q.push(
+            'VM_SHARE_DELETE_ERROR', share_id=share_id, error=error_msg
+        )
 
         info, error = yield d
 
@@ -1721,19 +1873,23 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         udf = self._create_udf()
         volumes = [share, udf, self.main.vm.root]
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.sync_daemon, 'VolumesChanged',
-                   d.callback)
+        self.patch(
+            self.sd_obj.interface.sync_daemon, 'VolumesChanged', d.callback
+        )
 
         self.main.event_q.push('VM_VOLUMES_CHANGED', volumes=volumes)
 
         info = yield d
 
         str_volumes = (
-            get_share_dict(share), get_udf_dict(udf),
-            get_share_dict(self.main.vm.root))
+            get_share_dict(share),
+            get_udf_dict(udf),
+            get_share_dict(self.main.vm.root),
+        )
         self.assertEqual(
             sorted(str_volumes, key=operator.itemgetter('path')),
-            sorted(info, key=operator.itemgetter('path')))
+            sorted(info, key=operator.itemgetter('path')),
+        )
 
     @defer.inlineCallbacks
     def test_handle_VM_VOLUME_DELETED_folder(self):
@@ -1766,8 +1922,9 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         """Test the handle_VM_VOLUME_DELETED method for unknown volume."""
         volume = object()
         d = defer.Deferred()
-        self.patch(interaction_interfaces.logger, 'error',
-                   lambda *a: d.callback(a))
+        self.patch(
+            interaction_interfaces.logger, 'error', lambda *a: d.callback(a)
+        )
         self.main.event_q.push('VM_VOLUME_DELETED', volume=volume)
 
         msg, obj = yield d
@@ -1782,10 +1939,14 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         udf = self._create_udf()
         yield self.main.vm.add_udf(udf)
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.folders, 'FolderDeleteError',
-                   lambda *a: d.callback(a))
-        self.main.event_q.push('VM_VOLUME_DELETE_ERROR',
-                               volume_id=udf.volume_id, error=error_msg)
+        self.patch(
+            self.sd_obj.interface.folders,
+            'FolderDeleteError',
+            lambda *a: d.callback(a),
+        )
+        self.main.event_q.push(
+            'VM_VOLUME_DELETE_ERROR', volume_id=udf.volume_id, error=error_msg
+        )
 
         info, error = yield d
 
@@ -1800,10 +1961,16 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         share = self._create_share()
         yield self.main.vm.add_share(share)
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.shares, 'ShareDeleteError',
-                   lambda *a: d.callback(a))
-        self.main.event_q.push('VM_VOLUME_DELETE_ERROR',
-                               volume_id=share.volume_id, error=error_msg)
+        self.patch(
+            self.sd_obj.interface.shares,
+            'ShareDeleteError',
+            lambda *a: d.callback(a),
+        )
+        self.main.event_q.push(
+            'VM_VOLUME_DELETE_ERROR',
+            volume_id=share.volume_id,
+            error=error_msg,
+        )
 
         info, error = yield d
 
@@ -1819,17 +1986,21 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         volume = object()
         d = defer.Deferred()
         self.patch(self.main.vm, 'get_volume', lambda vid: volume)
-        self.patch(interaction_interfaces.logger, 'error',
-                   lambda *a: d.callback(a))
-        self.main.event_q.push('VM_VOLUME_DELETE_ERROR',
-                               volume_id=volume_id, error=error_msg)
+        self.patch(
+            interaction_interfaces.logger, 'error', lambda *a: d.callback(a)
+        )
+        self.main.event_q.push(
+            'VM_VOLUME_DELETE_ERROR', volume_id=volume_id, error=error_msg
+        )
 
         msg, err, obj = yield d
 
         self.assertEqual(volume_id, obj)
         self.assertEqual(error_msg, err)
-        self.assertIn("Unable to handle VM_VOLUME_DELETE_ERROR (%r) "
-                      "for volume_id=", msg)
+        self.assertIn(
+            "Unable to handle VM_VOLUME_DELETE_ERROR (%r) " "for volume_id=",
+            msg,
+        )
 
     @defer.inlineCallbacks
     def test_handle_VM_VOLUME_DELETE_ERROR_key_error(self):
@@ -1837,16 +2008,19 @@ class VolumesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         error_msg = 'error test'
         volume = 'foo'
         d = defer.Deferred()
-        self.patch(interaction_interfaces.logger, 'error',
-                   lambda *a: d.callback(a))
-        self.main.event_q.push('VM_VOLUME_DELETE_ERROR',
-                               volume_id=volume, error=error_msg)
+        self.patch(
+            interaction_interfaces.logger, 'error', lambda *a: d.callback(a)
+        )
+        self.main.event_q.push(
+            'VM_VOLUME_DELETE_ERROR', volume_id=volume, error=error_msg
+        )
 
         msg, obj = yield d
 
         self.assertEqual(volume, obj)
-        self.assertIn("Unable to handle VM_VOLUME_DELETE_ERROR for volume_id",
-                      msg)
+        self.assertIn(
+            "Unable to handle VM_VOLUME_DELETE_ERROR for volume_id", msg
+        )
         self.assertIn("no such volume", msg)
 
     @defer.inlineCallbacks
@@ -1877,21 +2051,32 @@ class PublicFilesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         self.main.fs.set_node_id(path, share.node_id)
 
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.public_files,
-                   'PublicAccessChanged', d.callback)
+        self.patch(
+            self.sd_obj.interface.public_files,
+            'PublicAccessChanged',
+            d.callback,
+        )
 
         node_id = share.node_id
         is_public = True
         public_url = 'http://example.com'
-        self.event_q.push('AQ_CHANGE_PUBLIC_ACCESS_OK',
-                          share_id=share_id, node_id=node_id,
-                          is_public=is_public, public_url=public_url)
+        self.event_q.push(
+            'AQ_CHANGE_PUBLIC_ACCESS_OK',
+            share_id=share_id,
+            node_id=node_id,
+            is_public=is_public,
+            public_url=public_url,
+        )
 
         info = yield d
 
-        expected_dict = dict(share_id=volume_id, node_id=node_id,
-                             is_public=bool_str(is_public),
-                             public_url=public_url, path=path)
+        expected_dict = dict(
+            share_id=volume_id,
+            node_id=node_id,
+            is_public=bool_str(is_public),
+            public_url=public_url,
+            path=path,
+        )
         self.assertEqual(expected_dict, info)
 
     @defer.inlineCallbacks
@@ -1910,13 +2095,20 @@ class PublicFilesEventListenerTestCase(SyncdaemonEventListenerTestCase):
         self.main.fs.set_node_id(path, share.node_id)
 
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.public_files,
-                   'PublicAccessChangeError', lambda *a: d.callback(a))
+        self.patch(
+            self.sd_obj.interface.public_files,
+            'PublicAccessChangeError',
+            lambda *a: d.callback(a),
+        )
 
         node_id = share.node_id
         error_msg = 'foo bar'
-        self.event_q.push('AQ_CHANGE_PUBLIC_ACCESS_ERROR',
-                          share_id=share_id, node_id=node_id, error=error_msg)
+        self.event_q.push(
+            'AQ_CHANGE_PUBLIC_ACCESS_ERROR',
+            share_id=share_id,
+            node_id=node_id,
+            error=error_msg,
+        )
 
         info, error = yield d
         expected_dict = dict(share_id=volume_id, node_id=node_id, path=path)
@@ -1948,17 +2140,27 @@ class PublicFilesEventListenerTestCase(SyncdaemonEventListenerTestCase):
             public_url = 'http://example.com/%d' % i
             self.main.fs.create(path, volume_id)
             self.main.fs.set_node_id(path, node_id)
-            public_files.append(dict(volume_id=volume_id, node_id=node_id,
-                                     public_url=public_url))
-            expected.append(dict(volume_id=volume_id, node_id=node_id,
-                                 public_url=public_url,
-                                 path=path))
+            public_files.append(
+                dict(
+                    volume_id=volume_id, node_id=node_id, public_url=public_url
+                )
+            )
+            expected.append(
+                dict(
+                    volume_id=volume_id,
+                    node_id=node_id,
+                    public_url=public_url,
+                    path=path,
+                )
+            )
 
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.public_files,
-                   'PublicFilesList', d.callback)
-        self.main.event_q.push('AQ_PUBLIC_FILES_LIST_OK',
-                               public_files=public_files)
+        self.patch(
+            self.sd_obj.interface.public_files, 'PublicFilesList', d.callback
+        )
+        self.main.event_q.push(
+            'AQ_PUBLIC_FILES_LIST_OK', public_files=public_files
+        )
 
         info = yield d
 
@@ -1969,8 +2171,11 @@ class PublicFilesEventListenerTestCase(SyncdaemonEventListenerTestCase):
     def test_handle_AQ_PUBLIC_FILES_LIST_ERROR(self):
         """Test the handle_AQ_PUBLIC_FILES_LIST_ERROR method."""
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.public_files,
-                   'PublicFilesListError', d.callback)
+        self.patch(
+            self.sd_obj.interface.public_files,
+            'PublicFilesListError',
+            d.callback,
+        )
         error_msg = 'error message'
         self.event_q.push('AQ_PUBLIC_FILES_LIST_ERROR', error=error_msg)
 
@@ -1985,8 +2190,11 @@ class SyncDaemonEventListenerTestCase(SyncdaemonEventListenerTestCase):
     def test_handle_SYS_ROOT_MISMATCH(self):
         """Test the handle_SYS_ROOT_MISMATCH method."""
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.sync_daemon,
-                   'RootMismatch', lambda *a: d.callback(a))
+        self.patch(
+            self.sd_obj.interface.sync_daemon,
+            'RootMismatch',
+            lambda *a: d.callback(a),
+        )
         self.main.vm._got_root('root_id')
         self.main.vm._got_root('another_root_id')
 
@@ -1998,10 +2206,12 @@ class SyncDaemonEventListenerTestCase(SyncdaemonEventListenerTestCase):
     def assert_quota_exceeded(self, volume_id, expected_volume_dict):
         """Check correct signaling of QuotaExceeded."""
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.sync_daemon,
-                   'QuotaExceeded', d.callback)
-        self.event_q.push('SYS_QUOTA_EXCEEDED',
-                          volume_id=volume_id, free_bytes=123)
+        self.patch(
+            self.sd_obj.interface.sync_daemon, 'QuotaExceeded', d.callback
+        )
+        self.event_q.push(
+            'SYS_QUOTA_EXCEEDED', volume_id=volume_id, free_bytes=123
+        )
 
         result = yield d
 
@@ -2041,17 +2251,26 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
     def setUp(self):
         yield super(RequestQueueEventListenerTestCase, self).setUp()
         self.called = []
-        self.patch(self.sd_obj.interface.status, 'ContentQueueChanged',
-                   lambda: self.called.append('ContentQueueChanged'))
-        self.patch(self.sd_obj.interface.status, 'MetaQueueChanged',
-                   lambda: self.called.append('MetaQueueChanged'))
+        self.patch(
+            self.sd_obj.interface.status,
+            'ContentQueueChanged',
+            lambda: self.called.append('ContentQueueChanged'),
+        )
+        self.patch(
+            self.sd_obj.interface.status,
+            'MetaQueueChanged',
+            lambda: self.called.append('MetaQueueChanged'),
+        )
 
     @defer.inlineCallbacks
     def test_handle_SYS_QUEUE_ADDED(self):
         """Test the handle_SYS_QUEUE_ADDED method."""
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.status,
-                   'RequestQueueAdded', lambda *a: d.callback(a))
+        self.patch(
+            self.sd_obj.interface.status,
+            'RequestQueueAdded',
+            lambda *a: d.callback(a),
+        )
         cmd = FakeCommand('share', 'node', other=123)
         self.main.event_q.push('SYS_QUEUE_ADDED', command=cmd)
 
@@ -2060,7 +2279,8 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
         self.assertEqual(op_name, 'FakeCommand')
         self.assertEqual(op_id, str(id(cmd)))
         should = dict(
-            share_id='share', node_id='node', running='True', other='123')
+            share_id='share', node_id='node', running='True', other='123'
+        )
         self.assertEqual(data, should)
 
         self.assertEqual(self.called, ['MetaQueueChanged'])
@@ -2069,8 +2289,11 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
     def test_handle_SYS_QUEUE_ADDED_content_queue_changed_upload(self):
         """Test that handle_SYS_QUEUE_ADDED also calls ContentQueueChanged."""
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.status,
-                   'RequestQueueAdded', lambda *a: d.callback(a))
+        self.patch(
+            self.sd_obj.interface.status,
+            'RequestQueueAdded',
+            lambda *a: d.callback(a),
+        )
         cmd = FakeUpload('share', 'node')
         self.main.event_q.push('SYS_QUEUE_ADDED', command=cmd)
 
@@ -2082,8 +2305,11 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
     def test_handle_SYS_QUEUE_ADDED_content_queue_changed_download(self):
         """Test that handle_SYS_QUEUE_ADDED also calls ContentQueueChanged."""
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.status,
-                   'RequestQueueAdded', lambda *a: d.callback(a))
+        self.patch(
+            self.sd_obj.interface.status,
+            'RequestQueueAdded',
+            lambda *a: d.callback(a),
+        )
         cmd = FakeDownload('share', 'node')
         self.main.event_q.push('SYS_QUEUE_ADDED', command=cmd)
 
@@ -2095,16 +2321,23 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
     def test_handle_SYS_QUEUE_REMOVED(self):
         """Test the handle_SYS_QUEUE_REMOVED method."""
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.status,
-                   'RequestQueueRemoved', lambda *a: d.callback(a))
+        self.patch(
+            self.sd_obj.interface.status,
+            'RequestQueueRemoved',
+            lambda *a: d.callback(a),
+        )
         cmd = FakeCommand('share', 'node', other=MDMarker('foo'))
         self.main.event_q.push('SYS_QUEUE_REMOVED', command=cmd)
 
         op_name, op_id, data = yield d
         self.assertEqual(op_name, 'FakeCommand')
         self.assertEqual(op_id, str(id(cmd)))
-        should = dict(share_id='share', node_id='node',
-                      running='True', other='marker:foo')
+        should = dict(
+            share_id='share',
+            node_id='node',
+            running='True',
+            other='marker:foo',
+        )
         self.assertEqual(data, should)
 
         self.assertEqual(self.called, ['MetaQueueChanged'])
@@ -2113,8 +2346,11 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
     def test_handle_SYS_QUEUE_REMOVED_content_queue_changed_upload(self):
         """Test handle_SYS_QUEUE_REMOVED also calls ContentQueueChanged."""
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.status,
-                   'RequestQueueRemoved', lambda *a: d.callback(a))
+        self.patch(
+            self.sd_obj.interface.status,
+            'RequestQueueRemoved',
+            lambda *a: d.callback(a),
+        )
         cmd = FakeUpload('share', 'node')
         self.main.event_q.push('SYS_QUEUE_REMOVED', command=cmd)
 
@@ -2126,8 +2362,11 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
     def test_handle_SYS_QUEUE_REMOVED_content_queue_changed_download(self):
         """Test handle_SYS_QUEUE_REMOVED also calls ContentQueueChanged."""
         d = defer.Deferred()
-        self.patch(self.sd_obj.interface.status,
-                   'RequestQueueRemoved', lambda *a: d.callback(a))
+        self.patch(
+            self.sd_obj.interface.status,
+            'RequestQueueRemoved',
+            lambda *a: d.callback(a),
+        )
         cmd = FakeDownload('share', 'node')
         self.main.event_q.push('SYS_QUEUE_REMOVED', command=cmd)
 
@@ -2144,12 +2383,16 @@ class SyncdaemonServiceTestCase(BaseTestCase):
     @defer.inlineCallbacks
     def setUp(self):
         """Init."""
-        self.patch(interaction_interfaces, 'NetworkManagerState',
-                   FakeNetworkManagerState)
+        self.patch(
+            interaction_interfaces,
+            'NetworkManagerState',
+            FakeNetworkManagerState,
+        )
         yield super(SyncdaemonServiceTestCase, self).setUp()
         self.events = []
-        self.sd_obj.main.event_q.push = lambda name, **kw: \
-            self.events.append((name, kw))
+        self.sd_obj.main.event_q.push = lambda name, **kw: self.events.append(
+            (name, kw)
+        )
 
     def test_disconnect(self):
         """Test the disconnect method."""
@@ -2207,8 +2450,9 @@ class SyncdaemonServiceTestCase(BaseTestCase):
     def test_rescan_from_scratch_missing_volume(self):
         """Test for rescan_from_scratch with a non-existing volume."""
         volume_id = object()
-        self.assertRaises(ValueError,
-                          self.sd_obj.rescan_from_scratch, volume_id)
+        self.assertRaises(
+            ValueError, self.sd_obj.rescan_from_scratch, volume_id
+        )
 
     def test_network_state_changed_with_connection(self):
         """Test the network_state changed method with a connection."""
@@ -2242,8 +2486,9 @@ class SyncdaemonServiceAllEventsTestCase(BaseTestCase):
     def test_not_active(self):
         """All event listener is not subscribed by default."""
         subscribed = []
-        self.patch(self.main.event_q, 'subscribe',
-                   lambda l: subscribed.append(l))
+        self.patch(
+            self.main.event_q, 'subscribe', lambda l: subscribed.append(l)
+        )
         obj = SyncdaemonService(self.main, send_events=False)
 
         # normal event listener is subscribed but not the all events one
@@ -2253,8 +2498,9 @@ class SyncdaemonServiceAllEventsTestCase(BaseTestCase):
     def test_active(self):
         """All event listener is subscribed if indicated."""
         subscribed = []
-        self.patch(self.main.event_q, 'subscribe',
-                   lambda l: subscribed.append(l))
+        self.patch(
+            self.main.event_q, 'subscribe', lambda l: subscribed.append(l)
+        )
         obj = SyncdaemonService(self.main, send_events=True)
 
         # both should be subscribed
@@ -2283,13 +2529,17 @@ class SyncdaemonServiceConnectTestCase(BaseTestCase):
     @defer.inlineCallbacks
     def setUp(self):
         """Init."""
-        self.patch(interaction_interfaces, 'NetworkManagerState',
-                   FakeNetworkManagerState)
+        self.patch(
+            interaction_interfaces,
+            'NetworkManagerState',
+            FakeNetworkManagerState,
+        )
         yield super(SyncdaemonServiceConnectTestCase, self).setUp()
 
         self.events = []
-        self.sd_obj.main.event_q.push = lambda name, **kw: \
-            self.events.append((name, kw))
+        self.sd_obj.main.event_q.push = lambda name, **kw: self.events.append(
+            (name, kw)
+        )
 
         self.memento = MementoHandler()
         logger.addHandler(self.memento)
@@ -2300,15 +2550,18 @@ class SyncdaemonServiceConnectTestCase(BaseTestCase):
         """If autoconnecting is True, SYS_USER_CONNECT is pushed."""
         self.sd_obj.auth_credentials = FAKED_CREDENTIALS
         yield self.sd_obj.connect(autoconnecting=True)
-        self.assertEqual(self.events, [('SYS_USER_CONNECT',
-                                       {'access_token': FAKED_CREDENTIALS})])
+        self.assertEqual(
+            self.events,
+            [('SYS_USER_CONNECT', {'access_token': FAKED_CREDENTIALS})],
+        )
 
     @defer.inlineCallbacks
     def test_connect_raises_exception_if_no_token_when_autoconnect(self):
         """If no credentials, NoAccessToken is raised."""
         self.sd_obj.auth_credentials = None
         yield self.assertFailure(
-            self.sd_obj.connect(autoconnecting=True), NoAccessToken)
+            self.sd_obj.connect(autoconnecting=True), NoAccessToken
+        )
 
     def test_auth_credentials_are_none_at_startup(self):
         """If the auth_credentials are not passed as param, they are None."""
@@ -2320,8 +2573,9 @@ class SyncdaemonServiceConnectTestCase(BaseTestCase):
         expected = {'username': 'otheruser', 'password': 'otherpassword'}
         self.sd_obj.auth_credentials = expected
         yield self.sd_obj.connect(autoconnecting=True)
-        self.assertEqual(self.events, [('SYS_USER_CONNECT',
-                                       {'access_token': expected})])
+        self.assertEqual(
+            self.events, [('SYS_USER_CONNECT', {'access_token': expected})]
+        )
 
     @defer.inlineCallbacks
     def test_connect_does_not_push_SYS_USER_CONNECT_no_autoconnect(self):

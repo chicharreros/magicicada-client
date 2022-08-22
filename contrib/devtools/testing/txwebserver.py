@@ -62,8 +62,9 @@ class BaseWebServer:
 
     def get_iri(self):
         """Build the iri for this mock server."""
-        return "{scheme}://127.0.0.1:{port}/".format(scheme=self.scheme,
-                                                     port=self.get_port())
+        return "{scheme}://127.0.0.1:{port}/".format(
+            scheme=self.scheme, port=self.get_port()
+        )
 
     def get_port(self):
         """Return the port where we are listening."""
@@ -82,12 +83,13 @@ class BaseWebServer:
                 for con in connected:
                     con.transport.loseConnection()
             else:
-                self.wrapper.testserver_on_connection_lost = \
-                    defer.succeed(None)
+                self.wrapper.testserver_on_connection_lost = defer.succeed(
+                    None
+                )
             d = defer.maybeDeferred(self.port.stopListening)
             return defer.gatherResults(
-                [d,
-                 self.wrapper.testserver_on_connection_lost])
+                [d, self.wrapper.testserver_on_connection_lost]
+            )
         return defer.succeed(None)
 
 
@@ -114,6 +116,7 @@ class HTTPSWebServer(BaseWebServer):
     def listen(self, site):
         """Listen a port to allow the tests."""
         ssl_context = ssl.DefaultOpenSSLContextFactory(
-            self.ssl_settings['key'], self.ssl_settings['cert'])
+            self.ssl_settings['key'], self.ssl_settings['cert']
+        )
 
         return reactor.listenSSL(0, site, ssl_context)

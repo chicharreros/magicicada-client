@@ -82,7 +82,7 @@ class ShutdownTestCase(testcase.BaseTwistedTestCase):
             processor.shutdown()
             d.callback(True)
 
-        processor.timer = reactor.callLater(.1, shutdown)
+        processor.timer = reactor.callLater(0.1, shutdown)
         return d
 
     def test_processor_shutdown_timer_active(self):
@@ -162,8 +162,9 @@ class WatchManagerTests(BaseFSMonitorTestCase):
         self.monitor._general_watchs = {}
         self.monitor._ancestors_watchs = {}
         self.monitor.inotify_watch_fix("not-there", "new-one")
-        self.assertTrue(self.log_handler.check_warning("Tried to fix",
-                                                       "not-there"))
+        self.assertTrue(
+            self.log_handler.check_warning("Tried to fix", "not-there")
+        )
 
     def test_fix_path_general(self):
         """Fixing path in general watches."""
@@ -171,7 +172,8 @@ class WatchManagerTests(BaseFSMonitorTestCase):
         self.monitor._ancestors_watchs = {'/foo': 3}
         self.monitor.inotify_watch_fix('/path1/foo', '/path1/new')
         self.assertEqual(
-            self.monitor._general_watchs, {'/path1/new': 1, '/other': 2})
+            self.monitor._general_watchs, {'/path1/new': 1, '/other': 2}
+        )
         self.assertEqual(self.monitor._ancestors_watchs, {'/foo': 3})
 
     def test_fix_path_ancestors(self):
@@ -181,7 +183,8 @@ class WatchManagerTests(BaseFSMonitorTestCase):
         self.monitor.inotify_watch_fix('/oth', '/baz')
         self.assertEqual(self.monitor._general_watchs, {'/bar': 3})
         self.assertEqual(
-            self.monitor._ancestors_watchs, {'/baz': 1, '/other': 2})
+            self.monitor._ancestors_watchs, {'/baz': 1, '/other': 2}
+        )
 
 
 class DynamicHitMe:
@@ -213,7 +216,8 @@ class DynamicHitMe:
             """the function that actually be called"""
             if asked_args != should_args:
                 self.test_machinery.finished_error(
-                    "In step %d received wrong args (%r)" % (step, asked_args))
+                    "In step %d received wrong args (%r)" % (step, asked_args)
+                )
             else:
                 if step == self.final_step:
                     self.test_machinery.finished_ok()
@@ -242,8 +246,11 @@ class WatchTests(BaseFSMonitorTestCase):
         # check only added dir in watchs, and logs
         self.assertIn(self.root_dir, self.monitor._general_watchs)
         self.assertNotIn("not-added-dir", self.monitor._general_watchs)
-        self.assertTrue(self.log_handler.check_debug(
-                                "Adding general inotify watch", self.root_dir))
+        self.assertTrue(
+            self.log_handler.check_debug(
+                "Adding general inotify watch", self.root_dir
+            )
+        )
 
         # nothing in the udf ancestors watch
         self.assertEqual(self.monitor._ancestors_watchs, {})
@@ -251,14 +258,20 @@ class WatchTests(BaseFSMonitorTestCase):
     def test_add_general_watch_twice(self):
         """Test that general watchs can be added."""
         self.monitor.add_watch(self.root_dir)
-        self.assertTrue(self.log_handler.check_debug(
-                                "Adding general inotify watch", self.root_dir))
+        self.assertTrue(
+            self.log_handler.check_debug(
+                "Adding general inotify watch", self.root_dir
+            )
+        )
         self.assertIn(self.root_dir, self.monitor._general_watchs)
 
         # go again
         self.monitor.add_watch(self.root_dir)
-        self.assertTrue(self.log_handler.check_debug("Watch already there for",
-                                                     self.root_dir))
+        self.assertTrue(
+            self.log_handler.check_debug(
+                "Watch already there for", self.root_dir
+            )
+        )
         self.assertIn(self.root_dir, self.monitor._general_watchs)
 
     @defer.inlineCallbacks
@@ -274,8 +287,11 @@ class WatchTests(BaseFSMonitorTestCase):
         added = yield self.monitor.add_watches_to_udf_ancestors(volume)
         self.assertTrue(added, 'Watches should have been added.')
         for path in ancestors:
-            self.assertTrue(self.log_handler.check_debug(
-                "Adding ancestors inotify watch", path))
+            self.assertTrue(
+                self.log_handler.check_debug(
+                    "Adding ancestors inotify watch", path
+                )
+            )
             self.assertIn(path, self.monitor._ancestors_watchs)
 
     @defer.inlineCallbacks
@@ -284,16 +300,22 @@ class WatchTests(BaseFSMonitorTestCase):
         ancestors = ['~', '~/Picture', '~/Pictures/Work']
         path = 'test_path'
         volume = FakeVolume(path, ancestors)
-        self.patch(filesystem_notifications, 'access',
-                   lambda path: path != ancestors[2])
+        self.patch(
+            filesystem_notifications,
+            'access',
+            lambda path: path != ancestors[2],
+        )
         self.patch(self.monitor, '_is_udf_ancestor', lambda path: True)
         # lets ensure that we did not added any of the watches.
         added = yield self.monitor.add_watches_to_udf_ancestors(volume)
         self.assertFalse(added, 'Watches should NOT have been added.')
         for path in ancestors:
             if path != ancestors[2]:
-                self.assertTrue(self.log_handler.check_debug(
-                    "Adding ancestors inotify watch", path))
+                self.assertTrue(
+                    self.log_handler.check_debug(
+                        "Adding ancestors inotify watch", path
+                    )
+                )
             self.assertNotIn(path, self.monitor._ancestors_watchs)
 
     @defer.inlineCallbacks
@@ -361,8 +383,9 @@ class WatchTests(BaseFSMonitorTestCase):
 
         # remove different stuff
         self.monitor.rm_watch("not-added-dir")
-        self.assertTrue(self.log_handler.check_warning('remove', 'watch',
-                                                       'not-added-dir'))
+        self.assertTrue(
+            self.log_handler.check_warning('remove', 'watch', 'not-added-dir')
+        )
 
     def test_rm_watch_general(self):
         """Test that general watchs can be removed."""

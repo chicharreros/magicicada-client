@@ -37,6 +37,7 @@ def install(options=None):
     """Install the reactor and parse any options we might need."""
     if options is not None and options['gui']:
         from PyQt4.QtGui import QApplication
+
         # We must assign this to a variable, or we will get crashes in Qt
         app = QApplication(sys.argv)
         assert app, 'QApplication should be defined'

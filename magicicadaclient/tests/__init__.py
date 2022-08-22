@@ -62,8 +62,10 @@ class Recorder:
         try:
             result = super(Recorder, self).__getattribute__(attr_name)
         except AttributeError:
+
             def result(*a, **kw):
                 return self._next_result
+
             super(Recorder, self).__setattr__(attr_name, result)
 
         if attr_name in super(Recorder, self).__getattribute__('no_wrap'):
@@ -73,6 +75,7 @@ class Recorder:
 
         def wrap_me(f):
             """Wrap 'f'."""
+
             @wraps(f)
             def inner(*a, **kw):
                 """Keep track of calls to 'f', execute it and return result."""

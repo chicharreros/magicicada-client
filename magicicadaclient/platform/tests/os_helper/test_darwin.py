@@ -43,12 +43,18 @@ class OSWrapperTests(test_os_helper.OSWrapperTests):
     """Tests for os wrapper functions."""
 
     @defer.inlineCallbacks
-    def setUp(self, test_dir_name=None, test_file_name=None,
-              valid_file_path_builder=None):
+    def setUp(
+        self,
+        test_dir_name=None,
+        test_file_name=None,
+        valid_file_path_builder=None,
+    ):
         """Set up."""
         yield super(OSWrapperTests, self).setUp(
-            test_dir_name=test_dir_name, test_file_name=test_file_name,
-            valid_file_path_builder=None)
+            test_dir_name=test_dir_name,
+            test_file_name=test_file_name,
+            valid_file_path_builder=None,
+        )
         self.patch(darwin.shutil, "move", self._fake_move)
 
     def _fake_move(*args):
@@ -73,8 +79,11 @@ class OSWrapperTests(test_os_helper.OSWrapperTests):
         open_file(path, 'w').close()
         move_to_trash(path)
         self.assertFalse(os.path.exists(path))
-        self.assertTrue(self.handler.check_warning("Problems moving to trash!",
-                                                   "Removing anyway", "foo"))
+        self.assertTrue(
+            self.handler.check_warning(
+                "Problems moving to trash!", "Removing anyway", "foo"
+            )
+        )
 
     def test_movetotrash_file_not_exists(self):
         """Something bad happen when moving to trash, removed anyway."""
@@ -89,20 +98,28 @@ class OSWrapperTests(test_os_helper.OSWrapperTests):
         open_file(os.path.join(path, 'file inside directory'), 'w').close()
         move_to_trash(path)
         self.assertFalse(os.path.exists(path))
-        self.assertTrue(self.handler.check_warning("Problems moving to trash!",
-                                                   "Removing anyway", "foo"))
+        self.assertTrue(
+            self.handler.check_warning(
+                "Problems moving to trash!", "Removing anyway", "foo"
+            )
+        )
 
 
 class TestIllegalPaths(OSWrapperTests):
     """Test all the operations using illegal paths."""
 
     @defer.inlineCallbacks
-    def setUp(self, test_dir_name=None, test_file_name=None,
-              valid_file_path_builder=None):
+    def setUp(
+        self,
+        test_dir_name=None,
+        test_file_name=None,
+        valid_file_path_builder=None,
+    ):
         """Set up for the tests."""
         test_file_name = DARWIN_TEST_FILE_NAME
         yield super(TestIllegalPaths, self).setUp(
-            test_dir_name=test_dir_name, test_file_name=test_file_name)
+            test_dir_name=test_dir_name, test_file_name=test_file_name
+        )
 
     def test_listdir(self, expected_result=None):
         """Return a list of the files in a dir."""
@@ -131,18 +148,27 @@ class TestIllegalPathsWalk(test_os_helper.WalkTests):
     """Tests for os wrapper functions."""
 
     @defer.inlineCallbacks
-    def setUp(self, test_dir_name=None, test_file_name=None,
-              valid_file_path_builder=None, valid_file_name_builder=None):
+    def setUp(
+        self,
+        test_dir_name=None,
+        test_file_name=None,
+        valid_file_path_builder=None,
+        valid_file_name_builder=None,
+    ):
         """Setup for the tests."""
         test_file_name = DARWIN_TEST_FILE_NAME
         yield super(TestIllegalPathsWalk, self).setUp(
-            test_dir_name=test_dir_name, test_file_name=test_file_name)
+            test_dir_name=test_dir_name, test_file_name=test_file_name
+        )
 
     def test_top_down(self, topdown=True, expected=None):
         """Walk the tree top-down."""
         result = os.walk(self.basedir, topdown)
         expected = self._build_dict_from_walk(
-            result, path_transformer=darwin.get_syncdaemon_valid_path,
-            name_transformer=darwin.get_syncdaemon_valid_path)
-        super(TestIllegalPathsWalk, self).test_top_down(topdown=topdown,
-                                                        expected=expected)
+            result,
+            path_transformer=darwin.get_syncdaemon_valid_path,
+            name_transformer=darwin.get_syncdaemon_valid_path,
+        )
+        super(TestIllegalPathsWalk, self).test_top_down(
+            topdown=topdown, expected=expected
+        )

@@ -38,11 +38,7 @@ import sys
 import stat
 
 from magicicadaprotocol import request
-from magicicadaprotocol.volumes import (
-    ShareVolume,
-    UDFVolume,
-    RootVolume,
-)
+from magicicadaprotocol.volumes import ShareVolume, UDFVolume, RootVolume
 from twisted.internet import defer
 from magicicadaclient.platform import expand_user
 
@@ -88,9 +84,17 @@ ACCESS_LEVEL_RW = 'Modify'
 class _Share:
     """Represents a share or mount point"""
 
-    def __init__(self, share_id=request.ROOT, node_id=None, path=None,
-                 name=None, access_level=ACCESS_LEVEL_RO, accepted=False,
-                 other_username=None, other_visible_name=None):
+    def __init__(
+        self,
+        share_id=request.ROOT,
+        node_id=None,
+        path=None,
+        name=None,
+        access_level=ACCESS_LEVEL_RO,
+        accepted=False,
+        other_username=None,
+        other_visible_name=None,
+    ):
         """Create the instance. The given path should be str."""
         if path is None:
             self.path = None
@@ -109,8 +113,9 @@ class _Share:
 class _UDF:
     """A representation of a User Defined Folder."""
 
-    def __init__(self, udf_id, node_id, suggested_path,
-                 path, subscribed=False):
+    def __init__(
+        self, udf_id, node_id, suggested_path, path, subscribed=False
+    ):
         """Create the UDF, not subscribed by default"""
         # id and node_id should be str or None
         assert isinstance(udf_id, str) or udf_id is None
@@ -149,18 +154,22 @@ class Volume:
         raise NotImplementedError('Subclass responsability')
 
     def __eq__(self, other):
-        result = (self.id == other.id and
-                  self.node_id == other.node_id and
-                  self.subscribed == other.subscribed)
+        result = (
+            self.id == other.id
+            and self.node_id == other.node_id
+            and self.subscribed == other.subscribed
+        )
         return result
 
     def __hash__(self):
         return hash((self.volume_id, self.node_id))
 
     def __repr__(self):
-        return "<Volume id %r, node_id %r, generation %r>" % (self.volume_id,
-                                                              self.node_id,
-                                                              self.generation)
+        return "<Volume id %r, node_id %r, generation %r>" % (
+            self.volume_id,
+            self.node_id,
+            self.generation,
+        )
 
 
 class Share(Volume):
@@ -168,10 +177,20 @@ class Share(Volume):
 
     subscribed = True  # old shares should be automatically subscribed
 
-    def __init__(self, volume_id=None, node_id=None, path=None, name=None,
-                 other_username=None, other_visible_name=None, accepted=False,
-                 access_level=ACCESS_LEVEL_RO, free_bytes=None,
-                 generation=None, subscribed=False):
+    def __init__(
+        self,
+        volume_id=None,
+        node_id=None,
+        path=None,
+        name=None,
+        other_username=None,
+        other_visible_name=None,
+        accepted=False,
+        access_level=ACCESS_LEVEL_RO,
+        free_bytes=None,
+        generation=None,
+        subscribed=False,
+    ):
         """Create the share."""
         super().__init__(volume_id, node_id, generation, subscribed)
         self.__dict__['type'] = 'Share'
@@ -189,39 +208,48 @@ class Share(Volume):
     @classmethod
     def from_response(cls, share_response, path):
         """Create a Share instance from a ShareResponse."""
-        share = cls(volume_id=str(share_response.id),
-                    node_id=str(share_response.subtree),
-                    path=path, name=share_response.name,
-                    other_username=share_response.other_username,
-                    other_visible_name=share_response.other_visible_name,
-                    accepted=share_response.accepted,
-                    access_level=share_response.access_level)
+        share = cls(
+            volume_id=str(share_response.id),
+            node_id=str(share_response.subtree),
+            path=path,
+            name=share_response.name,
+            other_username=share_response.other_username,
+            other_visible_name=share_response.other_visible_name,
+            accepted=share_response.accepted,
+            access_level=share_response.access_level,
+        )
         return share
 
     @classmethod
     def from_notify_holder(cls, share_notify, path):
         """Create a Share instance from a NotifyShareHolder."""
-        share = cls(volume_id=str(share_notify.share_id),
-                    node_id=str(share_notify.subtree),
-                    path=path, name=share_notify.share_name,
-                    other_username=share_notify.from_username,
-                    other_visible_name=share_notify.from_visible_name,
-                    access_level=share_notify.access_level)
+        share = cls(
+            volume_id=str(share_notify.share_id),
+            node_id=str(share_notify.subtree),
+            path=path,
+            name=share_notify.share_name,
+            other_username=share_notify.from_username,
+            other_visible_name=share_notify.from_visible_name,
+            access_level=share_notify.access_level,
+        )
         return share
 
     @classmethod
     def from_share_volume(cls, share_volume, path):
         """Create a Share instance from a volumes.ShareVolume."""
-        share = cls(volume_id=str(share_volume.volume_id),
-                    node_id=str(share_volume.node_id),
-                    path=path, name=share_volume.share_name,
-                    other_username=share_volume.other_username,
-                    other_visible_name=share_volume.other_visible_name,
-                    # if it's form a share volume, it was accepted
-                    accepted=True,
-                    access_level=share_volume.access_level,
-                    generation=share_volume.generation,
-                    free_bytes=share_volume.free_bytes)
+        share = cls(
+            volume_id=str(share_volume.volume_id),
+            node_id=str(share_volume.node_id),
+            path=path,
+            name=share_volume.share_name,
+            other_username=share_volume.other_username,
+            other_visible_name=share_volume.other_visible_name,
+            # if it's form a share volume, it was accepted
+            accepted=True,
+            access_level=share_volume.access_level,
+            generation=share_volume.generation,
+            free_bytes=share_volume.free_bytes,
+        )
         return share
 
     def can_write(self):
@@ -241,30 +269,42 @@ class Share(Volume):
     __hash__ = Volume.__hash__
 
     def __eq__(self, other):
-        result = (super().__eq__(other) and
-                  self.path == other.path and
-                  self.name == other.name and
-                  self.other_username == other.other_username and
-                  self.other_visible_name == other.other_visible_name and
-                  self.accepted == other.accepted and
-                  self.access_level == other.access_level)
+        result = (
+            super().__eq__(other)
+            and self.path == other.path
+            and self.name == other.name
+            and self.other_username == other.other_username
+            and self.other_visible_name == other.other_visible_name
+            and self.accepted == other.accepted
+            and self.access_level == other.access_level
+        )
         return result
 
     def __ne__(self, other):
         return not (self == other)
 
     def __repr__(self):
-        msg = "<Share id %r, node_id %r, generation %r, active %r (%r, %r), " \
-              "access_level %r, other_username %r, other_visible_name %r, " \
-              "name %r, path %r>"
-        return msg % (self.volume_id, self.node_id, self.generation,
-                      self.active, self.accepted, self.subscribed,
-                      self.access_level, self.other_username,
-                      self.other_visible_name, self.name, self.path)
+        msg = (
+            "<Share id %r, node_id %r, generation %r, active %r (%r, %r), "
+            "access_level %r, other_username %r, other_visible_name %r, "
+            "name %r, path %r>"
+        )
+        return msg % (
+            self.volume_id,
+            self.node_id,
+            self.generation,
+            self.active,
+            self.accepted,
+            self.subscribed,
+            self.access_level,
+            self.other_username,
+            self.other_visible_name,
+            self.name,
+            self.path,
+        )
 
 
 class Shared(Share):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.subscribed = True  # other value makes no sense
@@ -279,8 +319,14 @@ class Root(Volume):
 
     subscribed = True
 
-    def __init__(self, volume_id=request.ROOT, node_id=None, path=None,
-                 free_bytes=None, generation=None):
+    def __init__(
+        self,
+        volume_id=request.ROOT,
+        node_id=None,
+        path=None,
+        free_bytes=None,
+        generation=None,
+    ):
         """Create the Root."""
         super().__init__(volume_id, node_id, generation, subscribed=True)
         self.__dict__['type'] = 'Root'
@@ -304,18 +350,29 @@ class Root(Volume):
         # TODO: include the generation and the volume_id(?)
         return cls(
             node_id=str(volume.node_id),
-            free_bytes=volume.free_bytes, generation=volume.generation)
+            free_bytes=volume.free_bytes,
+            generation=volume.generation,
+        )
 
     def __repr__(self):
         return "<Root node_id %r, generation %r>" % (
-            self.node_id, self.generation)
+            self.node_id,
+            self.generation,
+        )
 
 
 class UDF(Volume):
     """A volume representing a User Defined Folder."""
 
-    def __init__(self, volume_id=None, node_id=None, suggested_path=None,
-                 path=None, subscribed=False, generation=None):
+    def __init__(
+        self,
+        volume_id=None,
+        node_id=None,
+        suggested_path=None,
+        path=None,
+        subscribed=False,
+        generation=None,
+    ):
         """Create the UDF, not subscribed by default"""
         super().__init__(volume_id, node_id, generation, subscribed)
         self.__dict__['type'] = 'UDF'
@@ -325,8 +382,13 @@ class UDF(Volume):
 
     def __repr__(self):
         msg = "<UDF id %r, node_id %r, generation %r, active %r, real path %r>"
-        return msg % (self.volume_id, self.node_id, self.generation,
-                      self.active, self.path)
+        return msg % (
+            self.volume_id,
+            self.node_id,
+            self.generation,
+            self.active,
+            self.path,
+        )
 
     @property
     def ancestors(self):
@@ -338,10 +400,10 @@ class UDF(Volume):
         user_home = expand_user('~')
         path_list = get_path_list(self.path)
         common_prefix = os.path.commonprefix([self.path, user_home])
-        common_list = get_path_list(common_prefix)
+        common_list_len = len(get_path_list(common_prefix))
 
         result = [user_home]
-        for p in path_list[len(common_list):-1]:
+        for p in path_list[common_list_len:-1]:
             result.append(os.path.join(result[-1], p))
 
         return result
@@ -358,10 +420,13 @@ class UDF(Volume):
     @classmethod
     def from_udf_volume(cls, udf_volume, path):
         """Create a UDF instance from a volumes.UDFVolume."""
-        return cls(volume_id=str(udf_volume.volume_id),
-                   node_id=str(udf_volume.node_id),
-                   suggested_path=udf_volume.suggested_path, path=path,
-                   generation=udf_volume.generation)
+        return cls(
+            volume_id=str(udf_volume.volume_id),
+            node_id=str(udf_volume.node_id),
+            suggested_path=udf_volume.suggested_path,
+            path=path,
+            generation=udf_volume.generation,
+        )
 
     # https://docs.python.org/3/reference/datamodel.html#object.__hash__
     # If a class that overrides __eq__() needs to retain the implementation of
@@ -371,9 +436,11 @@ class UDF(Volume):
     __hash__ = Volume.__hash__
 
     def __eq__(self, other):
-        result = (super().__eq__(other) and
-                  self.suggested_path == other.suggested_path and
-                  self.path == other.path)
+        result = (
+            super().__eq__(other)
+            and self.suggested_path == other.suggested_path
+            and self.path == other.path
+        )
         return result
 
 
@@ -401,17 +468,24 @@ class VolumeManager:
         from the metadata (if it exists).
         """
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.m = main
         self._data_dir = os.path.join(self.m.data_dir, 'vm')
         self._shares_dir = os.path.join(self._data_dir, 'shares')
         self._shared_dir = os.path.join(self._data_dir, 'shared')
         self._udfs_dir = os.path.join(self._data_dir, 'udfs')
 
-        md_upgrader = MetadataUpgrader(self._data_dir, self._shares_dir,
-                                       self._shared_dir, self._udfs_dir,
-                                       self.m.root_dir, self.m.shares_dir,
-                                       self.m.shares_dir_link, self.m.db)
+        md_upgrader = MetadataUpgrader(
+            self._data_dir,
+            self._shares_dir,
+            self._shared_dir,
+            self._udfs_dir,
+            self.m.root_dir,
+            self.m.shares_dir,
+            self.m.shares_dir_link,
+            self.m.db,
+        )
         md_upgrader.upgrade_metadata()
 
         # build the dir layout
@@ -423,8 +497,11 @@ class VolumeManager:
             make_dir(self.m.shares_dir, recursive=True)
         # create the shares symlink
         if create_shares_link(self.m.shares_dir, self.m.shares_dir_link):
-            self.log.debug('creating Shares symlink: %r -> %r',
-                           self.m.shares_dir_link, self.m.shares_dir)
+            self.log.debug(
+                'creating Shares symlink: %r -> %r',
+                self.m.shares_dir_link,
+                self.m.shares_dir,
+            )
         # make the shares_dir read only
         set_dir_readonly(self.m.shares_dir)
         # make the root read write
@@ -467,8 +544,9 @@ class VolumeManager:
         try:
             self.m.fs.get_by_path(root.path)
         except KeyError:
-            self.m.fs.create(path=root.path,
-                             share_id=root.volume_id, is_dir=True)
+            self.m.fs.create(
+                path=root.path, share_id=root.volume_id, is_dir=True
+            )
 
     def _got_root(self, node_id, free_bytes=None):
         """Set the root node_id to the root share and mdobj."""
@@ -481,15 +559,18 @@ class VolumeManager:
             self.m.fs.set_node_id(root.path, node_id)
             root.node_id = node_id
             self.shares[request.ROOT] = root
-            self.m.event_q.push('SYS_ROOT_RECEIVED',
-                                root_id=root.node_id, mdid=mdobj.mdid)
+            self.m.event_q.push(
+                'SYS_ROOT_RECEIVED', root_id=root.node_id, mdid=mdobj.mdid
+            )
         elif root.node_id != node_id:
-            self.m.event_q.push('SYS_ROOT_MISMATCH',
-                                root_id=root.node_id, new_root_id=node_id)
+            self.m.event_q.push(
+                'SYS_ROOT_MISMATCH', root_id=root.node_id, new_root_id=node_id
+            )
         else:
             # the root node_id match and we already have it
-            self.m.event_q.push('SYS_ROOT_RECEIVED',
-                                root_id=root.node_id, mdid=mdobj.mdid)
+            self.m.event_q.push(
+                'SYS_ROOT_RECEIVED', root_id=root.node_id, mdid=mdobj.mdid
+            )
 
     def refresh_shares(self):
         """Request the list of shares to the server."""
@@ -512,19 +593,27 @@ class VolumeManager:
         Non active volumes would be ignored.
 
         """
-        self.log.debug('handle_SV_VOLUME_NEW_GENERATION(%r, %r)',
-                       volume_id, generation)
+        self.log.debug(
+            'handle_SV_VOLUME_NEW_GENERATION(%r, %r)', volume_id, generation
+        )
         volume_id = str(volume_id)  # be safe and use a str
         try:
             volume = self.get_volume(volume_id)
         except VolumeDoesNotExist:
-            self.log.warning('Got a SV_VOLUME_NEW_GENERATION for a missing '
-                             'volume: %r with %r', volume_id, generation)
+            self.log.warning(
+                'Got a SV_VOLUME_NEW_GENERATION for a missing '
+                'volume: %r with %r',
+                volume_id,
+                generation,
+            )
             self.refresh_volumes()
         else:
             if not volume.active:
-                self.log.info('Skipping SV_VOLUME_NEW_GENERATION for volume '
-                              '%r, since is not active.', volume_id)
+                self.log.info(
+                    'Skipping SV_VOLUME_NEW_GENERATION for volume '
+                    '%r, since is not active.',
+                    volume_id,
+                )
                 return
 
             current_gen = volume.generation
@@ -535,9 +624,13 @@ class VolumeManager:
                 # the delta and do a rescan from scratch if it's too big
                 self.m.action_q.get_delta(volume_id, current_gen)
             elif current_gen >= generation:
-                self.log.info('Got SV_VOLUME_NEW_GENERATION(%r, %r) but volume'
-                              ' is at generation: %r',
-                              volume_id, generation, current_gen)
+                self.log.info(
+                    'Got SV_VOLUME_NEW_GENERATION(%r, %r) but volume'
+                    ' is at generation: %r',
+                    volume_id,
+                    generation,
+                    current_gen,
+                )
 
     def handle_AQ_DELTA_NOT_POSSIBLE(self, volume_id):
         """Handle AQ_DELTA_NOT_POSSIBLE."""
@@ -546,8 +639,10 @@ class VolumeManager:
         try:
             volume = self.get_volume(volume_id)
         except VolumeDoesNotExist:
-            self.log.warning('Got a AQ_DELTA_NOT_POSSIBLE for a missing '
-                             'volume: %r', volume_id)
+            self.log.warning(
+                'Got a AQ_DELTA_NOT_POSSIBLE for a missing ' 'volume: %r',
+                volume_id,
+            )
             self.refresh_volumes()
         else:
             self.log.info('Requesting a rescan from scratch for: %s', volume)
@@ -561,14 +656,17 @@ class VolumeManager:
         def cleanup(result):
             shares, udfs = result
             self._cleanup_volumes(shares=shares, udfs=udfs)
+
         d.addCallbacks(cleanup)
 
         def done(_):
             self.m.event_q.push('SYS_SERVER_RESCAN_DONE')
 
         def error(failure):
-            self.m.event_q.push('SYS_SERVER_RESCAN_ERROR',
-                                error=str(failure.value))
+            self.m.event_q.push(
+                'SYS_SERVER_RESCAN_ERROR', error=str(failure.value)
+            )
+
         d.addCallbacks(done, error)
         # refresh the pending shares and shared dirs list
         d.addCallback(lambda _: self.refresh_shares())
@@ -588,8 +686,9 @@ class VolumeManager:
                 volume = self.get_volume(volume_id)
             except VolumeDoesNotExist:
                 # a new volume!
-                self.log.debug('_volumes_rescan_cb: new volume! id %r.',
-                               volume_id)
+                self.log.debug(
+                    '_volumes_rescan_cb: new volume! id %r.', volume_id
+                )
                 # _handle_new_volume will do a local and server rescan
                 # of the volume and will activate it after that.
                 volume = self._handle_new_volume(new_volume)
@@ -599,8 +698,9 @@ class VolumeManager:
             # store the received volumes ids to return them
             if isinstance(new_volume, RootVolume):
                 # handle root volume, to set root node_id
-                self._got_root(str(new_volume.node_id),
-                               free_bytes=new_volume.free_bytes)
+                self._got_root(
+                    str(new_volume.node_id), free_bytes=new_volume.free_bytes
+                )
                 shares.append(volume_id)
                 # don't check the fsm node,
                 # the root fsm object is created in init_root
@@ -615,15 +715,17 @@ class VolumeManager:
                     # update the share metadata
                     self.shares[volume.volume_id] = volume
                     # queue the VM_SHARE_CREATED event
-                    events.append(('VM_SHARE_CREATED',
-                                   dict(share_id=volume.volume_id)))
+                    events.append(
+                        ('VM_SHARE_CREATED', dict(share_id=volume.volume_id))
+                    )
             elif isinstance(new_volume, UDFVolume):
                 # check if the fsm node exists, and create it if not
                 self._create_fsm_object(volume.path, volume.id, volume.node_id)
                 udfs.append(volume_id)
             else:
-                self.log.warning("Unknown type in the volumes list: %r",
-                                 volume)
+                self.log.warning(
+                    "Unknown type in the volumes list: %r", volume
+                )
 
             # first check if it's active
             if not volume.active:
@@ -631,11 +733,18 @@ class VolumeManager:
                 continue
 
             new_generation = new_volume.generation
-            self.log.debug('_volumes_rescan (%s): current_gen=%s new_gen='
-                           '%s free_bytes=%s', volume, current_generation,
-                           new_generation, new_volume.free_bytes)
-            if current_generation is None or \
-               current_generation < new_generation:
+            self.log.debug(
+                '_volumes_rescan (%s): current_gen=%s new_gen='
+                '%s free_bytes=%s',
+                volume,
+                current_generation,
+                new_generation,
+                new_volume.free_bytes,
+            )
+            if (
+                current_generation is None
+                or current_generation < new_generation
+            ):
                 # add the event
                 d = dict(volume_id=volume_id, generation=new_generation)
                 events.append(('SV_VOLUME_NEW_GENERATION', d))
@@ -667,8 +776,9 @@ class VolumeManager:
             path = os.path.join(self.m.shares_dir, dir_name)
             share = Share.from_share_volume(volume, path)
             autosubscribe = config.get_user_config().get_share_autosubscribe()
-            self.log.debug('_handle_new_volume: share_autosubscribe? %r',
-                           autosubscribe)
+            self.log.debug(
+                '_handle_new_volume: share_autosubscribe? %r', autosubscribe
+            )
             share.subscribed = autosubscribe
             self.add_share(share)
             return share
@@ -676,8 +786,9 @@ class VolumeManager:
             path = get_udf_path(volume.suggested_path)
             udf = UDF.from_udf_volume(volume, path)
             autosubscribe = config.get_user_config().get_udf_autosubscribe()
-            self.log.debug('_handle_new_volume: udf_autosubscribe? %r',
-                           autosubscribe)
+            self.log.debug(
+                '_handle_new_volume: udf_autosubscribe? %r', autosubscribe
+            )
             udf.subscribed = autosubscribe
             self.add_udf(udf)
             return udf
@@ -688,16 +799,21 @@ class VolumeManager:
             self.log.warning("Unknown type in the volumes list: %r", volume)
 
     def handle_AQ_SHARES_LIST(self, shares_list):
-        """ handle AQ_SHARES_LIST event """
+        """handle AQ_SHARES_LIST event"""
         self.log.debug('handling shares list: ')
         self.list_shares_retries = 0
         shares = []
         shared = []
         for a_share in shares_list.shares:
-            share_id = getattr(a_share, 'id',
-                               getattr(a_share, 'share_id', None))
-            self.log.debug('share %r: id=%s, name=%r', a_share.direction,
-                           share_id, a_share.name)
+            share_id = getattr(
+                a_share, 'id', getattr(a_share, 'share_id', None)
+            )
+            self.log.debug(
+                'share %r: id=%s, name=%r',
+                a_share.direction,
+                share_id,
+                a_share.name,
+            )
             if a_share.direction == "to_me":
                 dir_name = get_share_dir_name(a_share)
                 path = os.path.join(self.m.shares_dir, dir_name)
@@ -708,14 +824,16 @@ class VolumeManager:
                 try:
                     mdobj = self.m.fs.get_by_node_id(
                         str(a_share.subtree_volume_id or request.ROOT),
-                        str(a_share.subtree))
+                        str(a_share.subtree),
+                    )
                     path = self.m.fs.get_abspath(mdobj.share_id, mdobj.path)
                 except KeyError:
                     # we don't have the file/md of this shared node_id yet
                     # for the moment ignore this share
                     self.log.warning(
                         "we got a share with 'from_me' direction, "
-                        "but don't have the node_id in the metadata yet")
+                        "but don't have the node_id in the metadata yet"
+                    )
                     path = None
                 share = Shared.from_response(a_share, path)
                 shared.append(share.volume_id)
@@ -730,13 +848,15 @@ class VolumeManager:
         self.log.debug('deleting dead volumes')
         if shares is not None:
             for share in filter(
-                    lambda item: item and item not in shares, self.shares):
+                lambda item: item and item not in shares, self.shares
+            ):
                 self.log.debug('deleting share: id=%s', share)
                 self.share_deleted(share)
         if udfs is not None:
             # cleanup missing udfs
             for udf in filter(
-                    lambda item: item and item not in udfs, self.udfs):
+                lambda item: item and item not in udfs, self.udfs
+            ):
                 self.log.debug('deleting udfs: id=%s', udf)
                 self.udf_deleted(udf)
 
@@ -744,7 +864,8 @@ class VolumeManager:
         """Cleanup shared Shares from the shelf."""
         self.log.debug('deleting dead shared')
         for share in filter(
-                lambda item: item and item not in to_keep, self.shared):
+            lambda item: item and item not in to_keep, self.shared
+        ):
             self.log.debug('deleting shared: id=%s', share)
             del self.shared[share]
 
@@ -752,7 +873,8 @@ class VolumeManager:
         """Cleanup not-yet accepted Shares from the shares shelf."""
         self.log.debug('deleting dead shares')
         shares = (
-            lambda i: i and i not in to_keep and not self.shares[i].accepted)
+            lambda i: i and i not in to_keep and not self.shares[i].accepted
+        )
         for share in filter(shares, self.shares):
             self.log.debug('deleting shares: id=%s', share)
             self.share_deleted(share)
@@ -765,23 +887,24 @@ class VolumeManager:
             self.list_volumes_retries += 1
 
     def handle_AQ_LIST_SHARES_ERROR(self, error):
-        """ handle AQ_LIST_SHARES_ERROR event """
+        """handle AQ_LIST_SHARES_ERROR event"""
         # just call list_shares again, until we reach the retry limit
         if self.list_shares_retries <= self.retries_limit:
             self.m.action_q.list_shares()
             self.list_shares_retries += 1
 
     def handle_SV_FREE_SPACE(self, share_id, free_bytes):
-        """ handle SV_FREE_SPACE event """
+        """handle SV_FREE_SPACE event"""
         self.update_free_space(str(share_id), free_bytes)
         # check AQ wait conditions
         self.m.action_q.check_conditions()
 
     def handle_SV_SHARE_CHANGED(self, info):
-        """ handle SV_SHARE_CHANGED event """
+        """handle SV_SHARE_CHANGED event"""
         if str(info.share_id) not in self.shares:
-            self.log.debug("New share notification, share_id: %s",
-                           info.share_id)
+            self.log.debug(
+                "New share notification, share_id: %s", info.share_id
+            )
             # XXX: request a refresh of the shares list(?)
             dir_name = get_share_dir_name(info)
             path = os.path.join(self.m.shares_dir, dir_name)
@@ -792,12 +915,12 @@ class VolumeManager:
             self.share_changed(info)
 
     def handle_SV_SHARE_DELETED(self, share_id):
-        """ handle SV_SHARE_DELETED event """
+        """handle SV_SHARE_DELETED event"""
         self.log.debug('share deleted! %s', share_id)
         self.share_deleted(str(share_id))
 
     def handle_AQ_CREATE_SHARE_OK(self, share_id, marker):
-        """ handle AQ_CREATE_SHARE_OK event. """
+        """handle AQ_CREATE_SHARE_OK event."""
         share = self.marker_share_map.get(marker)
         if share is None:
             self.m.action_q.list_shares()
@@ -811,7 +934,7 @@ class VolumeManager:
                 del self.marker_share_map[marker]
 
     def handle_AQ_CREATE_SHARE_ERROR(self, marker, error):
-        """ handle AQ_CREATE_SHARE_ERROR event. """
+        """handle AQ_CREATE_SHARE_ERROR event."""
         if marker in self.marker_share_map:
             del self.marker_share_map[marker]
 
@@ -823,17 +946,20 @@ class VolumeManager:
             self.m.event_q.push('VM_SHARE_DELETED', share=share)
         else:
             # delete ok, of something we don't have.
-            self.log.warning("AQ_DELETE_SHARE_OK of a non-existing shared "
-                             "dir: %s", share_id)
+            self.log.warning(
+                "AQ_DELETE_SHARE_OK of a non-existing shared " "dir: %s",
+                share_id,
+            )
 
     def handle_AQ_DELETE_SHARE_ERROR(self, share_id, error):
         """Gandle AQ_DELETE_SHARE_ERROR event."""
         self.log.error("Error while deleting offered share: %s", error)
-        self.m.event_q.push('VM_SHARE_DELETE_ERROR',
-                            share_id=share_id, error=error)
+        self.m.event_q.push(
+            'VM_SHARE_DELETE_ERROR', share_id=share_id, error=error
+        )
 
     def handle_SV_SHARE_ANSWERED(self, share_id, answer):
-        """ handle SV_SHARE_ANSWERED event. """
+        """handle SV_SHARE_ANSWERED event."""
         share = self.shared.get(share_id, None)
         if share is None:
             # oops, we got an answer for a share we don't have,
@@ -855,7 +981,7 @@ class VolumeManager:
             self.m.action_q.rescan_from_scratch(share.volume_id)
 
     def add_share(self, a_share):
-        """ Add a share to the share list, and creates the fs mdobj. """
+        """Add a share to the share list, and creates the fs mdobj."""
         self.log.info('add_share: %r', a_share)
         share = self.shares.get(a_share.volume_id)
         is_new_share = share is None
@@ -875,8 +1001,11 @@ class VolumeManager:
 
         if share.active:
             self._create_share_dir(share)
-            self.log.debug('add_share: volume active, temporarly unsubscribe '
-                           'to rescan (scan_local? %r).', share.can_write())
+            self.log.debug(
+                'add_share: volume active, temporarly unsubscribe '
+                'to rescan (scan_local? %r).',
+                share.can_write(),
+            )
             share.local_rescanning = True
             self.shares[share.volume_id] = share
 
@@ -911,8 +1040,11 @@ class VolumeManager:
             root.free_bytes = free_bytes
             self.shares[request.ROOT] = root
         else:
-            self.log.warning("Update of free space requested, but there is "
-                             "no such volume_id: %s", volume_id)
+            self.log.warning(
+                "Update of free space requested, but there is "
+                "no such volume_id: %s",
+                volume_id,
+            )
             self.refresh_volumes()
 
     # same functionality, but other name to be called by EventQueue
@@ -931,15 +1063,19 @@ class VolumeManager:
             root = self.shares[request.ROOT]
             return root.free_bytes
         else:
-            self.log.warning("Requested free space of volume_id: %s, but"
-                             " there is no such volume.", volume_id)
+            self.log.warning(
+                "Requested free space of volume_id: %s, but"
+                " there is no such volume.",
+                volume_id,
+            )
             self.refresh_volumes()
             return 0
 
     def accept_share(self, share_id, answer):
-        """ Calls AQ.accept_share with answer ('Yes'/'No')."""
-        self.log.debug("Accept share, with id: %s - answer: %s ",
-                       share_id, answer)
+        """Calls AQ.accept_share with answer ('Yes'/'No')."""
+        self.log.debug(
+            "Accept share, with id: %s - answer: %s ", share_id, answer
+        )
         share = self.shares[share_id]
         share.accepted = answer
         self.shares[share_id] = share
@@ -947,13 +1083,16 @@ class VolumeManager:
         self.m.action_q.answer_share(share_id, answer_str)
 
     def share_deleted(self, share_id):
-        """ process the share deleted event. """
+        """process the share deleted event."""
         self.log.debug("Share (id: %s) deleted. ", share_id)
         share = self.shares.get(share_id, None)
         if share is None:
             # we don't have this share, ignore it and don't refresh
-            self.log.warning("Got a share deleted notification (%r), "
-                             "but don't have the share", share_id)
+            self.log.warning(
+                "Got a share deleted notification (%r), "
+                "but don't have the share",
+                share_id,
+            )
         else:
             if share.can_write():
                 self._remove_watches(share.path)
@@ -967,8 +1106,11 @@ class VolumeManager:
         share = self.shares.get(str(share_holder.share_id), None)
         if share is None:
             # we don't have this share, refresh volumes
-            self.log.warning("Got a share changed notification (%r), "
-                             "but don't have the share", share_holder.share_id)
+            self.log.warning(
+                "Got a share changed notification (%r), "
+                "but don't have the share",
+                share_holder.share_id,
+            )
             self.refresh_volumes()
         else:
             share.access_level = share_holder.access_level
@@ -977,7 +1119,7 @@ class VolumeManager:
 
     @defer.inlineCallbacks
     def _create_share_dir(self, share):
-        """ Creates the share root dir, and set the permissions. """
+        """Creates the share root dir, and set the permissions."""
         # XXX: verterok: This is going to be moved into fsm
         # if the share don't exists, create it
         if not path_exists(share.path):
@@ -1005,7 +1147,7 @@ class VolumeManager:
             self._create_udf_dir(volume)
 
     def _create_fsm_object(self, path, volume_id, node_id):
-        """ Creates the mdobj for this share in fs manager. """
+        """Creates the mdobj for this share in fs manager."""
         try:
             self.m.fs.get_by_path(path)
         except KeyError:
@@ -1032,8 +1174,9 @@ class VolumeManager:
             # pyinotify has an ugly error management, if we can call
             # it that, :(. We handle this here because it's possible
             # and correct that the path is not there anymore
-            self.log.warning("Error %s when trying to remove the watch"
-                             " on %r", e, path)
+            self.log.warning(
+                "Error %s when trying to remove the watch" " on %r", e, path
+            )
 
     def _remove_watches(self, path):
         """Remove the inotify watches from path and it subdirs."""
@@ -1042,9 +1185,10 @@ class VolumeManager:
                 self._remove_watch(a_path)
 
     def create_share(self, path, username, name, access_level):
-        """ create a share for the specified path, username, name """
-        self.log.debug('create share(%r, %r, %r, %r)',
-                       path, username, name, access_level)
+        """create a share for the specified path, username, name"""
+        self.log.debug(
+            'create share(%r, %r, %r, %r)', path, username, name, access_level
+        )
         mdobj = self.m.fs.get_by_path(path)
         mdid = mdobj.mdid
         marker = MDMarker(mdid)
@@ -1054,28 +1198,40 @@ class VolumeManager:
         else:
             node_id = mdobj.node_id
         abspath = self.m.fs.get_abspath(mdobj.share_id, mdobj.path)
-        share = Shared(path=abspath, volume_id=marker,
-                       name=name, access_level=access_level,
-                       other_username=username, other_visible_name=None,
-                       node_id=node_id)
+        share = Shared(
+            path=abspath,
+            volume_id=marker,
+            name=name,
+            access_level=access_level,
+            other_username=username,
+            other_visible_name=None,
+            node_id=node_id,
+        )
         self.marker_share_map[marker] = share
-        self.m.action_q.create_share(node_id, username, name,
-                                     access_level, marker, abspath)
+        self.m.action_q.create_share(
+            node_id, username, name, access_level, marker, abspath
+        )
 
     def delete_share(self, share_id):
         """Reuqest the deletion of an offered share."""
         share = self.shared.get(share_id)
         if share is None:
             # if the share isn't there, push the error!
-            self.m.event_q.push('VM_SHARE_DELETE_ERROR',
-                                share_id=share_id, error="DOES_NOT_EXIST")
+            self.m.event_q.push(
+                'VM_SHARE_DELETE_ERROR',
+                share_id=share_id,
+                error="DOES_NOT_EXIST",
+            )
         else:
             self.m.action_q.delete_share(share_id)
 
     def add_shared(self, share):
-        """ Add a share with direction == from_me """
-        self.log.info('New shared subtree: id: %s - path: %r',
-                      share.volume_id, share.path)
+        """Add a share with direction == from_me"""
+        self.log.info(
+            'New shared subtree: id: %s - path: %r',
+            share.volume_id,
+            share.path,
+        )
         current_share = self.shared.get(share.volume_id)
         if current_share is None:
             self.shared[share.volume_id] = share
@@ -1101,8 +1257,10 @@ class VolumeManager:
             # local and server rescan, this will add the inotify hooks
             # to the udf root dir and any child directory.
             if udf.subscribed:
-                self.log.debug('add_udf: volume subscribed, '
-                               'temporarly unsubscribe to do local rescan.')
+                self.log.debug(
+                    'add_udf: volume subscribed, '
+                    'temporarly unsubscribe to do local rescan.'
+                )
                 udf.local_rescanning = True
                 self.udfs[udf.volume_id] = udf
                 if not path_exists(udf.path):
@@ -1128,7 +1286,9 @@ class VolumeManager:
 
             d.addCallback(
                 lambda _: self.m.event_q.push(
-                    'VM_UDF_CREATED', udf=self.get_volume(udf.volume_id)))
+                    'VM_UDF_CREATED', udf=self.get_volume(udf.volume_id)
+                )
+            )
             return d
 
     def udf_deleted(self, udf_id):
@@ -1182,7 +1342,8 @@ class VolumeManager:
         """
         new_path = path + os.path.sep
         volumes = itertools.chain(
-            [self.shares[request.ROOT]], self.udfs.values())
+            [self.shares[request.ROOT]], self.udfs.values()
+        )
         for volume in volumes:
             vol_path = volume.path + os.path.sep
             if new_path.startswith(vol_path) or vol_path.startswith(new_path):
@@ -1223,26 +1384,39 @@ class VolumeManager:
         try:
             suggested_path = get_udf_suggested_path(path)
         except ValueError as e:
-            self.m.event_q.push('VM_UDF_CREATE_ERROR', path=path,
-                                error="INVALID_PATH: %s" % (e,))
+            self.m.event_q.push(
+                'VM_UDF_CREATE_ERROR',
+                path=path,
+                error="INVALID_PATH: %s" % (e,),
+            )
         else:
             try:
                 marker = MDMarker(path)
                 if marker in self.marker_udf_map:
                     # ignore this request
-                    self.log.warning('Duplicated create_udf request for '
-                                     'path (ingoring it!): %r', path)
+                    self.log.warning(
+                        'Duplicated create_udf request for '
+                        'path (ingoring it!): %r',
+                        path,
+                    )
                     return
-                udf = UDF(volume_id=None, node_id=None,
-                          suggested_path=suggested_path,
-                          # always subscribed since it's a local request
-                          path=path, subscribed=True)
+                udf = UDF(
+                    volume_id=None,
+                    node_id=None,
+                    suggested_path=suggested_path,
+                    # always subscribed since it's a local request
+                    path=path,
+                    subscribed=True,
+                )
                 self.marker_udf_map[marker] = udf
                 server_path, udf_name = suggested_path.rsplit('/', 1)
                 self.m.action_q.create_udf(server_path, udf_name, marker)
             except Exception as e:
-                self.m.event_q.push('VM_UDF_CREATE_ERROR', path=path,
-                                    error="UNKNOWN_ERROR: %s" % (e,))
+                self.m.event_q.push(
+                    'VM_UDF_CREATE_ERROR',
+                    path=path,
+                    error="UNKNOWN_ERROR: %s" % (e,),
+                )
 
     def delete_volume(self, volume_id):
         """Request the deletion of a volume to AQ.
@@ -1265,7 +1439,8 @@ class VolumeManager:
             return self.m.event_q.push('VM_SHARE_SUBSCRIBED', share=volume)
 
         push_error = functools.partial(
-            self.m.event_q.push, 'VM_SHARE_SUBSCRIBE_ERROR', share_id=share_id)
+            self.m.event_q.push, 'VM_SHARE_SUBSCRIBE_ERROR', share_id=share_id
+        )
         self.log.info('subscribe_share: %r', share_id)
         d = self._subscribe_volume(share_id, push_success, push_error)
         return d
@@ -1280,8 +1455,9 @@ class VolumeManager:
         def push_success(volume):
             return self.m.event_q.push('VM_UDF_SUBSCRIBED', udf=volume)
 
-        push_error = functools.partial(self.m.event_q.push,
-                                       'VM_UDF_SUBSCRIBE_ERROR', udf_id=udf_id)
+        push_error = functools.partial(
+            self.m.event_q.push, 'VM_UDF_SUBSCRIBE_ERROR', udf_id=udf_id
+        )
         self.log.info('subscribe_udf: %r', udf_id)
         d = self._subscribe_volume(udf_id, push_success, push_error)
         return d
@@ -1329,8 +1505,9 @@ class VolumeManager:
             return failure
 
         d.addCallback(subscribe)
-        d.addCallbacks(lambda _: push_success(self.get_volume(volume_id)),
-                       handle_failure)
+        d.addCallbacks(
+            lambda _: push_success(self.get_volume(volume_id)), handle_failure
+        )
         return d
 
     def _scan_udf(self, udf):
@@ -1363,8 +1540,10 @@ class VolumeManager:
             return self.m.event_q.push('VM_SHARE_UNSUBSCRIBED', share=volume)
 
         push_error = functools.partial(
-            self.m.event_q.push, 'VM_SHARE_UNSUBSCRIBE_ERROR',
-            share_id=share_id)
+            self.m.event_q.push,
+            'VM_SHARE_UNSUBSCRIBE_ERROR',
+            share_id=share_id,
+        )
         self.log.info('unsubscribe_share: %r', share_id)
         self._unsubscribe_volume(share_id, push_success, push_error)
 
@@ -1375,7 +1554,8 @@ class VolumeManager:
             return self.m.event_q.push('VM_UDF_UNSUBSCRIBED', udf=volume)
 
         push_error = functools.partial(
-            self.m.event_q.push, 'VM_UDF_UNSUBSCRIBE_ERROR', udf_id=udf_id)
+            self.m.event_q.push, 'VM_UDF_UNSUBSCRIBE_ERROR', udf_id=udf_id
+        )
         self.log.info('unsubscribe_udf: %r', udf_id)
         self._unsubscribe_volume(udf_id, push_success, push_error)
 
@@ -1404,8 +1584,9 @@ class VolumeManager:
     def handle_AQ_CREATE_UDF_ERROR(self, marker, error):
         """Handle AQ_CREATE_UDF_ERROR."""
         udf = self.marker_udf_map.pop(marker)
-        self.m.event_q.push('VM_UDF_CREATE_ERROR',
-                            path=udf.path, error=str(error))
+        self.m.event_q.push(
+            'VM_UDF_CREATE_ERROR', path=udf.path, error=str(error)
+        )
 
     def handle_AQ_DELETE_VOLUME_OK(self, volume_id):
         """Handle AQ_DELETE_VOLUME_OK."""
@@ -1418,12 +1599,14 @@ class VolumeManager:
         except VolumeDoesNotExist:
             # wasn't able to delete a volume that we don't have any
             # more, we better refresh everything
-            self.log.warning("Received a AQ_DELETE_VOLUME_ERROR of a missing "
-                             "volume id")
+            self.log.warning(
+                "Received a AQ_DELETE_VOLUME_ERROR of a missing " "volume id"
+            )
             self.refresh_volumes()
         else:
-            self.m.event_q.push('VM_VOLUME_DELETE_ERROR',
-                                volume_id=volume_id, error=str(error))
+            self.m.event_q.push(
+                'VM_VOLUME_DELETE_ERROR', volume_id=volume_id, error=str(error)
+            )
 
     def handle_SV_VOLUME_CREATED(self, volume):
         """Handle SV_VOLUME_CREATED event."""
@@ -1450,8 +1633,9 @@ class VolumeManager:
         else:
             # just log, don't care we don't have something we should
             # delete anyway
-            self.log.warning("Tried to delete a missing volume id: %s",
-                             volume_id)
+            self.log.warning(
+                "Tried to delete a missing volume id: %s", volume_id
+            )
 
     def update_generation(self, volume_id, generation):
         """Update the generation of the specified volume."""
@@ -1467,11 +1651,21 @@ class VolumeManager:
 class MetadataUpgrader:
     """A class that loads old metadata and migrate it."""
 
-    def __init__(self, data_dir, shares_md_dir, shared_md_dir, udfs_md_dir,
-                 root_dir, shares_dir, shares_dir_link, tritcask_db):
+    def __init__(
+        self,
+        data_dir,
+        shares_md_dir,
+        shared_md_dir,
+        udfs_md_dir,
+        root_dir,
+        shares_dir,
+        shares_dir_link,
+        tritcask_db,
+    ):
         """Creates the instance"""
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self._data_dir = data_dir
         self._shares_dir = shares_dir
         self._shares_md_dir = shares_md_dir
@@ -1488,7 +1682,8 @@ class MetadataUpgrader:
         # upgrade the metadata
         if self.md_version != VolumeManager.METADATA_VERSION:
             upgrade_method = getattr(
-                self, "_upgrade_metadata_%s" % self.md_version)
+                self, "_upgrade_metadata_%s" % self.md_version
+            )
             upgrade_method(self.md_version)
 
     def _get_md_version(self):
@@ -1526,16 +1721,22 @@ class MetadataUpgrader:
 
         """
         md_version = None
-        if path_exists(self._shares_md_dir) \
-           and path_exists(self._shared_md_dir):
+        if path_exists(self._shares_md_dir) and path_exists(
+            self._shared_md_dir
+        ):
             # we have shares and shared dirs
             # md_version >= 1
             old_root_dir = os.path.abspath(
-                os.path.join(self._root_dir, 'My Files'))
+                os.path.join(self._root_dir, 'My Files')
+            )
             old_share_dir = os.path.abspath(
-                os.path.join(self._root_dir, 'Shared With Me'))
-            if (path_exists(old_share_dir) and path_exists(old_root_dir) and
-                    not is_link(old_share_dir)):
+                os.path.join(self._root_dir, 'Shared With Me')
+            )
+            if (
+                path_exists(old_share_dir)
+                and path_exists(old_root_dir)
+                and not is_link(old_share_dir)
+            ):
                 # md >= 1 and <= 3
                 # we have a 'My Files' dir, so 'Shared With Me' isn't a
                 # symlink and the configured shares folder doesn't exist.
@@ -1550,8 +1751,9 @@ class MetadataUpgrader:
                 except OSError:
                     target = None
                 abs_link = os.path.abspath(self._shares_dir_link)
-                if (normpath(target) == abs_link and
-                        is_link(self._shares_dir_link)):
+                if normpath(target) == abs_link and is_link(
+                    self._shares_dir_link
+                ):
                     # broken symlink, md_version = 4
                     md_version = '4'
                 else:
@@ -1600,8 +1802,10 @@ class MetadataUpgrader:
             if dirname == self._data_dir:
                 for dir in filter(filter_known_dirs, dirs):
                     if dir != os.path.basename(backup):
-                        recursive_move(os.path.join(dirname, dir),
-                                       os.path.join(backup, dir))
+                        recursive_move(
+                            os.path.join(dirname, dir),
+                            os.path.join(backup, dir),
+                        )
         # regenerate the shelf using the new layout using the backup as src
         old_shelf = LegacyShareFileShelf(backup)
         if not path_exists(self._shares_dir):
@@ -1652,21 +1856,27 @@ class MetadataUpgrader:
                 if name == '.partial':
                     new_name = '.u1partial'
                 else:
-                    new_name = re.sub(r'^(.+)\.partial$',
-                                      r'.u1partial.\1', name)
+                    new_name = re.sub(
+                        r'^(.+)\.partial$', r'.u1partial.\1', name
+                    )
                 if new_name != name:
                     while os.path.lexists(os.path.join(dirpath, new_name)):
                         # very, very strange
-                        self.log.warning('Found a .partial and .u1partial'
-                                         ' for the same file: %s!', new_name)
+                        self.log.warning(
+                            'Found a .partial and .u1partial'
+                            ' for the same file: %s!',
+                            new_name,
+                        )
                         new_name += '.1'
             elif re.search(r'\.(?:u1)?conflict(?:\.\d+)?$', name):
-                new_name = re.sub(r'^(.+)\.conflict((?:\.\d+)?)$',
-                                  r'\1.u1conflict\2', name)
+                new_name = re.sub(
+                    r'^(.+)\.conflict((?:\.\d+)?)$', r'\1.u1conflict\2', name
+                )
                 if new_name != name:
                     while os.path.lexists(os.path.join(dirpath, new_name)):
-                        m = re.match(r'(.*\.u1conflict)((?:\.\d+)?)$',
-                                     new_name)
+                        m = re.match(
+                            r'(.*\.u1conflict)((?:\.\d+)?)$', new_name
+                        )
                         base, num = m.groups()
                         if not num:
                             num = '.1'
@@ -1705,8 +1915,11 @@ class MetadataUpgrader:
             set_dir_readwrite(old_share_dir)
             if not path_exists(os.path.dirname(self._shares_dir)):
                 make_dir(os.path.dirname(self._shares_dir), recursive=True)
-            self.log.debug('moving shares dir from: %r to %r',
-                           old_share_dir, self._shares_dir)
+            self.log.debug(
+                'moving shares dir from: %r to %r',
+                old_share_dir,
+                self._shares_dir,
+            )
             for path in listdir(old_share_dir):
                 src = os.path.join(old_share_dir, path)
                 dst = os.path.join(self._shares_dir, path)
@@ -1718,11 +1931,13 @@ class MetadataUpgrader:
         for key, share in shares.items():
             if share.path is not None:
                 if share.path == old_root_dir:
-                    share.path = share.path.replace(old_root_dir,
-                                                    self._root_dir)
+                    share.path = share.path.replace(
+                        old_root_dir, self._root_dir
+                    )
                 else:
-                    share.path = share.path.replace(old_share_dir,
-                                                    self._shares_dir)
+                    share.path = share.path.replace(
+                        old_share_dir, self._shares_dir
+                    )
                 shares[key] = share
 
         shared = LegacyShareFileShelf(self._shared_md_dir)
@@ -1762,8 +1977,11 @@ class MetadataUpgrader:
             target = read_link(self._shares_dir_link)
             if normpath(target) == self._shares_dir_link:
                 # the symnlink points to itself
-                self.log.debug('removing broken shares symlink: %r -> %r',
-                               self._shares_dir_link, target)
+                self.log.debug(
+                    'removing broken shares symlink: %r -> %r',
+                    self._shares_dir_link,
+                    target,
+                )
                 remove_file(self._shares_dir_link)
         self._upgrade_metadata_5(md_version)
 
@@ -1790,8 +2008,13 @@ class MetadataUpgrader:
             old_udfs = LegacyShareFileShelf(self._udfs_md_dir)
             udfs = VMFileShelf(new_udfs_md_dir)
             for key, udf in old_udfs.items():
-                udfs[key] = UDF(udf.id, udf.node_id, udf.suggested_path,
-                                udf.path, udf.subscribed)
+                udfs[key] = UDF(
+                    udf.id,
+                    udf.node_id,
+                    udf.suggested_path,
+                    udf.path,
+                    udf.subscribed,
+                )
             # move md dir to bkp
             rename(self._data_dir, bkp_dir)
             # move new to md dir
@@ -1828,8 +2051,9 @@ class MetadataUpgrader:
             return clazz(**share_dict)
         elif share.path == self._root_dir or share.id == '':
             # handle the root special case
-            return Root(volume_id=request.ROOT,
-                        node_id=share.subtree, path=share.path)
+            return Root(
+                volume_id=request.ROOT, node_id=share.subtree, path=share.path
+            )
         else:
             share = upgrade_share_dict(share)
             if shared:
@@ -1870,7 +2094,8 @@ class VMFileShelf(file_shelf.CachedFileShelf):
     TYPE = 'type'
     classes = dict(
         (sub.__name__, sub)
-        for sub in Volume.__subclasses__() + Share.__subclasses__())
+        for sub in Volume.__subclasses__() + Share.__subclasses__()
+    )
 
     def __init__(self, *args, **kwargs):
         """Create the instance."""
@@ -1915,8 +2140,10 @@ class LegacyShareFileShelfPickler(pickle.Unpickler):
     upgrade_map = {
         ('ubuntuone.syncdaemon.volume_manager', 'UDF'): _UDF,
         ('ubuntuone.syncdaemon.volume_manager', 'Share'): _Share,
-        ('canonical.ubuntuone.storage.syncdaemon.volume_manager',
-         'Share'): _Share,
+        (
+            'canonical.ubuntuone.storage.syncdaemon.volume_manager',
+            'Share',
+        ): _Share,
     }
 
     def find_class(self, module, name):
@@ -1955,7 +2182,8 @@ class VMTritcaskShelf(TritcaskShelf):
     TYPE = 'type'
     classes = dict(
         (sub.__name__, sub)
-        for sub in Volume.__subclasses__() + Share.__subclasses__())
+        for sub in Volume.__subclasses__() + Share.__subclasses__()
+    )
 
     def __init__(self, *args, **kwargs):
         """Create the instance."""

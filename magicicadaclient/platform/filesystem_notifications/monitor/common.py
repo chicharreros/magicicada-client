@@ -56,11 +56,13 @@ if sys.platform == 'darwin':
     from magicicadaclient.platform.filesystem_notifications.monitor import (
         darwin,
     )
+
     source = darwin.fsevents_client
 elif sys.platform == 'win32':
     from magicicadaclient.platform.filesystem_notifications.monitor import (
         windows,
     )
+
     source = windows
 else:
     raise ImportError('Not supported platform')
@@ -105,7 +107,8 @@ class Watch:
         self.platform_watch = PlatformWatch(self.path, self.process_events)
 
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.log.setLevel(TRACE)
 
     def process_events(self, action, file_name, cookie, syncdaemon_path):
@@ -115,8 +118,7 @@ class Watch:
             return
 
         # do not process those events that should be ignored
-        if any([file_name.startswith(path)
-                for path in self.ignore_paths]):
+        if any([file_name.startswith(path) for path in self.ignore_paths]):
             return
 
         # map the filesystem events to the pyinotify ones, tis is dirty but
@@ -137,7 +139,8 @@ class Watch:
             'dir': is_dir,
             'mask': mask,
             'name': tail,
-            'path': '.'}
+            'path': '.',
+        }
         # by the way in which the api fires the events we know for
         # sure that no move events will be added in the wrong order, this
         # is kind of hacky, I dont like it too much
@@ -192,7 +195,7 @@ class Watch:
         if not path.endswith(os.path.sep):
             path += os.path.sep
         if path.startswith(self.path):
-            path = path[len(self.path):]
+            path = path.replace(self.path, '', 1)
             self.ignore_paths.append(path)
 
     @is_valid_os_path(path_indexes=[1])
@@ -201,7 +204,7 @@ class Watch:
         if not path.endswith(os.path.sep):
             path += os.path.sep
         if path.startswith(self.path):
-            path = path[len(self.path):]
+            path = path.replace(self.path, '', 1)
             if path in self.ignore_paths:
                 self.ignore_paths.remove(path)
 
@@ -250,7 +253,8 @@ class WatchManager:
     def __init__(self, processor):
         """Init the manager to keep trak of the different watches."""
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.log.setLevel(TRACE)
         self._processor = processor
         # use the platform manager to perform the actual actions
@@ -303,8 +307,9 @@ class WatchManager:
             path += os.path.sep
         for current_wd in self._wdm:
             watch_path = self._wdm[current_wd].path
-            if ((watch_path == path or watch_path in path) and
-                    path not in self._ignored_paths):
+            if (
+                watch_path == path or watch_path in path
+            ) and path not in self._ignored_paths:
                 return current_wd
 
     def get_path(self, wd):
@@ -352,7 +357,8 @@ class FilesystemMonitor:
 
     def __init__(self, eq, fs, ignore_config=None, timeout=1):
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.filesystem_monitor_mask = None
         self.log.setLevel(TRACE)
         self.fs = fs
@@ -390,7 +396,8 @@ class FilesystemMonitor:
         # the logic to check if the watch is already set
         # is all in WatchManager.add_watch
         return self._watch_manager.add_watch(
-            dirpath, self.filesystem_monitor_mask)
+            dirpath, self.filesystem_monitor_mask
+        )
 
     def add_watches_to_udf_ancestors(self, volume):
         """Add a inotify watch to volume's ancestors if it's an UDF."""

@@ -47,15 +47,14 @@ from magicicadaclient.syncdaemon.filesystem_manager import (
     InconsistencyError,
 )
 from magicicadaclient.syncdaemon.volume_manager import VolumeDoesNotExist
-from magicicadaclient.platform import (
-    stat_path,
-)
+from magicicadaclient.platform import stat_path
 
 empty_hash = ""
 
 
 class FSKey:
     """Encapsulate the problem of getting the metadata with different keys."""
+
     __slots__ = ('fs', 'keys', 'mdid', '_changes')
 
     def __init__(self, fs, **keys):
@@ -72,8 +71,11 @@ class FSKey:
             mdid = self.fs._idx_path[self.keys["path"]]
         elif len(self.keys) == 1 and "mdid" in self.keys:
             mdid = self.keys["mdid"]
-        elif (len(self.keys) == 2 and "node_id" in self.keys and
-                "share_id" in self.keys):
+        elif (
+            len(self.keys) == 2
+            and "node_id" in self.keys
+            and "share_id" in self.keys
+        ):
             k = (self.keys["share_id"], self.keys["node_id"])
             mdid = self.fs._idx_node_id[k]
         else:
@@ -181,8 +183,8 @@ class FSKey:
         source_path = self['path']
         parent_path = self.fs.get_by_node_id(new_share_id, new_parent_id).path
         dest_path = os.path.join(
-            self.fs.get_abspath(new_share_id, parent_path),
-            new_name)
+            self.fs.get_abspath(new_share_id, parent_path), new_name
+        )
         self.fs.move_file(new_share_id, source_path, dest_path)
 
     def moved(self, new_share_id, path_to):
@@ -232,14 +234,17 @@ class FSKey:
 
 def loglevel(lvl):
     """Make a function that logs at lvl log level."""
+
     def level_log(self, message, *args, **kwargs):
         """inner."""
         self.log(lvl, message, *args, **kwargs)
+
     return level_log
 
 
 class FileLogger:
     """A logger that knows about the file and its state."""
+
     __slots__ = ('logger', 'key')
 
     def __init__(self, logger, key):
@@ -249,37 +254,51 @@ class FileLogger:
 
     def log(self, lvl, message, *args, **kwargs):
         """Log."""
-        format = "%(hasmd)s:%(changed)s:%(isdir)s %(mdid)s "\
-                 "[%(share_id)r::%(node_id)r] '%(path)r' | %(message)s"
+        format = (
+            "%(hasmd)s:%(changed)s:%(isdir)s %(mdid)s "
+            "[%(share_id)r::%(node_id)r] '%(path)r' | %(message)s"
+        )
         exc_info = sys.exc_info
         if self.key.has_metadata() == "T":
             # catch all errors as we are logging
             try:
-                base = os.path.split(self.key.fs._get_share(
-                    self.key['share_id']).path)[1]
-                path = os.path.join(base, self.key.fs._share_relative_path(
-                    self.key['share_id'], self.key['path']))
+                base = os.path.split(
+                    self.key.fs._get_share(self.key['share_id']).path
+                )[1]
+                path = os.path.join(
+                    base,
+                    self.key.fs._share_relative_path(
+                        self.key['share_id'], self.key['path']
+                    ),
+                )
             except Exception:
                 # error while getting the path
-                self.logger.exception("Error in logger while building the "
-                                      "relpath of: %r", self.key['path'])
+                self.logger.exception(
+                    "Error in logger while building the " "relpath of: %r",
+                    self.key['path'],
+                )
                 path = self.key.safe_get('path')
-            extra = dict(message=message,
-                         mdid=self.key.safe_get("mdid"),
-                         path=path,
-                         share_id=self.key.safe_get("share_id") or 'root',
-                         node_id=self.key.safe_get("node_id"),
-                         hasmd=self.key.has_metadata(),
-                         isdir=self.key.is_directory(),
-                         changed=self.key.changed())
+            extra = dict(
+                message=message,
+                mdid=self.key.safe_get("mdid"),
+                path=path,
+                share_id=self.key.safe_get("share_id") or 'root',
+                node_id=self.key.safe_get("node_id"),
+                hasmd=self.key.has_metadata(),
+                isdir=self.key.is_directory(),
+                changed=self.key.changed(),
+            )
         else:
-            extra = dict(message=message, mdid="-",
-                         path="-",
-                         share_id="-",
-                         node_id="-",
-                         hasmd="-",
-                         isdir="-",
-                         changed="-")
+            extra = dict(
+                message=message,
+                mdid="-",
+                path="-",
+                share_id="-",
+                node_id="-",
+                hasmd="-",
+                isdir="-",
+                changed="-",
+            )
             extra.update(self.key.keys)
 
         # escape any % in the path and build the message
@@ -312,13 +331,16 @@ class SyncStateMachineRunner(StateMachineRunner):
     def on_event(self, *args, **kwargs):
         """Override on_event to capture the debug log"""
         kw = dict(
-            hasmd=self.key.has_metadata(), isdir=self.key.is_directory(),
-            changed=self.key.changed())
+            hasmd=self.key.has_metadata(),
+            isdir=self.key.is_directory(),
+            changed=self.key.changed(),
+        )
         in_state = '%(hasmd)s:%(changed)s:%(isdir)s' % kw
         is_debug = self.log.logger.isEnabledFor(logging.DEBUG)
         with DebugCapture(self.log.logger):
-            func_name = super(SyncStateMachineRunner, self).on_event(*args,
-                                                                     **kwargs)
+            func_name = super(SyncStateMachineRunner, self).on_event(
+                *args, **kwargs
+            )
             if not is_debug:
                 self.log.info("Called %s (In: %s)" % (func_name, in_state))
 
@@ -329,12 +351,18 @@ class SyncStateMachineRunner(StateMachineRunner):
     def validate_actual_data(self, path, oldstat):
         """Validates that the received info is not obsolete."""
         newstat = stat_path(path)
-        if newstat.st_ino != oldstat.st_ino or \
-           newstat.st_size != oldstat.st_size or \
-           newstat.st_mtime != oldstat.st_mtime:
-            self.log.debug("The received information is obsolete! New stat: "
-                           "st_ino=%d  st_size=%d  st_mtime=%r",
-                           newstat.st_ino, newstat.st_size, newstat.st_mtime)
+        if (
+            newstat.st_ino != oldstat.st_ino
+            or newstat.st_size != oldstat.st_size
+            or newstat.st_mtime != oldstat.st_mtime
+        ):
+            self.log.debug(
+                "The received information is obsolete! New stat: "
+                "st_ino=%d  st_size=%d  st_mtime=%r",
+                newstat.st_ino,
+                newstat.st_size,
+                newstat.st_mtime,
+            )
             return False
         return True
 
@@ -391,19 +419,30 @@ class SyncStateMachineRunner(StateMachineRunner):
             return
 
         if volume.generation is None or new_generation is None:
-            self.log.debug("Client not ready for generations! vol gen: %r, "
-                           "new gen: %r", volume.generation, new_generation)
+            self.log.debug(
+                "Client not ready for generations! vol gen: %r, "
+                "new gen: %r",
+                volume.generation,
+                new_generation,
+            )
             return
 
         if new_generation <= volume.generation:
-            self.log.info("Got smaller or equal generation (%d) than current "
-                          "(%d) for volume %r", new_generation,
-                          volume.generation, volume_id)
+            self.log.info(
+                "Got smaller or equal generation (%d) than current "
+                "(%d) for volume %r",
+                new_generation,
+                volume.generation,
+                volume_id,
+            )
 
         elif new_generation == volume.generation + 1:
             # last change from ourselves was the responsible of this increment
-            self.log.info("Updating current generation for volume %s to %d",
-                          volume_id, new_generation)
+            self.log.info(
+                "Updating current generation for volume %s to %d",
+                volume_id,
+                new_generation,
+            )
             self.m.vm.update_generation(volume_id, new_generation)
 
         else:
@@ -424,15 +463,17 @@ class SyncStateMachineRunner(StateMachineRunner):
         mdid = self.m.fs.create(path, share_id, node_id, True)
         self.m.fs.make_dir(mdid)
 
-    def new_dir_on_server_with_local_file(self, event, params, share_id,
-                                          node_id, parent_id, name):
+    def new_dir_on_server_with_local_file(
+        self, event, params, share_id, node_id, parent_id, name
+    ):
         """New dir on server and we have local file."""
         self.key.move_to_conflict()
         self.key.delete_metadata()
         self.new_dir(event, params, share_id, node_id, parent_id, name)
 
-    def new_dir_on_server_with_local_dir(self, event, params, share_id,
-                                         node_id, parent_id, name):
+    def new_dir_on_server_with_local_dir(
+        self, event, params, share_id, node_id, parent_id, name
+    ):
         """New dir on server and we have local dir: re-get it to converge."""
         self.m.fs.set_node_id(self.key['path'], node_id)
         self.reget_dir(event, params)
@@ -444,22 +485,25 @@ class SyncStateMachineRunner(StateMachineRunner):
     def local_file_conflict(self, event, params, hash):
         """This file is in conflict."""
         self.key.move_to_conflict()
-        self.m.action_q.cancel_upload(share_id=self.key['share_id'],
-                                      node_id=self.key['node_id'])
+        self.m.action_q.cancel_upload(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.get_file(event, params, hash)
 
     def new_file(self, event, params, share_id, node_id, parent_id, name):
         """create a local file."""
         mdobj = self.m.fs.get_by_node_id(share_id, parent_id)
         path = os.path.join(self.m.fs.get_abspath(share_id, mdobj.path), name)
-        self.m.fs.create(path=path, share_id=share_id, node_id=node_id,
-                         is_dir=False)
+        self.m.fs.create(
+            path=path, share_id=share_id, node_id=node_id, is_dir=False
+        )
         self.key.set(server_hash="")
         self.key.set(local_hash="")
         self.key.sync()
 
-    def new_file_on_server_with_local(self, event, params, share_id,
-                                      node_id, parent_id, name):
+    def new_file_on_server_with_local(
+        self, event, params, share_id, node_id, parent_id, name
+    ):
         """move local file to conflict and re create"""
         self.key.move_to_conflict()
         self.key.delete_metadata()
@@ -479,8 +523,9 @@ class SyncStateMachineRunner(StateMachineRunner):
         """cancel and reget this download."""
         self.key.set(server_hash=hash)
         self.key.sync()
-        self.m.action_q.cancel_download(share_id=self.key['share_id'],
-                                        node_id=self.key['node_id'])
+        self.m.action_q.cancel_download(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.remove_partial()
         self.get_file(event, params, hash)
 
@@ -498,14 +543,29 @@ class SyncStateMachineRunner(StateMachineRunner):
 
         # fix first the PathLockTree, so the move hooks on it's final
         # path, if any
-        self.m.action_q.pathlock.fix_path(tuple(path_from.split(os.path.sep)),
-                                          tuple(path_to.split(os.path.sep)))
+        self.m.action_q.pathlock.fix_path(
+            tuple(path_from.split(os.path.sep)),
+            tuple(path_to.split(os.path.sep)),
+        )
 
-        self.m.action_q.move(share_id, node_id, old_parent_id,
-                             new_parent_id, new_name, path_from, path_to)
-        self.m.fs.add_to_move_limbo(share_id, node_id, old_parent_id,
-                                    new_parent_id, new_name,
-                                    path_from, path_to)
+        self.m.action_q.move(
+            share_id,
+            node_id,
+            old_parent_id,
+            new_parent_id,
+            new_name,
+            path_from,
+            path_to,
+        )
+        self.m.fs.add_to_move_limbo(
+            share_id,
+            node_id,
+            old_parent_id,
+            new_parent_id,
+            new_name,
+            path_from,
+            path_to,
+        )
         self.key.moved(share_id, path_to)
 
         # we only hash it if we're a file, not a directory
@@ -516,8 +576,9 @@ class SyncStateMachineRunner(StateMachineRunner):
         """cancel and dont reget this download."""
         self.key.set(server_hash=hash)
         self.key.sync()
-        self.m.action_q.cancel_download(share_id=self.key['share_id'],
-                                        node_id=self.key['node_id'])
+        self.m.action_q.cancel_download(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.remove_partial()
 
     def commit_file(self, event, params, hash):
@@ -528,8 +589,12 @@ class SyncStateMachineRunner(StateMachineRunner):
         except InconsistencyError:
             # someone or something broke out partials, log in warning
             # and LR will take care and converge in the future
-            self.log.warning("Lost .partial when commiting node! volume_id=%r "
-                             "node_id=%r", key['share_id'], key['node_id'])
+            self.log.warning(
+                "Lost .partial when commiting node! volume_id=%r "
+                "node_id=%r",
+                key['share_id'],
+                key['node_id'],
+            )
 
     def new_local_file(self, event, parms, path):
         """a new local file was created"""
@@ -561,8 +626,9 @@ class SyncStateMachineRunner(StateMachineRunner):
         self.m.action_q.uuid_map.set(marker, new_id)
         self.m.fs.set_node_id(self.key['path'], new_id)
 
-    def new_server_file_having_local(self, event, parms, share_id, node_id,
-                                     parent_id, name):
+    def new_server_file_having_local(
+        self, event, parms, share_id, node_id, parent_id, name
+    ):
         """Got new file from server, we have it local but without id yet."""
         self.m.fs.set_node_id(self.key['path'], node_id)
 
@@ -594,8 +660,9 @@ class SyncStateMachineRunner(StateMachineRunner):
 
     def reput_file_from_local(self, event, params, hash_value):
         """Re put the file from its local state."""
-        self.m.action_q.cancel_upload(share_id=self.key['share_id'],
-                                      node_id=self.key['node_id'])
+        self.m.action_q.cancel_upload(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
 
         mdid = self.key.get_mdid()
         local_hash = self.key['local_hash']
@@ -606,8 +673,16 @@ class SyncStateMachineRunner(StateMachineRunner):
         node_id = self.key['node_id']
         upload_id = self.key.get('upload_id')
 
-        self.m.action_q.upload(share_id, node_id, previous_hash, local_hash,
-                               crc32, size, mdid, upload_id=upload_id)
+        self.m.action_q.upload(
+            share_id,
+            node_id,
+            previous_hash,
+            local_hash,
+            crc32,
+            size,
+            mdid,
+            upload_id=upload_id,
+        )
 
     def put_file(self, event, params, current_hash, crc32, size, stat):
         """Upload the file to the server."""
@@ -617,24 +692,35 @@ class SyncStateMachineRunner(StateMachineRunner):
         previous_hash = self.key['server_hash']
         upload_id = self.key.get('upload_id')
         self.key.set(
-            local_hash=current_hash, stat=stat, crc32=crc32, size=size)
+            local_hash=current_hash, stat=stat, crc32=crc32, size=size
+        )
         self.key.sync()
 
-        self.m.action_q.upload(share_id, node_id, previous_hash, current_hash,
-                               crc32, size, mdid, upload_id=upload_id)
+        self.m.action_q.upload(
+            share_id,
+            node_id,
+            previous_hash,
+            current_hash,
+            crc32,
+            size,
+            mdid,
+            upload_id=upload_id,
+        )
 
     def converges_to_server(self, event, params, hash, crc32, size, stat):
         """the local changes now match the server"""
-        self.m.action_q.cancel_download(share_id=self.key['share_id'],
-                                        node_id=self.key['node_id'])
+        self.m.action_q.cancel_download(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.remove_partial()
         self.key.set(local_hash=hash, stat=stat)
         self.key.sync()
 
     def reput_file_from_ok(self, event, param, hash):
         """put the file again, mark upload as ok"""
-        self.m.action_q.cancel_upload(share_id=self.key['share_id'],
-                                      node_id=self.key['node_id'])
+        self.m.action_q.cancel_upload(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.set(local_hash=hash)
         self.key.set(server_hash=hash)
         self.key.sync()
@@ -642,24 +728,35 @@ class SyncStateMachineRunner(StateMachineRunner):
 
     def reput_file(self, event, param, current_hash, crc32, size, stat):
         """Put the file again."""
-        self.m.action_q.cancel_upload(share_id=self.key['share_id'],
-                                      node_id=self.key['node_id'])
+        self.m.action_q.cancel_upload(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         previous_hash = self.key['server_hash']
 
         share_id = self.key['share_id']
         node_id = self.key['node_id']
         upload_id = self.key.get('upload_id')
-        self.key.set(local_hash=current_hash, stat=stat,
-                     crc32=crc32, size=size)
+        self.key.set(
+            local_hash=current_hash, stat=stat, crc32=crc32, size=size
+        )
         self.key.sync()
         mdid = self.key.get_mdid()
-        self.m.action_q.upload(share_id, node_id, previous_hash, current_hash,
-                               crc32, size, mdid, upload_id=upload_id)
+        self.m.action_q.upload(
+            share_id,
+            node_id,
+            previous_hash,
+            current_hash,
+            crc32,
+            size,
+            mdid,
+            upload_id=upload_id,
+        )
 
     def server_file_now_matches(self, event, params, hash):
         """We got a server hash that matches local hash"""
-        self.m.action_q.cancel_upload(share_id=self.key['share_id'],
-                                      node_id=self.key['node_id'])
+        self.m.action_q.cancel_upload(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.set(server_hash=hash)
         self.key.sync()
 
@@ -669,8 +766,9 @@ class SyncStateMachineRunner(StateMachineRunner):
 
     def cancel_and_commit(self, event, params, hash):
         """Finish an upload."""
-        self.m.action_q.cancel_download(share_id=self.key['share_id'],
-                                        node_id=self.key['node_id'])
+        self.m.action_q.cancel_download(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.remove_partial()
         self.key.upload_finished(hash)
 
@@ -696,8 +794,9 @@ class SyncStateMachineRunner(StateMachineRunner):
 
     def file_gone_wile_downloading(self, event, params):
         """a file we were downloading is gone."""
-        self.m.action_q.cancel_download(share_id=self.key['share_id'],
-                                        node_id=self.key['node_id'])
+        self.m.action_q.cancel_download(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.remove_partial()
         self.delete_file(event, params)
 
@@ -710,41 +809,60 @@ class SyncStateMachineRunner(StateMachineRunner):
     def delete_on_server(self, event, params, path):
         """local file was deleted."""
         is_dir = self.key.is_dir()
-        self.m.action_q.unlink(self.key['share_id'],
-                               self.key['parent_id'],
-                               self.key['node_id'], path, is_dir)
+        self.m.action_q.unlink(
+            self.key['share_id'],
+            self.key['parent_id'],
+            self.key['node_id'],
+            path,
+            is_dir,
+        )
         self.key.delete_to_trash()
 
     def deleted_dir_while_downloading(self, event, params, path):
         """kill it"""
         is_dir = self.key.is_dir()
-        self.m.action_q.cancel_download(share_id=self.key['share_id'],
-                                        node_id=self.key['node_id'])
+        self.m.action_q.cancel_download(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.remove_partial()
-        self.m.action_q.unlink(self.key['share_id'],
-                               self.key['parent_id'],
-                               self.key['node_id'], path, is_dir)
+        self.m.action_q.unlink(
+            self.key['share_id'],
+            self.key['parent_id'],
+            self.key['node_id'],
+            path,
+            is_dir,
+        )
         self.key.delete_to_trash()
 
     def cancel_download_and_delete_on_server(self, event, params, path):
         """cancel_download_and_delete_on_server"""
         is_dir = self.key.is_dir()
-        self.m.action_q.cancel_download(share_id=self.key['share_id'],
-                                        node_id=self.key['node_id'])
+        self.m.action_q.cancel_download(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.remove_partial()
-        self.m.action_q.unlink(self.key['share_id'],
-                               self.key['parent_id'],
-                               self.key['node_id'], path, is_dir)
+        self.m.action_q.unlink(
+            self.key['share_id'],
+            self.key['parent_id'],
+            self.key['node_id'],
+            path,
+            is_dir,
+        )
         self.key.delete_to_trash()
 
     def cancel_upload_and_delete_on_server(self, event, params, path):
         """cancel_download_and_delete_on_server"""
         is_dir = self.key.is_dir()
-        self.m.action_q.cancel_upload(share_id=self.key['share_id'],
-                                      node_id=self.key['node_id'])
-        self.m.action_q.unlink(self.key['share_id'],
-                               self.key['parent_id'],
-                               self.key['node_id'], path, is_dir)
+        self.m.action_q.cancel_upload(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
+        self.m.action_q.unlink(
+            self.key['share_id'],
+            self.key['parent_id'],
+            self.key['node_id'],
+            path,
+            is_dir,
+        )
         self.key.delete_to_trash()
 
     def remove_trash(self, event, params, share_id, node_id):
@@ -755,24 +873,42 @@ class SyncStateMachineRunner(StateMachineRunner):
         """Remove the node from move limbo."""
         self.m.fs.remove_from_move_limbo(share_id, node_id)
 
-    def server_moved(self, event, params, share_id, node_id,
-                     new_share_id, new_parent_id, new_name):
+    def server_moved(
+        self,
+        event,
+        params,
+        share_id,
+        node_id,
+        new_share_id,
+        new_parent_id,
+        new_name,
+    ):
         """file was moved on the server"""
         self.key.move_file(new_share_id, new_parent_id, new_name)
 
-    def server_moved_dirty(self, event, params, share_id, node_id,
-                           new_share_id, new_parent_id, new_name):
+    def server_moved_dirty(
+        self,
+        event,
+        params,
+        share_id,
+        node_id,
+        new_share_id,
+        new_parent_id,
+        new_name,
+    ):
         """file was moved on the server while downloading it"""
-        self.m.action_q.cancel_download(share_id=self.key['share_id'],
-                                        node_id=self.key['node_id'])
+        self.m.action_q.cancel_download(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.remove_partial()
         self.key.move_file(new_share_id, new_parent_id, new_name)
         self.get_file(event, params, self.key['server_hash'])
 
     def moved_dirty_local(self, event, params, path_from, path_to):
         """file was moved while uploading it"""
-        self.m.action_q.cancel_upload(share_id=self.key['share_id'],
-                                      node_id=self.key['node_id'])
+        self.m.action_q.cancel_upload(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.set(local_hash=self.key['server_hash'])
         self.key.sync()
         self.client_moved(event, params, path_from, path_to)
@@ -781,16 +917,22 @@ class SyncStateMachineRunner(StateMachineRunner):
         """file was moved while downloading it"""
         self.client_moved(event, params, path_from, path_to)
 
-        self.m.action_q.cancel_download(share_id=self.key['share_id'],
-                                        node_id=self.key['node_id'])
+        self.m.action_q.cancel_download(
+            share_id=self.key['share_id'], node_id=self.key['node_id']
+        )
         self.key.remove_partial()
         self.key.set(server_hash=self.key['local_hash'])
         self.key.sync()
 
     def DESPAIR(self, event, params, *args, **kwargs):
         """if we got here, we are in trouble"""
-        self.log.error("DESPAIR on event=%s params=%s args=%s kwargs=%s",
-                       event, params, args, kwargs)
+        self.log.error(
+            "DESPAIR on event=%s params=%s args=%s kwargs=%s",
+            event,
+            params,
+            args,
+            kwargs,
+        )
 
     def save_stat(self, event, params, hash, crc32, size, stat):
         """Save the stat"""
@@ -807,6 +949,7 @@ class SyncStateMachineRunner(StateMachineRunner):
 
 class Sync:
     """Translates from EQ events into state machine events."""
+
     # XXX: lucio.torre:
     # this will need some refactoring once we handle more events
 
@@ -817,7 +960,8 @@ class Sync:
         # XXX: verterok: add a custom Logger to lazyily build the LogRecord,
         # now that the DebugCapture is enabled
         self.logger = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.broken_logger = logging.getLogger('magicicadaclient.BrokenNodes')
         if Sync.fsm is None:
             Sync.fsm = StateMachine(u1fsfsm.state_machine)
@@ -838,8 +982,13 @@ class Sync:
             self.m.fs.set_by_mdid(mdobj.mdid, dirty=True)
 
         # send the event
-        self.m.event_q.push('SYS_BROKEN_NODE', volume_id=volume_id,
-                            node_id=node_id, path=path, mdid=mdid)
+        self.m.event_q.push(
+            'SYS_BROKEN_NODE',
+            volume_id=volume_id,
+            node_id=node_id,
+            path=path,
+            mdid=mdid,
+        )
         m = "Broken node: volume_id=%r node_id=%r mdid=%r path=%r"
         self.broken_logger.info(m, volume_id, node_id, mdid, path)
 
@@ -875,18 +1024,29 @@ class Sync:
             mdobj = self.m.fs.get_by_mdid(mdid)
             if mdobj.node_id is not None:
                 if mdobj.node_id == node_id:
-                    raise ValueError("Found same node_id in handle_SV_FILE_NEW"
-                                     " (node_id=%s path=%r)" % (node_id, path))
+                    raise ValueError(
+                        "Found same node_id in handle_SV_FILE_NEW"
+                        " (node_id=%s path=%r)" % (node_id, path)
+                    )
                 # have metadata with *other* node_id
-                log.debug("Wanted to apply SV_FILE_NEW with node_id %s to node"
-                          "with path %r, but found it with other id: %s",
-                          node_id, path, mdobj.node_id)
+                log.debug(
+                    "Wanted to apply SV_FILE_NEW with node_id %s to node"
+                    "with path %r, but found it with other id: %s",
+                    node_id,
+                    path,
+                    mdobj.node_id,
+                )
                 key.delete_file()
                 return None
 
         ssmr.on_event("SV_FILE_NEW", {}, share_id, node_id, parent_id, name)
-        self.m.event_q.push('SV_FILE_NEW', volume_id=share_id,
-                            node_id=node_id, parent_id=parent_id, name=name)
+        self.m.event_q.push(
+            'SV_FILE_NEW',
+            volume_id=share_id,
+            node_id=node_id,
+            parent_id=parent_id,
+            name=name,
+        )
         return self.m.fs.get_by_node_id(share_id, node_id)
 
     def _handle_SV_DIR_NEW(self, share_id, node_id, parent_id, name):
@@ -897,8 +1057,13 @@ class Sync:
         log = FileLogger(self.logger, key)
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.on_event("SV_DIR_NEW", {}, share_id, node_id, parent_id, name)
-        self.m.event_q.push('SV_DIR_NEW', volume_id=share_id,
-                            node_id=node_id, parent_id=parent_id, name=name)
+        self.m.event_q.push(
+            'SV_DIR_NEW',
+            volume_id=share_id,
+            node_id=node_id,
+            parent_id=parent_id,
+            name=name,
+        )
         return self.m.fs.get_by_node_id(share_id, node_id)
 
     def _handle_SV_FILE_DELETED(self, share_id, node_id, is_dir):
@@ -911,9 +1076,13 @@ class Sync:
         log = FileLogger(self.logger, key)
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.on_event("SV_FILE_DELETED", {})
-        self.m.event_q.push('SV_FILE_DELETED', volume_id=share_id,
-                            node_id=node_id, was_dir=is_dir,
-                            old_path=path)
+        self.m.event_q.push(
+            'SV_FILE_DELETED',
+            volume_id=share_id,
+            node_id=node_id,
+            was_dir=is_dir,
+            old_path=path,
+        )
 
     def handle_AQ_DOWNLOAD_FINISHED(self, share_id, node_id, server_hash):
         """on AQ_DOWNLOAD_FINISHED"""
@@ -927,8 +1096,9 @@ class Sync:
         key = FSKey(self.m.fs, share_id=share_id, node_id=node_id)
         log = FileLogger(self.logger, key)
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
-        ssmr.signal_event_with_error_and_hash("AQ_DOWNLOAD_ERROR", error,
-                                              server_hash)
+        ssmr.signal_event_with_error_and_hash(
+            "AQ_DOWNLOAD_ERROR", error, server_hash
+        )
 
     def handle_AQ_DOWNLOAD_DOES_NOT_EXIST(self, share_id, node_id):
         """on AQ_DOWNLOAD_DOES_NOT_EXIST."""
@@ -942,8 +1112,11 @@ class Sync:
         key = FSKey(self.m.fs, path=path)
         log = FileLogger(self.logger, key)
         if not key.is_subscribed():
-            log.debug("FS_FILE_CREATE on path %r discarded because of "
-                      "volume not subscribed", path)
+            log.debug(
+                "FS_FILE_CREATE on path %r discarded because of "
+                "volume not subscribed",
+                path,
+            )
             return
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.on_event("FS_FILE_CREATE", {}, path)
@@ -953,8 +1126,11 @@ class Sync:
         key = FSKey(self.m.fs, path=path)
         log = FileLogger(self.logger, key)
         if not key.is_subscribed():
-            log.debug("FS_DIR_CREATE on path %r discarded because of "
-                      "volume not subscribed", path)
+            log.debug(
+                "FS_DIR_CREATE on path %r discarded because of "
+                "volume not subscribed",
+                path,
+            )
             return
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.on_event("FS_DIR_CREATE", {}, path)
@@ -964,8 +1140,11 @@ class Sync:
         key = FSKey(self.m.fs, path=path)
         log = FileLogger(self.logger, key)
         if not key.is_subscribed():
-            log.debug("FS_FILE_DELETE on path %r discarded because of "
-                      "volume not subscribed", path)
+            log.debug(
+                "FS_FILE_DELETE on path %r discarded because of "
+                "volume not subscribed",
+                path,
+            )
             return
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.on_event("FS_FILE_DELETE", {}, path)
@@ -975,8 +1154,11 @@ class Sync:
         key = FSKey(self.m.fs, path=path)
         log = FileLogger(self.logger, key)
         if not key.is_subscribed():
-            log.debug("FS_DIR_DELETE on path %r discarded because of "
-                      "volume not subscribed", path)
+            log.debug(
+                "FS_DIR_DELETE on path %r discarded because of "
+                "volume not subscribed",
+                path,
+            )
             return
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.on_event("FS_DIR_DELETE", {}, path)
@@ -986,8 +1168,11 @@ class Sync:
         key = FSKey(self.m.fs, path=path_from)
         log = FileLogger(self.logger, key)
         if not key.is_subscribed():
-            log.debug("FS_FILE_MOVE on path %r discarded because of "
-                      "volume not subscribed", path_from)
+            log.debug(
+                "FS_FILE_MOVE on path %r discarded because of "
+                "volume not subscribed",
+                path_from,
+            )
             return
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.on_event("FS_FILE_MOVE", {}, path_from, path_to)
@@ -997,8 +1182,11 @@ class Sync:
         key = FSKey(self.m.fs, path=path_from)
         log = FileLogger(self.logger, key)
         if not key.is_subscribed():
-            log.debug("FS_DIR_MOVE on path %r discarded because of "
-                      "volume not subscribed", path_from)
+            log.debug(
+                "FS_DIR_MOVE on path %r discarded because of "
+                "volume not subscribed",
+                path_from,
+            )
             return
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.on_event("FS_DIR_MOVE", {}, path_from, path_to)
@@ -1038,8 +1226,11 @@ class Sync:
         key = FSKey(self.m.fs, path=path)
         log = FileLogger(self.logger, key)
         if not key.is_subscribed():
-            log.debug("FS_FILE_CLOSE_WRITE on path %r discarded because of "
-                      "volume not subscribed", path)
+            log.debug(
+                "FS_FILE_CLOSE_WRITE on path %r discarded because of "
+                "volume not subscribed",
+                path,
+            )
             return
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.on_event('FS_FILE_CLOSE_WRITE', {})
@@ -1072,11 +1263,13 @@ class Sync:
             ssmr.on_event('HQ_HASH_ERROR', {})
         else:
             if data_ok:
-                ssmr.signal_event_with_hash("HQ_HASH_NEW", hash,
-                                            crc32, size, stat)
+                ssmr.signal_event_with_hash(
+                    "HQ_HASH_NEW", hash, crc32, size, stat
+                )
 
-    def handle_AQ_UPLOAD_FINISHED(self, share_id, node_id, hash,
-                                  new_generation):
+    def handle_AQ_UPLOAD_FINISHED(
+        self, share_id, node_id, hash, new_generation
+    ):
         """On AQ_UPLOAD_FINISHED."""
         key = FSKey(self.m.fs, share_id=share_id, node_id=node_id)
         log = FileLogger(self.logger, key)
@@ -1091,17 +1284,26 @@ class Sync:
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.signal_event_with_error_and_hash("AQ_UPLOAD_ERROR", error, hash)
 
-    def _handle_SV_MOVED(self, share_id, node_id, new_share_id, new_parent_id,
-                         new_name):
+    def _handle_SV_MOVED(
+        self, share_id, node_id, new_share_id, new_parent_id, new_name
+    ):
         """on SV_MOVED"""
         key = FSKey(self.m.fs, share_id=share_id, node_id=node_id)
         log = FileLogger(self.logger, key)
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
-        ssmr.on_event("SV_MOVED", {}, share_id, node_id, new_share_id,
-                      new_parent_id, new_name)
+        ssmr.on_event(
+            "SV_MOVED",
+            {},
+            share_id,
+            node_id,
+            new_share_id,
+            new_parent_id,
+            new_name,
+        )
 
-    def handle_AQ_UNLINK_OK(self, share_id, parent_id, node_id,
-                            new_generation, was_dir, old_path):
+    def handle_AQ_UNLINK_OK(
+        self, share_id, parent_id, node_id, new_generation, was_dir, old_path
+    ):
         """On AQ_UNLINK_OK."""
         key = FSKey(self.m.fs, share_id=share_id, node_id=node_id)
         log = FileLogger(self.logger, key)
@@ -1124,16 +1326,18 @@ class Sync:
         ssmr.on_event("AQ_MOVE_OK", {}, share_id, node_id)
         ssmr.update_generation(share_id, node_id, new_generation)
 
-    def handle_AQ_MOVE_ERROR(self, share_id, node_id, old_parent_id,
-                             new_parent_id, new_name, error):
+    def handle_AQ_MOVE_ERROR(
+        self, share_id, node_id, old_parent_id, new_parent_id, new_name, error
+    ):
         """On AQ_MOVE_ERROR."""
         key = FSKey(self.m.fs, share_id=share_id, node_id=node_id)
         log = FileLogger(self.logger, key)
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.on_event("AQ_MOVE_ERROR", {}, share_id, node_id)
 
-    def handle_AQ_DELTA_OK(self, volume_id, delta_content, end_generation,
-                           full, free_bytes):
+    def handle_AQ_DELTA_OK(
+        self, volume_id, delta_content, end_generation, full, free_bytes
+    ):
         """We got a new delta. Apply item by item of the delta.
 
         Unlike other Sync methods that just defer to Sync State Machine Runner,
@@ -1143,7 +1347,9 @@ class Sync:
 
         self.logger.info(
             "handle_AQ_DELTA_OK for volume %s. (%s items)",
-            volume_id, len(delta_content))
+            volume_id,
+            len(delta_content),
+        )
 
         to_delete = []
 
@@ -1165,8 +1371,9 @@ class Sync:
                 # about it
                 if not dt.is_live:
                     to_delete.append(dt)
-                    self._handle_SV_FILE_DELETED(dt.share_id, dt.node_id,
-                                                 is_dir)
+                    self._handle_SV_FILE_DELETED(
+                        dt.share_id, dt.node_id, is_dir
+                    )
                     # nothing else should happen with this
                     continue
 
@@ -1195,35 +1402,46 @@ class Sync:
 
                 # if the path changed, we have a move, notify it
                 path_parent_name = os.path.dirname(node.path)
-                abs_parent_path = self.m.fs.get_abspath(node.share_id,
-                                                        path_parent_name)
+                abs_parent_path = self.m.fs.get_abspath(
+                    node.share_id, path_parent_name
+                )
                 node_parent_id = self.m.fs.get_by_path(abs_parent_path).node_id
                 node_name = os.path.basename(node.path)
                 if dt.parent_id != node_parent_id or dt.name != node_name:
                     # this was moved, or maybe the server still didn't receive
                     # the move that happened here
                     if not self.m.action_q.node_is_with_queued_move(
-                            dt.share_id, dt.node_id):
+                        dt.share_id, dt.node_id
+                    ):
                         # signal moved
                         self._handle_SV_MOVED(
-                            share_id=node.share_id, node_id=node.node_id,
+                            share_id=node.share_id,
+                            node_id=node.node_id,
                             new_share_id=dt.share_id,
-                            new_parent_id=dt.parent_id, new_name=dt.name)
+                            new_parent_id=dt.parent_id,
+                            new_name=dt.name,
+                        )
                     else:
-                        self.logger.info("Not calling _handle_SV_MOVED for "
-                                         "%s:%s due to pending move. "
-                                         "(old parent = %s, new_parent = %s "
-                                         "old_name = %s, new_name = %s)",
-                                         node.share_id, node.node_id,
-                                         node_parent_id, dt.parent_id,
-                                         node_name, dt.name)
+                        self.logger.info(
+                            "Not calling _handle_SV_MOVED for "
+                            "%s:%s due to pending move. "
+                            "(old parent = %s, new_parent = %s "
+                            "old_name = %s, new_name = %s)",
+                            node.share_id,
+                            node.node_id,
+                            node_parent_id,
+                            dt.parent_id,
+                            node_name,
+                            dt.name,
+                        )
 
                 # if its a dir, theres nothing else that we do with them except
                 # creating them.
                 # if its a file, we only care about the hash
                 if not is_dir:
-                    self._handle_SV_HASH_NEW(dt.share_id, dt.node_id,
-                                             dt.content_hash)
+                    self._handle_SV_HASH_NEW(
+                        dt.share_id, dt.node_id, dt.content_hash
+                    )
 
                 # node updated, update generation
                 self.m.fs.set_by_mdid(node.mdid, generation=dt.generation)
@@ -1233,7 +1451,9 @@ class Sync:
                 # Let's log
                 self.logger.exception(
                     "Node delta for %s:%s can't be applied.",
-                    dt.share_id, dt.node_id)
+                    dt.share_id,
+                    dt.node_id,
+                )
 
                 # And mark the node as dirty
                 self.mark_node_as_dirty(dt.share_id, dt.node_id)
@@ -1247,25 +1467,32 @@ class Sync:
         self.logger.info(
             "handle_AQ_DELTA_OK for volume %r done at generation %s. "
             "(%s deletes)",
-            volume_id, end_generation, len(to_delete))
+            volume_id,
+            end_generation,
+            len(to_delete),
+        )
 
-    def handle_AQ_RESCAN_FROM_SCRATCH_OK(self, volume_id, delta_content,
-                                         end_generation, free_bytes):
+    def handle_AQ_RESCAN_FROM_SCRATCH_OK(
+        self, volume_id, delta_content, end_generation, free_bytes
+    ):
         """Handle rescan from scratch."""
 
         self.logger.info(
             "Applying rescan from scratch for volume %s. (%s items)",
-            volume_id, len(delta_content))
+            volume_id,
+            len(delta_content),
+        )
 
         # remove root and apply the delta
         new_delta_content = [dt for dt in delta_content if dt.parent_id]
 
-        self.handle_AQ_DELTA_OK(volume_id, new_delta_content, end_generation,
-                                True, free_bytes)
+        self.handle_AQ_DELTA_OK(
+            volume_id, new_delta_content, end_generation, True, free_bytes
+        )
 
         self.logger.info(
-            "Rescan from scratch apply delta for volume %s done.",
-            volume_id)
+            "Rescan from scratch apply delta for volume %s done.", volume_id
+        )
         # get all nodes sorted by path and reversed
         live_nodes = set(dt.node_id for dt in delta_content)
         all_nodes = list(self.m.fs.get_mdobjs_by_share_id(volume_id))
@@ -1286,4 +1513,6 @@ class Sync:
 
         self.logger.info(
             "Rescan from scratch for volume %s done. (%s deletes)",
-            volume_id, deletes)
+            volume_id,
+            deletes,
+        )

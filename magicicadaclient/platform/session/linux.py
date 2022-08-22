@@ -47,11 +47,14 @@ class Inhibitor:
         """Initialize this instance."""
         self.cookie = None
         bus = dbus.SessionBus()
-        obj = bus.get_object(bus_name=SESSION_MANAGER_BUSNAME,
-                             object_path=SESSION_MANAGER_PATH,
-                             follow_name_owner_changes=True)
-        self.proxy = dbus.Interface(object=obj,
-                                    dbus_interface=SESSION_MANAGER_IFACE)
+        obj = bus.get_object(
+            bus_name=SESSION_MANAGER_BUSNAME,
+            object_path=SESSION_MANAGER_PATH,
+            follow_name_owner_changes=True,
+        )
+        self.proxy = dbus.Interface(
+            object=obj, dbus_interface=SESSION_MANAGER_IFACE
+        )
 
     def inhibit(self, flags, reason):
         """Inhibit some events with a given reason."""
@@ -62,15 +65,22 @@ class Inhibitor:
             self.cookie = cookie
             d.callback(self)
 
-        self.proxy.Inhibit(NAME, TOPLEVEL_XID, reason, flags,
-                           reply_handler=inhibit_handler,
-                           error_handler=d.errback)
+        self.proxy.Inhibit(
+            NAME,
+            TOPLEVEL_XID,
+            reason,
+            flags,
+            reply_handler=inhibit_handler,
+            error_handler=d.errback,
+        )
         return d
 
     def cancel(self):
         """Cancel the inhibition for the current cookie."""
         d = defer.Deferred()
-        self.proxy.Uninhibit(self.cookie,
-                             reply_handler=lambda: d.callback(self),
-                             error_handler=d.errback)
+        self.proxy.Uninhibit(
+            self.cookie,
+            reply_handler=lambda: d.callback(self),
+            error_handler=d.errback,
+        )
         return d

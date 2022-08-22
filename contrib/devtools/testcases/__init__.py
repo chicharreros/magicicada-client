@@ -60,13 +60,15 @@ def skipTest(reason):
 
     def decorator(test_item):
         """Decorate the test so that it is skipped."""
-        if not (isinstance(test_item, type) and
-                issubclass(test_item, TestCase)):
+        if not (
+            isinstance(test_item, type) and issubclass(test_item, TestCase)
+        ):
 
             @wraps(test_item)
             def skip_wrapper(*args, **kwargs):
                 """Skip a test method raising an exception."""
                 raise SkipTest(reason)
+
             test_item = skip_wrapper
 
         test_item.skip = reason
@@ -99,8 +101,7 @@ def skipIfOS(current_os, reason):
 def skipIfNotOS(current_os, reason):
     """Skip test we are not in a particular os."""
     if os:
-        if sys.platform not in current_os or \
-                sys.platform != current_os:
+        if sys.platform not in current_os or sys.platform != current_os:
             return skipTest(reason)
         return _id
     return _id
@@ -108,9 +109,10 @@ def skipIfNotOS(current_os, reason):
 
 def skipIfJenkins(current_os, reason):
     """Skip test for a particular os or lists of them
-       when running on Jenkins."""
-    if os.getenv("JENKINS", False) and (sys.platform in current_os or
-                                        sys.platform == current_os):
+    when running on Jenkins."""
+    if os.getenv("JENKINS", False) and (
+        sys.platform in current_os or sys.platform == current_os
+    ):
         return skipTest(reason)
     return _id
 
@@ -145,9 +147,11 @@ class BaseTestCase(TestCase):
         if root_dir:
             return root_dir
         max_filename = 32  # some platforms limit lengths of filenames
-        base = os.path.join(self.__class__.__module__[:max_filename],
-                            self.__class__.__name__[:max_filename],
-                            self._testMethodName[:max_filename])
+        base = os.path.join(
+            self.__class__.__module__[:max_filename],
+            self.__class__.__name__[:max_filename],
+            self._testMethodName[:max_filename],
+        )
         # use _trial_temp dir, it should be os.gwtcwd()
         # define the root temp dir of the testcase
         self.__root = os.path.join(os.getcwd(), base)

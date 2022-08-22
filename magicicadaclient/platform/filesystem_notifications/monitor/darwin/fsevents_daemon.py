@@ -37,8 +37,7 @@ from twisted.internet import defer, endpoints, reactor
 
 from magicicadaclient import logger
 from magicicadaclient import fseventsd
-from magicicadaclient.platform.filesystem_notifications.notify_processor \
-    import NotifyProcessor
+from magicicadaclient.platform.filesystem_notifications import notify_processor
 from magicicadaclient.platform.filesystem_notifications.agnostic import (
     Event,
     IN_OPEN,
@@ -91,7 +90,8 @@ NAME_TRANSLATIONS = {
     IN_MOVED_FROM: 'FS_FILE_DELETE',
     IN_MOVED_FROM | IN_ISDIR: 'FS_DIR_DELETE',
     IN_MOVED_TO: 'FS_FILE_CREATE',
-    IN_MOVED_TO | IN_ISDIR: 'FS_DIR_CREATE'}
+    IN_MOVED_TO | IN_ISDIR: 'FS_DIR_CREATE',
+}
 
 # TODO: This should be in fseventsd to be imported!
 # Path to the socket used by the daemon
@@ -148,7 +148,8 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
         self.ignored_paths = []
 
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.log.setLevel(TRACE)
 
     def events_dropper(self):
@@ -157,10 +158,14 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
 
     def path_is_not_interesting(self, path):
         """Return if the factory is interested in the path."""
-        is_watched = any(path.startswith(watched_path)
-                         for watched_path in self.watched_paths)
-        is_ignored = any(path.startswith(ignored_path)
-                         for ignored_path in self.ignored_paths)
+        is_watched = any(
+            path.startswith(watched_path)
+            for watched_path in self.watched_paths
+        )
+        is_ignored = any(
+            path.startswith(ignored_path)
+            for ignored_path in self.ignored_paths
+        )
         return not is_watched or (is_watched and is_ignored)
 
     def is_create(self, event):
@@ -190,7 +195,8 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
             'mask': mask,
             'name': tail,
             'cookie': cookie,
-            'path': '.'}
+            'path': '.',
+        }
         move_from_event = Event(event_raw_data)
         move_from_event.pathname = source_path
         return move_from_event
@@ -211,7 +217,8 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
             'name': tail,
             'cookie': cookie,
             'src_pathname': source_tail,
-            'path': '.'}
+            'path': '.',
+        }
         move_to_event = Event(event_raw_data)
         move_to_event.pathname = destination_path
         return move_to_event
@@ -244,7 +251,8 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
                     'dir': event.is_directory,
                     'mask': mask,
                     'name': tail,
-                    'path': '.'}
+                    'path': '.',
+                }
                 orig_event = Event(event_raw_data)
                 orig_event.pathname = path
                 events = [orig_event]
@@ -262,8 +270,10 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
                 # we have a rename within watched paths, so let's
                 # generate two fake events
                 cookie = str(uuid4())
-                return [self.generate_from_event(event, cookie),
-                        self.generate_to_event(event, cookie)]
+                return [
+                    self.generate_from_event(event, cookie),
+                    self.generate_to_event(event, cookie),
+                ]
         else:
             mask = DARWIN_ACTIONS[event.event_type]
             if event.is_directory:
@@ -277,7 +287,8 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
                 'dir': event.is_directory,
                 'mask': mask,
                 'name': tail,
-                'path': '.'}
+                'path': '.',
+            }
             pyinotify_event = Event(event_raw_data)
             # FIXME: event deduces the pathname wrong and we need to manually
             # set it
@@ -290,7 +301,8 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
             path += os.path.sep
 
         is_ignored_child = any(
-            ignored in path for ignored in self.ignored_paths)
+            ignored in path for ignored in self.ignored_paths
+        )
         return path in self.ignored_paths or is_ignored_child
 
     def process_event(self, event):
@@ -305,8 +317,12 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
         self.log.debug("process_event : %r => %r" % (event, events))
         for pyinotify_event in events:
             # assert that the path name is valid
-            if not any([pyinotify_event.pathname.startswith(path)
-                        for path in self.ignored_paths]):
+            if not any(
+                [
+                    pyinotify_event.pathname.startswith(path)
+                    for path in self.ignored_paths
+                ]
+            ):
                 # by definition we are being callFromThread so we do know that
                 # the  events are executed in the right order \o/
                 if not self._is_ignored_path(pyinotify_event.pathname):
@@ -318,9 +334,10 @@ class FilesystemMonitor:
 
     def __init__(self, eq, fs, ignore_config=None, timeout=1):
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.log.setLevel(TRACE)
-        self._processor = NotifyProcessor(self, ignore_config)
+        self._processor = notify_processor.NotifyProcessor(self, ignore_config)
         self.fs = fs
         self.eq = eq
         self._factory = PyInotifyEventsFactory(self._processor)
@@ -406,8 +423,10 @@ class FilesystemMonitor:
 
         # if we are watching a parent dir we can just ensure that it is not
         # ignored
-        parent_watched = any(dirpath.startswith(watched_path)
-                             for watched_path in self._factory.watched_paths)
+        parent_watched = any(
+            dirpath.startswith(watched_path)
+            for watched_path in self._factory.watched_paths
+        )
         if parent_watched:
             if dirpath in self._factory.ignored_paths:
                 self._factory.ignored_paths.remove(dirpath)

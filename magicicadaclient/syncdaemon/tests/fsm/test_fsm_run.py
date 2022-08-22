@@ -37,9 +37,9 @@ from magicicadaclient.syncdaemon.fsm import fsm
 def p(name):
     """Make a full path from here."""
     if "HAS_OOFICE" in os.environ:
-        return os.path.join(os.path.dirname(__file__), name+".ods")
+        return os.path.join(os.path.dirname(__file__), name + ".ods")
     else:
-        return os.path.join(os.path.dirname(__file__), name+".py")
+        return os.path.join(os.path.dirname(__file__), name + ".py")
 
 
 class TestRun(unittest.TestCase):
@@ -57,12 +57,13 @@ class TestRun(unittest.TestCase):
             def maker(self, event, params):
                 "inner"
                 result.append(out)
-                self.state = outstates[int(params["MV1"])-1]
+                self.state = outstates[int(params["MV1"]) - 1]
 
             return maker
 
         class HelloRunner(fsm.StateMachineRunner):
             """Our implementation of the runner."""
+
             state = "H"
             H = make("h", "EEE")
             E = make("e", "LLL")
@@ -70,7 +71,7 @@ class TestRun(unittest.TestCase):
             O = make("o", "WRR")  # noqa
             W = make("w", "OOO")
             R = make("r", "LLL")
-            D = make("d", ["NL"]*3)
+            D = make("d", ["NL"] * 3)
             newline = make("\n", "HHH")
 
             def get_state_values(self):

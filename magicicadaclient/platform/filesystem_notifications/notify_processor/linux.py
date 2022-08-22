@@ -54,19 +54,21 @@ NAME_TRANSLATIONS = {
 
 # these are the events that will listen from inotify
 INOTIFY_EVENTS_GENERAL = (
-    pyinotify.IN_OPEN |
-    pyinotify.IN_CLOSE_NOWRITE |
-    pyinotify.IN_CLOSE_WRITE |
-    pyinotify.IN_CREATE |
-    pyinotify.IN_DELETE |
-    pyinotify.IN_MOVED_FROM |
-    pyinotify.IN_MOVED_TO |
-    pyinotify.IN_MOVE_SELF)
+    pyinotify.IN_OPEN
+    | pyinotify.IN_CLOSE_NOWRITE
+    | pyinotify.IN_CLOSE_WRITE
+    | pyinotify.IN_CREATE
+    | pyinotify.IN_DELETE
+    | pyinotify.IN_MOVED_FROM
+    | pyinotify.IN_MOVED_TO
+    | pyinotify.IN_MOVE_SELF
+)
 INOTIFY_EVENTS_ANCESTORS = (
-    pyinotify.IN_DELETE |
-    pyinotify.IN_MOVED_FROM |
-    pyinotify.IN_MOVED_TO |
-    pyinotify.IN_MOVE_SELF)
+    pyinotify.IN_DELETE
+    | pyinotify.IN_MOVED_FROM
+    | pyinotify.IN_MOVED_TO
+    | pyinotify.IN_MOVE_SELF
+)
 
 
 class NotifyProcessor(pyinotify.ProcessEvent):
@@ -75,11 +77,16 @@ class NotifyProcessor(pyinotify.ProcessEvent):
     This class also catchs the MOVEs events, and synthetises a new
     FS_(DIR|FILE)_MOVE event when possible.
     """
+
     def __init__(self, monitor, ignore_config=None):
         self.general_processor = GeneralINotifyProcessor(
-            monitor, self.handle_dir_delete, NAME_TRANSLATIONS,
-            self.platform_is_ignored, pyinotify.IN_IGNORED,
-            ignore_config=ignore_config)
+            monitor,
+            self.handle_dir_delete,
+            NAME_TRANSLATIONS,
+            self.platform_is_ignored,
+            pyinotify.IN_IGNORED,
+            ignore_config=ignore_config,
+        )
         self.held_event = None
         self.timer = None
 
@@ -177,9 +184,11 @@ class NotifyProcessor(pyinotify.ProcessEvent):
                     is_to_forreal = not self.is_ignored(t_path)
                     if is_from_forreal and is_to_forreal:
                         f_share_id = self.general_processor.get_path_share_id(
-                            f_path_dir)
+                            f_path_dir
+                        )
                         t_share_id = self.general_processor.get_path_share_id(
-                            t_path_dir)
+                            t_path_dir
+                        )
                         if event.dir:
                             evtname = "FS_DIR_"
                         else:
@@ -188,19 +197,25 @@ class NotifyProcessor(pyinotify.ProcessEvent):
                             # if the share_id are != push a delete/create
                             m = "Delete because of different shares: %r"
                             self.general_processor.log.info(m, f_path)
-                            self.general_processor.eq_push(evtname + "DELETE",
-                                                           path=f_path)
-                            self.general_processor.eq_push(evtname + "CREATE",
-                                                           path=t_path)
+                            self.general_processor.eq_push(
+                                evtname + "DELETE", path=f_path
+                            )
+                            self.general_processor.eq_push(
+                                evtname + "CREATE", path=t_path
+                            )
                             if not event.dir:
                                 self.general_processor.eq_push(
-                                    'FS_FILE_CLOSE_WRITE', path=t_path)
+                                    'FS_FILE_CLOSE_WRITE', path=t_path
+                                )
                         else:
                             self.general_processor.monitor.inotify_watch_fix(
-                                f_path, t_path)
+                                f_path, t_path
+                            )
                             self.general_processor.eq_push(
-                                evtname + "MOVE", path_from=f_path,
-                                path_to=t_path)
+                                evtname + "MOVE",
+                                path_from=f_path,
+                                path_to=t_path,
+                            )
                     elif is_to_forreal:
                         # this is the case of a MOVE from something ignored
                         # to a valid filename
@@ -208,11 +223,13 @@ class NotifyProcessor(pyinotify.ProcessEvent):
                             evtname = "FS_DIR_"
                         else:
                             evtname = "FS_FILE_"
-                        self.general_processor.eq_push(evtname + "CREATE",
-                                                       path=t_path)
+                        self.general_processor.eq_push(
+                            evtname + "CREATE", path=t_path
+                        )
                         if not event.dir:
                             self.general_processor.eq_push(
-                                'FS_FILE_CLOSE_WRITE', path=t_path)
+                                'FS_FILE_CLOSE_WRITE', path=t_path
+                            )
 
                     else:
                         # this is the case of a MOVE from something valid
@@ -221,8 +238,9 @@ class NotifyProcessor(pyinotify.ProcessEvent):
                             evtname = "FS_DIR_"
                         else:
                             evtname = "FS_FILE_"
-                        self.general_processor.eq_push(evtname + "DELETE",
-                                                       path=f_path)
+                        self.general_processor.eq_push(
+                            evtname + "DELETE", path=f_path
+                        )
 
                     self.held_event = None
                 return
@@ -237,7 +255,8 @@ class NotifyProcessor(pyinotify.ProcessEvent):
             if not event.dir:
                 t_path = os.path.join(event.path, event.name)
                 self.general_processor.eq_push(
-                    'FS_FILE_CLOSE_WRITE', path=t_path)
+                    'FS_FILE_CLOSE_WRITE', path=t_path
+                )
 
     def process_default(self, event):
         """Push the event into the EventQueue."""
@@ -270,7 +289,8 @@ class NotifyProcessor(pyinotify.ProcessEvent):
 
         # handle the case of move a dir to a non-watched directory
         paths = self.general_processor.get_paths_starting_with(
-            fullpath, include_base=False)
+            fullpath, include_base=False
+        )
 
         paths.sort(reverse=True)
         for path, is_dir in paths:

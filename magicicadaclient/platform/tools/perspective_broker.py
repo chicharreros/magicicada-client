@@ -33,7 +33,7 @@ import subprocess
 from collections import defaultdict
 
 from twisted.internet import defer
-from twisted.spread.pb import (DeadReferenceError, RemoteError)
+from twisted.spread.pb import DeadReferenceError, RemoteError
 
 from magicicadaclient.platform.ipc.perspective_broker import is_already_running
 from magicicadaclient.platform.ipc.ipc_client import UbuntuOneClient
@@ -73,15 +73,21 @@ class SyncDaemonToolProxy:
         'FolderSubscribed': ('folders', 'on_folder_subscribed_cb'),
         'FolderSubscribeError': ('folders', 'on_folder_subscribe_error_cb'),
         'FolderUnSubscribed': ('folders', 'on_folder_unsubscribed_cb'),
-        'FolderUnSubscribeError': ('folders',
-                                   'on_folder_unsubscribe_error_cb'),
+        'FolderUnSubscribeError': (
+            'folders',
+            'on_folder_unsubscribe_error_cb',
+        ),
         'NewShare': ('shares', 'on_new_share_cb'),
         'PublicAccessChanged': ('public_files', 'on_public_access_changed_cb'),
-        'PublicAccessChangeError': ('public_files',
-                                    'on_public_access_change_error_cb'),
+        'PublicAccessChangeError': (
+            'public_files',
+            'on_public_access_change_error_cb',
+        ),
         'PublicFilesList': ('public_files', 'on_public_files_list_cb'),
-        'PublicFilesListError': ('public_files',
-                                 'on_public_files_list_error_cb'),
+        'PublicFilesListError': (
+            'public_files',
+            'on_public_files_list_error_cb',
+        ),
         'ShareAnswerResponse': ('shares', 'on_share_answer_response_cb'),
         'ShareChanges': ('shares', 'on_share_changed_cb'),
         'ShareCreated': ('shares', 'on_share_created_cb'),
@@ -101,14 +107,20 @@ class SyncDaemonToolProxy:
 
     _DONT_VERIFY_CONNECTED = [
         "wait_connected",
-        "client", "last_event", "delayed_call", "log", "connected",
-        "connected_signals"
+        "client",
+        "last_event",
+        "delayed_call",
+        "log",
+        "connected",
+        "connected_signals",
     ]
 
     def _should_wrap(self, attr_name):
         """Check if this attribute should be wrapped."""
-        return not (attr_name in SyncDaemonToolProxy._DONT_VERIFY_CONNECTED or
-                    attr_name.startswith("_"))
+        return not (
+            attr_name in SyncDaemonToolProxy._DONT_VERIFY_CONNECTED
+            or attr_name.startswith("_")
+        )
 
     def __getattribute__(self, attr_name):
         """If the attribute is not special, verify the ipc connection."""
@@ -120,7 +132,8 @@ class SyncDaemonToolProxy:
 
     def __init__(self, bus=None):
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.client = UbuntuOneClient()
         self.connected = None
         self.connected_signals = defaultdict(set)
@@ -168,7 +181,8 @@ class SyncDaemonToolProxy:
             # for gc
             yield self._reconnect_client()
             result = yield self.call_method(
-                client_kind, method_name, *args, **kwargs)
+                client_kind, method_name, *args, **kwargs
+            )
         except RemoteError as e:
             # Wrap RemoteErrors in IPCError to match DBus interface's behavior
             raise IPCError(name=e.remoteType, info=[e.args], details=str(e))
@@ -190,8 +204,10 @@ class SyncDaemonToolProxy:
         client = getattr(self.client, client_kind)
         if len(self.connected_signals[signal_name]) == 0:
             setattr(
-                client, callback,
-                lambda *args, **kw: self._handler(signal_name, *args, **kw))
+                client,
+                callback,
+                lambda *args, **kw: self._handler(signal_name, *args, **kw),
+            )
         # do remember the connected signal in case we need to reconnect
         self.connected_signals[signal_name].add(handler)
         return handler

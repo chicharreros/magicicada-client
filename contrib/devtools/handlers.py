@@ -32,16 +32,16 @@ import logging
 
 
 class MementoHandler(logging.Handler):
-    """ A handler class which store logging records in a list """
+    """A handler class which store logging records in a list"""
 
     def __init__(self, *args, **kwargs):
-        """ Create the instance, and add a records attribute. """
+        """Create the instance, and add a records attribute."""
         logging.Handler.__init__(self, *args, **kwargs)
         self.records = []
         self.debug = False
 
     def emit(self, record):
-        """ Just add the record to self.records. """
+        """Just add the record to self.records."""
         self.format(record)
         self.records.append(record)
 
@@ -85,8 +85,10 @@ class MementoHandler(logging.Handler):
     def check_exception(self, exception_info, *msgs):
         """Shortcut for checking exceptions."""
         for rec in self.records:
-            if rec.levelno == logging.ERROR and \
-                    all(m in rec.exc_text + rec.message for m in msgs) and \
-                    exception_info in rec.exc_info:
+            if (
+                rec.levelno == logging.ERROR
+                and all(m in rec.exc_text + rec.message for m in msgs)
+                and exception_info in rec.exc_info
+            ):
                 return True
         return False

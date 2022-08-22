@@ -41,12 +41,15 @@ class NetworkFailException(Exception):
 
 if sys.platform == 'win32':
     from magicicadaclient.networkstate import windows
+
     networksource = windows
 elif sys.platform == 'darwin':
     from magicicadaclient.networkstate import darwin
+
     networksource = darwin
 else:
     from magicicadaclient.networkstate import linux
+
     networksource = linux
 
 NetworkManagerState = networksource.NetworkManagerState

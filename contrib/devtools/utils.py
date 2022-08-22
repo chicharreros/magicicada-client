@@ -38,7 +38,7 @@ __all__ = ['OptionParser']
 
 def accumulate_list_attr(class_obj, attr, list_obj, base_class=None):
     """Get all of the list attributes of attr from the class hierarchy,
-       and return a list of the lists."""
+    and return a list of the lists."""
     for base in class_obj.__bases__:
         accumulate_list_attr(base, attr, list_obj)
     if base_class is None or base_class in class_obj.__bases__:
@@ -51,7 +51,7 @@ def unpack_padded(length, sequence, default=None):
     Returns a list containing the original and padded values.
     """
     newlist = [default] * length
-    newlist[:len(sequence)] = list(sequence)
+    newlist[: len(sequence)] = list(sequence)
     return newlist
 
 
@@ -88,8 +88,9 @@ class OptionParser(dict):
             options = sys.argv[1:]
 
         try:
-            opts, args = getopt.getopt(options,
-                                       self.short_opts, self.long_opts)
+            opts, args = getopt.getopt(
+                options, self.short_opts, self.long_opts
+            )
         except getopt.error as e:
             raise UsageError(e)
 
@@ -99,7 +100,7 @@ class OptionParser(dict):
             else:
                 opt = opt[1:]
 
-            if (opt not in list(self.synonyms.keys())):
+            if opt not in list(self.synonyms.keys()):
                 raise UsageError('No such options: "%s"' % opt)
 
             opt = self.synonyms[opt]
@@ -173,5 +174,6 @@ class OptionParser(dict):
 
     def _get_params(self):
         """Get the parameters options."""
-        return self._parse_arguments(arg_type='optParameters',
-                                     has_default=True)
+        return self._parse_arguments(
+            arg_type='optParameters', has_default=True
+        )

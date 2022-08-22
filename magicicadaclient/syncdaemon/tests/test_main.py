@@ -46,7 +46,9 @@ from magicicadaclient.platform import (
 )
 from magicicadaclient.syncdaemon import main as main_mod
 from magicicadaclient.testing.testcase import (
-    BaseTwistedTestCase, FAKED_CREDENTIALS, FakeMonitor
+    BaseTwistedTestCase,
+    FAKED_CREDENTIALS,
+    FakeMonitor,
 )
 
 
@@ -71,11 +73,11 @@ class FakedExternalInterface:
 
 
 class MainTests(BaseTwistedTestCase):
-    """ Basic tests to check main.Main """
+    """Basic tests to check main.Main"""
 
     @defer.inlineCallbacks
     def setUp(self):
-        """ Sets up a test. """
+        """Sets up a test."""
         yield super(MainTests, self).setUp()
         self.root = self.mktemp('root')
         self.shares = self.mktemp('shares')
@@ -91,15 +93,17 @@ class MainTests(BaseTwistedTestCase):
 
     def _get_main_common_params(self):
         """Return the parameters used by the all platforms."""
-        return dict(root_dir=self.root,
-                    shares_dir=self.shares,
-                    data_dir=self.data,
-                    partials_dir=self.partials_dir,
-                    connection_info='localhost:0:plain',
-                    mark_interval=60,
-                    handshake_timeout=2,
-                    auth_credentials=FAKED_CREDENTIALS,
-                    monitor_class=FakeMonitor)
+        return dict(
+            root_dir=self.root,
+            shares_dir=self.shares,
+            data_dir=self.data,
+            partials_dir=self.partials_dir,
+            connection_info='localhost:0:plain',
+            mark_interval=60,
+            handshake_timeout=2,
+            auth_credentials=FAKED_CREDENTIALS,
+            monitor_class=FakeMonitor,
+        )
 
     def build_main(self, **kwargs):
         """Build and return a Main object.
@@ -141,8 +145,9 @@ class MainTests(BaseTwistedTestCase):
         params = self._get_main_common_params()
         main = main_mod.Main(**params)
         events = []
-        self.patch(main.event_q, 'push',
-                   lambda *a, **kw: events.append((a, kw)))
+        self.patch(
+            main.event_q, 'push', lambda *a, **kw: events.append((a, kw))
+        )
 
         yield main.shutdown()
         expected = [(('SYS_USER_DISCONNECT',), {}), (('SYS_QUIT',), {})]
@@ -154,6 +159,7 @@ class MainTests(BaseTwistedTestCase):
 
         class Handler:
             """Trivial event handler."""
+
             def handle_SYS_HANDSHAKE_TIMEOUT(self):
                 """Pass the test when we get this event."""
                 reactor.callLater(0, d0.callback, None)
@@ -164,6 +170,7 @@ class MainTests(BaseTwistedTestCase):
             """Only connect when States told so."""
             main.event_q.push('SYS_CONNECTION_MADE')
             return defer.Deferred()
+
         main.action_q.connect = fake_connect
 
         # fake the following to not be executed
@@ -274,8 +281,10 @@ class MainTests(BaseTwistedTestCase):
         """The get_sharesdirlink returns the shares dir link."""
         expected = 'Share it to Me'
         main = self.build_main(shares_symlink_name=expected)
-        self.assertEqual(main.get_sharesdir_link(),
-                         os.path.join(main.get_rootdir(), expected))
+        self.assertEqual(
+            main.get_sharesdir_link(),
+            os.path.join(main.get_rootdir(), expected),
+        )
 
     def test_version_is_logged(self):
         """Test that the client version is logged."""
@@ -286,6 +295,13 @@ class MainTests(BaseTwistedTestCase):
         """Check the MARK logs ok."""
         main = self.build_main()
         main.log_mark()
-        shouldlog = ('MARK', "State: 'INIT'", 'queues IDLE', 'connection',
-                     'queue: 0', 'offloaded: 0', 'hash: 0')
+        shouldlog = (
+            'MARK',
+            "State: 'INIT'",
+            'queues IDLE',
+            'connection',
+            'queue: 0',
+            'offloaded: 0',
+            'hash: 0',
+        )
         self.assertTrue(self.handler.check(NOTE, *shouldlog))

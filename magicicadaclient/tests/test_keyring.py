@@ -188,8 +188,9 @@ class TestKeyring(TestCase):
         """Initialize the mock used in these tests."""
         yield super(TestKeyring, self).setUp()
         self.mock_service = None
-        self.service = self.patch(keyring, "SecretService",
-                                  self.get_mock_service)
+        self.service = self.patch(
+            keyring, "SecretService", self.get_mock_service
+        )
         self.patch(keyring, "gethostname", lambda: "darkstar")
 
     def get_mock_service(self):

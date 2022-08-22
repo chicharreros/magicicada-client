@@ -133,8 +133,9 @@ class PathsTestCase(BaseTestCase):
         self.assertTrue(('fake_basedir_fn', '') in self.called)
         self.assertTrue(('fake_makedirs', expected_path) not in self.called)
         self.assertTrue(expected_path not in self.created_paths)
-        self.assertTrue(('fake_exists',
-                        os.path.abspath(expected_path)) in self.called)
+        self.assertTrue(
+            ('fake_exists', os.path.abspath(expected_path)) in self.called
+        )
 
     def test_get_auth_temp_path(self):
         """Test the creation of the auth path."""
@@ -156,8 +157,9 @@ class EnvironTestCase(BaseTestCase):
         """Set the tests."""
         yield super(EnvironTestCase, self).setUp()
         self.called = []
-        self.settings = dict(noauth_port=3434, auth_port=232323,
-                             username='u1', password='test')
+        self.settings = dict(
+            noauth_port=3434, auth_port=232323, username='u1', password='test'
+        )
 
         def fake_dumps(data):
             """Fake dumps."""
@@ -184,8 +186,9 @@ class EnvironTestCase(BaseTestCase):
         """Test the storage of the settings."""
         squid.store_proxy_settings(self.settings)
         self.assertTrue(('dumps', self.settings) in self.called)
-        self.assertEqual(self.env[squid.PROXY_ENV_VAR],
-                         json.dumps(self.settings))
+        self.assertEqual(
+            self.env[squid.PROXY_ENV_VAR], json.dumps(self.settings)
+        )
 
     def test_retrieve_proxy_settings(self):
         """Test reading the settings."""
@@ -220,8 +223,9 @@ class SquidRunnerInitTestCase(BaseTestCase):
     def _assert_missing_binary(self, binary):
         """Perform the assertion when a bin is missing."""
         self.assertRaises(squid.SquidLaunchError, squid.SquidRunner)
-        self.assertTrue(('fake_find_executable', binary) in self.called,
-                        self.called)
+        self.assertTrue(
+            ('fake_find_executable', binary) in self.called, self.called
+        )
 
     def test_squid_missing(self):
         """Test when squid is missing."""
@@ -335,8 +339,7 @@ class SquidRunnerTestCase(BaseTestCase):
         """Test the generation of the auth file."""
         username = self.runner.settings['username'] = 'mandel'
         password = self.runner.settings['password'] = 'test'
-        expected_args = ['htpasswd', '-bc', self.auth_temp,
-                         username, password]
+        expected_args = ['htpasswd', '-bc', self.auth_temp, username, password]
         self.patch(squid, 'exists', lambda f: False)
         self.runner._generate_auth_file()
         self.assertEqual(expected_args, self.subprocess.called[0][1])
@@ -348,13 +351,17 @@ class SquidRunnerTestCase(BaseTestCase):
         self.runner._generate_config_file(self.tmpdir)
         # remove the generated file
         self.addCleanup(os.unlink, self.runner.config_file)
-        expected_parameters = \
-            ('safe_substitute', (),
-             dict(auth_file=self.runner.auth_file,
-                  noauth_port_number=self.port,
-                  auth_port_number=self.port,
-                  spool_temp=squid._get_spool_temp_path(self.tmpdir),
-                  squid_temp=squid._get_squid_temp_path(self.tmpdir)))
+        expected_parameters = (
+            'safe_substitute',
+            (),
+            dict(
+                auth_file=self.runner.auth_file,
+                noauth_port_number=self.port,
+                auth_port_number=self.port,
+                spool_temp=squid._get_spool_temp_path(self.tmpdir),
+                squid_temp=squid._get_squid_temp_path(self.tmpdir),
+            ),
+        )
         self.assertTrue(expected_parameters, self.template.called[0])
         self.assertEqual(2, self.called.count(('fake_get_port',)))
 
@@ -365,13 +372,17 @@ class SquidRunnerTestCase(BaseTestCase):
         err = b'Error goes here'
         self.subprocess.stdout.write(out)
         self.subprocess.stderr.write(err)
-        for func in ('_generate_auth_file', '_generate_config_file',
-                     '_generate_swap'):
+        for func in (
+            '_generate_auth_file',
+            '_generate_config_file',
+            '_generate_swap',
+        ):
             self.patch(self.runner, func, lambda _: None)
         self.patch(squid, 'store_proxy_settings', lambda _: None)
         self.patch(self.runner, '_is_squid_running', lambda: False)
-        ex = self.assertRaises(squid.SquidLaunchError,
-                               self.runner.start_service)
+        ex = self.assertRaises(
+            squid.SquidLaunchError, self.runner.start_service
+        )
         # New error that happens in Ubuntu 13.04
         self.assertTrue(any([out in arg.encode("utf8") for arg in ex.args]))
         self.assertTrue(any([err in arg.encode("utf8") for arg in ex.args]))

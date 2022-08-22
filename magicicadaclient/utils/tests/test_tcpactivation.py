@@ -120,8 +120,9 @@ class NullProtocolTestCase(TestCase):
         np = NullProtocol()
         np.transport = FakeTransport()
         np.connectionMade()
-        self.assertTrue(np.transport.connectionLost,
-                        "the connection must be dropped.")
+        self.assertTrue(
+            np.transport.connectionLost, "the connection must be dropped."
+        )
 
 
 class PortDetectFactoryTestCase(TestCase):
@@ -182,7 +183,8 @@ class ActivationConfigTestCase(TestCase):
     def test_initialization(self):
         """Test the constructor."""
         config = ActivationConfig(
-            SAMPLE_SERVICE, SAMPLE_CMDLINE, SAMPLE_CLIENT_DESCRIPTION)
+            SAMPLE_SERVICE, SAMPLE_CMDLINE, SAMPLE_CLIENT_DESCRIPTION
+        )
         self.assertEqual(config.service_name, SAMPLE_SERVICE)
         self.assertEqual(config.command_line, SAMPLE_CMDLINE)
         self.assertEqual(config.description, SAMPLE_CLIENT_DESCRIPTION)
@@ -201,9 +203,11 @@ class ActivationDetectorTestCase(TestCase):
         """Initialize this test instance."""
         yield super(ActivationDetectorTestCase, self).setUp()
         self.description_factory = FakeDescriptionFactory(
-            self.server_description, self.client_description)
-        self.config = ActivationConfig(SAMPLE_SERVICE, SAMPLE_CMDLINE,
-                                       self.description_factory)
+            self.server_description, self.client_description
+        )
+        self.config = ActivationConfig(
+            SAMPLE_SERVICE, SAMPLE_CMDLINE, self.description_factory
+        )
 
     def get_server(self):
         """Return the server to be used to run the tests."""
@@ -211,8 +215,9 @@ class ActivationDetectorTestCase(TestCase):
 
     def test_initialization(self):
         """Test the constructor."""
-        self.config = ActivationConfig(SAMPLE_SERVICE, SAMPLE_CMDLINE,
-                                       self.description_factory)
+        self.config = ActivationConfig(
+            SAMPLE_SERVICE, SAMPLE_CMDLINE, self.description_factory
+        )
         ai = ActivationDetector(self.config)
         self.assertEqual(ai.config, self.config)
 
@@ -240,7 +245,8 @@ class ActivationDetectorTestCase(TestCase):
                 defer.returnValue(conn_fact)
 
         self.patch(
-            tcpactivation, 'clientFromString', lambda *args: TestConnect())
+            tcpactivation, 'clientFromString', lambda *args: TestConnect()
+        )
 
         yield server.listen_server(protocol.ServerFactory)
 
@@ -262,10 +268,11 @@ class ActivationClientTestCase(TestCase):
         """Initialize this test instance."""
         yield super(ActivationClientTestCase, self).setUp()
         self.description_factory = FakeDescriptionFactory(
-            self.server_description,
-            self.client_description)
-        self.config = ActivationConfig(SAMPLE_SERVICE, SAMPLE_CMDLINE,
-                                       self.description_factory)
+            self.server_description, self.client_description
+        )
+        self.config = ActivationConfig(
+            SAMPLE_SERVICE, SAMPLE_CMDLINE, self.description_factory
+        )
 
     def test_initialization(self):
         """Test the constructor."""
@@ -286,7 +293,8 @@ class ActivationClientTestCase(TestCase):
         server_spawned = []
         ac = ActivationClient(self.config)
         self.patch(
-            ac, "_spawn_server", lambda *args: server_spawned.append(args))
+            ac, "_spawn_server", lambda *args: server_spawned.append(args)
+        )
         self.patch(ac, "is_already_running", lambda: defer.succeed(False))
         self.patch(ac, "_wait_server_active", lambda: defer.succeed(None))
         result = yield ac._do_get_active_description()
@@ -299,8 +307,9 @@ class ActivationClientTestCase(TestCase):
         ac1 = ActivationClient(self.config)
         ac2 = ActivationClient(self.config)
         self.patch(ac1, "_do_get_active_description", lambda: d)
-        self.patch(ac2, "_do_get_active_description",
-                   lambda: defer.succeed(None))
+        self.patch(
+            ac2, "_do_get_active_description", lambda: defer.succeed(None)
+        )
         ac1.get_active_client_description()
         d2 = ac2.get_active_client_description()
         self.assertFalse(d2.called, "The second must wait for the first.")
@@ -330,16 +339,21 @@ class ActivationClientTestCase(TestCase):
         self.patch(twisted.internet, "reactor", clock)
         self.patch(ac, "is_already_running", lambda: defer.succeed(False))
         d = ac._wait_server_active()
-        clock.pump([tcpactivation.DELAY_BETWEEN_CHECKS] *
-                   tcpactivation.NUMBER_OF_CHECKS)
+        clock.pump(
+            [tcpactivation.DELAY_BETWEEN_CHECKS]
+            * tcpactivation.NUMBER_OF_CHECKS
+        )
         return self.assertFailure(d, ActivationTimeoutError)
 
     def test_spawn_server(self):
         """Test the _spawn_server method."""
         popen_calls = []
         ac = ActivationClient(self.config)
-        self.patch(tcpactivation.subprocess, "Popen",
-                   lambda *args, **kwargs: popen_calls.append((args, kwargs)))
+        self.patch(
+            tcpactivation.subprocess,
+            "Popen",
+            lambda *args, **kwargs: popen_calls.append((args, kwargs)),
+        )
         ac._spawn_server()
         self.assertEqual(len(popen_calls), 1)
 
@@ -357,10 +371,11 @@ class ActivationInstanceTestCase(ServerTestCase):
         """Initialize this test instance."""
         yield super(ActivationInstanceTestCase, self).setUp()
         self.description_factory = FakeDescriptionFactory(
-            self.server_description,
-            self.client_description)
-        self.config = ActivationConfig(SAMPLE_SERVICE, SAMPLE_CMDLINE,
-                                       self.description_factory)
+            self.server_description, self.client_description
+        )
+        self.config = ActivationConfig(
+            SAMPLE_SERVICE, SAMPLE_CMDLINE, self.description_factory
+        )
 
     def get_server(self):
         """Return the server to be used to run the tests."""
@@ -397,13 +412,15 @@ class ActivationInstanceTestCase(ServerTestCase):
                 defer.returnValue(conn_fact)
 
         self.patch(
-            tcpactivation, 'clientFromString', lambda *args: TestConnect())
+            tcpactivation, 'clientFromString', lambda *args: TestConnect()
+        )
 
         yield server.listen_server(protocol.ServerFactory)
 
         ai = ActivationInstance(self.config)
-        yield self.assertFailure(ai.get_server_description(),
-                                 AlreadyStartedError)
+        yield self.assertFailure(
+            ai.get_server_description(), AlreadyStartedError
+        )
 
 
 def server_test(config):
@@ -441,6 +458,7 @@ def server_test(config):
 def client_test(config):
     """An IRL test of the client."""
     from twisted.internet import reactor
+
     print("starting the client.")
     ac = ActivationClient(config)
     d = ac.get_active_client_description()
@@ -457,8 +475,10 @@ def client_test(config):
 def irl_test():
     """Do an IRL test of the client and the server."""
     import sys
-    description_f = FakeDescriptionFactory(SAMPLE_SERVER_DESCRIPTION,
-                                           SAMPLE_CLIENT_DESCRIPTION)
+
+    description_f = FakeDescriptionFactory(
+        SAMPLE_SERVER_DESCRIPTION, SAMPLE_CLIENT_DESCRIPTION
+    )
     config = ActivationConfig(SAMPLE_SERVICE, SAMPLE_CMDLINE, description_f)
     if "-server" in sys.argv[1:]:
         server_test(config)

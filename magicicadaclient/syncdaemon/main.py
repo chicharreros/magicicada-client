@@ -60,8 +60,9 @@ logger = logging.getLogger(__name__)
 class WaitingHelpingHandler:
     """An auxiliary class that helps wait for events."""
 
-    def __init__(self, event_queue, waiting_events, waiting_kwargs,
-                 result=None):
+    def __init__(
+        self, event_queue, waiting_events, waiting_kwargs, result=None
+    ):
         self.deferred = defer.Deferred()
         self.event_queue = event_queue
         self.result = result
@@ -86,13 +87,24 @@ class WaitingHelpingHandler:
 class Main:
     """The one who executes the syncdaemon."""
 
-    def __init__(self, root_dir, shares_dir, data_dir, partials_dir,
-                 connection_info, mark_interval=120,
-                 broadcast_events=False, handshake_timeout=30,
-                 shares_symlink_name='Shared With Me',
-                 read_limit=None, write_limit=None, throttling_enabled=False,
-                 ignore_files=None, auth_credentials=None,
-                 monitor_class=None):
+    def __init__(
+        self,
+        root_dir,
+        shares_dir,
+        data_dir,
+        partials_dir,
+        connection_info,
+        mark_interval=120,
+        broadcast_events=False,
+        handshake_timeout=30,
+        shares_symlink_name='Shared With Me',
+        read_limit=None,
+        write_limit=None,
+        throttling_enabled=False,
+        ignore_files=None,
+        auth_credentials=None,
+        monitor_class=None,
+    ):
         self.root_dir = root_dir
         self.shares_dir = shares_dir
         self.shares_dir_link = os.path.join(self.root_dir, shares_symlink_name)
@@ -109,16 +121,20 @@ class Main:
 
         logger.info(
             "Starting %s client version %s",
-            clientdefs.NAME, clientdefs.VERSION)
+            clientdefs.NAME,
+            clientdefs.VERSION,
+        )
         logger.info("Using %r as root dir", self.root_dir)
         logger.info("Using %r as data dir", self.data_dir)
         logger.info("Using %r as shares root dir", self.shares_dir)
         self.db = tritcask.Tritcask(tritcask_dir)
         self.vm = volume_manager.VolumeManager(self)
         self.fs = filesystem_manager.FileSystemManager(
-            data_dir, partials_dir, self.vm, self.db)
+            data_dir, partials_dir, self.vm, self.db
+        )
         self.event_q = event_queue.EventQueue(
-            self.fs, ignore_files, monitor_class=monitor_class)
+            self.fs, ignore_files, monitor_class=monitor_class
+        )
         self.fs.register_eq(self.event_q)
 
         # subscribe VM to EQ, to be unsubscribed in shutdown
@@ -126,10 +142,14 @@ class Main:
         self.vm.init_root()
 
         # we don't have the auth tokens yet, we 'll get them later
-        self.action_q = action_queue.ActionQueue(self.event_q, self,
-                                                 connection_info,
-                                                 read_limit, write_limit,
-                                                 throttling_enabled)
+        self.action_q = action_queue.ActionQueue(
+            self.event_q,
+            self,
+            connection_info,
+            read_limit,
+            write_limit,
+            throttling_enabled,
+        )
         self.hash_q = hash_queue.HashQueue(self.event_q)
         events_nanny.DownloadFinishedNanny(self.fs, self.event_q, self.hash_q)
 
@@ -137,11 +157,13 @@ class Main:
         self.state_manager = StateManager(self, handshake_timeout)
 
         self.sync = sync.Sync(self)
-        self.lr = local_rescan.LocalRescan(self.vm, self.fs,
-                                           self.event_q, self.action_q)
+        self.lr = local_rescan.LocalRescan(
+            self.vm, self.fs, self.event_q, self.action_q
+        )
 
-        self.external = SyncdaemonService(main=self,
-                                          send_events=broadcast_events)
+        self.external = SyncdaemonService(
+            main=self, send_events=broadcast_events
+        )
         self.external.auth_credentials = auth_credentials
         if user_config.get_autoconnect():
             self.external.connect(autoconnecting=True)
@@ -153,8 +175,11 @@ class Main:
         """Log a "mark" that includes the current AQ state and queue size."""
         logger.note(
             "---- MARK (state: %s; queue: %d; offloaded: %d; hash: %d) ----",
-            self.state_manager, len(self.action_q.queue),
-            len(self.action_q.disk_queue), len(self.hash_q))
+            self.state_manager,
+            len(self.action_q.queue),
+            len(self.action_q.disk_queue),
+            len(self.hash_q),
+        )
 
     def wait_for_nirvana(self, last_event_interval=0.5):
         """Get a deferred that will fire on Nirvana.
@@ -172,26 +197,32 @@ class Main:
         def callback():
             """Event queue is empty."""
             state = self.state_manager.state
-            if not (self.state_manager.queues.state == QueueManager.IDLE and
-                    state == StateManager.QUEUE_MANAGER and
-                    not self.action_q.queue and self.hash_q.empty()):
+            if not (
+                self.state_manager.queues.state == QueueManager.IDLE
+                and state == StateManager.QUEUE_MANAGER
+                and not self.action_q.queue
+                and self.hash_q.empty()
+            ):
                 logger.debug(
                     "I can't reach Nirvana yet [state: %s queue: %d hash: %d]",
-                    self.state_manager, len(self.action_q.queue),
-                    len(self.hash_q))
+                    self.state_manager,
+                    len(self.action_q.queue),
+                    len(self.hash_q),
+                )
                 return
 
             logger.debug("Nirvana reached!! I'm a Buddha")
             self.event_q.remove_empty_event_queue_callback(callback)
             d.callback(True)
+
         reactor.callLater(last_event_interval, start)
         return d
 
     def wait_for(self, *waiting_events, **waiting_kwargs):
         """defer until event appears"""
-        return WaitingHelpingHandler(self.event_q,
-                                     waiting_events,
-                                     waiting_kwargs).deferred
+        return WaitingHelpingHandler(
+            self.event_q, waiting_events, waiting_kwargs
+        ).deferred
 
     def start(self):
         """Setup the daemon to be ready to run."""
@@ -274,7 +305,7 @@ class Main:
             """Keep on calling this until the hash_q finishes."""
             if len(self.hash_q):
                 logger.info("hash queue pending. Waiting for it...")
-                reactor.callLater(.1, _wait_for_hashq)
+                reactor.callLater(0.1, _wait_for_hashq)
             else:
                 logger.info("hash queue empty. We are ready!")
                 # nudge the action queue into action
@@ -289,7 +320,8 @@ class Main:
             """Something went wrong in LR, can't continue."""
             logger.error(
                 "Local rescan finished with error: %s",
-                failure.getBriefTraceback())
+                failure.getBriefTraceback(),
+            )
             self.event_q.push('SYS_UNKNOWN_ERROR')
 
         d.addCallbacks(local_rescan_done, stop_the_press)

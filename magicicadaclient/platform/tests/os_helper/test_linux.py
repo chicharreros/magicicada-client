@@ -63,8 +63,11 @@ class OSWrapperTests(test_os_helper.OSWrapperTests):
         path = os.path.join(self.basedir, 'non-existant')
         move_to_trash(path)
         self.assertEqual(called[0], path)
-        self.assertTrue(self.handler.check_warning(
-            "Problems moving to trash!", "Removing anyway", path))
+        self.assertTrue(
+            self.handler.check_warning(
+                "Problems moving to trash!", "Removing anyway", path
+            )
+        )
 
     def test_remove_path_file(self):
         path = os.path.join(self.basedir, 'foo')

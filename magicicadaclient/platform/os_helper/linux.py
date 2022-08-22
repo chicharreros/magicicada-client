@@ -38,9 +38,11 @@ import shutil
 
 try:
     from gi.repository import GObject
+
     has_gi = True
 except ImportError:
     import gobject
+
     has_gi = False
 from send2trash import send2trash
 
@@ -68,7 +70,8 @@ def move_to_trash(path):
         send2trash(path)
     except OSError as exc:
         logger.warning(
-            "Problems moving to trash! (%s) Removing anyway: %r", exc, path)
+            "Problems moving to trash! (%s) Removing anyway: %r", exc, path
+        )
         _remove_path(path)
 
 

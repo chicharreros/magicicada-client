@@ -39,12 +39,16 @@ class RawOutputFormat:
     """
     Format string representations.
     """
+
     def __init__(self, format=None):
         self.format = format or {}
 
     def simple(self, s, attribute):
-        return (self.format.get(attribute, '') + str(s) +
-                self.format.get('normal', ''))
+        return (
+            self.format.get(attribute, '')
+            + str(s)
+            + self.format.get('normal', '')
+        )
 
     def punctuation(self, s):
         """Punctuation color."""
@@ -203,6 +207,7 @@ class _Event:
     is the base class and should be subclassed.
 
     """
+
     def __init__(self, dict_):
         """
         Attach attributes (contained in dict_) to self.
@@ -226,14 +231,18 @@ class _Event:
                 value = hex(getattr(self, attr))
             elif isinstance(value, str) and not value:
                 value = "''"
-            s += ' %s%s%s' % (output_format.field_name(attr),
-                              output_format.punctuation('='),
-                              output_format.field_value(value))
+            s += ' %s%s%s' % (
+                output_format.field_name(attr),
+                output_format.punctuation('='),
+                output_format.field_value(value),
+            )
 
-        s = '%s%s%s %s' % (output_format.punctuation('<'),
-                           output_format.class_name(self.__class__.__name__),
-                           s,
-                           output_format.punctuation('>'))
+        s = '%s%s%s %s' % (
+            output_format.punctuation('<'),
+            output_format.class_name(self.__class__.__name__),
+            s,
+            output_format.punctuation('>'),
+        )
         return s
 
     def __str__(self):
@@ -245,6 +254,7 @@ class _RawEvent(_Event):
     Raw event, it contains only the informations provided by the system.
     It doesn't infer anything.
     """
+
     def __init__(self, wd, mask, cookie, name):
         """
         @param wd: Watch Descriptor.
@@ -263,10 +273,12 @@ class _RawEvent(_Event):
         # is immutable.
         self._str = None
         # name: remove trailing '\0'
-        d = {'wd': wd,
-             'mask': mask,
-             'cookie': cookie,
-             'name': name.rstrip('\0')}
+        d = {
+            'wd': wd,
+            'mask': mask,
+            'cookie': cookie,
+            'name': name.rstrip('\0'),
+        }
         _Event.__init__(self, d)
         logging.debug(str(self))
 
@@ -302,6 +314,7 @@ class Event(_Event):
       - dir (bool): True if the event was raised against a directory.
 
     """
+
     def __init__(self, raw):
         """
         Concretely, this is the raw event plus inferred infos.
@@ -312,8 +325,9 @@ class Event(_Event):
             self.event_name = self.maskname
         try:
             if self.name:
-                self.pathname = os.path.abspath(os.path.join(self.path,
-                                                             self.name))
+                self.pathname = os.path.abspath(
+                    os.path.join(self.path, self.name)
+                )
             else:
                 self.pathname = os.path.abspath(self.path)
         except AttributeError as err:
@@ -326,6 +340,7 @@ class ProcessEventError(PyinotifyError):
     """
     ProcessEventError Exception. Raised on ProcessEvent error.
     """
+
     def __init__(self, err):
         """
         @param err: Exception error description.
@@ -338,6 +353,7 @@ class _ProcessEvent:
     """
     Abstract processing event class.
     """
+
     def __call__(self, event):
         """
         To behave like a functor the object must be callable.
@@ -395,6 +411,7 @@ class ProcessEvent(_ProcessEvent):
       3. Or/and override process_default for catching and processing all
          the remaining types of events.
     """
+
     pevent = None
 
     def __init__(self, pevent=None, **kargs):
@@ -475,6 +492,7 @@ class PrintAllEvents(ProcessEvent):
     Dummy class used to print events strings representations. For instance this
     class is used from command line to print all received events to stdout.
     """
+
     def my_init(self, out=None):
         """
         @param out: Where events will be written.
@@ -504,6 +522,7 @@ class WatchManagerError(Exception):
     operations.
 
     """
+
     def __init__(self, msg, wmd):
         """
         @param msg: Exception string's description.

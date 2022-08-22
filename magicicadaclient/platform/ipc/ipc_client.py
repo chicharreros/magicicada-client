@@ -57,8 +57,9 @@ def remote(function):
     def remote_wrapper(self, *args, **kwargs):
         """Return the deferred for the remote call."""
         fname = function.__name__
-        logger.debug('Performing %s as a remote call (%r, %r).',
-                     fname, args, kwargs)
+        logger.debug(
+            'Performing %s as a remote call (%r, %r).', fname, args, kwargs
+        )
         return self.remote.callRemote(fname, *args, **kwargs)
 
     return remote_wrapper
@@ -90,8 +91,9 @@ class RemoteClient:
 
     def register_to_signals(self):
         """Register to the signals."""
-        return self.remote.callRemote('register_to_signals', self,
-                                      self.signal_handlers)
+        return self.remote.callRemote(
+            'register_to_signals', self, self.signal_handlers
+        )
 
     def unregister_to_signals(self):
         """Register to the signals."""
@@ -113,8 +115,10 @@ class RemoteHandler(Referenceable):
 
 def callbacks(callbacks_indexes=None, callbacks_names=None):
     """Ensure that the callbacks can be remotely called."""
+
     def decorator(function):
         """Decorate the function to make sure the callbacks can be executed."""
+
         @wraps(function)
         def callbacks_wrapper(*args, **kwargs):
             """Set the paths to be absolute."""
@@ -127,14 +131,18 @@ def callbacks(callbacks_indexes=None, callbacks_names=None):
                 for current_key, current_index in callbacks_names:
                     try:
                         kwargs[current_key] = RemoteHandler(
-                            kwargs[current_key])
+                            kwargs[current_key]
+                        )
                     except KeyError:
                         if len(args) >= current_index + 1:
                             fixed_args[current_index] = RemoteHandler(
-                                args[current_index])
+                                args[current_index]
+                            )
             fixed_args = tuple(fixed_args)
             return function(*fixed_args, **kwargs)
+
         return callbacks_wrapper
+
     return decorator
 
 
@@ -299,12 +307,13 @@ class SyncDaemonClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
 
     @remote
     def get_sharesdir_link(self):
-        """Return the shares dir/mount point. """
+        """Return the shares dir/mount point."""
 
     @callbacks(callbacks_names=[('reply_handler', 2), ('error_handler', 3)])
     @remote
-    def wait_for_nirvana(self, last_event_interval,
-                         reply_handler=None, error_handler=None):
+    def wait_for_nirvana(
+        self, last_event_interval, reply_handler=None, error_handler=None
+    ):
         """Call the reply handler when there are no more events/transfers."""
 
     @remote
@@ -477,7 +486,7 @@ class SharesClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
 
 
 class ConfigClient(RemoteClient):
-    """The Syncdaemon config/settings ipc interface. """
+    """The Syncdaemon config/settings ipc interface."""
 
     @remote
     def get_throttling_limits(self, reply_handler=None, error_handler=None):
@@ -749,7 +758,8 @@ class UbuntuOneClient:
             defer.returnValue(self)
         except Exception as e:
             raise SyncDaemonClientConnectionError(
-                'Could not connect to the syncdaemon ipc.', e)
+                'Could not connect to the syncdaemon ipc.', e
+            )
         finally:
             self.connection_lock.release()
 
@@ -763,17 +773,24 @@ class UbuntuOneClient:
             defer.returnValue(self)
         except Exception as e:
             raise SyncDaemonClientConnectionError(
-                'Could not reconnect to the syncdaemon ipc.', e)
+                'Could not reconnect to the syncdaemon ipc.', e
+            )
 
     def is_connected(self):
         """Return if the client is connected."""
-        return (self.client is not None)
+        return self.client is not None
 
     @defer.inlineCallbacks
     def register_to_signals(self):
         """Register the different clients to the signals."""
-        for client in [self.status, self.events, self.sync_daemon, self.shares,
-                       self.folders, self.public_files]:
+        for client in [
+            self.status,
+            self.events,
+            self.sync_daemon,
+            self.shares,
+            self.folders,
+            self.public_files,
+        ]:
             register = getattr(client, 'register_to_signals', None)
             if register is not None:
                 yield register()
@@ -782,8 +799,14 @@ class UbuntuOneClient:
     @defer.inlineCallbacks
     def unregister_to_signals(self):
         """Unregister from the diff signals."""
-        for client in [self.status, self.events, self.sync_daemon, self.shares,
-                       self.folders, self.public_files]:
+        for client in [
+            self.status,
+            self.events,
+            self.sync_daemon,
+            self.shares,
+            self.folders,
+            self.public_files,
+        ]:
             unregister = getattr(client, 'unregister_to_signals', None)
             if unregister is not None:
                 yield unregister()

@@ -52,6 +52,8 @@ class DescriptionFactoryTestCase(TestCase):
 
         factory = windows.DescriptionFactory()
         self.assertEqual(
-            factory.server_description_pattern % port, factory.server)
+            factory.server_description_pattern % port, factory.server
+        )
         self.assertEqual(
-            factory.client_description_pattern % port, factory.client)
+            factory.client_description_pattern % port, factory.client
+        )

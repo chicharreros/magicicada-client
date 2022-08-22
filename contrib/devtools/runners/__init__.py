@@ -91,7 +91,8 @@ class BaseTestRunner:
     def _load_unittest(self, relpath):
         """Load unit tests from a Python module with the given 'relpath'."""
         assert relpath.endswith(".py"), (
-            "%s does not appear to be a Python module" % relpath)
+            "%s does not appear to be a Python module" % relpath
+        )
         if not os.path.basename(relpath).startswith('test_'):
             return
         modpath = relpath.replace(os.path.sep, ".")[:-3]
@@ -117,8 +118,9 @@ class BaseTestRunner:
         else:
             return unittest.defaultTestLoader.loadTestsFromModule(module)
 
-    def _collect_tests(self, path, test_pattern, ignored_modules,
-                       ignored_paths):
+    def _collect_tests(
+        self, path, test_pattern, ignored_modules, ignored_paths
+    ):
         """Return the set of unittests."""
         suite = TXCheckSuite()
         if test_pattern:
@@ -145,8 +147,11 @@ class BaseTestRunner:
         for root, dirs, files in os.walk(path):
             for test in files:
                 filepath = os.path.join(root, test)
-                if test.endswith(".py") and test not in ignored_modules and \
-                        not _is_in_ignored_path(filepath, ignored_paths):
+                if (
+                    test.endswith(".py")
+                    and test not in ignored_modules
+                    and not _is_in_ignored_path(filepath, ignored_paths)
+                ):
                     self.source_files.append(filepath)
                     if test.startswith("test_"):
                         module_suite = self._load_unittest(filepath)
@@ -163,9 +168,14 @@ class BaseTestRunner:
         """Get the test suite to use."""
         suite = unittest.TestSuite()
         for path in config['tests']:
-            suite.addTest(self._collect_tests(path, config['test'],
-                                              config['ignore-modules'],
-                                              config['ignore-paths']))
+            suite.addTest(
+                self._collect_tests(
+                    path,
+                    config['test'],
+                    config['ignore-modules'],
+                    config['ignore-paths'],
+                )
+            )
         if config['loop']:
             old_suite = suite
             suite = unittest.TestSuite()
@@ -182,19 +192,21 @@ class BaseTestRunner:
 class BaseTestOptions(OptionParser):
     """Base options for our test runner."""
 
-    optFlags = [['coverage', 'c', 'Generate a coverage report for the tests.'],
-                ['gui', None, 'Use the GUI mode of some runners.'],
-                ['help', 'h', ''],
-                ['help-runners', None, 'List information about test runners.'],
-                ]
+    optFlags = [
+        ['coverage', 'c', 'Generate a coverage report for the tests.'],
+        ['gui', None, 'Use the GUI mode of some runners.'],
+        ['help', 'h', ''],
+        ['help-runners', None, 'List information about test runners.'],
+    ]
 
-    optParameters = [['test', 't', None, None],
-                     ['loop', None, 1, None],
-                     ['ignore-modules', 'i', '', None],
-                     ['ignore-paths', 'p', '', None],
-                     ['runner', None, 'txrunner', None],
-                     ['temp-directory', None, '_trial_temp', None],
-                     ]
+    optParameters = [
+        ['test', 't', None, None],
+        ['loop', None, 1, None],
+        ['ignore-modules', 'i', '', None],
+        ['ignore-paths', 'p', '', None],
+        ['runner', None, 'txrunner', None],
+        ['temp-directory', None, '_trial_temp', None],
+    ]
 
     def __init__(self, *args, **kwargs):
         super(BaseTestOptions, self).__init__(*args, **kwargs)
@@ -205,14 +217,14 @@ class BaseTestOptions(OptionParser):
 
     def opt_ignore_modules(self, option):
         """Comma-separate list of test modules to ignore,
-           e.g: test_gtk.py, test_account.py
-           """
+        e.g: test_gtk.py, test_account.py
+        """
         self['ignore-modules'] = list(map(str.strip, option.split(',')))
 
     def opt_ignore_paths(self, option):
         """Comma-separated list of relative paths to ignore,
-           e.g: tests/platform/windows, tests/platform/macosx
-           """
+        e.g: tests/platform/windows, tests/platform/macosx
+        """
         self['ignore-paths'] = list(map(str.strip, option.split(',')))
 
     def opt_loop(self, option):
@@ -293,7 +305,8 @@ def main():
 
     if options['coverage']:
         coverage.stop()
-        coverage.report(test_runner.source_files, ignore_errors=True,
-                        show_missing=False)
+        coverage.report(
+            test_runner.source_files, ignore_errors=True, show_missing=False
+        )
 
     sys.exit(not succeeded)

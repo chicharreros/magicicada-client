@@ -611,9 +611,14 @@ class LoggingTests(TwistedTestCase):
     def test_acquire_single_default(self):
         """Single path, full check."""
         self.plt.acquire('path')
-        self.assertTrue(self.handler.check_debug(
-                        "acquiring on", "path",
-                        "(on_parent=False, on_children=False)", "wait for: 0"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "acquiring on",
+                "path",
+                "(on_parent=False, on_children=False)",
+                "wait for: 0",
+            )
+        )
 
     def test_acquire_single_on_parent(self):
         """Single path, on parent."""
@@ -628,8 +633,9 @@ class LoggingTests(TwistedTestCase):
     def test_acquire_single_on_both(self):
         """Single path, on both."""
         self.plt.acquire('path', on_parent=True, on_children=True)
-        self.assertTrue(self.handler.check_debug(
-                        "(on_parent=True, on_children=True)"))
+        self.assertTrue(
+            self.handler.check_debug("(on_parent=True, on_children=True)")
+        )
 
     def test_acquire_multiple(self):
         """Single path, on both."""
@@ -652,8 +658,9 @@ class LoggingTests(TwistedTestCase):
         """Single release."""
         release = yield self.plt.acquire("path")
         release()
-        self.assertTrue(self.handler.check_debug("releasing",
-                                                 "path", "remaining: 0"))
+        self.assertTrue(
+            self.handler.check_debug("releasing", "path", "remaining: 0")
+        )
 
     @defer.inlineCallbacks
     def test_release_double(self):
@@ -661,11 +668,13 @@ class LoggingTests(TwistedTestCase):
         release1 = yield self.plt.acquire("path1")
         release2 = yield self.plt.acquire("path2")
         release1()
-        self.assertTrue(self.handler.check_debug("releasing",
-                                                 "path1", "remaining: 1"))
+        self.assertTrue(
+            self.handler.check_debug("releasing", "path1", "remaining: 1")
+        )
         release2()
-        self.assertTrue(self.handler.check_debug("releasing",
-                                                 "path2", "remaining: 0"))
+        self.assertTrue(
+            self.handler.check_debug("releasing", "path2", "remaining: 0")
+        )
 
     @defer.inlineCallbacks
     def test_release_longer_branches(self):
@@ -676,9 +685,11 @@ class LoggingTests(TwistedTestCase):
         self.plt.acquire(*"abklop")
         self.plt.acquire(*"foobar")
         release()
-        self.assertTrue(self.handler.check_debug("releasing",
-                                                 "'a', 'b', 'c', 'd', 'e'",
-                                                 "remaining: 4"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "releasing", "'a', 'b', 'c', 'd', 'e'", "remaining: 4"
+            )
+        )
 
 
 class PathFixingTests(TwistedTestCase):
@@ -940,8 +951,15 @@ class PathFixingTests(TwistedTestCase):
     def test_irl_complicated_example(self):
         """Just a complicated move I found IRL."""
         releases = []
-        d = self.plt.acquire('temp', 'drizzle', '.bzr', 'checkout', 'limbo',
-                             'new-19', 'handshake.cc')
+        d = self.plt.acquire(
+            'temp',
+            'drizzle',
+            '.bzr',
+            'checkout',
+            'limbo',
+            'new-19',
+            'handshake.cc',
+        )
         d.addCallback(releases.append)
 
         # rename

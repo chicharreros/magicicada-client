@@ -35,7 +35,8 @@ from twisted.internet import defer
 
 from magicicadaclient.networkstate import NetworkFailException
 from magicicadaclient.networkstate.networkstates import (
-    ONLINE, OFFLINE,
+    ONLINE,
+    OFFLINE,
     NM_STATE_CONNECTING_LIST,
     NM_STATE_CONNECTED_LIST,
     NM_STATE_DISCONNECTED_LIST,
@@ -90,18 +91,22 @@ class NetworkManagerState:
         """Get the network state and return it thru the set callback."""
         try:
             sysbus = self.dbus.SystemBus()
-            nm_proxy = sysbus.get_object(NM_DBUS_INTERFACE,
-                                         NM_DBUS_OBJECTPATH,
-                                         follow_name_owner_changes=True)
+            nm_proxy = sysbus.get_object(
+                NM_DBUS_INTERFACE,
+                NM_DBUS_OBJECTPATH,
+                follow_name_owner_changes=True,
+            )
             nm_if = self.dbus.Interface(nm_proxy, NM_DBUS_INTERFACE)
             self.state_signal = nm_if.connect_to_signal(
-                        signal_name="StateChanged",
-                        handler_function=self.state_changed,
-                        dbus_interface=NM_DBUS_INTERFACE)
+                signal_name="StateChanged",
+                handler_function=self.state_changed,
+                dbus_interface=NM_DBUS_INTERFACE,
+            )
             nm_proxy.state(
                 dbus_interface=NM_DBUS_INTERFACE,
                 reply_handler=self.got_state,
-                error_handler=self.got_error)
+                error_handler=self.got_error,
+            )
         except Exception as e:
             self.got_error(e)
 
@@ -115,7 +120,7 @@ def is_machine_connected():
         if type(state) is not type(ONLINE):
             logger.exception("bad callback argument in is_machine_connected")
             raise NetworkFailException()
-        result = (state == ONLINE)
+        result = state == ONLINE
         d.callback(result)
 
     try:

@@ -43,8 +43,15 @@ from magicicadaclient.syncdaemon.volume_manager import (
     ACCESS_LEVEL_RO,
     ACCESS_LEVEL_RW,
     get_udf_path,
-    LegacyShareFileShelf, _Share, Share, Shared, Root, UDF, _UDF,
-    MetadataUpgrader, VMFileShelf,
+    LegacyShareFileShelf,
+    _Share,
+    Share,
+    Shared,
+    Root,
+    UDF,
+    _UDF,
+    MetadataUpgrader,
+    VMFileShelf,
 )
 
 
@@ -55,8 +62,7 @@ class VolumesTests(BaseVolumeManagerTests):
         """Test for get_udf_path."""
         suggested_path = "suggested_path"
         udf_path = get_udf_path("~/" + suggested_path)
-        self.assertEqual(
-            os.path.join(self.home_dir, suggested_path), udf_path)
+        self.assertEqual(os.path.join(self.home_dir, suggested_path), udf_path)
 
 
 class MetadataOldLayoutTests(MetadataTestCase):
@@ -102,7 +108,8 @@ class MetadataOldLayoutTests(MetadataTestCase):
         for idx in range(1, 10):
             sid = str(uuid.uuid4())
             old_shelf[sid] = _Share(
-                path=os.path.join(self.shares_dir, str(idx)), share_id=sid)
+                path=os.path.join(self.shares_dir, str(idx)), share_id=sid
+            )
         # ShareFileShelf.keys returns a generator
         old_keys = [key for key in old_shelf.keys()]
         self.assertEqual(10, len(old_keys))
@@ -110,15 +117,20 @@ class MetadataOldLayoutTests(MetadataTestCase):
             self.set_md_version('')
         # set the ro permissions
         self._set_permissions()
-        self.main = FakeMain(self.new_root_dir, self.new_shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.new_root_dir,
+            self.new_shares_dir,
+            self.data_dir,
+            self.partials_dir,
+        )
         new_keys = [new_key for new_key in self.main.vm.shares.keys()]
         self.assertEqual(10, len(new_keys))
         for new_key in new_keys:
             self.assertIn(new_key, old_keys)
         # check the old data is still there (in the backup)
-        bkp_dir = os.path.join(os.path.dirname(self.vm_data_dir),
-                               '5.bkp', '0.bkp')
+        bkp_dir = os.path.join(
+            os.path.dirname(self.vm_data_dir), '5.bkp', '0.bkp'
+        )
         backup_shelf = LegacyShareFileShelf(bkp_dir)
         backup_keys = [key for key in backup_shelf.keys()]
         for old_key in old_keys:
@@ -128,13 +140,14 @@ class MetadataOldLayoutTests(MetadataTestCase):
         self.check_version()
 
     def test_upgrade_1(self):
-        """ Test the upgrade from v.1"""
+        """Test the upgrade from v.1"""
         self._build_layout_version_1()
         # write the .version file with v.1
         self.set_md_version('1')
 
-        share_file = os.path.join(self.share_md_dir,
-                                  '0/6/6/0664f050-9254-45c5-9f31-3482858709e4')
+        share_file = os.path.join(
+            self.share_md_dir, '0/6/6/0664f050-9254-45c5-9f31-3482858709e4'
+        )
         os.makedirs(os.path.dirname(share_file))
         # this is the bytes representation of a version 2 pickle
         share_value = (
@@ -146,7 +159,8 @@ class MetadataOldLayoutTests(MetadataTestCase):
             b"\x0caccess_levelq\x0cU\x04Viewq\rU\x04pathq\x0eU=/home/"
             b"auser/Magicicada/Shared With Me/fakeshare from fakeuser"
             b"q\x0fU\x08acceptedq\x10\x88U\x02idq\x11U$0664f050-9254-"
-            b"45c5-9f31-3482858709e4q\x12ub.")
+            b"45c5-9f31-3482858709e4q\x12ub."
+        )
         with open(share_file, 'wb') as fd:
             fd.write(share_value)
 
@@ -159,8 +173,12 @@ class MetadataOldLayoutTests(MetadataTestCase):
 
         self._set_permissions()
         # now use the real VolumeManager
-        self.main = FakeMain(self.new_root_dir, self.new_shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.new_root_dir,
+            self.new_shares_dir,
+            self.data_dir,
+            self.partials_dir,
+        )
         new_keys = [new_key for new_key in self.main.vm.shares.keys()]
         self.assertEqual(2, len(new_keys))  # the fake share plus root
         for key in [request.ROOT, share.id]:
@@ -180,15 +198,22 @@ class MetadataOldLayoutTests(MetadataTestCase):
         if self.md_version_None:
             self.set_md_version('')
         self._set_permissions()
-        self.main = FakeMain(self.new_root_dir, self.new_shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.new_root_dir,
+            self.new_shares_dir,
+            self.data_dir,
+            self.partials_dir,
+        )
         self.assertTrue(os.path.exists(self.new_root_dir + '/foo.u1conflict'))
         self.assertTrue(
-            os.path.exists(self.new_root_dir + '/foo.u1conflict.23'))
+            os.path.exists(self.new_root_dir + '/foo.u1conflict.23')
+        )
         self.assertTrue(
-            os.path.exists(self.new_shares_dir + '/.u1partial.bar'))
+            os.path.exists(self.new_shares_dir + '/.u1partial.bar')
+        )
         self.assertTrue(
-            os.path.exists(self.new_shares_dir + '/baz/baz.u1conflict'))
+            os.path.exists(self.new_shares_dir + '/baz/baz.u1conflict')
+        )
         self.check_version()
 
     def test_upgrade_2_more(self):
@@ -198,8 +223,10 @@ class MetadataOldLayoutTests(MetadataTestCase):
 
         expected = []
 
-        for dirname, new_dirname in [(self.root_dir, self.new_root_dir),
-                                     (self.shares_dir, self.new_shares_dir)]:
+        for dirname, new_dirname in [
+            (self.root_dir, self.new_root_dir),
+            (self.shares_dir, self.new_shares_dir),
+        ]:
             # a plain .conflict...
             # ...on a file
             open(dirname + '/1a.conflict', 'w').close()
@@ -342,8 +369,12 @@ class MetadataOldLayoutTests(MetadataTestCase):
             expected.append(new_dirname + '/6c/.u1partial.1')
 
         self._set_permissions()
-        self.main = FakeMain(self.new_root_dir, self.new_shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.new_root_dir,
+            self.new_shares_dir,
+            self.data_dir,
+            self.partials_dir,
+        )
 
         for path in expected:
             self.assertTrue(os.path.exists(path), 'missing ' + path)
@@ -370,8 +401,12 @@ class MetadataOldLayoutTests(MetadataTestCase):
         self.assertEqual(10, len(maybe_old_keys))
         if self.md_version_None:
             self.set_md_version('')
-        self.main = FakeMain(self.new_root_dir, self.new_shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.new_root_dir,
+            self.new_shares_dir,
+            self.data_dir,
+            self.partials_dir,
+        )
         new_keys = [new_key for new_key in self.main.vm.shares.keys()]
         self.assertEqual(10, len(new_keys))
         for new_key in new_keys:
@@ -379,8 +414,9 @@ class MetadataOldLayoutTests(MetadataTestCase):
         # as we didn't actually upgrade the shelf, just the .version file
         # check the empty 0.bkp
         # check the old data is still there (in the backup)
-        backup_shelf = LegacyShareFileShelf(os.path.join(self.vm_data_dir,
-                                                         '0.bkp'))
+        backup_shelf = LegacyShareFileShelf(
+            os.path.join(self.vm_data_dir, '0.bkp')
+        )
         backup_keys = [key for key in backup_shelf.keys()]
         self.assertEqual(0, len(backup_keys))
         self.check_version()
@@ -404,18 +440,27 @@ class MetadataOldLayoutTests(MetadataTestCase):
         if self.md_version_None:
             self.set_md_version('')
         # migrate the data
-        self.main = FakeMain(self.new_root_dir, self.new_shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.new_root_dir,
+            self.new_shares_dir,
+            self.data_dir,
+            self.partials_dir,
+        )
         self.assertFalse(os.path.exists(self.root_dir))
         self.assertTrue(os.path.exists(self.shares_dir))
         self.assertTrue(os.path.islink(self.shares_dir), self.shares_dir)
         self.assertEqual(self.shares_dir, self.main.shares_dir_link)
-        self.assertTrue(os.path.exists(os.path.join(self.new_root_dir,
-                                                    'test_dir')))
-        self.assertTrue(os.path.exists(os.path.join(self.new_root_dir,
-                                                    'test_file')))
-        self.assertTrue(os.path.exists(os.path.join(self.new_root_dir,
-                                                    'test_file.u1conflict')))
+        self.assertTrue(
+            os.path.exists(os.path.join(self.new_root_dir, 'test_dir'))
+        )
+        self.assertTrue(
+            os.path.exists(os.path.join(self.new_root_dir, 'test_file'))
+        )
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(self.new_root_dir, 'test_file.u1conflict')
+            )
+        )
         self.assertTrue(os.path.exists(share_path))
         self.assertTrue(os.path.exists(os.path.join(share_path, 'test_dir')))
         self.assertTrue(os.path.exists(os.path.join(share_path, 'test_file')))
@@ -435,30 +480,41 @@ class MetadataOldLayoutTests(MetadataTestCase):
         os.makedirs(os.path.join(share_path, 'test_dir'))
         open(os.path.join(share_path, 'test_file'), 'w').close()
         # create the Shared with Me symlink in My Files
-        os.symlink(self.shares_dir, os.path.join(self.root_dir,
-                                                 "Shared With Me"))
+        os.symlink(
+            self.shares_dir, os.path.join(self.root_dir, "Shared With Me")
+        )
         # fix permissions
         self._set_permissions()
         if self.md_version_None:
             self.set_md_version('')
         # migrate the data
-        self.main = FakeMain(self.new_root_dir, self.new_shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.new_root_dir,
+            self.new_shares_dir,
+            self.data_dir,
+            self.partials_dir,
+        )
         self.assertFalse(os.path.exists(self.root_dir))
         self.assertTrue(os.path.exists(self.shares_dir))
         self.assertTrue(os.path.islink(self.shares_dir))
         self.assertEqual(self.shares_dir, self.main.shares_dir_link)
-        self.assertTrue(os.path.exists(os.path.join(self.new_root_dir,
-                                                    'test_dir')))
-        self.assertTrue(os.path.exists(os.path.join(self.new_root_dir,
-                                                    'test_file')))
-        self.assertTrue(os.path.exists(os.path.join(self.new_root_dir,
-                                                    'test_file.u1conflict')))
+        self.assertTrue(
+            os.path.exists(os.path.join(self.new_root_dir, 'test_dir'))
+        )
+        self.assertTrue(
+            os.path.exists(os.path.join(self.new_root_dir, 'test_file'))
+        )
+        self.assertTrue(
+            os.path.exists(
+                os.path.join(self.new_root_dir, 'test_file.u1conflict')
+            )
+        )
         self.assertTrue(os.path.exists(share_path))
         self.assertTrue(os.path.exists(os.path.join(share_path, 'test_dir')))
         self.assertTrue(os.path.exists(os.path.join(share_path, 'test_file')))
         self.assertEqual(
-            self.main.shares_dir, os.readlink(self.main.shares_dir_link))
+            self.main.shares_dir, os.readlink(self.main.shares_dir_link)
+        )
         self.check_version()
 
 
@@ -474,7 +530,8 @@ class MetadataNewLayoutTests(MetadataTestCase):
         self.share_md_dir = os.path.join(self.vm_data_dir, 'shares')
         self.shared_md_dir = os.path.join(self.vm_data_dir, 'shared')
         self.u1_dir = os.path.join(
-            self.home_dir, os.path.split(self.u1_dir)[1])
+            self.home_dir, os.path.split(self.u1_dir)[1]
+        )
         self.root_dir = self.u1_dir
         self.shares_dir = os.path.join(self.tmpdir, 'shares')
         self.shares_dir_link = os.path.join(self.u1_dir, 'Shared With Me')
@@ -496,8 +553,9 @@ class MetadataNewLayoutTests(MetadataTestCase):
         old_root = os.path.join(self.root_dir, 'My Files')
         old_shares = os.path.join(self.root_dir, 'Shared With Me')
         # start and check that everything is ok
-        self.main = FakeMain(self.root_dir, self.shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.root_dir, self.shares_dir, self.data_dir, self.partials_dir
+        )
         self.assertFalse(os.path.exists(old_root))
         self.assertTrue(os.path.exists(self.root_dir))
         self.assertTrue(os.path.exists(old_shares))
@@ -512,8 +570,9 @@ class MetadataNewLayoutTests(MetadataTestCase):
         """
         old_root = os.path.join(self.root_dir, 'My Files')
         old_shares = os.path.join(self.root_dir, 'Shared With Me')
-        self.main = FakeMain(self.root_dir, self.shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.root_dir, self.shares_dir, self.data_dir, self.partials_dir
+        )
         self.main.shutdown()
         self.rmtree(self.vm_data_dir)
         os.makedirs(self.vm_data_dir)
@@ -528,8 +587,9 @@ class MetadataNewLayoutTests(MetadataTestCase):
         if self.md_version_None:
             self.set_md_version('')
         # check that it's all OK
-        self.main = FakeMain(self.root_dir, self.shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.root_dir, self.shares_dir, self.data_dir, self.partials_dir
+        )
         self.assertFalse(os.path.exists(old_root))
         self.assertTrue(os.path.exists(self.root_dir))
         self.assertTrue(os.path.exists(self.shares_dir))
@@ -548,10 +608,12 @@ class MetadataNewLayoutTests(MetadataTestCase):
 
         if self.md_version_None:
             self.set_md_version('')
-        self.main = FakeMain(self.root_dir, self.shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.root_dir, self.shares_dir, self.data_dir, self.partials_dir
+        )
         self.assertEqual(
-            self.main.shares_dir, os.readlink(self.main.shares_dir_link))
+            self.main.shares_dir, os.readlink(self.main.shares_dir_link)
+        )
         self.check_version()
 
     def test_upgrade_5(self):
@@ -561,17 +623,23 @@ class MetadataNewLayoutTests(MetadataTestCase):
         self.set_md_version('5')
         # create some old shares and shared metadata
         legacy_shares = LegacyShareFileShelf(self.share_md_dir)
-        root_share = _Share(path=self.root_dir, share_id=request.ROOT,
-                            access_level=ACCESS_LEVEL_RW)
+        root_share = _Share(
+            path=self.root_dir,
+            share_id=request.ROOT,
+            access_level=ACCESS_LEVEL_RW,
+        )
         legacy_shares[request.ROOT] = root_share
         for idx, name in enumerate(['share'] * 10):
             sid = str(uuid.uuid4())
             share_name = name + '_' + str(idx)
-            share = _Share(path=os.path.join(self.shares_dir, share_name),
-                           share_id=sid, name=share_name,
-                           node_id=str(uuid.uuid4()),
-                           other_username='username' + str(idx),
-                           other_visible_name='visible name ' + str(idx))
+            share = _Share(
+                path=os.path.join(self.shares_dir, share_name),
+                share_id=sid,
+                name=share_name,
+                node_id=str(uuid.uuid4()),
+                other_username='username' + str(idx),
+                other_visible_name='visible name ' + str(idx),
+            )
             if idx % 2:
                 share.access_level = ACCESS_LEVEL_RW
             else:
@@ -583,10 +651,14 @@ class MetadataNewLayoutTests(MetadataTestCase):
         for idx, name in enumerate(['dir'] * 5):
             sid = str(uuid.uuid4())
             share_name = name + '_' + str(idx)
-            share = _Share(path=os.path.join(self.root_dir, share_name),
-                           share_id=sid, node_id=str(uuid.uuid4()),
-                           name=share_name, other_username='hola',
-                           other_visible_name='hola')
+            share = _Share(
+                path=os.path.join(self.root_dir, share_name),
+                share_id=sid,
+                node_id=str(uuid.uuid4()),
+                name=share_name,
+                other_username='hola',
+                other_visible_name='hola',
+            )
             if idx % 2:
                 share.access_level = ACCESS_LEVEL_RW
             else:
@@ -601,8 +673,9 @@ class MetadataNewLayoutTests(MetadataTestCase):
         if self.md_version_None:
             self.set_md_version('')
         # upgrade it!
-        self.main = FakeMain(self.root_dir, self.shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.root_dir, self.shares_dir, self.data_dir, self.partials_dir
+        )
         vm = self.main.vm
 
         def compare_share(share, old_share):
@@ -613,16 +686,19 @@ class MetadataNewLayoutTests(MetadataTestCase):
             if not isinstance(share, Root):
                 self.assertEqual(share.name, old_share.name)
                 self.assertEqual(
-                    share.other_username, old_share.other_username)
+                    share.other_username, old_share.other_username
+                )
                 self.assertEqual(
-                    share.other_visible_name, old_share.other_visible_name)
+                    share.other_visible_name, old_share.other_visible_name
+                )
                 self.assertEqual(share.access_level, old_share.access_level)
 
         for sid in vm.shares:
             old_share = legacy_shares[sid]
             share = vm.shares[sid]
             self.assertTrue(
-                isinstance(share, Share) or isinstance(share, Root))
+                isinstance(share, Share) or isinstance(share, Root)
+            )
             compare_share(share, old_share)
 
         for sid in vm.shared:
@@ -639,17 +715,23 @@ class MetadataNewLayoutTests(MetadataTestCase):
         self.udfs_md_dir = os.path.join(self.vm_data_dir, 'udfs')
         # create some old shares and shared metadata
         legacy_shares = LegacyShareFileShelf(self.share_md_dir)
-        root_share = _Share(path=self.root_dir, share_id=request.ROOT,
-                            access_level=ACCESS_LEVEL_RW)
+        root_share = _Share(
+            path=self.root_dir,
+            share_id=request.ROOT,
+            access_level=ACCESS_LEVEL_RW,
+        )
         legacy_shares[request.ROOT] = root_share
         for idx, name in enumerate(['share'] * 10):
             sid = str(uuid.uuid4())
             share_name = name + '_' + str(idx)
-            share = _Share(path=os.path.join(self.shares_dir, share_name),
-                           share_id=sid, name=share_name,
-                           node_id=str(uuid.uuid4()),
-                           other_username='username' + str(idx),
-                           other_visible_name='visible name ' + str(idx))
+            share = _Share(
+                path=os.path.join(self.shares_dir, share_name),
+                share_id=sid,
+                name=share_name,
+                node_id=str(uuid.uuid4()),
+                other_username='username' + str(idx),
+                other_visible_name='visible name ' + str(idx),
+            )
             if idx % 2:
                 share.access_level = ACCESS_LEVEL_RW
             else:
@@ -661,10 +743,14 @@ class MetadataNewLayoutTests(MetadataTestCase):
         for idx, name in enumerate(['dir'] * 5):
             sid = str(uuid.uuid4())
             share_name = name + '_' + str(idx)
-            share = _Share(path=os.path.join(self.root_dir, share_name),
-                           share_id=sid, node_id=str(uuid.uuid4()),
-                           name=share_name, other_username='hola',
-                           other_visible_name='hola')
+            share = _Share(
+                path=os.path.join(self.root_dir, share_name),
+                share_id=sid,
+                node_id=str(uuid.uuid4()),
+                name=share_name,
+                other_username='hola',
+                other_visible_name='hola',
+            )
             if idx % 2:
                 share.access_level = ACCESS_LEVEL_RW
             else:
@@ -677,8 +763,11 @@ class MetadataNewLayoutTests(MetadataTestCase):
             udf_id = str(uuid.uuid4())
             udf_name = name + '_' + str(idx)
             udf = _UDF(
-                udf_id, str(uuid.uuid4()), '~/' + udf_name,
-                os.path.join(self.home_dir, udf_name))
+                udf_id,
+                str(uuid.uuid4()),
+                '~/' + udf_name,
+                os.path.join(self.home_dir, udf_name),
+            )
             if idx % 2:
                 udf.subscribed = True
             else:
@@ -694,8 +783,9 @@ class MetadataNewLayoutTests(MetadataTestCase):
         if self.md_version_None:
             self.set_md_version('')
         # upgrade it!
-        self.main = FakeMain(self.root_dir, self.shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.root_dir, self.shares_dir, self.data_dir, self.partials_dir
+        )
         vm = self.main.vm
 
         def compare_share(share, old_share):
@@ -706,16 +796,19 @@ class MetadataNewLayoutTests(MetadataTestCase):
             if not isinstance(share, Root):
                 self.assertEqual(share.name, old_share.name)
                 self.assertEqual(
-                    share.other_username, old_share.other_username)
+                    share.other_username, old_share.other_username
+                )
                 self.assertEqual(
-                    share.other_visible_name, old_share.other_visible_name)
+                    share.other_visible_name, old_share.other_visible_name
+                )
                 self.assertEqual(share.access_level, old_share.access_level)
 
         for sid in vm.shares:
             old_share = legacy_shares[sid]
             share = vm.shares[sid]
             self.assertTrue(
-                isinstance(share, Share) or isinstance(share, Root))
+                isinstance(share, Share) or isinstance(share, Root)
+            )
             compare_share(share, old_share)
 
         for sid in vm.shared:
@@ -733,7 +826,8 @@ class MetadataNewLayoutTests(MetadataTestCase):
             self.assertEqual(udf.node_id, old_udf.node_id)
             self.assertEqual(udf.suggested_path, old_udf.suggested_path)
             self.assertEqual(
-                type(udf.suggested_path), type(old_udf.suggested_path))
+                type(udf.suggested_path), type(old_udf.suggested_path)
+            )
             self.assertEqual(udf.subscribed, old_udf.subscribed)
 
     def test_upgrade_5_partial_upgrade(self):
@@ -744,18 +838,24 @@ class MetadataNewLayoutTests(MetadataTestCase):
         self.udfs_md_dir = os.path.join(self.vm_data_dir, 'udfs')
         # create some old shares and shared metadata
         legacy_shares = LegacyShareFileShelf(self.share_md_dir)
-        root_share = _Share(path=self.root_dir, share_id=request.ROOT,
-                            access_level=ACCESS_LEVEL_RW, node_id=str(
-                                uuid.uuid4()))
+        root_share = _Share(
+            path=self.root_dir,
+            share_id=request.ROOT,
+            access_level=ACCESS_LEVEL_RW,
+            node_id=str(uuid.uuid4()),
+        )
         legacy_shares[request.ROOT] = root_share
         for idx, name in enumerate(['share'] * 3):
             sid = str(uuid.uuid4())
             share_name = name + '_' + str(idx)
-            share = _Share(path=os.path.join(self.shares_dir, share_name),
-                           share_id=sid, name=share_name,
-                           node_id=str(uuid.uuid4()),
-                           other_username='username' + str(idx),
-                           other_visible_name='visible name ' + str(idx))
+            share = _Share(
+                path=os.path.join(self.shares_dir, share_name),
+                share_id=sid,
+                name=share_name,
+                node_id=str(uuid.uuid4()),
+                other_username='username' + str(idx),
+                other_visible_name='visible name ' + str(idx),
+            )
             if idx == 0:
                 share.access_level = ACCESS_LEVEL_RW
                 legacy_shares[sid] = share
@@ -766,11 +866,14 @@ class MetadataNewLayoutTests(MetadataTestCase):
                 # add a 'new' Share dict to the shelf
                 share.access_level = ACCESS_LEVEL_RW
                 share = Share(
-                    path=share.path, volume_id=share.id, name=share.name,
+                    path=share.path,
+                    volume_id=share.id,
+                    name=share.name,
                     access_level=share.access_level,
                     other_username=share.other_username,
                     other_visible_name=share.other_visible_name,
-                    node_id=share.subtree)
+                    node_id=share.subtree,
+                )
                 legacy_shares[sid] = share.__dict__
 
         # create shared shares
@@ -778,10 +881,14 @@ class MetadataNewLayoutTests(MetadataTestCase):
         for idx, name in enumerate(['dir'] * 3):
             sid = str(uuid.uuid4())
             share_name = name + '_' + str(idx)
-            share = _Share(path=os.path.join(self.root_dir, share_name),
-                           share_id=sid, node_id=str(uuid.uuid4()),
-                           name=share_name, other_username='hola',
-                           other_visible_name='hola')
+            share = _Share(
+                path=os.path.join(self.root_dir, share_name),
+                share_id=sid,
+                node_id=str(uuid.uuid4()),
+                name=share_name,
+                other_username='hola',
+                other_visible_name='hola',
+            )
             if idx == 0:
                 share.access_level = ACCESS_LEVEL_RW
                 legacy_shares[sid] = share
@@ -791,12 +898,15 @@ class MetadataNewLayoutTests(MetadataTestCase):
             else:
                 # add a 'new' Shared dict to the shelf
                 share.access_level = ACCESS_LEVEL_RW
-                share = Shared(path=share.path,
-                               volume_id=share.id, name=share.name,
-                               access_level=share.access_level,
-                               other_username=share.other_username,
-                               other_visible_name=share.other_visible_name,
-                               node_id=share.subtree)
+                share = Shared(
+                    path=share.path,
+                    volume_id=share.id,
+                    name=share.name,
+                    access_level=share.access_level,
+                    other_username=share.other_username,
+                    other_visible_name=share.other_visible_name,
+                    node_id=share.subtree,
+                )
                 legacy_shares[sid] = share.__dict__
 
         # keep a copy of the current shares and shared metadata to check
@@ -807,8 +917,9 @@ class MetadataNewLayoutTests(MetadataTestCase):
         if self.md_version_None:
             self.set_md_version('')
         # upgrade it!
-        self.main = FakeMain(self.root_dir, self.shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.root_dir, self.shares_dir, self.data_dir, self.partials_dir
+        )
         vm = self.main.vm
 
         def compare_share(share, old_share):
@@ -819,29 +930,39 @@ class MetadataNewLayoutTests(MetadataTestCase):
             self.assertEqual(share.volume_id, old_id)
             self.assertEqual(
                 share.path,
-                getattr(old_share, 'path', None) or old_share['path'])
+                getattr(old_share, 'path', None) or old_share['path'],
+            )
             self.assertEqual(
                 share.node_id,
-                getattr(old_share, 'subtree', None) or old_share['node_id'])
+                getattr(old_share, 'subtree', None) or old_share['node_id'],
+            )
             if not isinstance(share, Root):
                 self.assertEqual(
                     share.name,
-                    getattr(old_share, 'name', None) or old_share['name'])
-                username = (getattr(old_share, 'other_username', None) or
-                            old_share['other_username'])
+                    getattr(old_share, 'name', None) or old_share['name'],
+                )
+                username = (
+                    getattr(old_share, 'other_username', None)
+                    or old_share['other_username']
+                )
                 self.assertEqual(share.other_username, username)
-                name = (getattr(old_share, 'other_visible_name', None) or
-                        old_share['other_visible_name'])
+                name = (
+                    getattr(old_share, 'other_visible_name', None)
+                    or old_share['other_visible_name']
+                )
                 self.assertEqual(share.other_visible_name, name)
-                level = (getattr(old_share, 'access_level', None) or
-                         old_share['access_level'])
+                level = (
+                    getattr(old_share, 'access_level', None)
+                    or old_share['access_level']
+                )
                 self.assertEqual(share.access_level, level)
 
         for sid in vm.shares:
             old_share = legacy_shares[sid]
             share = vm.shares[sid]
             self.assertTrue(
-                isinstance(share, Share) or isinstance(share, Root))
+                isinstance(share, Share) or isinstance(share, Root)
+            )
             compare_share(share, old_share)
 
         for sid in vm.shared:
@@ -857,17 +978,23 @@ class MetadataNewLayoutTests(MetadataTestCase):
         self.set_md_version('5')
         # create some old shares and shared metadata
         legacy_shares = LegacyShareFileShelf(self.share_md_dir)
-        root_share = _Share(path=self.root_dir, share_id=request.ROOT,
-                            access_level=ACCESS_LEVEL_RW)
+        root_share = _Share(
+            path=self.root_dir,
+            share_id=request.ROOT,
+            access_level=ACCESS_LEVEL_RW,
+        )
         legacy_shares[request.ROOT] = root_share
         for idx, name in enumerate(['share'] * 10):
             sid = str(uuid.uuid4())
             share_name = name + '_' + str(idx)
-            share = _Share(path=os.path.join(self.shares_dir, share_name),
-                           share_id=sid, name=share_name,
-                           node_id=str(uuid.uuid4()),
-                           other_username='username' + str(idx),
-                           other_visible_name='visible name ' + str(idx))
+            share = _Share(
+                path=os.path.join(self.shares_dir, share_name),
+                share_id=sid,
+                name=share_name,
+                node_id=str(uuid.uuid4()),
+                other_username='username' + str(idx),
+                other_visible_name='visible name ' + str(idx),
+            )
             if idx % 2:
                 share.access_level = ACCESS_LEVEL_RW
             else:
@@ -878,10 +1005,14 @@ class MetadataNewLayoutTests(MetadataTestCase):
         for idx, name in enumerate(['dir'] * 5):
             sid = str(uuid.uuid4())
             share_name = name + '_' + str(idx)
-            share = _Share(path=os.path.join(self.root_dir, share_name),
-                           share_id=sid, node_id=str(uuid.uuid4()),
-                           name=share_name, other_username='hola',
-                           other_visible_name='hola')
+            share = _Share(
+                path=os.path.join(self.root_dir, share_name),
+                share_id=sid,
+                node_id=str(uuid.uuid4()),
+                name=share_name,
+                other_username='hola',
+                other_visible_name='hola',
+            )
             if idx % 2:
                 share.access_level = ACCESS_LEVEL_RW
             else:
@@ -900,14 +1031,21 @@ class MetadataNewLayoutTests(MetadataTestCase):
 
         def upgrade_share_to_volume(share, shared=False):
             raise ValueError('FAIL!')
+
         MetadataUpgrader._upgrade_share_to_volume = upgrade_share_to_volume
         try:
-            self.assertRaises(ValueError, FakeMain, self.root_dir,
-                              self.shares_dir, self.data_dir,
-                              self.partials_dir)
+            self.assertRaises(
+                ValueError,
+                FakeMain,
+                self.root_dir,
+                self.shares_dir,
+                self.data_dir,
+                self.partials_dir,
+            )
         finally:
-            MetadataUpgrader._upgrade_share_to_volume = \
-                    old_upgrade_share_to_volume
+            MetadataUpgrader._upgrade_share_to_volume = (
+                old_upgrade_share_to_volume
+            )
 
         shares = LegacyShareFileShelf(self.share_md_dir)
         self.assertItemsEqual(shares.keys(), legacy_shares.keys())
@@ -928,8 +1066,9 @@ class MetadataNewLayoutTests(MetadataTestCase):
         os.unlink(self.shares_dir_link)
         # create a broken link
         os.symlink('foo', self.shares_dir_link)
-        self.main = FakeMain(self.root_dir, self.shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.root_dir, self.shares_dir, self.data_dir, self.partials_dir
+        )
         self.check_version()
 
     def test_upgrade_6(self):
@@ -947,9 +1086,12 @@ class MetadataNewLayoutTests(MetadataTestCase):
             share_name = name + '_' + str(idx)
             share = Share(
                 path=os.path.join(self.shares_dir, share_name),
-                volume_id=sid, name=share_name, node_id=str(uuid.uuid4()),
+                volume_id=sid,
+                name=share_name,
+                node_id=str(uuid.uuid4()),
                 other_username='username' + str(idx),
-                other_visible_name='visible name ' + str(idx))
+                other_visible_name='visible name ' + str(idx),
+            )
             if idx % 2:
                 share.access_level = ACCESS_LEVEL_RW
             else:
@@ -961,10 +1103,14 @@ class MetadataNewLayoutTests(MetadataTestCase):
         for idx, name in enumerate(['dir'] * 5):
             sid = str(uuid.uuid4())
             share_name = name + '_' + str(idx)
-            share = Shared(path=os.path.join(self.root_dir, share_name),
-                           volume_id=sid, node_id=str(uuid.uuid4()),
-                           name=share_name, other_username='hola',
-                           other_visible_name='hola')
+            share = Shared(
+                path=os.path.join(self.root_dir, share_name),
+                volume_id=sid,
+                node_id=str(uuid.uuid4()),
+                name=share_name,
+                other_username='hola',
+                other_visible_name='hola',
+            )
             if idx % 2:
                 share.access_level = ACCESS_LEVEL_RW
             else:
@@ -977,8 +1123,11 @@ class MetadataNewLayoutTests(MetadataTestCase):
             udf_id = str(uuid.uuid4())
             udf_name = name + '_' + str(idx)
             udf = UDF(
-                udf_id, str(uuid.uuid4()), '~/' + udf_name,
-                os.path.join(self.home_dir, udf_name))
+                udf_id,
+                str(uuid.uuid4()),
+                '~/' + udf_name,
+                os.path.join(self.home_dir, udf_name),
+            )
             if idx % 2:
                 udf.subscribed = True
             else:
@@ -994,15 +1143,17 @@ class MetadataNewLayoutTests(MetadataTestCase):
         if self.md_version_None:
             self.set_md_version('')
         # upgrade it!
-        self.main = FakeMain(self.root_dir, self.shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.root_dir, self.shares_dir, self.data_dir, self.partials_dir
+        )
         vm = self.main.vm
 
         for sid in vm.shares:
             old_share = legacy_shares[sid]
             share = vm.shares[sid]
             self.assertTrue(
-                isinstance(share, Share) or isinstance(share, Root))
+                isinstance(share, Share) or isinstance(share, Root)
+            )
             self.assertEqual(share.__dict__, old_share.__dict__)
 
         for sid in vm.shared:
@@ -1020,9 +1171,11 @@ class MetadataNewLayoutTests(MetadataTestCase):
 
 class BrokenOldMDVersionUpgradeTests(MetadataOldLayoutTests):
     """MetadataOldLayoutTests with broken .version file."""
+
     md_version_None = True
 
 
 class BrokenNewMDVersionUpgradeTests(MetadataNewLayoutTests):
     """MetadataNewLayoutTests with broken .version file."""
+
     md_version_None = True

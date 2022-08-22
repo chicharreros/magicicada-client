@@ -27,17 +27,18 @@ from dirspec.utils import (
 )
 
 
-__all__ = ['xdg_cache_home',
-           'xdg_config_home',
-           'xdg_data_home',
-           'xdg_config_dirs',
-           'xdg_data_dirs',
-           'load_config_paths',
-           'load_data_paths',
-           'load_first_config',
-           'save_config_path',
-           'save_data_path',
-           ]
+__all__ = [
+    'xdg_cache_home',
+    'xdg_config_home',
+    'xdg_data_home',
+    'xdg_config_dirs',
+    'xdg_data_dirs',
+    'load_config_paths',
+    'load_data_paths',
+    'load_first_config',
+    'save_config_path',
+    'save_data_path',
+]
 
 
 def get_xdg_cache_home():

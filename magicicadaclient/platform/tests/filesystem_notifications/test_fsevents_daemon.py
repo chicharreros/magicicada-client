@@ -38,14 +38,13 @@ from magicicadaclient import fseventsd
 from magicicadaclient.platform.filesystem_notifications.monitor.darwin import (
     fsevents_daemon,
 )
-from magicicadaclient.platform.filesystem_notifications.agnostic \
-    import (
-        IN_CREATE,
-        IN_DELETE,
-        IN_MODIFY,
-        IN_MOVED_FROM,
-        IN_MOVED_TO,
-    )
+from magicicadaclient.platform.filesystem_notifications.agnostic import (
+    IN_CREATE,
+    IN_DELETE,
+    IN_MODIFY,
+    IN_MOVED_FROM,
+    IN_MOVED_TO,
+)
 
 
 class FakeServerProtocol(protocol.Protocol):
@@ -266,8 +265,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
             self.assertEqual(0, pyinotify_event.wd)
             self.assertEqual(event.is_directory, pyinotify_event.dir)
             self.assertEqual(
-                fsevents_daemon.DARWIN_ACTIONS[action],
-                pyinotify_event.mask)
+                fsevents_daemon.DARWIN_ACTIONS[action], pyinotify_event.mask
+            )
             self.assertEqual(event_path, pyinotify_event.pathname)
 
     def test_convert_in_pyinotify_event_rename_create(self):
@@ -380,7 +379,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
         self.factory.process_event(event)
         self.assertEqual(1, len(self.processor.processed_events))
         self.assertEqual(
-            event_path, self.processor.processed_events[0].pathname)
+            event_path, self.processor.processed_events[0].pathname
+        )
 
 
 class FilesystemMonitorTestCase(BaseTwistedTestCase):
@@ -406,8 +406,10 @@ class FilesystemMonitorTestCase(BaseTwistedTestCase):
 
         # patch the connect
         self.patch(
-            fsevents_daemon.FilesystemMonitor, '_connect_to_daemon',
-            self.fake_connect_to_daemon)
+            fsevents_daemon.FilesystemMonitor,
+            '_connect_to_daemon',
+            self.fake_connect_to_daemon,
+        )
 
     @defer.inlineCallbacks
     def test_shutdown_protocol(self):

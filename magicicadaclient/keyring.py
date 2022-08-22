@@ -58,8 +58,9 @@ def gethostname():
 def get_token_name(app_name):
     """Build the token name.. Return an unicode."""
     computer_name = gethostname()
-    computer_name = computer_name.replace(TOKEN_SEPARATOR,
-                                          SEPARATOR_REPLACEMENT)
+    computer_name = computer_name.replace(
+        TOKEN_SEPARATOR, SEPARATOR_REPLACEMENT
+    )
 
     assert isinstance(computer_name, str)
     assert isinstance(computer_name, str)
@@ -76,8 +77,10 @@ class Keyring:
 
     def _get_keyring_attr(self, app_name):
         """Build the keyring attributes for this credentials."""
-        attr = {"key-type": "%s credentials" % NAME,
-                "token-name": get_token_name(app_name)}
+        attr = {
+            "key-type": "%s credentials" % NAME,
+            "token-name": get_token_name(app_name),
+        }
         return attr
 
     @inlineCallbacks

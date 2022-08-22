@@ -316,8 +316,10 @@ class MultiFilterTest(unittest.TestCase):
     def test_multiple_filters(self):
         """Tests filtering with more than one filter."""
         self.handler.addFilter(
-            MultiFilter([self.__class__.__name__,
-                         self.__class__.__name__ + ".child"]))
+            MultiFilter(
+                [self.__class__.__name__, self.__class__.__name__ + ".child"]
+            )
+        )
         no_logger = logging.getLogger("NO_LOG." + self.__class__.__name__)
         yes_logger = logging.getLogger(self.__class__.__name__ + '.child')
         self.logger.debug('this msg should be logged')

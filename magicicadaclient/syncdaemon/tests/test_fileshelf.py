@@ -50,7 +50,8 @@ BROKEN_PICKLE = '\axb80\x02}q\x01(U\x01aU\x04testq\x02U\x01bU\x06brokenq\x03u.'
 
 
 class TestFileShelf(BaseTwistedTestCase):
-    """Test the FileShelf """
+    """Test the FileShelf"""
+
     fileshelf_class = FileShelf
 
     @defer.inlineCallbacks
@@ -61,9 +62,10 @@ class TestFileShelf(BaseTwistedTestCase):
         self.shelf = self.fileshelf_class(self.path)
 
     def test_bad_depth(self):
-        """Test that the shelf reject invalid depth at creation time """
+        """Test that the shelf reject invalid depth at creation time"""
         self.assertRaises(
-            ValueError, self.fileshelf_class, self.path, depth=-1)
+            ValueError, self.fileshelf_class, self.path, depth=-1
+        )
 
     def test_bad_path(self):
         """Test that the shelf removes the previous shelve file and create a
@@ -101,7 +103,7 @@ class TestFileShelf(BaseTwistedTestCase):
         self.assertRaises(ValueError, self.shelf.__setitem__, '', 'foo')
 
     def test_contains(self):
-        """Test that it behaves with the 'in' """
+        """Test that it behaves with the 'in'"""
         path = os.path.join(self.path, 'shelf_depth')
         shelf = self.fileshelf_class(path)
         shelf["foo"] = "bar"
@@ -111,7 +113,7 @@ class TestFileShelf(BaseTwistedTestCase):
         self.assertIsNone(shelf.get('baz', None))
 
     def test_pop(self):
-        """Test that it behaves with the .pop() """
+        """Test that it behaves with the .pop()"""
         path = os.path.join(self.path, 'shelf_depth')
         shelf = self.fileshelf_class(path)
         shelf["foo"] = "bar"
@@ -122,7 +124,7 @@ class TestFileShelf(BaseTwistedTestCase):
         self.assertRaises(KeyError, shelf.pop, "no-key")
 
     def test_get(self):
-        """Test that it behaves with the .get(key, default) """
+        """Test that it behaves with the .get(key, default)"""
         path = os.path.join(self.path, 'shelf_get')
         shelf = self.fileshelf_class(path)
         shelf["foo"] = "bar"
@@ -132,12 +134,11 @@ class TestFileShelf(BaseTwistedTestCase):
         self.assertFalse(shelf.get('baz', False))
 
     def test_items(self):
-        """Test that it behaves with the .items() """
+        """Test that it behaves with the .items()"""
         path = os.path.join(self.path, 'shelf_get')
         shelf = self.fileshelf_class(path)
         shelf["foo"] = "bar"
-        self.assertEqual([('foo', 'bar')],
-                         [(k, v) for k, v in shelf.items()])
+        self.assertEqual([('foo', 'bar')], [(k, v) for k, v in shelf.items()])
         shelf["foo1"] = "bar1"
         items = [(k, v) for k, v in shelf.items()]
         self.assertIn(('foo', 'bar'), items)
@@ -287,6 +288,7 @@ class TestFileShelf(BaseTwistedTestCase):
 
 class CachedFileShelfTests(TestFileShelf):
     """TestFileShelf tests but using CachedFileShelf"""
+
     fileshelf_class = CachedFileShelf
 
     def test_hit_miss_properties(self):
@@ -439,8 +441,9 @@ class LRUCacheTests(unittest.TestCase):
         cache['foo'] = 'bar'
         # add it again to the _queue to force a inconsistency
         cache._queue.append('foo')
-        self.assertRaises(CacheInconsistencyError,
-                          cache.__setitem__, 'bar', 'foo')
+        self.assertRaises(
+            CacheInconsistencyError, cache.__setitem__, 'bar', 'foo'
+        )
 
     def test_delete(self):
         """test the cache consistency after a delete."""

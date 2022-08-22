@@ -33,9 +33,11 @@ import sys
 
 if sys.platform in ('win32', 'darwin'):
     from magicicadaclient.platform.ipc import perspective_broker as source
+
     ExternalInterface = source.IPCInterface
 else:
     from magicicadaclient.platform.ipc import linux as source
+
     ExternalInterface = source.DBusInterface
 
 
