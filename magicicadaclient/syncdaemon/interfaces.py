@@ -81,8 +81,15 @@ class IMetaQueue(Interface):
         notification.
         """
 
-    def move(share_id, node_id, old_parent_id, new_parent_id, new_name,
-             path_from, path_to):
+    def move(
+        share_id,
+        node_id,
+        old_parent_id,
+        new_parent_id,
+        new_name,
+        path_from,
+        path_to,
+    ):
         """
         Ask the server to move a node to the given parent and name.
         """

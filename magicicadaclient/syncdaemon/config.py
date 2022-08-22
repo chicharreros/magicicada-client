@@ -143,7 +143,8 @@ def server_connection_parser(value):
             host, port, mode = ci_parts
         else:
             raise ValueError(
-                "--server info must be HOST:PORT or HOST:PORT:SSL_MODE")
+                "--server info must be HOST:PORT or HOST:PORT:SSL_MODE"
+            )
 
         if mode == 'plain':
             use_ssl = False
@@ -157,13 +158,16 @@ def server_connection_parser(value):
         else:
             raise ValueError(
                 "--server form (HOST:PORT:SSL_MODE) accepts the following"
-                "SSL_MODE options only: 'plain', 'ssl', 'ssl_noverify'")
-        results.append({
-            'host': host,
-            'port': int(port),
-            'use_ssl': use_ssl,
-            'disable_ssl_verify': disable_ssl_verify,
-        })
+                "SSL_MODE options only: 'plain', 'ssl', 'ssl_noverify'"
+            )
+        results.append(
+            {
+                'host': host,
+                'port': int(port),
+                'use_ssl': use_ssl,
+                'disable_ssl_verify': disable_ssl_verify,
+            }
+        )
     return results
 
 
@@ -192,12 +196,14 @@ def throttling_limit_parser(value):
 
 def get_parsers():
     """returns a list of tuples: (name, parser)"""
-    return [('home_dir', home_dir_parser),
-            ('xdg_cache', xdg_cache_dir_parser),
-            ('xdg_data', xdg_data_dir_parser),
-            ('log_level', log_level_parser),
-            ('connection', server_connection_parser),
-            ('throttling_limit', throttling_limit_parser)]
+    return [
+        ('home_dir', home_dir_parser),
+        ('xdg_cache', xdg_cache_dir_parser),
+        ('xdg_data', xdg_data_dir_parser),
+        ('log_level', log_level_parser),
+        ('connection', server_connection_parser),
+        ('throttling_limit', throttling_limit_parser),
+    ]
 
 
 def get_config_files():
@@ -216,8 +222,13 @@ def get_config_files():
     # reverse the list as load_config_paths returns the user dir first
     config_files.reverse()
     # if we are running from a branch, get the config files from it too
-    config_file = os.path.join(os.path.dirname(__file__), os.path.pardir,
-                               os.path.pardir, 'data', CONFIG_FILE)
+    config_file = os.path.join(
+        os.path.dirname(__file__),
+        os.path.pardir,
+        os.path.pardir,
+        'data',
+        CONFIG_FILE,
+    )
     if os.path.exists(config_file):
         config_files.append(config_file)
 
@@ -234,15 +245,19 @@ def get_user_config(config_file=_user_config_path, config_files=None):
 
 def requires_section(section):
     """decorator to enforce the existence of a section in the config."""
+
     def wrapper(meth):
         """the wrapper"""
+
         def wrapped(self, *args, **kwargs):
             """the real thing, wrap the method and do the job"""
             if not self.has_section(section):
                 self.add_section(section)
             return meth(self, *args, **kwargs)
+
         functools.update_wrapper(wrapped, meth)
         return wrapped
+
     return wrapper
 
 
@@ -259,8 +274,9 @@ class SyncDaemonConfigParser(TypedConfigParser):
     def add_upgrade_hook(self, section, option, func):
         """Add an upgrade hook for (section, option)"""
         if (section, option) in self.upgrade_hooks:
-            raise ValueError('An upgrade hook for %s, %s already exists' %
-                             (section, option))
+            raise ValueError(
+                'An upgrade hook for %s, %s already exists' % (section, option)
+            )
         self.upgrade_hooks[(section, option)] = func
 
     def parse_all(self):
@@ -295,8 +311,9 @@ def upgrade_log_level(cp):
             cp.set('logging', 'level', current)
     # else, we ignore the setting as we have a non-default
     # value in logging-level (newer setting wins)
-    logger.warning("Found deprecated config option 'log_level'"
-                   " in section: MAIN")
+    logger.warning(
+        "Found deprecated config option 'log_level'" " in section: MAIN"
+    )
     cp.remove_option(MAIN, 'log_level')
 
 
@@ -509,9 +526,10 @@ def configglue(fileobj, *filenames, **kwargs):
                 default = None
             else:
                 default = option.value
-            og.add_option(tpl % {'section': section.lower(),
-                                 'option': optname.lower()},
-                          **dict(option.attrs, default=default))
+            og.add_option(
+                tpl % {'section': section.lower(), 'option': optname.lower()},
+                **dict(option.attrs, default=default)
+            )
 
     options, args = op.parse_args(args)
 

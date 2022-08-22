@@ -42,7 +42,11 @@ venv:
 	$(ENV)/bin/pip install -U pip setuptools
 	$(ENV)/bin/pip install -U -r requirements.txt -r requirements-devel.txt
 
+black:
+	$(ENV)/bin/black .
+
 lint:
+	$(ENV)/bin/black --check .
 	$(ENV)/bin/flake8 --exclude='u1fsfsm.py,test_run_hello.py' magicicadaclient contrib bin/*
 
 test: lint

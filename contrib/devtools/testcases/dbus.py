@@ -34,6 +34,7 @@ import os
 from urllib.parse import unquote
 
 from twisted.internet import defer
+
 # DBusRunner for DBusTestCase using tests
 from devtools.services.dbus import DBusRunner
 from devtools.testcases import BaseTestCase, skipIf
@@ -66,8 +67,10 @@ class FakeDBusInterface:
         """...that only knows how to go away"""
 
 
-@skipIf(dbus is None or service is None or DBusGMainLoop is None,
-        "The test requires dbus.")
+@skipIf(
+    dbus is None or service is None or DBusGMainLoop is None,
+    "The test requires dbus.",
+)
 class DBusTestCase(BaseTestCase):
     """Test the DBus event handling."""
 
@@ -85,8 +88,9 @@ class DBusTestCase(BaseTestCase):
 
         # We need to ensure DBUS_SESSION_BUS_ADDRESS is private here
         bus_address = os.environ.get('DBUS_SESSION_BUS_ADDRESS', None)
-        if os.path.dirname(unquote(bus_address.split(',')[0].split('=')[1])) \
-                != os.path.dirname(os.getcwd()):
+        if os.path.dirname(
+            unquote(bus_address.split(',')[0].split('=')[1])
+        ) != os.path.dirname(os.getcwd()):
             raise InvalidSessionBus('DBUS_SESSION_BUS_ADDRESS is wrong.')
 
         # Set up the main loop and bus connection
@@ -96,7 +100,8 @@ class DBusTestCase(BaseTestCase):
         # str instead of anything from devtools.compat. dbus
         # expects this to be str regardless of version.
         self.bus = dbus.bus.BusConnection(
-            address_or_type=bus_address, mainloop=self.loop)
+            address_or_type=bus_address, mainloop=self.loop
+        )
         self.addCleanup(self.bus.flush)
         self.addCleanup(self.bus.close)
 
@@ -108,8 +113,10 @@ class DBusTestCase(BaseTestCase):
         # Check that we are on the correct bus for real
         bus_names = self.bus.list_names()
         if len(bus_names) > 2:
-            raise InvalidSessionBus('Too many bus connections: %s (%r)' %
-                                    (len(bus_names), bus_names))
+            raise InvalidSessionBus(
+                'Too many bus connections: %s (%r)'
+                % (len(bus_names), bus_names)
+            )
 
         # monkeypatch busName.__del__ to avoid errors on gc
         # we take care of releasing the name in shutdown

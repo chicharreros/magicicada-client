@@ -39,16 +39,17 @@ SRCDIR = os.environ.get('SRCDIR', os.getcwd())
 
 class DBusLaunchError(Exception):
     """Error while launching dbus-daemon"""
+
     pass
 
 
 class NotFoundError(Exception):
     """Not found error"""
+
     pass
 
 
 class DBusRunner:
-
     def __init__(self):
         self.dbus_address = None
         self.dbus_pid = None
@@ -60,16 +61,21 @@ class DBusRunner:
         if not dbus:
             raise NotFoundError("dbus-daemon was not found.")
 
-        config_file = os.path.join(os.path.abspath(SRCDIR),
-                                   "contrib", "testing",
-                                   "dbus-session.conf")
-        dbus_args = ["--fork",
-                     "--config-file=" + config_file,
-                     "--print-address=1",
-                     "--print-pid=2"]
-        p = subprocess.Popen([dbus] + dbus_args,
-                             bufsize=4096, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+        config_file = os.path.join(
+            os.path.abspath(SRCDIR), "contrib", "testing", "dbus-session.conf"
+        )
+        dbus_args = [
+            "--fork",
+            "--config-file=" + config_file,
+            "--print-address=1",
+            "--print-pid=2",
+        ]
+        p = subprocess.Popen(
+            [dbus] + dbus_args,
+            bufsize=4096,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
 
         self.dbus_address = "".join(p.stdout.readlines()).strip()
         self.dbus_pid = int("".join(p.stderr.readlines()).strip())

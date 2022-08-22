@@ -37,11 +37,7 @@ from twisted.trial.reporter import TestResult
 from devtools import testcases
 from devtools.testcases import BaseTestCase
 
-OTHER_PLATFORM = {
-    "darwin": "win32",
-    "win32": "linux2",
-    "linux2": "win32",
-}
+OTHER_PLATFORM = {"darwin": "win32", "win32": "linux2", "linux2": "win32"}
 
 
 class TestSkipBasicDecorators(BaseTestCase):
@@ -52,20 +48,27 @@ class TestSkipBasicDecorators(BaseTestCase):
         self.patch(os, "getenv", lambda *args: True)
 
         operations_table = (
-            (testcases.skipIf,
+            (
+                testcases.skipIf,
                 (False, "False condition"),
-                (True, "True condition")),
-            (testcases.skipIfOS,
+                (True, "True condition"),
+            ),
+            (
+                testcases.skipIfOS,
                 (OTHER_PLATFORM[sys.platform], "skipIf other platform"),
-                (sys.platform, "skipIf this platform")),
-            (testcases.skipIfNotOS,
+                (sys.platform, "skipIf this platform"),
+            ),
+            (
+                testcases.skipIfNotOS,
                 (sys.platform, "skipIfNot this platform"),
-                (OTHER_PLATFORM[sys.platform],
-                    "skipIfNot other platform")),
-            (testcases.skipIfJenkins,
-                (OTHER_PLATFORM[sys.platform],
-                    "skipIfJenkins other platform"),
-                (sys.platform, "skipIfJenkins this platform")),)
+                (OTHER_PLATFORM[sys.platform], "skipIfNot other platform"),
+            ),
+            (
+                testcases.skipIfJenkins,
+                (OTHER_PLATFORM[sys.platform], "skipIfJenkins other platform"),
+                (sys.platform, "skipIfJenkins this platform"),
+            ),
+        )
         for deco, dont_skip, do_skip in operations_table:
 
             class Foo(BaseTestCase):
@@ -88,8 +91,7 @@ class TestSkipBasicDecorators(BaseTestCase):
             suite.run(result)
             self.assertEqual(len(result.skips), 1)
             self.assertEqual(result.successes, 1)
-            self.assertEqual(result.skips,
-                             [(test_do_skip, do_skip[1])])
+            self.assertEqual(result.skips, [(test_do_skip, do_skip[1])])
 
     def test_skip_class(self):
         """Test skipping a full test class."""

@@ -67,11 +67,14 @@ class FakeVM:
             exit(-1)
 
         self.shares = volume_manager.VMTritcaskShelf(
-            volume_manager.SHARE_ROW_TYPE, db)
+            volume_manager.SHARE_ROW_TYPE, db
+        )
         self.shared = volume_manager.VMTritcaskShelf(
-            volume_manager.SHARED_ROW_TYPE, db)
+            volume_manager.SHARED_ROW_TYPE, db
+        )
         self.udfs = volume_manager.VMTritcaskShelf(
-            volume_manager.UDF_ROW_TYPE, db)
+            volume_manager.UDF_ROW_TYPE, db
+        )
 
     def get_volume(self, vol_id):
         """Gets the volume."""
@@ -111,12 +114,17 @@ def main(data_dir):
             filedir = "DIR " if mdobj.is_dir else "FILE"
             print(
                 "  mdid=%r  node_id=%r crc32=%s local_hash=%s server_hash=%s "
-                "%s  %r" % (
-                    mdobj.mdid, mdobj.node_id,
+                "%s  %r"
+                % (
+                    mdobj.mdid,
+                    mdobj.node_id,
                     getattr(mdobj, 'crc32', '**No crc32**'),
                     getattr(mdobj, 'local_hash', '**No local_hash**'),
                     getattr(mdobj, 'server_hash', '**No server_hash**'),
-                    filedir, mdobj.path))
+                    filedir,
+                    mdobj.path,
+                )
+            )
 
     print("\nShowing Root: %r (id=%r)" % (root.path, root.id))
     show_data(root.id)
@@ -134,8 +142,10 @@ def main(data_dir):
     something = False
     for (vol_id, node_id), (mdid, par_id, path, is_dir) in fsm.trash.items():
         something = True
-        print("  mdid=%r  volume_id=%r  node_id=%r  parent_id=%r  path=%r "
-              "is_dir=%r" % (mdid, share_id, node_id, par_id, path, is_dir))
+        print(
+            "  mdid=%r  volume_id=%r  node_id=%r  parent_id=%r  path=%r "
+            "is_dir=%r" % (mdid, share_id, node_id, par_id, path, is_dir)
+        )
     if not something:
         print("  (empty)")
 
@@ -145,12 +155,16 @@ def main(data_dir):
         something = True
         if len(value) == 3:
             # old move limbo, without paths
-            print("  volume_id=%r  node_id=%r  old_parent_id=%r  "
-                  "new_parent_id=%r  new_name=%r" % (key + value))
+            print(
+                "  volume_id=%r  node_id=%r  old_parent_id=%r  "
+                "new_parent_id=%r  new_name=%r" % (key + value)
+            )
         else:
-            print("  volume_id=%r  node_id=%r  old_parent_id=%r  "
-                  "new_parent_id=%r  new_name=%r  path_from=%r  path_to=%r" %
-                  (key + value))
+            print(
+                "  volume_id=%r  node_id=%r  old_parent_id=%r  "
+                "new_parent_id=%r  new_name=%r  path_from=%r  path_to=%r"
+                % (key + value)
+            )
     if not something:
         print("  (empty)")
 

@@ -68,8 +68,9 @@ CFRelease.argtypes = [c_void_p]
 CFRunLoopRun = CoreFoundation.CFRunLoopRun
 
 # const CFStringRef kCFRunLoopDefaultMode
-kCFRunLoopDefaultMode = c_void_p.in_dll(CoreFoundation,
-                                        "kCFRunLoopDefaultMode")
+kCFRunLoopDefaultMode = c_void_p.in_dll(
+    CoreFoundation, "kCFRunLoopDefaultMode"
+)
 
 
 # Functions and constants below are from
@@ -90,14 +91,11 @@ SCNRCreateWithName.restype = c_void_p
 #                                       SCNetworkReachabilityFlags)
 SCNRGetFlags = SC.SCNetworkReachabilityGetFlags
 SCNRGetFlags.restype = c_bool
-SCNRGetFlags.argtypes = [c_void_p,
-                         POINTER(c_uint32)]
+SCNRGetFlags.argtypes = [c_void_p, POINTER(c_uint32)]
 
 SCNRScheduleWithRunLoop = SC.SCNetworkReachabilityScheduleWithRunLoop
 SCNRScheduleWithRunLoop.restype = c_bool
-SCNRScheduleWithRunLoop.argtypes = [c_void_p,
-                                    c_void_p,
-                                    c_void_p]
+SCNRScheduleWithRunLoop.argtypes = [c_void_p, c_void_p, c_void_p]
 
 # ctypes callback type to match SCNetworkReachabilityCallback
 # void (*SCNetworkReachabilityCallback) (SCNetworkReachabilityRef,
@@ -111,9 +109,7 @@ SCNRCallbackType = CFUNCTYPE(None, c_void_p, c_uint32, c_void_p)
 #                                          SCNetworkReachabilityContext)
 SCNRSetCallback = SC.SCNetworkReachabilitySetCallback
 SCNRSetCallback.restype = c_bool
-SCNRSetCallback.argtypes = [c_void_p,
-                            SCNRCallbackType,
-                            c_void_p]
+SCNRSetCallback.argtypes = [c_void_p, SCNRCallbackType, c_void_p]
 
 
 def check_connected_state():
@@ -128,8 +124,9 @@ def check_connected_state():
     CFRelease(target)
 
     if not ok:
-        logger.error("Error getting reachability status of '%s'" %
-                     HOSTNAME_TO_CHECK)
+        logger.error(
+            "Error getting reachability status of '%s'" % HOSTNAME_TO_CHECK
+        )
         raise NetworkFailException()
 
     return flags_say_reachable(flags.value)
@@ -165,11 +162,13 @@ class SCNRContext(Structure):
     We don't use the fields currently.
     """
 
-    _fields_ = [("version", c_long),
-                ("info", c_void_p),
-                ("retain", c_void_p),           # func ptr
-                ("release", c_void_p),          # func ptr
-                ("copyDescription", c_void_p)]  # func ptr
+    _fields_ = [
+        ("version", c_long),
+        ("info", c_void_p),
+        ("retain", c_void_p),  # func ptr
+        ("release", c_void_p),  # func ptr
+        ("copyDescription", c_void_p),
+    ]  # func ptr
 
 
 class NetworkManagerState:
@@ -246,9 +245,9 @@ class NetworkManagerState:
             self.result_cb(UNKNOWN)
             return
 
-        ok = SCNRScheduleWithRunLoop(target,
-                                     CFRunLoopGetCurrent(),
-                                     kCFRunLoopDefaultMode)
+        ok = SCNRScheduleWithRunLoop(
+            target, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode
+        )
         if not ok:
             logger.error("error scheduling on runloop: SCNetworkReachability")
             CFRelease(target)
@@ -257,7 +256,7 @@ class NetworkManagerState:
 
         CFRunLoopRun()
 
-        CFRelease(target)               # won't happen
+        CFRelease(target)  # won't happen
 
     def _start_listening_thread(self):
         """Start the separate listener thread.
@@ -273,7 +272,8 @@ class NetworkManagerState:
         if self.listener_thread is None:
             self.listener_thread = Thread(
                 target=self._listen_on_separate_thread,
-                name="Network Connection Monitor")
+                name="Network Connection Monitor",
+            )
             self.listener_thread.daemon = True
             self.listener_thread.start()
 
@@ -288,7 +288,7 @@ class NetworkManagerState:
         except Exception:
             logger.exception("Getting state from SCNetworkReachability")
             self.result_cb(UNKNOWN)
-            return                      # don't start thread on error
+            return  # don't start thread on error
 
         self._start_listening_thread()
 

@@ -79,7 +79,8 @@ class Watch:
         self.ignore_paths = []
         # Create stream with folder to watch
         self.stream = fsevents.Stream(
-            self._process_events, path, file_events=True)
+            self._process_events, path, file_events=True
+        )
 
     def _process_events(self, event):
         """Receive the filesystem event and move it to the main thread."""
@@ -90,8 +91,7 @@ class Watch:
         action, cookie, file_name = (event.mask, event.cookie, event.name)
 
         syncdaemon_path = os.path.join(self.path, file_name)
-        self.process_events(
-            action, file_name, cookie, syncdaemon_path)
+        self.process_events(action, file_name, cookie, syncdaemon_path)
 
     def start_watching(self):
         """Start watching."""

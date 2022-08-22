@@ -43,6 +43,7 @@ from magicicadaclient.syncdaemon.states import (
 
 class FakeEventQueue:
     """Fake EQ."""
+
     def __init__(self):
         self.events = []
 
@@ -66,6 +67,7 @@ class FakeRequestQueue:
     It does NOT send a WAITING everytime something is queued, and it does
     NOT send a DONE everytime a command finishes.
     """
+
     def __init__(self):
         self.active = False
         self.jobs = []
@@ -90,6 +92,7 @@ class FakeRequestQueue:
 
 class FakeActionQueue:
     """Fake class to log actions on AQ."""
+
     def __init__(self):
         self.queue = FakeRequestQueue()
         self.actions = []
@@ -104,6 +107,7 @@ class FakeActionQueue:
 
 class FakeMain:
     """Fake class to log actions on Main."""
+
     def __init__(self, aq, eq):
         self.action_q = aq
         self.event_q = eq
@@ -111,8 +115,14 @@ class FakeMain:
 
     def __getattribute__(self, name):
         """Generic method logger."""
-        if name in ("local_rescan", "check_version", "authenticate",
-                    "set_capabilities", "server_rescan", "restart"):
+        if name in (
+            "local_rescan",
+            "check_version",
+            "authenticate",
+            "set_capabilities",
+            "server_rescan",
+            "restart",
+        ):
             return lambda *a, **k: self.actions.append(name)
         else:
             return object.__getattribute__(self, name)
@@ -141,11 +151,17 @@ class Base(TwistedTestCase):
         self.qm.log = self.fake_logger
 
         # some useful info
-        self.sm_allnodes = [getattr(StateManager, x) for x in dir(StateManager)
-                            if isinstance(getattr(StateManager, x), Node)]
+        self.sm_allnodes = [
+            getattr(StateManager, x)
+            for x in dir(StateManager)
+            if isinstance(getattr(StateManager, x), Node)
+        ]
         self.sm_connected = set(x for x in self.sm_allnodes if x.is_connected)
-        self.sm_disconnected = set(x for x in self.sm_allnodes
-                                   if not x.is_connected and not x.is_error)
+        self.sm_disconnected = set(
+            x
+            for x in self.sm_allnodes
+            if not x.is_connected and not x.is_error
+        )
         self.sm_nodes_ok = set(x for x in self.sm_allnodes if not x.is_error)
         self.sm_nodes_error = set(x for x in self.sm_allnodes if x.is_error)
 
@@ -168,9 +184,9 @@ class Base(TwistedTestCase):
             if event in self.eq.events:
                 d.callback(True)
             else:
-                reactor.callLater(.1, check, count)
+                reactor.callLater(0.1, check, count)
 
-        reactor.callLater(.1, check, 0)
+        reactor.callLater(0.1, check, 0)
         return d
 
     @defer.inlineCallbacks
@@ -194,8 +210,11 @@ class TestQueueManagerTransitions(QueueBase):
     def check(self, n_from, event, n_to, in_log=False):
         self.qm.state = getattr(QueueManager, n_from)
         self.qm.on_event(event)
-        self.assertEqual(self.qm.state, getattr(QueueManager, n_to),
-                         "%s != %s" % (self.qm.state.name, n_to))
+        self.assertEqual(
+            self.qm.state,
+            getattr(QueueManager, n_to),
+            "%s != %s" % (self.qm.state.name, n_to),
+        )
 
         m = "Bad Event received: Got %r while in %s" % (event, n_from)
         self.assertEqual(in_log, self.check_log('warning', m))
@@ -379,24 +398,30 @@ class TestConnectionManagerTimings(Base):
     def test_handshaketimeout_checkversion(self):
         """Handshake timing is controlled in CheckVersion."""
         self.sm.connection.state = ConnectionManager.WU_WN
-        return self.check('READY', 'SYS_CONNECTION_MADE',
-                          'SYS_HANDSHAKE_TIMEOUT')
+        return self.check(
+            'READY', 'SYS_CONNECTION_MADE', 'SYS_HANDSHAKE_TIMEOUT'
+        )
 
     def test_handshaketimeout_setcapabilities(self):
         """Handshake timing is controlled in SetCapabilities."""
-        return self.check('CHECK_VERSION', 'SYS_PROTOCOL_VERSION_OK',
-                          'SYS_HANDSHAKE_TIMEOUT')
+        return self.check(
+            'CHECK_VERSION', 'SYS_PROTOCOL_VERSION_OK', 'SYS_HANDSHAKE_TIMEOUT'
+        )
 
     def test_handshaketimeout_authenticate(self):
         """Handshake timing is controlled in Authenticate."""
-        return self.check('SET_CAPABILITIES', 'SYS_SET_CAPABILITIES_OK',
-                          'SYS_HANDSHAKE_TIMEOUT')
+        return self.check(
+            'SET_CAPABILITIES',
+            'SYS_SET_CAPABILITIES_OK',
+            'SYS_HANDSHAKE_TIMEOUT',
+        )
 
     def test_waiting_triggers(self):
         """Check WAITING triggers the event."""
         self.sm.connection.waiting_timeout = 0
-        return self.check('READY', 'SYS_CONNECTION_FAILED',
-                          'SYS_CONNECTION_RETRY')
+        return self.check(
+            'READY', 'SYS_CONNECTION_FAILED', 'SYS_CONNECTION_RETRY'
+        )
 
     def test_waiting_behaviour(self):
         """Check WAITING increases values ok."""
@@ -421,12 +446,19 @@ class StateManagerTransitions(Base):
             n_to = getattr(StateManager, n_to)
         self.sm.state = n_from
         self.sm.handle_default(event)
-        self.assertEqual(self.sm.state, n_to, "%s / %s should %s but got %s" %
-                         (n_from, event, n_to, self.sm.state))
+        self.assertEqual(
+            self.sm.state,
+            n_to,
+            "%s / %s should %s but got %s"
+            % (n_from, event, n_to, self.sm.state),
+        )
 
         m = "Bad Event received: Got %r while in %r" % (event, n_from.name)
-        self.assertEqual(in_log, self.check_log('warning', m),
-                         "Bad log for %s / %s" % (n_from, event))
+        self.assertEqual(
+            in_log,
+            self.check_log('warning', m),
+            "Bad log for %s / %s" % (n_from, event),
+        )
 
         # wait state changed only if the before and after nodes are different
         if n_from == n_to:
@@ -480,13 +512,15 @@ class TestStateManagerHighLevelTransitions(StateManagerTransitions):
 
     def test_checkversion_setcapabilities(self):
         """Transition CheckVersion -> SetCapabilities."""
-        return self.check('CHECK_VERSION', 'SYS_PROTOCOL_VERSION_OK',
-                          'SET_CAPABILITIES')
+        return self.check(
+            'CHECK_VERSION', 'SYS_PROTOCOL_VERSION_OK', 'SET_CAPABILITIES'
+        )
 
     def test_checkversion_error(self):
         """Transition CheckVersion -> Error."""
-        return self.check('CHECK_VERSION', 'SYS_PROTOCOL_VERSION_ERROR',
-                          'BAD_VERSION')
+        return self.check(
+            'CHECK_VERSION', 'SYS_PROTOCOL_VERSION_ERROR', 'BAD_VERSION'
+        )
 
     def test_checkversion_server_error(self):
         """Transition CheckVersion -> Standoff."""
@@ -494,13 +528,17 @@ class TestStateManagerHighLevelTransitions(StateManagerTransitions):
 
     def test_setcapabilities_authenticate(self):
         """Transition SetCapabilities -> Authenticate."""
-        return self.check('SET_CAPABILITIES', 'SYS_SET_CAPABILITIES_OK',
-                          'AUTHENTICATE')
+        return self.check(
+            'SET_CAPABILITIES', 'SYS_SET_CAPABILITIES_OK', 'AUTHENTICATE'
+        )
 
     def test_setcapabilities_error(self):
         """Transition SetCapabilities -> Error."""
-        return self.check('SET_CAPABILITIES', 'SYS_SET_CAPABILITIES_ERROR',
-                          'CAPABILITIES_MISMATCH')
+        return self.check(
+            'SET_CAPABILITIES',
+            'SYS_SET_CAPABILITIES_ERROR',
+            'CAPABILITIES_MISMATCH',
+        )
 
     def test_setcapabilities_server_error(self):
         """Transition SetCapabilities -> Standoff."""
@@ -520,8 +558,9 @@ class TestStateManagerHighLevelTransitions(StateManagerTransitions):
 
     def test_serverrescan_queuemanager(self):
         """Transition ServerRescan -> QueueManager."""
-        return self.check('SERVER_RESCAN', 'SYS_SERVER_RESCAN_DONE',
-                          'QUEUE_MANAGER')
+        return self.check(
+            'SERVER_RESCAN', 'SYS_SERVER_RESCAN_DONE', 'QUEUE_MANAGER'
+        )
 
     def test_serverrescan_standoff(self):
         """Transition ServerRescan -> Standoff."""
@@ -590,8 +629,11 @@ class TestStateManagerNetworkTransitions(StateManagerTransitions):
         """Test SYS_CONNECTION_LOST when disconnected."""
         d = []
         for node_name in self.sm_disconnected:
-            d.append(self.check(node_name, 'SYS_CONNECTION_LOST', node_name,
-                                in_log=True))
+            d.append(
+                self.check(
+                    node_name, 'SYS_CONNECTION_LOST', node_name, in_log=True
+                )
+            )
         return defer.DeferredList(d)
 
     def test_conn_connection_lost(self):
@@ -636,18 +678,21 @@ class TestStateManagerTimeoutTransitions(StateManagerTransitions):
 
     def test_serverrescan(self):
         """Test on ServerRescan."""
-        return self.check('SERVER_RESCAN', 'SYS_HANDSHAKE_TIMEOUT',
-                          'SERVER_RESCAN')
+        return self.check(
+            'SERVER_RESCAN', 'SYS_HANDSHAKE_TIMEOUT', 'SERVER_RESCAN'
+        )
 
     def test_queuemanager(self):
         """Test on QueueManager."""
-        return self.check('QUEUE_MANAGER', 'SYS_HANDSHAKE_TIMEOUT',
-                          'QUEUE_MANAGER', True)
+        return self.check(
+            'QUEUE_MANAGER', 'SYS_HANDSHAKE_TIMEOUT', 'QUEUE_MANAGER', True
+        )
 
     def test_standoff(self):
         """Test on StandOff."""
-        return self.check('STANDOFF', 'SYS_HANDSHAKE_TIMEOUT',
-                          'STANDOFF', True)
+        return self.check(
+            'STANDOFF', 'SYS_HANDSHAKE_TIMEOUT', 'STANDOFF', True
+        )
 
 
 class TestStateManagerShutdown(StateManagerTransitions):
@@ -713,8 +758,10 @@ class TestStateManagerEnterExit(Base):
     def test_localrescan_ready_netbad(self):
         """Transition LocalRescan -> Ready with network bad."""
         for net in (
-                ConnectionManager.WU_NN, ConnectionManager.NU_WN,
-                ConnectionManager.NU_NN):
+            ConnectionManager.WU_NN,
+            ConnectionManager.NU_WN,
+            ConnectionManager.NU_NN,
+        ):
             self.sm.connection.state = net
             self.sm.state = StateManager.LOCAL_RESCAN
             self.sm.handle_default('SYS_LOCAL_RESCAN_DONE')
@@ -730,8 +777,10 @@ class TestStateManagerEnterExit(Base):
     def test_waiting_ready_netbad(self):
         """Transition LocalRescan -> Ready with network bad."""
         for net in (
-                ConnectionManager.WU_NN, ConnectionManager.NU_WN,
-                ConnectionManager.NU_NN):
+            ConnectionManager.WU_NN,
+            ConnectionManager.NU_WN,
+            ConnectionManager.NU_NN,
+        ):
             self.sm.connection.state = net
             self.sm.state = StateManager.WAITING
             self.sm.handle_default('SYS_CONNECTION_RETRY')
@@ -739,9 +788,13 @@ class TestStateManagerEnterExit(Base):
 
     def test_ready_internal_nunn(self):
         """Internal READY transition from NU_NN."""
-        for evt in ('SYS_NET_CONNECTED', 'SYS_USER_CONNECT',
-                    'SYS_NET_DISCONNECTED', 'SYS_USER_DISCONNECT',
-                    'SYS_CONNECTION_LOST'):
+        for evt in (
+            'SYS_NET_CONNECTED',
+            'SYS_USER_CONNECT',
+            'SYS_NET_DISCONNECTED',
+            'SYS_USER_DISCONNECT',
+            'SYS_CONNECTION_LOST',
+        ):
             self.sm.state = StateManager.READY
             self.sm.connection.state = ConnectionManager.NU_NN
             self.sm.handle_default(evt)
@@ -749,8 +802,11 @@ class TestStateManagerEnterExit(Base):
 
     def test_ready_internal_nuwn(self):
         """Internal READY transition from NU_WN."""
-        for evt in ('SYS_NET_CONNECTED' 'SYS_NET_DISCONNECTED',
-                    'SYS_USER_DISCONNECT', 'SYS_CONNECTION_LOST'):
+        for evt in (
+            'SYS_NET_CONNECTED' 'SYS_NET_DISCONNECTED',
+            'SYS_USER_DISCONNECT',
+            'SYS_CONNECTION_LOST',
+        ):
             self.sm.state = StateManager.READY
             self.sm.connection.state = ConnectionManager.NU_WN
             self.sm.handle_default(evt)
@@ -763,8 +819,11 @@ class TestStateManagerEnterExit(Base):
 
     def test_ready_internal_wunn(self):
         """Internal READY transition from WU_NN."""
-        for evt in ('SYS_USER_CONNECT' 'SYS_NET_DISCONNECTED',
-                    'SYS_USER_DISCONNECT', 'SYS_CONNECTION_LOST'):
+        for evt in (
+            'SYS_USER_CONNECT' 'SYS_NET_DISCONNECTED',
+            'SYS_USER_DISCONNECT',
+            'SYS_CONNECTION_LOST',
+        ):
             self.sm.state = StateManager.READY
             self.sm.connection.state = ConnectionManager.WU_NN
             self.sm.handle_default(evt)
@@ -789,9 +848,13 @@ class TestStateManagerEnterExit(Base):
 
     def test_ready_internal_wuwn(self):
         """Internal READY transition from WU_WN."""
-        for evt in ('SYS_NET_CONNECTED', 'SYS_USER_CONNECT',
-                    'SYS_NET_DISCONNECTED', 'SYS_USER_DISCONNECT',
-                    'SYS_CONNECTION_LOST'):
+        for evt in (
+            'SYS_NET_CONNECTED',
+            'SYS_USER_CONNECT',
+            'SYS_NET_DISCONNECTED',
+            'SYS_USER_DISCONNECT',
+            'SYS_CONNECTION_LOST',
+        ):
             self.sm.state = StateManager.READY
             self.sm.connection.state = ConnectionManager.WU_WN
             self.sm.handle_default(evt)
@@ -824,10 +887,17 @@ class TestStateManagerEnterExit(Base):
 
     def test_alot_standoff(self):
         """Lots of transitions to Standoff."""
-        nodes = (StateManager.CHECK_VERSION, StateManager.SET_CAPABILITIES,
-                 StateManager.AUTHENTICATE)
-        events = ('SYS_NET_DISCONNECTED', 'SYS_USER_DISCONNECT',
-                  'SYS_HANDSHAKE_TIMEOUT', 'SYS_SERVER_ERROR')
+        nodes = (
+            StateManager.CHECK_VERSION,
+            StateManager.SET_CAPABILITIES,
+            StateManager.AUTHENTICATE,
+        )
+        events = (
+            'SYS_NET_DISCONNECTED',
+            'SYS_USER_DISCONNECT',
+            'SYS_HANDSHAKE_TIMEOUT',
+            'SYS_SERVER_ERROR',
+        )
         cnt = 0
         for node in nodes:
             for event in events:
@@ -857,8 +927,11 @@ class TestStateManagerEnterExit(Base):
 
     def test_exit_queuemanager(self):
         """Exit transitions from QueueManager."""
-        events = ('SYS_NET_DISCONNECTED', 'SYS_USER_DISCONNECT',
-                  'SYS_CONNECTION_LOST')
+        events = (
+            'SYS_NET_DISCONNECTED',
+            'SYS_USER_DISCONNECT',
+            'SYS_CONNECTION_LOST',
+        )
         for event in events:
             self.aq.queue.active = True
             self.sm.state = StateManager.QUEUE_MANAGER
@@ -955,14 +1028,16 @@ class TestStateManagerAPI(Base):
     def test_SET_CAPABILITIES(self):
         """SET_CAPABILITIES internals."""
         self.sm.state = StateManager.SET_CAPABILITIES
-        self.check_node("SET_CAPABILITIES",
-                        error=False, conn=True, online=False)
+        self.check_node(
+            "SET_CAPABILITIES", error=False, conn=True, online=False
+        )
 
     def test_CAPABILITIES_MISMATCH(self):
         """CAPABILITIES_MISMATCH internals."""
         self.sm.state = StateManager.CAPABILITIES_MISMATCH
-        self.check_node("CAPABILITIES_MISMATCH",
-                        error=True, conn=False, online=False)
+        self.check_node(
+            "CAPABILITIES_MISMATCH", error=True, conn=False, online=False
+        )
 
     def test_AUTHENTICATE(self):
         """AUTHENTICATE internals."""

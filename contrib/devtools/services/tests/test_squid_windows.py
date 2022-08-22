@@ -37,7 +37,7 @@ from devtools.services import squid
 
 
 class SquidWindowsTestCase(TestCase):
-    """"Test the different windows bits."""
+    """ "Test the different windows bits."""
 
     def test_get_auth_process(self):
         """Test getting the auth process for squid3."""
@@ -51,11 +51,13 @@ class SquidWindowsTestCase(TestCase):
             return path
 
         self.patch(squid, 'format_config_path', fake_format)
-        self.assertTrue(squid.get_auth_process_path(3).startswith(
-            squid.AUTH_PROCESS_PATH))
-        self.assertIn(('format',
-                       squid.AUTH_PROCESS_PATH + squid.AUTH_PROCESS_NAME),
-                      called)
+        self.assertTrue(
+            squid.get_auth_process_path(3).startswith(squid.AUTH_PROCESS_PATH)
+        )
+        self.assertIn(
+            ('format', squid.AUTH_PROCESS_PATH + squid.AUTH_PROCESS_NAME),
+            called,
+        )
 
     def test_get_auth_process_path(self):
         """Test getting the auth process."""
@@ -103,7 +105,8 @@ class SquidWindowsTestCase(TestCase):
         self.patch(win32api, 'CloseHandle', fake_close_handle)
         squid_pid = 4
         squid.kill_squid(squid_pid)
-        self.assertIn(('OpenProcess', win32con.PROCESS_TERMINATE, 0,
-                      squid_pid), called)
+        self.assertIn(
+            ('OpenProcess', win32con.PROCESS_TERMINATE, 0, squid_pid), called
+        )
         self.assertIn(('TerminateProcess', squid_pid, 0), called)
         self.assertIn(('CloseHandle', squid_pid), called)

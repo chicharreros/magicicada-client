@@ -40,12 +40,15 @@ INHIBIT_LOGOUT_SUSPEND = INHIBIT_LOGGING_OUT | INHIBIT_SUSPENDING_COMPUTER
 
 if sys.platform == "win32":
     from magicicadaclient.platform.session import windows
+
     source = windows
 elif sys.platform == "darwin":
     from magicicadaclient.platform.session import darwin
+
     source = darwin
 else:
     from magicicadaclient.platform.session import linux
+
     source = linux
     SESSION_MANAGER_BUSNAME = source.SESSION_MANAGER_BUSNAME
     SESSION_MANAGER_IFACE = source.SESSION_MANAGER_IFACE

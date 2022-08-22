@@ -44,10 +44,7 @@ from os.path import abspath, exists, join
 
 from distutils.spawn import find_executable
 
-from devtools.services import (
-    find_config_file,
-    get_arbitrary_port,
-)
+from devtools.services import find_config_file, get_arbitrary_port
 
 NCSA_BASIC_PREFIX = 'basic_'
 if sys.platform == 'win32':
@@ -83,7 +80,7 @@ def get_auth_process_path(squid_version):
         return format_config_path(path)
     else:
         squid = 'squid3' if squid_version == 3 else 'squid'
-        auth_path = (AUTH_PROCESS_PATH % squid)
+        auth_path = AUTH_PROCESS_PATH % squid
         path = auth_path + NCSA_BASIC_PREFIX + AUTH_PROCESS_NAME
         if not exists(path):
             path = auth_path + AUTH_PROCESS_NAME
@@ -125,8 +122,7 @@ def kill_squid(squid_pid):
 def _make_random_string(count):
     """Make a random string of the given length."""
     entropy = random.SystemRandom()
-    return ''.join([entropy.choice(string.letters) for _ in
-                   range(count)])
+    return ''.join([entropy.choice(string.letters) for _ in range(count)])
 
 
 def _get_basedir(tempdir):
@@ -202,8 +198,9 @@ class SquidRunner(object):
         if self.htpasswd is None:
             raise SquidLaunchError('Could not locate "htpasswd".')
 
-        self.settings = dict(noauth_port=None, auth_port=None,
-                             username=None, password=None)
+        self.settings = dict(
+            noauth_port=None, auth_port=None, username=None, password=None
+        )
         self.squid_pid = None
         self.running = False
         self.config_file = None
@@ -234,14 +231,18 @@ class SquidRunner(object):
                     noauth_port_number=self.settings['noauth_port'],
                     auth_port_number=self.settings['auth_port'],
                     spool_temp=spool_path,
-                    squid_temp=squid_path))
+                    squid_temp=squid_path,
+                )
+            )
 
     def _generate_swap(self, config_file):
         """Generate the squid swap files."""
         squid_args = ['-z', '-f', config_file]
-        sp = subprocess.Popen([self.squid] + squid_args,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
+        sp = subprocess.Popen(
+            [self.squid] + squid_args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         sp.wait()
 
     def _generate_auth_file(self, tempdir=''):
@@ -256,13 +257,17 @@ class SquidRunner(object):
         if exists(self.auth_file):
             unlink(self.auth_file)
         # create a new htpasswrd
-        htpasswd_args = ['-bc',
-                         self.auth_file,
-                         self.settings['username'],
-                         self.settings['password']]
-        sp = subprocess.Popen([self.htpasswd] + htpasswd_args,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
+        htpasswd_args = [
+            '-bc',
+            self.auth_file,
+            self.settings['username'],
+            self.settings['password'],
+        ]
+        sp = subprocess.Popen(
+            [self.htpasswd] + htpasswd_args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         sp.wait()
 
     def _is_squid_running(self):
@@ -273,9 +278,11 @@ class SquidRunner(object):
         for timeout in (0.4, 0.1, 0.1, 0.2, 0.5, 1, 3, 5):
             try:
                 #  Do not use stdout=PIPE or stderr=PIPE with this function.
-                subprocess.check_call([self.squid] + squid_args,
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE)
+                subprocess.check_call(
+                    [self.squid] + squid_args,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
                 return True
             except subprocess.CalledProcessError:
                 message += '.'
@@ -291,16 +298,20 @@ class SquidRunner(object):
         self._generate_swap(self.config_file)
         squid_args = SQUID_START_ARGS
         squid_args.append(self.config_file)
-        sp = subprocess.Popen([self.squid] + squid_args,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
+        sp = subprocess.Popen(
+            [self.squid] + squid_args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         store_proxy_settings(self.settings)
         if not self._is_squid_running():
             # grab the stdout and stderr to provide more information
             output = sp.stdout.read()
             err = sp.stderr.read()
             msg = 'Could not start squid:\nstdout:\n%s\nstderr\n%s' % (
-                output, err)
+                output,
+                err,
+            )
             raise SquidLaunchError(msg)
         self.squid_pid = sp.pid
         self.running = True

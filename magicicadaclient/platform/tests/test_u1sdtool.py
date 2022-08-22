@@ -67,7 +67,7 @@ class U1SDToolTests(TestToolsBase):
     """Tests for u1sdtool output"""
 
     def test_show_shares_empty(self):
-        """test the output of --list-shared """
+        """test the output of --list-shared"""
         out = StringIO()
         d = self.tool.get_shares()
         d.addCallback(lambda result: show_shares(result, out))
@@ -75,28 +75,36 @@ class U1SDToolTests(TestToolsBase):
         def check(result):
             """check the output"""
             self.assertEqual('No shares\n', out.getvalue())
+
         d.addCallback(check)
         return d
 
     @defer.inlineCallbacks
     def test_show_shares(self):
-        """test the output of --list-shared """
+        """test the output of --list-shared"""
         out = StringIO()
         share_path = os.path.join(self.shares_dir, "ñoño")
-        share = Share(path=share_path, name="ñoño", volume_id='share_id',
-                      access_level=ACCESS_LEVEL_RO, other_username='fake_user',
-                      other_visible_name="ñoño", accepted=False,
-                      subscribed=False)
+        share = Share(
+            path=share_path,
+            name="ñoño",
+            volume_id='share_id',
+            access_level=ACCESS_LEVEL_RO,
+            other_username='fake_user',
+            other_visible_name="ñoño",
+            accepted=False,
+            subscribed=False,
+        )
         yield self.main.vm.add_share(share)
         expected = (
             "Shares list:\n id=share_id name=\xf1o\xf1o accepted=False "
-            "subscribed=False access_level=View from=fake_user\n")
+            "subscribed=False access_level=View from=fake_user\n"
+        )
         result = yield self.tool.get_shares()
         show_shares(result, out)
         self.assertEqual(out.getvalue(), expected)
 
     def test_show_shared_empty(self):
-        """test the output of --list-shared """
+        """test the output of --list-shared"""
         out = StringIO()
         d = self.tool.list_shared()
         d.addCallback(lambda result: show_shared(result, out))
@@ -104,37 +112,42 @@ class U1SDToolTests(TestToolsBase):
         def check(result):
             """check the output"""
             self.assertEqual('No shared\n', out.getvalue())
+
         d.addCallback(check)
         return d
 
     def test_show_shared(self):
-        """test the output of --list-shared """
+        """test the output of --list-shared"""
         path = os.path.join(self.root_dir, "ñoño")
         self.fs.create(path, "")
         self.fs.set_node_id(path, "node_id")
 
         def fake_create_share(node_id, user, name, access_level, marker, path):
             self.main.vm.handle_AQ_CREATE_SHARE_OK(
-                share_id='share_id', marker=marker)
+                share_id='share_id', marker=marker
+            )
 
         self.main.action_q.create_share = fake_create_share
-        self.main.vm.create_share(path, 'fake_user', 'shared_name',
-                                  ACCESS_LEVEL_RO)
+        self.main.vm.create_share(
+            path, 'fake_user', 'shared_name', ACCESS_LEVEL_RO
+        )
         out = StringIO()
         expected = (
             "Shared list:\n  id=share_id name=shared_name accepted=False "
-            "access_level=View to=fake_user path=%s\n" % path)
+            "access_level=View to=fake_user path=%s\n" % path
+        )
         d = self.tool.list_shared()
         d.addCallback(lambda result: show_shared(result, out))
 
         def check(result):
             """check the output"""
             self.assertEqual(out.getvalue(), expected)
+
         d.addCallback(check)
         return d
 
     def test_show_path_info_non_ascii(self):
-        """Test the output of --info with non-ascii paths """
+        """Test the output of --info with non-ascii paths"""
         path = os.path.join(self.root_dir, 'ñoño')
         mdid = self.fs.create(path, "")
         self.fs.set_node_id(path, "uuid1")
@@ -178,12 +191,13 @@ class U1SDToolTests(TestToolsBase):
         def show(result):
             show_path_info(result, path, out)
             return result
+
         d.addCallback(show)
         d.addCallback(callback)
         return d
 
     def test_show_current_transfers_empty(self):
-        """test the output of --current_transfers option """
+        """test the output of --current_transfers option"""
         out = StringIO()
         d = self.tool.get_current_uploads()
         d.addCallback(lambda result: show_uploads(result, out))
@@ -194,6 +208,7 @@ class U1SDToolTests(TestToolsBase):
         def check(result):
             """check the output"""
             self.assertEqual(out.getvalue(), expected)
+
         d.addCallback(check)
         return d
 
@@ -218,7 +233,8 @@ class U1SDToolTests(TestToolsBase):
         expected = (
             "Current uploads:\n  path: up_path\n    deflated size: 100\n    "
             "bytes written: 10\nCurrent downloads:\n  path: down_path\n    "
-            "deflated size: 10\n    bytes read: 1\n")
+            "deflated size: 10\n    bytes read: 1\n"
+        )
         result = yield self.tool.get_current_uploads()
         show_uploads(result, out)
 
@@ -228,7 +244,7 @@ class U1SDToolTests(TestToolsBase):
         self.assertEqual(out.getvalue(), expected)
 
     def test_show_state(self):
-        """test the output of --status """
+        """test the output of --status"""
         out = StringIO()
         expected = [
             "State: QUEUE_MANAGER",
@@ -237,7 +253,7 @@ class U1SDToolTests(TestToolsBase):
             "is_connected: True",
             "is_error: False",
             "is_online: True",
-            "queues: IDLE"
+            "queues: IDLE",
         ]
         d = self.tool.get_status()
         d.addCallback(lambda result: show_state(result, out))
@@ -246,6 +262,7 @@ class U1SDToolTests(TestToolsBase):
             """check the output"""
             info = [x.strip() for x in out.getvalue().split("\n") if x.strip()]
             self.assertEqual(info, expected)
+
         d.addCallback(check)
         return d
 
@@ -310,19 +327,23 @@ class U1SDToolTests(TestToolsBase):
     @defer.inlineCallbacks
     def test_show_waiting_content(self):
         """Test the output of --waiting-content"""
+
         class FakeCommand2(FakeUpload):
             """Fake command that goes in content queue."""
+
             def __init__(self, *args):
                 FakeUpload.__init__(self, *args)
                 self.path = 'other_path'
 
         # inject the fake data
-        self.action_q.queue.waiting.extend([
+        self.action_q.queue.waiting.extend(
+            [
                 FakeUpload("", "node_id"),
                 FakeCommand2("", "node_id_2"),
                 FakeDownload("", "node_id_1"),
-
-                FakeCommand2("", "node_id_3")])
+                FakeCommand2("", "node_id_3"),
+            ]
+        )
         out = StringIO()
         expected = (
             "Warning: this option is deprecated! Use '--waiting' instead\n"
@@ -341,7 +362,7 @@ class U1SDToolTests(TestToolsBase):
         self.assertEqual(out.getvalue(), expected)
 
     def test_show_folders_empty(self):
-        """test the output of --list-folders """
+        """test the output of --list-folders"""
         out = StringIO()
         d = self.tool.get_folders()
         d.addCallback(lambda result: show_folders(result, out))
@@ -349,6 +370,7 @@ class U1SDToolTests(TestToolsBase):
         def check(result):
             """check the output"""
             self.assertEqual('No folders\n', out.getvalue())
+
         d.addCallback(check)
         return d
 
@@ -359,8 +381,9 @@ class U1SDToolTests(TestToolsBase):
         suggested_path = "~/ñoño"
         path = get_udf_path(suggested_path)
 
-        udf = UDF("folder_id", "node_id", suggested_path, path,
-                  subscribed=True)
+        udf = UDF(
+            "folder_id", "node_id", suggested_path, path, subscribed=True
+        )
         yield self.main.vm.add_udf(udf)
         expected = "Folder list:\n  id=folder_id subscribed=True path=%s\n"
         result = yield self.tool.get_folders()
@@ -374,12 +397,15 @@ class U1SDToolTests(TestToolsBase):
         path = 'ñoño'
         suggested_path = os.path.join("~", path)
 
-        udf = UDF("folder_id", "node_id", suggested_path, path,
-                  subscribed=True)
+        udf = UDF(
+            "folder_id", "node_id", suggested_path, path, subscribed=True
+        )
         yield self.main.vm.add_udf(udf)
         self.main.vm.unsubscribe_udf(udf.id)
-        expected = "Folder list:\n  id=folder_id subscribed=False " + \
-                   "path=\xf1o\xf1o\n"
+        expected = (
+            "Folder list:\n  id=folder_id subscribed=False "
+            + "path=\xf1o\xf1o\n"
+        )
         result = yield self.tool.get_folders()
         show_folders(result, out)
         self.assertEqual(out.getvalue(), expected)
@@ -410,7 +436,8 @@ class U1SDToolTests(TestToolsBase):
         show_dirty_nodes(dirty_nodes, out)
         node_line_tpl = (
             "mdid: %(mdid)s volume_id: %(share_id)s node_id: %(node_id)s "
-            "is_dir: %(is_dir)s path: %(path)s\n")
+            "is_dir: %(is_dir)s path: %(path)s\n"
+        )
         if not empty:
             expected = " Dirty nodes:\n%s"
             lines = []

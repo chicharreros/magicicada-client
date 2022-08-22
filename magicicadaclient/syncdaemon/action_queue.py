@@ -82,6 +82,7 @@ class InterruptibleDeferred(defer.Deferred):
     interrupted any more. If it's interrupted, then it silences the original
     deferred, no matter what.
     """
+
     def __init__(self, d):
         defer.Deferred.__init__(self)
         self.interrupted = False
@@ -106,7 +107,8 @@ class PathLockingTree:
 
     def __init__(self):
         self.logger = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.root = dict(children_nodes={})
         self.count = 0
         self.stored_by_id = {}
@@ -143,8 +145,11 @@ class PathLockingTree:
             if element in children_nodes:
                 node = children_nodes[element]
             else:
-                node = dict(node_deferreds=set(),
-                            children_nodes={}, children_deferreds=set())
+                node = dict(
+                    node_deferreds=set(),
+                    children_nodes={},
+                    children_deferreds=set(),
+                )
                 children_nodes[element] = node
 
             # add the deferreds of the parent if asked for it
@@ -164,9 +169,14 @@ class PathLockingTree:
 
             desc = node
 
-        logger.debug("pathlock acquiring on %s (on_parent=%s, on_children=%s);"
-                     " wait for: %d", elements, on_parent,
-                     on_children, len(wait_for))
+        logger.debug(
+            "pathlock acquiring on %s (on_parent=%s, on_children=%s);"
+            " wait for: %d",
+            elements,
+            on_parent,
+            on_children,
+            len(wait_for),
+        )
 
         # store info for later releasing
         self.id_stored += 1
@@ -224,22 +234,25 @@ class PathLockingTree:
             del node['children_nodes'][element]
 
         # finally, log and release the deferred
-        logger.debug("pathlock releasing %s; remaining: %d",
-                     elements, self.count)
+        logger.debug(
+            "pathlock releasing %s; remaining: %d", elements, self.count
+        )
         deferred.callback(True)
 
     def fix_path(self, from_elements, to_elements):
         """Fix the internal path."""
-        self.logger.debug("Fixing path from %r to %r",
-                          from_elements, to_elements)
+        self.logger.debug(
+            "Fixing path from %r to %r", from_elements, to_elements
+        )
 
         # fix the stored ids and elements, needs a copy
         something_found = False
         for key in list(self.stored_by_elements.keys()):
+            i = len(from_elements)
             if key == from_elements:
                 new_key = to_elements
-            elif key[:len(from_elements)] == from_elements:
-                new_key = to_elements + key[len(from_elements):]
+            elif key[:i] == from_elements:
+                new_key = to_elements + key[i:]
             else:
                 continue
 
@@ -288,17 +301,20 @@ class PathLockingTree:
             if element in children_nodes:
                 node = children_nodes[element]
             else:
-                node = dict(node_deferreds=set(),
-                            children_nodes={},
-                            children_deferreds={})
+                node = dict(
+                    node_deferreds=set(),
+                    children_nodes={},
+                    children_deferreds={},
+                )
                 children_nodes[element] = node
             branch.append(node)
 
         node['children_nodes'][to_elements[-1]] = node_to_move
 
         # fix the children deferreds after the movement
-        all_children_deferreds = (node_to_move['node_deferreds'] |
-                                  node_to_move['children_deferreds'])
+        all_children_deferreds = (
+            node_to_move['node_deferreds'] | node_to_move['children_deferreds']
+        )
         for node in branch[::-1]:
             node['children_deferreds'] = set(all_children_deferreds)
             all_children_deferreds.update(node['node_deferreds'])
@@ -309,8 +325,11 @@ def sanitize_message(action, message):
     if message.type == protocol_pb2.Message.BYTES:
         return ('start - %s: id: %s, type: BYTES', action, message.id)
     elif message.type == protocol_pb2.Message.PUT_CONTENT:
-        lines = [line for line in str(message).split("\n")
-                 if not line.strip().startswith("magic_hash:")]
+        lines = [
+            line
+            for line in str(message).split("\n")
+            if not line.strip().startswith("magic_hash:")
+        ]
         return ('start - %s: %s', action, " ".join(lines))
     else:
         return ('start - %s: %s', action, str(message).replace("\n", " "))
@@ -325,7 +344,8 @@ class LoggingStorageClient(ThrottlingStorageClient):
     def __init__(self):
         ThrottlingStorageClient.__init__(self)
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         # configure the handler level to be < than DEBUG
         self.log_trace = partial(self.log.log, TRACE)
 
@@ -341,8 +361,9 @@ class LoggingStorageClient(ThrottlingStorageClient):
             req = self.requests[message.id]
             req.deferred.addCallbacks(self.log_success, self.log_error)
         result = ThrottlingStorageClient.processMessage(self, message)
-        self.log_trace('end - processMessage: id: %s - result: %s',
-                       message.id, result)
+        self.log_trace(
+            'end - processMessage: id: %s - result: %s', message.id, result
+        )
         return result
 
     def log_error(self, failure):
@@ -383,8 +404,9 @@ class PingManager:
     def _do_ping(self):
         """Ping the server just to use the network."""
         self.client.log.trace("Sending ping")
-        self._timeout_call = reactor.callLater(self._timeout_delay,
-                                               self._disconnect)
+        self._timeout_call = reactor.callLater(
+            self._timeout_delay, self._disconnect
+        )
         req = yield self.client.ping()
         self.client.log.debug("Ping! rtt: %.3f segs", req.rtt)
         self._timeout_call.cancel()
@@ -534,8 +556,12 @@ class ZipQueue:
                 fileobj = fileobj_factory()
             except Exception as e:
                 # maybe the user deleted the file before we got to upload it
-                upload.log.warn("Unable to build fileobj (%s: '%s') so "
-                                "cancelling the upload.", type(e), e)
+                upload.log.warn(
+                    "Unable to build fileobj (%s: '%s') so "
+                    "cancelling the upload.",
+                    type(e),
+                    e,
+                )
                 upload.cancel()
                 return
 
@@ -576,8 +602,7 @@ class RequestQueue:
 
         # puts the command where it was asked for
         self.waiting.append(command)
-        self.action_queue.event_queue.push('SYS_QUEUE_ADDED',
-                                           command=command)
+        self.action_queue.event_queue.push('SYS_QUEUE_ADDED', command=command)
 
         # add to the hashed waiting if it needs to be unique
         if command.uniqueness is not None:
@@ -592,8 +617,9 @@ class RequestQueue:
         """Unqueue a command."""
         self.waiting.remove(command)
         self.hashed_waiting.pop(command.uniqueness, None)
-        self.action_queue.event_queue.push('SYS_QUEUE_REMOVED',
-                                           command=command)
+        self.action_queue.event_queue.push(
+            'SYS_QUEUE_REMOVED', command=command
+        )
         if len(self.waiting) == 0:
             self.action_queue.event_queue.push('SYS_QUEUE_DONE')
 
@@ -668,6 +694,7 @@ class ConditionsLocker:
     command. When check_conditions is called, it will trigger each
     command deferred if it's runnable.
     """
+
     def __init__(self):
         self.locked = {}
 
@@ -734,12 +761,22 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
 
     protocol = ActionQueueProtocol
 
-    def __init__(self, event_queue, main, connection_info,
-                 read_limit=None, write_limit=None, throttling_enabled=False,
-                 connection_timeout=30):
+    def __init__(
+        self,
+        event_queue,
+        main,
+        connection_info,
+        read_limit=None,
+        write_limit=None,
+        throttling_enabled=False,
+        connection_timeout=30,
+    ):
         ThrottlingStorageClientFactory.__init__(
-            self, read_limit=read_limit, write_limit=write_limit,
-            throttling_enabled=throttling_enabled)
+            self,
+            read_limit=read_limit,
+            write_limit=write_limit,
+            throttling_enabled=throttling_enabled,
+        )
         self.event_queue = event_queue
         self.main = main
         self.connection_info = itertools.cycle(connection_info)
@@ -769,8 +806,10 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         user_config = config.get_user_config()
         self.memory_pool_limit = user_config.get_memory_pool_limit()
         self.commands = dict(
-            (x, y) for x, y in globals().items()
-            if inspect.isclass(y) and issubclass(y, ActionQueueCommand))
+            (x, y)
+            for x, y in globals().items()
+            if inspect.isclass(y) and issubclass(y, ActionQueueCommand)
+        )
 
     def check_conditions(self):
         """Check conditions in the locker, to release all the waiting ops."""
@@ -781,17 +820,23 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         free = self.main.vm.get_free_space(share_id)
         enough = free is None or free >= upload_size
         if not enough:
-            logger.info("Not enough space for upload %s bytes (available: %s)",
-                        upload_size, free)
-            self.event_queue.push('SYS_QUOTA_EXCEEDED', volume_id=share_id,
-                                  free_bytes=free)
+            logger.info(
+                "Not enough space for upload %s bytes (available: %s)",
+                upload_size,
+                free,
+            )
+            self.event_queue.push(
+                'SYS_QUOTA_EXCEEDED', volume_id=share_id, free_bytes=free
+            )
 
         return enough
 
     def handle_SYS_USER_CONNECT(self, access_token):
         """Stow the credentials for later use."""
-        self.credentials = dict(username=access_token['username'],
-                                password=access_token['password'])
+        self.credentials = dict(
+            username=access_token['username'],
+            password=access_token['password'],
+        )
 
     def _cleanup_connection_state(self, *args):
         """Reset connection state."""
@@ -809,18 +854,19 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
 
     def _share_answer_callback(self, share_id, answer):
         """Called by the client when it gets a share answer notification."""
-        self.event_queue.push('SV_SHARE_ANSWERED',
-                              share_id=str(share_id), answer=answer)
+        self.event_queue.push(
+            'SV_SHARE_ANSWERED', share_id=str(share_id), answer=answer
+        )
 
     def _free_space_callback(self, share_id, free_bytes):
         """Called by the client when it gets a free space notification."""
-        self.event_queue.push('SV_FREE_SPACE',
-                              share_id=str(share_id), free_bytes=free_bytes)
+        self.event_queue.push(
+            'SV_FREE_SPACE', share_id=str(share_id), free_bytes=free_bytes
+        )
 
     def _account_info_callback(self, account_info):
         """Called by the client when it gets an account info notification."""
-        self.event_queue.push('SV_ACCOUNT_CHANGED',
-                              account_info=account_info)
+        self.event_queue.push('SV_ACCOUNT_CHANGED', account_info=account_info)
 
     def _volume_created_callback(self, volume):
         """Process new volumes."""
@@ -832,8 +878,11 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
 
     def _volume_new_generation_callback(self, volume_id, generation):
         """Process new volumes."""
-        self.event_queue.push('SV_VOLUME_NEW_GENERATION',
-                              volume_id=volume_id, generation=generation)
+        self.event_queue.push(
+            'SV_VOLUME_NEW_GENERATION',
+            volume_id=volume_id,
+            generation=generation,
+        )
 
     def _make_connection(self):
         """Do the real connect call."""
@@ -843,13 +892,19 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         port = connection_info['port']
         if connection_info['use_ssl']:
             ssl_context = get_ssl_context(
-                connection_info['disable_ssl_verify'], host)
+                connection_info['disable_ssl_verify'], host
+            )
             self.connector = reactor.connectSSL(
-                host, port, factory=self, contextFactory=ssl_context,
-                timeout=self.connection_timeout)
+                host,
+                port,
+                factory=self,
+                contextFactory=ssl_context,
+                timeout=self.connection_timeout,
+            )
         else:
             self.connector = reactor.connectTCP(
-                host, port, self, timeout=self.connection_timeout)
+                host, port, self, timeout=self.connection_timeout
+            )
 
     def connect(self):
         """Start the circus going."""
@@ -879,15 +934,19 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         self.client.set_volume_created_callback(self._volume_created_callback)
         self.client.set_volume_deleted_callback(self._volume_deleted_callback)
         self.client.set_volume_new_generation_callback(
-            self._volume_new_generation_callback)
+            self._volume_new_generation_callback
+        )
 
         logger.info('Connection made.')
         return self.client
 
     def startedConnecting(self, connector):
         """Called when a connection has been started."""
-        logger.info('Connection started to host %s, port %s.',
-                    connector.host, connector.port)
+        logger.info(
+            'Connection started to host %s, port %s.',
+            connector.host,
+            connector.port,
+        )
 
     def disconnect(self):
         """Disconnect the client.
@@ -917,10 +976,16 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         logger.warning('Connection lost: %s', reason.getErrorMessage())
 
     @defer.inlineCallbacks
-    def _send_request_and_handle_errors(self, request, request_error,
-                                        event_error, event_ok,
-                                        handle_exception=True,
-                                        args=(), kwargs={}):
+    def _send_request_and_handle_errors(
+        self,
+        request,
+        request_error,
+        event_error,
+        event_ok,
+        handle_exception=True,
+        args=(),
+        kwargs={},
+    ):
         """Send 'request' to the server, using params 'args' and 'kwargs'.
 
         Expect 'request_error' as valid error, and push 'event_error' in that
@@ -941,17 +1006,21 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
             finally:
                 # common handling for all cases
                 if client is not self.client:
-                    msg = "Client mismatch while processing the request '%s'" \
-                          ", client (%r) is not self.client (%r)."
+                    msg = (
+                        "Client mismatch while processing the request '%s'"
+                        ", client (%r) is not self.client (%r)."
+                    )
                     logger.warning(msg, req_name, client, self.client)
                     return
         except request_error as e:
             failure = e
             event = event_error
             self.event_queue.push(event_error, error=str(failure))
-        except (twisted_errors.ConnectionLost,
-                twisted_errors.ConnectionDone,
-                OpenSSL.SSL.Error) as e:
+        except (
+            twisted_errors.ConnectionLost,
+            twisted_errors.ConnectionDone,
+            OpenSSL.SSL.Error,
+        ) as e:
             # connection ended, just don't do anything: the SYS_CONNECTION_ETC
             # will be sent by normal client/protocol mechanisms, and logging
             # will be done later in this function.
@@ -982,12 +1051,19 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
 
         if failure is not None:
             if event is None:
-                logger.info("The request '%s' failed with the error: %s",
-                            req_name, failure)
+                logger.info(
+                    "The request '%s' failed with the error: %s",
+                    req_name,
+                    failure,
+                )
             else:
-                logger.info("The request '%s' failed with the error: %s "
-                            "and was handled with the event: %s",
-                            req_name, failure, event)
+                logger.info(
+                    "The request '%s' failed with the error: %s "
+                    "and was handled with the event: %s",
+                    req_name,
+                    failure,
+                    event,
+                )
         else:
             defer.returnValue(result)
 
@@ -997,7 +1073,8 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
             request=self.client.protocol_version,
             request_error=protocol_errors.UnsupportedVersionError,
             event_error='SYS_PROTOCOL_VERSION_ERROR',
-            event_ok='SYS_PROTOCOL_VERSION_OK')
+            event_ok='SYS_PROTOCOL_VERSION_OK',
+        )
         return check_version_d
 
     @defer.inlineCallbacks
@@ -1019,7 +1096,8 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
             request_error=Exception,
             event_error='SYS_SET_CAPABILITIES_ERROR',
             event_ok=None,
-            args=('query_caps', caps, error_msg))
+            args=('query_caps', caps, error_msg),
+        )
         req = yield query_caps_d
 
         # req can be None if set capabilities failed, error is handled by
@@ -1033,21 +1111,23 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
             request_error=Exception,
             event_error='SYS_SET_CAPABILITIES_ERROR',
             event_ok='SYS_SET_CAPABILITIES_OK',
-            args=('set_caps', caps, error_msg))
+            args=('set_caps', caps, error_msg),
+        )
         yield set_caps_d
 
     @defer.inlineCallbacks
     def authenticate(self):
         """Authenticate against the server using stored credentials."""
-        metadata = {'version': clientdefs.VERSION,
-                    'platform': platform}
+        metadata = {'version': clientdefs.VERSION, 'platform': platform}
         username = self.credentials.get('username')
         password = self.credentials.get('password')
         authenticate_d = self._send_request_and_handle_errors(
             request=self.client.simple_authenticate,
             request_error=protocol_errors.AuthenticationFailedError,
-            event_error='SYS_AUTH_ERROR', event_ok='SYS_AUTH_OK',
-            args=(username, password, metadata))
+            event_error='SYS_AUTH_ERROR',
+            event_ok='SYS_AUTH_OK',
+            args=(username, password, metadata),
+        )
         req = yield authenticate_d
 
         # req can be None if the auth failed, but it's handled by
@@ -1065,8 +1145,11 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         """
         result = yield self._send_request_and_handle_errors(
             request=self.client.list_volumes,
-            request_error=None, event_error=None,
-            event_ok=None, handle_exception=False)
+            request_error=None,
+            event_error=None,
+            event_ok=None,
+            handle_exception=False,
+        )
         defer.returnValue(result.volumes)
 
     @defer.inlineCallbacks
@@ -1087,8 +1170,9 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         if len(self.queue) >= self.memory_pool_limit:
             # already in the limit, can't go further as we don't have
             # more room in memory, store it in the offloaded queue
-            logger.debug('offload push: %s %s %s',
-                         command_class.__name__, args, kwargs)
+            logger.debug(
+                'offload push: %s %s %s', command_class.__name__, args, kwargs
+            )
             self.disk_queue.push((command_class.__name__, args, kwargs))
             return
 
@@ -1096,11 +1180,14 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         yield self._really_execute(command_class, *args, **kwargs)
 
         # command just finished... check to queue more offloaded ones
-        while (len(self.queue) < self.memory_pool_limit and
-               len(self.disk_queue) > 0):
+        while (
+            len(self.queue) < self.memory_pool_limit
+            and len(self.disk_queue) > 0
+        ):
             command_class_name, args, kwargs = self.disk_queue.pop()
-            logger.debug('offload pop: %s %s %s',
-                         command_class_name, args, kwargs)
+            logger.debug(
+                'offload pop: %s %s %s', command_class_name, args, kwargs
+            )
             command_class = self.commands[command_class_name]
             yield self._really_execute(command_class, *args, **kwargs)
 
@@ -1112,11 +1199,27 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         """See .interfaces.IMetaQueue."""
         self.execute(MakeDir, share_id, parent_id, name, marker, mdid)
 
-    def move(self, share_id, node_id, old_parent_id, new_parent_id,
-             new_name, path_from, path_to):
+    def move(
+        self,
+        share_id,
+        node_id,
+        old_parent_id,
+        new_parent_id,
+        new_name,
+        path_from,
+        path_to,
+    ):
         """See .interfaces.IMetaQueue."""
-        self.execute(Move, share_id, node_id, old_parent_id,
-                     new_parent_id, new_name, path_from, path_to)
+        self.execute(
+            Move,
+            share_id,
+            node_id,
+            old_parent_id,
+            new_parent_id,
+            new_name,
+            path_from,
+            path_to,
+        )
 
     def unlink(self, share_id, parent_id, node_id, path, is_dir):
         """See .interfaces.IMetaQueue."""
@@ -1138,11 +1241,13 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         """See .interfaces.IMetaQueue."""
         self.execute(AnswerShare, share_id, answer)
 
-    def create_share(self, node_id, share_to, name, access_level,
-                     marker, path):
+    def create_share(
+        self, node_id, share_to, name, access_level, marker, path
+    ):
         """See .interfaces.IMetaQueue."""
-        self.execute(CreateShare, node_id, share_to, name,
-                     access_level, marker, path)
+        self.execute(
+            CreateShare, node_id, share_to, name, access_level, marker, path
+        )
 
     def delete_share(self, share_id):
         """See .interfaces.IMetaQueue."""
@@ -1172,11 +1277,29 @@ class ActionQueue(ThrottlingStorageClientFactory, object):
         """See .interfaces.IContentQueue.download."""
         self.execute(Download, share_id, node_id, server_hash, mdid)
 
-    def upload(self, share_id, node_id, previous_hash, hash, crc32,
-               size, mdid, upload_id=None):
+    def upload(
+        self,
+        share_id,
+        node_id,
+        previous_hash,
+        hash,
+        crc32,
+        size,
+        mdid,
+        upload_id=None,
+    ):
         """See .interfaces.IContentQueue."""
-        self.execute(Upload, share_id, node_id, previous_hash, hash, crc32,
-                     size, mdid, upload_id=upload_id)
+        self.execute(
+            Upload,
+            share_id,
+            node_id,
+            previous_hash,
+            hash,
+            crc32,
+            size,
+            mdid,
+            upload_id=upload_id,
+        )
 
     def _cancel_op(self, share_id, node_id, cmdclass):
         """Generalized form of cancel_upload and cancel_download."""
@@ -1217,11 +1340,15 @@ class ActionQueueCommand:
     """Base of all the action queue commands."""
 
     # the info used in the protocol errors is hidden, but very useful!
-    suppressed_error_messages = (
-        [x for x in protocol_errors._error_mapping.values()
-         if x is not protocol_errors.InternalError] +
-        [protocol_errors.RequestCancelledError,
-         twisted_errors.ConnectionDone, twisted_errors.ConnectionLost])
+    suppressed_error_messages = [
+        x
+        for x in protocol_errors._error_mapping.values()
+        if x is not protocol_errors.InternalError
+    ] + [
+        protocol_errors.RequestCancelledError,
+        twisted_errors.ConnectionDone,
+        twisted_errors.ConnectionLost,
+    ]
 
     retryable_errors = (
         protocol_errors.TryAgainError,
@@ -1235,9 +1362,17 @@ class ActionQueueCommand:
     is_runnable = True
     uniqueness = None
 
-    __slots__ = ('_queue', 'running', 'pathlock_release', 'pathlock_deferred',
-                 'markers_resolved_deferred', 'action_queue', 'cancelled',
-                 'running_deferred', 'log')
+    __slots__ = (
+        '_queue',
+        'running',
+        'pathlock_release',
+        'pathlock_deferred',
+        'markers_resolved_deferred',
+        'action_queue',
+        'cancelled',
+        'running_deferred',
+        'log',
+    )
 
     def __init__(self, request_queue):
         """Initialize a command instance."""
@@ -1258,10 +1393,16 @@ class ActionQueueCommand:
     def make_logger(self):
         """Create a logger for this object."""
         share_id = getattr(self, "share_id", UNKNOWN)
-        node_id = getattr(self, "node_id", None) or \
-            getattr(self, "marker", UNKNOWN)
-        self.log = mklog(logger, self.__class__.__name__,
-                         share_id, node_id, **self.to_dict())
+        node_id = getattr(self, "node_id", None) or getattr(
+            self, "marker", UNKNOWN
+        )
+        self.log = mklog(
+            logger,
+            self.__class__.__name__,
+            share_id,
+            node_id,
+            **self.to_dict()
+        )
 
     @defer.inlineCallbacks
     def demark(self):
@@ -1361,6 +1502,7 @@ class ActionQueueCommand:
             self.cleanup()
             self.handle_failure(failure)
             self.finish()
+
         self.markers_resolved_deferred.addErrback(f)
         self.demark()
 
@@ -1378,8 +1520,9 @@ class ActionQueueCommand:
         try:
             yield self.run()
         except Exception as exc:
-            self.log.exception("Error running the command: %s "
-                               "(traceback follows)", exc)
+            self.log.exception(
+                "Error running the command: %s " "(traceback follows)", exc
+            )
         finally:
             if self.pathlock_release is not None:
                 self.pathlock_release = self.pathlock_release()
@@ -1499,8 +1642,10 @@ class ActionQueueCommand:
         name = self.__class__.__name__
         if len(str_attrs) == 0:
             return name
-        attrs = [str(attr) + '=' + str(getattr(self, attr, None) or 'None')
-                 for attr in str_attrs]
+        attrs = [
+            str(attr) + '=' + str(getattr(self, attr, None) or 'None')
+            for attr in str_attrs
+        ]
         return ''.join([name, '(', ', '.join([attr for attr in attrs]), ')'])
 
 
@@ -1509,7 +1654,7 @@ class MakeThing(ActionQueueCommand):
 
     __slots__ = ('share_id', 'parent_id', 'name', 'marker', 'mdid', 'path')
     logged_attrs = ActionQueueCommand.logged_attrs + __slots__
-    possible_markers = 'parent_id',
+    possible_markers = ('parent_id',)
 
     def __init__(self, request_queue, share_id, parent_id, name, marker, mdid):
         super(MakeThing, self).__init__(request_queue)
@@ -1527,27 +1672,32 @@ class MakeThing(ActionQueueCommand):
 
     def handle_success(self, request):
         """It worked! Push the event."""
-        d = dict(marker=self.marker, new_id=request.new_id,
-                 new_generation=request.new_generation,
-                 volume_id=self.share_id)
+        d = dict(
+            marker=self.marker,
+            new_id=request.new_id,
+            new_generation=request.new_generation,
+            volume_id=self.share_id,
+        )
         self.action_queue.event_queue.push(self.ok_event_name, **d)
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""
-        self.action_queue.event_queue.push(self.error_event_name,
-                                           marker=self.marker,
-                                           failure=failure)
+        self.action_queue.event_queue.push(
+            self.error_event_name, marker=self.marker, failure=failure
+        )
 
     def _acquire_pathlock(self):
         """Acquire pathlock."""
         self.path = self._get_current_path(self.mdid)
         pathlock = self.action_queue.pathlock
-        return pathlock.acquire(*self.path.split(os.path.sep),
-                                on_parent=True, logger=self.log)
+        return pathlock.acquire(
+            *self.path.split(os.path.sep), on_parent=True, logger=self.log
+        )
 
 
 class MakeFile(MakeThing):
     """Make a file."""
+
     __slots__ = ()
     ok_event_name = 'AQ_FILE_NEW_OK'
     error_event_name = 'AQ_FILE_NEW_ERROR'
@@ -1556,6 +1706,7 @@ class MakeFile(MakeThing):
 
 class MakeDir(MakeThing):
     """Make a directory."""
+
     __slots__ = ()
     ok_event_name = 'AQ_DIR_NEW_OK'
     error_event_name = 'AQ_DIR_NEW_ERROR'
@@ -1564,13 +1715,30 @@ class MakeDir(MakeThing):
 
 class Move(ActionQueueCommand):
     """Move a file or directory."""
-    __slots__ = ('share_id', 'node_id', 'old_parent_id',
-                 'new_parent_id', 'new_name', 'path_from', 'path_to')
+
+    __slots__ = (
+        'share_id',
+        'node_id',
+        'old_parent_id',
+        'new_parent_id',
+        'new_name',
+        'path_from',
+        'path_to',
+    )
     logged_attrs = ActionQueueCommand.logged_attrs + __slots__
     possible_markers = 'node_id', 'old_parent_id', 'new_parent_id'
 
-    def __init__(self, request_queue, share_id, node_id, old_parent_id,
-                 new_parent_id, new_name, path_from, path_to):
+    def __init__(
+        self,
+        request_queue,
+        share_id,
+        node_id,
+        old_parent_id,
+        new_parent_id,
+        new_name,
+        path_from,
+        path_to,
+    ):
         super(Move, self).__init__(request_queue)
         self.share_id = share_id
         self.node_id = node_id
@@ -1591,26 +1759,30 @@ class Move(ActionQueueCommand):
 
     def _run(self):
         """Do the actual running."""
-        return self.action_queue.client.move(self.share_id,
-                                             self.node_id,
-                                             self.new_parent_id,
-                                             self.new_name)
+        return self.action_queue.client.move(
+            self.share_id, self.node_id, self.new_parent_id, self.new_name
+        )
 
     def handle_success(self, request):
         """It worked! Push the event."""
-        d = dict(share_id=self.share_id, node_id=self.node_id,
-                 new_generation=request.new_generation)
+        d = dict(
+            share_id=self.share_id,
+            node_id=self.node_id,
+            new_generation=request.new_generation,
+        )
         self.action_queue.event_queue.push('AQ_MOVE_OK', **d)
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""
-        self.action_queue.event_queue.push('AQ_MOVE_ERROR',
-                                           error=failure.getErrorMessage(),
-                                           share_id=self.share_id,
-                                           node_id=self.node_id,
-                                           old_parent_id=self.old_parent_id,
-                                           new_parent_id=self.new_parent_id,
-                                           new_name=self.new_name)
+        self.action_queue.event_queue.push(
+            'AQ_MOVE_ERROR',
+            error=failure.getErrorMessage(),
+            share_id=self.share_id,
+            node_id=self.node_id,
+            old_parent_id=self.old_parent_id,
+            new_parent_id=self.new_parent_id,
+            new_name=self.new_name,
+        )
 
     def _acquire_pathlock(self):
         """Acquire pathlock."""
@@ -1631,11 +1803,13 @@ class Move(ActionQueueCommand):
                 """Efectively release them."""
                 release1()
                 release2()
+
             return release_them
 
         # get both locks and merge them
-        d1 = pathlock.acquire(*parts_from, on_parent=True,
-                              on_children=True, logger=self.log)
+        d1 = pathlock.acquire(
+            *parts_from, on_parent=True, on_children=True, logger=self.log
+        )
         d2 = pathlock.acquire(*parts_to, on_parent=True, logger=self.log)
         dl = defer.DeferredList([d1, d2])
         dl.addCallback(multiple_release)
@@ -1644,12 +1818,14 @@ class Move(ActionQueueCommand):
 
 class Unlink(ActionQueueCommand):
     """Unlink a file or dir."""
+
     __slots__ = ('share_id', 'node_id', 'parent_id', 'path', 'is_dir')
     logged_attrs = ActionQueueCommand.logged_attrs + __slots__
     possible_markers = 'node_id', 'parent_id'
 
-    def __init__(self, request_queue, share_id, parent_id, node_id, path,
-                 is_dir):
+    def __init__(
+        self, request_queue, share_id, parent_id, node_id, path, is_dir
+    ):
         super(Unlink, self).__init__(request_queue)
         self.share_id = share_id
         self.node_id = node_id
@@ -1665,28 +1841,40 @@ class Unlink(ActionQueueCommand):
 
     def handle_success(self, request):
         """It worked! Push the event."""
-        d = dict(share_id=self.share_id, parent_id=self.parent_id,
-                 node_id=self.node_id, new_generation=request.new_generation,
-                 was_dir=self.is_dir, old_path=self.path)
+        d = dict(
+            share_id=self.share_id,
+            parent_id=self.parent_id,
+            node_id=self.node_id,
+            new_generation=request.new_generation,
+            was_dir=self.is_dir,
+            old_path=self.path,
+        )
         self.action_queue.event_queue.push('AQ_UNLINK_OK', **d)
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""
-        self.action_queue.event_queue.push('AQ_UNLINK_ERROR',
-                                           error=failure.getErrorMessage(),
-                                           share_id=self.share_id,
-                                           parent_id=self.parent_id,
-                                           node_id=self.node_id)
+        self.action_queue.event_queue.push(
+            'AQ_UNLINK_ERROR',
+            error=failure.getErrorMessage(),
+            share_id=self.share_id,
+            parent_id=self.parent_id,
+            node_id=self.node_id,
+        )
 
     def _acquire_pathlock(self):
         """Acquire pathlock."""
         pathlock = self.action_queue.pathlock
-        return pathlock.acquire(*self.path.split(os.path.sep), on_parent=True,
-                                on_children=True, logger=self.log)
+        return pathlock.acquire(
+            *self.path.split(os.path.sep),
+            on_parent=True,
+            on_children=True,
+            logger=self.log
+        )
 
 
 class ListShares(ActionQueueCommand):
     """List shares shared to me."""
+
     __slots__ = ()
 
     @property
@@ -1704,13 +1892,15 @@ class ListShares(ActionQueueCommand):
 
     def handle_success(self, success):
         """It worked! Push the event."""
-        self.action_queue.event_queue.push('AQ_SHARES_LIST',
-                                           shares_list=success)
+        self.action_queue.event_queue.push(
+            'AQ_SHARES_LIST', shares_list=success
+        )
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""
-        self.action_queue.event_queue.push('AQ_LIST_SHARES_ERROR',
-                                           error=failure.getErrorMessage())
+        self.action_queue.event_queue.push(
+            'AQ_LIST_SHARES_ERROR', error=failure.getErrorMessage()
+        )
 
 
 class FreeSpaceInquiry(ActionQueueCommand):
@@ -1729,14 +1919,17 @@ class FreeSpaceInquiry(ActionQueueCommand):
 
     def handle_success(self, success):
         """Publish the free space information."""
-        self.action_queue.event_queue.push('SV_FREE_SPACE',
-                                           share_id=success.share_id,
-                                           free_bytes=success.free_bytes)
+        self.action_queue.event_queue.push(
+            'SV_FREE_SPACE',
+            share_id=success.share_id,
+            free_bytes=success.free_bytes,
+        )
 
     def handle_failure(self, failure):
         """Publish the error."""
-        self.action_queue.event_queue.push('AQ_FREE_SPACE_ERROR',
-                                           error=failure.getErrorMessage())
+        self.action_queue.event_queue.push(
+            'AQ_FREE_SPACE_ERROR', error=failure.getErrorMessage()
+        )
 
 
 class AccountInquiry(ActionQueueCommand):
@@ -1750,13 +1943,15 @@ class AccountInquiry(ActionQueueCommand):
 
     def handle_success(self, success):
         """Publish the account information to the event queue."""
-        self.action_queue.event_queue.push('SV_ACCOUNT_CHANGED',
-                                           account_info=success)
+        self.action_queue.event_queue.push(
+            'SV_ACCOUNT_CHANGED', account_info=success
+        )
 
     def handle_failure(self, failure):
         """Publish the error."""
-        self.action_queue.event_queue.push('AQ_ACCOUNT_ERROR',
-                                           error=failure.getErrorMessage())
+        self.action_queue.event_queue.push(
+            'AQ_ACCOUNT_ERROR', error=failure.getErrorMessage()
+        )
 
 
 class AnswerShare(ActionQueueCommand):
@@ -1772,33 +1967,50 @@ class AnswerShare(ActionQueueCommand):
 
     def _run(self):
         """Do the actual running."""
-        return self.action_queue.client.accept_share(self.share_id,
-                                                     self.answer)
+        return self.action_queue.client.accept_share(
+            self.share_id, self.answer
+        )
 
     def handle_success(self, success):
         """It worked! Push the event."""
-        self.action_queue.event_queue.push('AQ_ANSWER_SHARE_OK',
-                                           share_id=self.share_id,
-                                           answer=self.answer)
+        self.action_queue.event_queue.push(
+            'AQ_ANSWER_SHARE_OK', share_id=self.share_id, answer=self.answer
+        )
 
     def handle_failure(self, failure):
         """It didn't work. Push the event."""
-        self.action_queue.event_queue.push('AQ_ANSWER_SHARE_ERROR',
-                                           share_id=self.share_id,
-                                           answer=self.answer,
-                                           error=failure.getErrorMessage())
+        self.action_queue.event_queue.push(
+            'AQ_ANSWER_SHARE_ERROR',
+            share_id=self.share_id,
+            answer=self.answer,
+            error=failure.getErrorMessage(),
+        )
 
 
 class CreateShare(ActionQueueCommand):
     """Offer a share to somebody."""
 
-    __slots__ = ('node_id', 'share_to', 'name', 'access_level',
-                 'marker', 'path')
-    possible_markers = 'node_id',
+    __slots__ = (
+        'node_id',
+        'share_to',
+        'name',
+        'access_level',
+        'marker',
+        'path',
+    )
+    possible_markers = ('node_id',)
     logged_attrs = ActionQueueCommand.logged_attrs + __slots__
 
-    def __init__(self, request_queue, node_id, share_to, name, access_level,
-                 marker, path):
+    def __init__(
+        self,
+        request_queue,
+        node_id,
+        share_to,
+        name,
+        access_level,
+        marker,
+        path,
+    ):
         super(CreateShare, self).__init__(request_queue)
         self.node_id = node_id
         self.share_to = share_to
@@ -1810,19 +2022,22 @@ class CreateShare(ActionQueueCommand):
     def _run(self):
         """Do the actual running."""
         return self.action_queue.client.create_share(
-            self.node_id, self.share_to, self.name, self.access_level)
+            self.node_id, self.share_to, self.name, self.access_level
+        )
 
     def handle_success(self, success):
         """It worked! Push the event."""
         self.action_queue.event_queue.push(
-            'AQ_CREATE_SHARE_OK', share_id=success.share_id,
-            marker=self.marker)
+            'AQ_CREATE_SHARE_OK', share_id=success.share_id, marker=self.marker
+        )
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""
-        self.action_queue.event_queue.push('AQ_CREATE_SHARE_ERROR',
-                                           marker=self.marker,
-                                           error=failure.getErrorMessage())
+        self.action_queue.event_queue.push(
+            'AQ_CREATE_SHARE_ERROR',
+            marker=self.marker,
+            error=failure.getErrorMessage(),
+        )
 
     def _acquire_pathlock(self):
         """Acquire pathlock."""
@@ -1846,14 +2061,17 @@ class DeleteShare(ActionQueueCommand):
 
     def handle_success(self, success):
         """It worked! Push the event."""
-        self.action_queue.event_queue.push('AQ_DELETE_SHARE_OK',
-                                           share_id=self.share_id)
+        self.action_queue.event_queue.push(
+            'AQ_DELETE_SHARE_OK', share_id=self.share_id
+        )
 
     def handle_failure(self, failure):
         """It didn't work. Push the event."""
-        self.action_queue.event_queue.push('AQ_DELETE_SHARE_ERROR',
-                                           share_id=self.share_id,
-                                           error=failure.getErrorMessage())
+        self.action_queue.event_queue.push(
+            'AQ_DELETE_SHARE_ERROR',
+            share_id=self.share_id,
+            error=failure.getErrorMessage(),
+        )
 
 
 class CreateUDF(ActionQueueCommand):
@@ -1874,16 +2092,20 @@ class CreateUDF(ActionQueueCommand):
 
     def handle_success(self, success):
         """It worked! Push the success event."""
-        kwargs = dict(marker=self.marker,
-                      volume_id=success.volume_id,
-                      node_id=success.node_id)
+        kwargs = dict(
+            marker=self.marker,
+            volume_id=success.volume_id,
+            node_id=success.node_id,
+        )
         self.action_queue.event_queue.push('AQ_CREATE_UDF_OK', **kwargs)
 
     def handle_failure(self, failure):
         """It didn't work! Push the failure event."""
-        self.action_queue.event_queue.push('AQ_CREATE_UDF_ERROR',
-                                           marker=self.marker,
-                                           error=failure.getErrorMessage())
+        self.action_queue.event_queue.push(
+            'AQ_CREATE_UDF_ERROR',
+            marker=self.marker,
+            error=failure.getErrorMessage(),
+        )
 
     def _acquire_pathlock(self):
         """Acquire pathlock."""
@@ -1911,13 +2133,15 @@ class ListVolumes(ActionQueueCommand):
 
     def handle_success(self, success):
         """It worked! Push the success event."""
-        self.action_queue.event_queue.push('AQ_LIST_VOLUMES',
-                                           volumes=success.volumes)
+        self.action_queue.event_queue.push(
+            'AQ_LIST_VOLUMES', volumes=success.volumes
+        )
 
     def handle_failure(self, failure):
         """It didn't work! Push the failure event."""
-        self.action_queue.event_queue.push('AQ_LIST_VOLUMES_ERROR',
-                                           error=failure.getErrorMessage())
+        self.action_queue.event_queue.push(
+            'AQ_LIST_VOLUMES_ERROR', error=failure.getErrorMessage()
+        )
 
 
 class DeleteVolume(ActionQueueCommand):
@@ -1937,14 +2161,17 @@ class DeleteVolume(ActionQueueCommand):
 
     def handle_success(self, success):
         """It worked! Push the success event."""
-        self.action_queue.event_queue.push('AQ_DELETE_VOLUME_OK',
-                                           volume_id=self.volume_id)
+        self.action_queue.event_queue.push(
+            'AQ_DELETE_VOLUME_OK', volume_id=self.volume_id
+        )
 
     def handle_failure(self, failure):
         """It didn't work! Push the failure event."""
-        self.action_queue.event_queue.push('AQ_DELETE_VOLUME_ERROR',
-                                           volume_id=self.volume_id,
-                                           error=failure.getErrorMessage())
+        self.action_queue.event_queue.push(
+            'AQ_DELETE_VOLUME_ERROR',
+            volume_id=self.volume_id,
+            error=failure.getErrorMessage(),
+        )
 
     def _acquire_pathlock(self):
         """Acquire pathlock."""
@@ -1984,8 +2211,9 @@ class GetDelta(ActionQueueCommand):
 
     def _run(self):
         """Do the actual running."""
-        return self.action_queue.client.get_delta(self.volume_id,
-                                                  self.generation)
+        return self.action_queue.client.get_delta(
+            self.volume_id, self.generation
+        )
 
     @property
     def uniqueness(self):
@@ -2005,9 +2233,11 @@ class GetDelta(ActionQueueCommand):
                     self._queue.remove(queued_command)
             else:
                 if not queued_command.running:
-                    self.log.debug("not queueing self because there's other "
-                                   "(not running) command with less or "
-                                   "same gen num")
+                    self.log.debug(
+                        "not queueing self because there's other "
+                        "(not running) command with less or "
+                        "same gen num"
+                    )
                     return False
 
         # no similar command, or removed the previous command (if not running)
@@ -2027,23 +2257,32 @@ class GetDelta(ActionQueueCommand):
     def handle_failure(self, failure):
         """It didn't work! Push the failure event."""
         if failure.check(protocol_errors.CannotProduceDelta):
-            self.action_queue.event_queue.push('AQ_DELTA_NOT_POSSIBLE',
-                                               volume_id=self.volume_id)
+            self.action_queue.event_queue.push(
+                'AQ_DELTA_NOT_POSSIBLE', volume_id=self.volume_id
+            )
         else:
-            self.action_queue.event_queue.push('AQ_DELTA_ERROR',
-                                               volume_id=self.volume_id,
-                                               error=failure.getErrorMessage())
+            self.action_queue.event_queue.push(
+                'AQ_DELTA_ERROR',
+                volume_id=self.volume_id,
+                error=failure.getErrorMessage(),
+            )
 
     def make_logger(self):
         """Create a logger for this object."""
-        self.log = mklog(logger, 'GetDelta', self.volume_id,
-                         None, generation=self.generation)
+        self.log = mklog(
+            logger,
+            'GetDelta',
+            self.volume_id,
+            None,
+            generation=self.generation,
+        )
 
     def _acquire_pathlock(self):
         """Acquire pathlock."""
         pathlock = self.action_queue.pathlock
-        return pathlock.acquire('GetDelta', str(self.volume_id),
-                                logger=self.log)
+        return pathlock.acquire(
+            'GetDelta', str(self.volume_id), logger=self.log
+        )
 
 
 class GetDeltaFromScratch(ActionQueueCommand):
@@ -2058,8 +2297,9 @@ class GetDeltaFromScratch(ActionQueueCommand):
 
     def _run(self):
         """Do the actual running."""
-        return self.action_queue.client.get_delta(self.volume_id,
-                                                  from_scratch=True)
+        return self.action_queue.client.get_delta(
+            self.volume_id, from_scratch=True
+        )
 
     @property
     def uniqueness(self):
@@ -2088,9 +2328,11 @@ class GetDeltaFromScratch(ActionQueueCommand):
 
     def handle_failure(self, failure):
         """It didn't work! Push the failure event."""
-        self.action_queue.event_queue.push('AQ_RESCAN_FROM_SCRATCH_ERROR',
-                                           volume_id=self.volume_id,
-                                           error=failure.getErrorMessage())
+        self.action_queue.event_queue.push(
+            'AQ_RESCAN_FROM_SCRATCH_ERROR',
+            volume_id=self.volume_id,
+            error=failure.getErrorMessage(),
+        )
 
     def make_logger(self):
         """Create a logger for this object."""
@@ -2101,7 +2343,7 @@ class ChangePublicAccess(ActionQueueCommand):
     """Change the public access of a file."""
 
     __slots__ = ('share_id', 'node_id', 'is_public')
-    possible_markers = 'node_id',
+    possible_markers = ('node_id',)
 
     def __init__(self, request_queue, share_id, node_id, is_public):
         super(ChangePublicAccess, self).__init__(request_queue)
@@ -2112,19 +2354,27 @@ class ChangePublicAccess(ActionQueueCommand):
     def _run(self):
         """Do the actual running."""
         return self.action_queue.client.change_public_access(
-            self.share_id, self.node_id, self.is_public)
+            self.share_id, self.node_id, self.is_public
+        )
 
     def handle_success(self, request):
         """It worked! Push the event."""
-        d = dict(share_id=self.share_id, node_id=self.node_id,
-                 is_public=request.is_public, public_url=request.public_url)
+        d = dict(
+            share_id=self.share_id,
+            node_id=self.node_id,
+            is_public=request.is_public,
+            public_url=request.public_url,
+        )
         self.action_queue.event_queue.push('AQ_CHANGE_PUBLIC_ACCESS_OK', **d)
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""
         self.action_queue.event_queue.push(
-            'AQ_CHANGE_PUBLIC_ACCESS_ERROR', share_id=self.share_id,
-            node_id=self.node_id, error=failure.getErrorMessage())
+            'AQ_CHANGE_PUBLIC_ACCESS_ERROR',
+            share_id=self.share_id,
+            node_id=self.node_id,
+            error=failure.getErrorMessage(),
+        )
 
 
 class GetPublicFiles(ActionQueueCommand):
@@ -2147,24 +2397,42 @@ class GetPublicFiles(ActionQueueCommand):
 
     def handle_success(self, request):
         """See ActionQueueCommand."""
-        self.action_queue.event_queue.push('AQ_PUBLIC_FILES_LIST_OK',
-                                           public_files=request.public_files)
+        self.action_queue.event_queue.push(
+            'AQ_PUBLIC_FILES_LIST_OK', public_files=request.public_files
+        )
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""
-        self.action_queue.event_queue.push('AQ_PUBLIC_FILES_LIST_ERROR',
-                                           error=failure.getErrorMessage())
+        self.action_queue.event_queue.push(
+            'AQ_PUBLIC_FILES_LIST_ERROR', error=failure.getErrorMessage()
+        )
 
 
 class Download(ActionQueueCommand):
     """Get the contents of a file."""
 
-    __slots__ = ('share_id', 'node_id', 'server_hash',
-                 'fileobj', 'gunzip', 'mdid', 'download_req', 'tx_semaphore',
-                 'deflated_size', 'n_bytes_read_last', 'n_bytes_read', 'path')
+    __slots__ = (
+        'share_id',
+        'node_id',
+        'server_hash',
+        'fileobj',
+        'gunzip',
+        'mdid',
+        'download_req',
+        'tx_semaphore',
+        'deflated_size',
+        'n_bytes_read_last',
+        'n_bytes_read',
+        'path',
+    )
     logged_attrs = ActionQueueCommand.logged_attrs + (
-        'share_id', 'node_id', 'server_hash', 'mdid', 'path')
-    possible_markers = 'node_id',
+        'share_id',
+        'node_id',
+        'server_hash',
+        'mdid',
+        'path',
+    )
+    possible_markers = ('node_id',)
 
     def __init__(self, request_queue, share_id, node_id, server_hash, mdid):
         super(Download, self).__init__(request_queue)
@@ -2188,16 +2456,20 @@ class Download(ActionQueueCommand):
 
     def _should_be_queued(self):
         """Queue but keeping uniqueness."""
-        for uniq in [(Upload.__name__, self.share_id, self.node_id),
-                     (Download.__name__, self.share_id, self.node_id)]:
+        for uniq in [
+            (Upload.__name__, self.share_id, self.node_id),
+            (Download.__name__, self.share_id, self.node_id),
+        ]:
             if uniq in self._queue.hashed_waiting:
                 previous_command = self._queue.hashed_waiting[uniq]
                 did_cancel = previous_command.cancel()
                 if did_cancel:
                     m = "Previous command cancelled because uniqueness: %s"
                 else:
-                    m = ("Tried to cancel other command because uniqueness, "
-                         "but couldn't: %s")
+                    m = (
+                        "Tried to cancel other command because uniqueness, "
+                        "but couldn't: %s"
+                    )
                 self.log.debug(m, previous_command)
         return True
 
@@ -2219,8 +2491,9 @@ class Download(ActionQueueCommand):
         self.tx_semaphore = yield self._queue.transfers_semaphore.acquire()
         if self.cancelled:
             # release the semaphore and stop working!
-            self.log.debug("semaphore released after acquiring, "
-                           "command cancelled")
+            self.log.debug(
+                "semaphore released after acquiring, " "command cancelled"
+            )
             self.tx_semaphore = self.tx_semaphore.release()
             return
         self.log.debug('semaphore acquired')
@@ -2238,13 +2511,16 @@ class Download(ActionQueueCommand):
         if self.fileobj is None:
             fsm = self.action_queue.main.fs
             try:
-                self.fileobj = fsm.get_partial_for_writing(self.node_id,
-                                                           self.share_id)
+                self.fileobj = fsm.get_partial_for_writing(
+                    self.node_id, self.share_id
+                )
             except Exception:
                 self.log.debug(traceback.format_exc())
-                msg = DefaultException('unable to build fileobj'
-                                       ' (file went away?)'
-                                       ' so aborting the download.')
+                msg = DefaultException(
+                    'unable to build fileobj'
+                    ' (file went away?)'
+                    ' so aborting the download.'
+                )
                 return defer.fail(Failure(msg))
         else:
             self.fileobj.seek(0, 0)
@@ -2253,15 +2529,21 @@ class Download(ActionQueueCommand):
             self.n_bytes_read_last = 0
         self.gunzip = zlib.decompressobj()
 
-        self.action_queue.event_queue.push('AQ_DOWNLOAD_STARTED',
-                                           share_id=self.share_id,
-                                           node_id=self.node_id,
-                                           server_hash=self.server_hash)
+        self.action_queue.event_queue.push(
+            'AQ_DOWNLOAD_STARTED',
+            share_id=self.share_id,
+            node_id=self.node_id,
+            server_hash=self.server_hash,
+        )
 
         req = self.action_queue.client.get_content_request(
-            self.share_id, self.node_id, self.server_hash,
+            self.share_id,
+            self.node_id,
+            self.server_hash,
             offset=self.n_bytes_read,
-            callback=self.downloaded_cb, node_attr_callback=self.node_attr_cb)
+            callback=self.downloaded_cb,
+            node_attr_callback=self.node_attr_cb,
+        )
         self.download_req = req
         return req.deferred
 
@@ -2269,23 +2551,29 @@ class Download(ActionQueueCommand):
         """It worked! Push the event."""
         self.sync()
         # send a COMMIT, the Nanny will issue the FINISHED if it's ok
-        self.action_queue.event_queue.push('AQ_DOWNLOAD_COMMIT',
-                                           share_id=self.share_id,
-                                           node_id=self.node_id,
-                                           server_hash=self.server_hash)
+        self.action_queue.event_queue.push(
+            'AQ_DOWNLOAD_COMMIT',
+            share_id=self.share_id,
+            node_id=self.node_id,
+            server_hash=self.server_hash,
+        )
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""
         if failure.check(protocol_errors.DoesNotExistError):
-            self.action_queue.event_queue.push('AQ_DOWNLOAD_DOES_NOT_EXIST',
-                                               share_id=self.share_id,
-                                               node_id=self.node_id)
+            self.action_queue.event_queue.push(
+                'AQ_DOWNLOAD_DOES_NOT_EXIST',
+                share_id=self.share_id,
+                node_id=self.node_id,
+            )
         else:
-            self.action_queue.event_queue.push('AQ_DOWNLOAD_ERROR',
-                                               error=failure.getErrorMessage(),
-                                               share_id=self.share_id,
-                                               node_id=self.node_id,
-                                               server_hash=self.server_hash)
+            self.action_queue.event_queue.push(
+                'AQ_DOWNLOAD_ERROR',
+                error=failure.getErrorMessage(),
+                share_id=self.share_id,
+                node_id=self.node_id,
+                server_hash=self.server_hash,
+            )
 
     def downloaded_cb(self, bytes):
         """A streaming decompressor."""
@@ -2299,11 +2587,15 @@ class Download(ActionQueueCommand):
         """Send event if accumulated enough progress."""
         read_since_last = self.n_bytes_read - self.n_bytes_read_last
         if read_since_last >= TRANSFER_PROGRESS_THRESHOLD:
-            event_data = dict(share_id=self.share_id, node_id=self.node_id,
-                              n_bytes_read=self.n_bytes_read,
-                              deflated_size=self.deflated_size)
-            self.action_queue.event_queue.push('AQ_DOWNLOAD_FILE_PROGRESS',
-                                               **event_data)
+            event_data = dict(
+                share_id=self.share_id,
+                node_id=self.node_id,
+                n_bytes_read=self.n_bytes_read,
+                deflated_size=self.deflated_size,
+            )
+            self.action_queue.event_queue.push(
+                'AQ_DOWNLOAD_FILE_PROGRESS', **event_data
+            )
             self.n_bytes_read_last = self.n_bytes_read
 
     def node_attr_cb(self, **kwargs):
@@ -2326,20 +2618,53 @@ class Download(ActionQueueCommand):
 class Upload(ActionQueueCommand):
     """Upload stuff to a file."""
 
-    __slots__ = ('share_id', 'node_id', 'previous_hash', 'hash', 'crc32',
-                 'size', 'magic_hash', 'deflated_size', 'tempfile',
-                 'tx_semaphore', 'n_bytes_written_last', 'upload_req',
-                 'n_bytes_written', 'upload_id', 'mdid', 'path')
+    __slots__ = (
+        'share_id',
+        'node_id',
+        'previous_hash',
+        'hash',
+        'crc32',
+        'size',
+        'magic_hash',
+        'deflated_size',
+        'tempfile',
+        'tx_semaphore',
+        'n_bytes_written_last',
+        'upload_req',
+        'n_bytes_written',
+        'upload_id',
+        'mdid',
+        'path',
+    )
 
     logged_attrs = ActionQueueCommand.logged_attrs + (
-        'share_id', 'node_id', 'previous_hash', 'hash', 'crc32',
-        'size', 'upload_id', 'mdid', 'path')
+        'share_id',
+        'node_id',
+        'previous_hash',
+        'hash',
+        'crc32',
+        'size',
+        'upload_id',
+        'mdid',
+        'path',
+    )
     retryable_errors = ActionQueueCommand.retryable_errors + (
-        protocol_errors.UploadInProgressError,)
-    possible_markers = 'node_id',
+        protocol_errors.UploadInProgressError,
+    )
+    possible_markers = ('node_id',)
 
-    def __init__(self, request_queue, share_id, node_id, previous_hash, hash,
-                 crc32, size, mdid, upload_id=None):
+    def __init__(
+        self,
+        request_queue,
+        share_id,
+        node_id,
+        previous_hash,
+        hash,
+        crc32,
+        size,
+        mdid,
+        upload_id=None,
+    ):
         super(Upload, self).__init__(request_queue)
         self.share_id = share_id
         self.node_id = node_id
@@ -2370,20 +2695,25 @@ class Upload(ActionQueueCommand):
             return True
         else:
             return self.action_queue.have_sufficient_space_for_upload(
-                self.share_id, self.size)
+                self.share_id, self.size
+            )
 
     def _should_be_queued(self):
         """Queue but keeping uniqueness."""
-        for uniq in [(Upload.__name__, self.share_id, self.node_id),
-                     (Download.__name__, self.share_id, self.node_id)]:
+        for uniq in [
+            (Upload.__name__, self.share_id, self.node_id),
+            (Download.__name__, self.share_id, self.node_id),
+        ]:
             if uniq in self._queue.hashed_waiting:
                 previous_command = self._queue.hashed_waiting[uniq]
                 did_cancel = previous_command.cancel()
                 if did_cancel:
                     m = "Previous command cancelled because uniqueness: %s"
                 else:
-                    m = ("Tried to cancel other command because uniqueness, "
-                         "but couldn't: %s")
+                    m = (
+                        "Tried to cancel other command because uniqueness, "
+                        "but couldn't: %s"
+                    )
                 self.log.debug(m, previous_command)
         return True
 
@@ -2412,8 +2742,10 @@ class Upload(ActionQueueCommand):
     def cleanup(self):
         """Cleanup: stop the producer."""
         self.log.debug('cleanup')
-        if (self.upload_req is not None and
-                self.upload_req.producer is not None):
+        if (
+            self.upload_req is not None
+            and self.upload_req.producer is not None
+        ):
             self.log.debug('stopping the producer')
             self.upload_req.producer.stopProducing()
 
@@ -2423,15 +2755,17 @@ class Upload(ActionQueueCommand):
         self.tx_semaphore = yield self._queue.transfers_semaphore.acquire()
         if self.cancelled:
             # release the semaphore and stop working!
-            self.log.debug("semaphore released after acquiring, "
-                           "command cancelled")
+            self.log.debug(
+                "semaphore released after acquiring, " "command cancelled"
+            )
             self.tx_semaphore = self.tx_semaphore.release()
             return
         self.log.debug('semaphore acquired')
 
         fsm = self.action_queue.main.fs
         yield self.action_queue.zip_queue.zip(
-            self, lambda: fsm.open_file(self.mdid))
+            self, lambda: fsm.open_file(self.mdid)
+        )
 
     def finish(self):
         """Release the semaphore if already acquired."""
@@ -2446,10 +2780,12 @@ class Upload(ActionQueueCommand):
 
     def _run(self):
         """Do the actual running."""
-        self.action_queue.event_queue.push('AQ_UPLOAD_STARTED',
-                                           share_id=self.share_id,
-                                           node_id=self.node_id,
-                                           hash=self.hash)
+        self.action_queue.event_queue.push(
+            'AQ_UPLOAD_STARTED',
+            share_id=self.share_id,
+            node_id=self.node_id,
+            hash=self.hash,
+        )
         self.tempfile.seek(0)
         f = UploadProgressWrapper(self.tempfile, self)
 
@@ -2457,51 +2793,73 @@ class Upload(ActionQueueCommand):
         # just send it
         magic_hash = self.magic_hash._magic_hash
         req = self.action_queue.client.put_content_request(
-            self.share_id, self.node_id, self.previous_hash, self.hash,
-            self.crc32, self.size, self.deflated_size, f,
-            upload_id=self.upload_id, upload_id_cb=self._upload_id_cb,
-            magic_hash=magic_hash)
+            self.share_id,
+            self.node_id,
+            self.previous_hash,
+            self.hash,
+            self.crc32,
+            self.size,
+            self.deflated_size,
+            f,
+            upload_id=self.upload_id,
+            upload_id_cb=self._upload_id_cb,
+            magic_hash=magic_hash,
+        )
         self.upload_req = req
         return req.deferred
 
     def _upload_id_cb(self, upload_id, offset):
         """Handle the received upload_id, save it in the metadata."""
-        self.log.debug("got from server: upload_id=%s offset=%s",
-                       upload_id, offset)
+        self.log.debug(
+            "got from server: upload_id=%s offset=%s", upload_id, offset
+        )
         self.action_queue.main.fs.set_by_node_id(
-            self.node_id, self.share_id, upload_id=upload_id)
+            self.node_id, self.share_id, upload_id=upload_id
+        )
         self.upload_id = upload_id
 
     def progress_hook(self):
         """Send event if accumulated enough progress."""
         written_since_last = self.n_bytes_written - self.n_bytes_written_last
         if written_since_last >= TRANSFER_PROGRESS_THRESHOLD:
-            event_data = dict(share_id=self.share_id, node_id=self.node_id,
-                              n_bytes_written=self.n_bytes_written,
-                              deflated_size=self.deflated_size)
-            self.action_queue.event_queue.push('AQ_UPLOAD_FILE_PROGRESS',
-                                               **event_data)
+            event_data = dict(
+                share_id=self.share_id,
+                node_id=self.node_id,
+                n_bytes_written=self.n_bytes_written,
+                deflated_size=self.deflated_size,
+            )
+            self.action_queue.event_queue.push(
+                'AQ_UPLOAD_FILE_PROGRESS', **event_data
+            )
             self.n_bytes_written_last = self.n_bytes_written
 
     def handle_success(self, request):
         """It worked! Push the event."""
         # send the event
-        d = dict(share_id=self.share_id, node_id=self.node_id, hash=self.hash,
-                 new_generation=request.new_generation)
+        d = dict(
+            share_id=self.share_id,
+            node_id=self.node_id,
+            hash=self.hash,
+            new_generation=request.new_generation,
+        )
         self.action_queue.event_queue.push('AQ_UPLOAD_FINISHED', **d)
 
     def handle_retryable(self, failure):
         """For a retryable failure."""
         if failure.check(protocol_errors.QuotaExceededError):
             error = failure.value
-            self.action_queue.event_queue.push('SYS_QUOTA_EXCEEDED',
-                                               volume_id=str(error.share_id),
-                                               free_bytes=error.free_bytes)
+            self.action_queue.event_queue.push(
+                'SYS_QUOTA_EXCEEDED',
+                volume_id=str(error.share_id),
+                free_bytes=error.free_bytes,
+            )
 
     def handle_failure(self, failure):
         """It didn't work! Push the event."""
-        self.action_queue.event_queue.push('AQ_UPLOAD_ERROR',
-                                           error=failure.getErrorMessage(),
-                                           share_id=self.share_id,
-                                           node_id=self.node_id,
-                                           hash=self.hash)
+        self.action_queue.event_queue.push(
+            'AQ_UPLOAD_ERROR',
+            error=failure.getErrorMessage(),
+            share_id=self.share_id,
+            node_id=self.node_id,
+            hash=self.hash,
+        )

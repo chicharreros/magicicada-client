@@ -44,6 +44,8 @@ class DescriptionFactoryTestCase(TestCase):
 
         factory = unix.DescriptionFactory()
         self.assertEqual(
-            factory.server_description_pattern % path, factory.server)
+            factory.server_description_pattern % path, factory.server
+        )
         self.assertEqual(
-            factory.client_description_pattern % path, factory.client)
+            factory.client_description_pattern % path, factory.client
+        )

@@ -41,11 +41,7 @@ from magicicadaclient.testing.testcase import (
     skip_if_win32_missing_fs_event,
     skip_if_darwin_missing_fs_event,
 )
-from magicicadaclient.platform import (
-    remove_file,
-    remove_dir,
-    rename,
-)
+from magicicadaclient.platform import remove_file, remove_dir, rename
 from magicicadaclient.platform.filesystem_notifications import notify_processor
 from magicicadaclient.syncdaemon.tritcask import Tritcask
 from magicicadaclient.syncdaemon import (
@@ -73,7 +69,8 @@ class IgnoreFileTests(unittest.TestCase):
     def test_filter_two_simple(self):
         """Filters stuff that matches (or not) these simple regexes."""
         p = notify_processor.NotifyProcessor(
-            None, [r'\A.*foo\Z', r'\A.*bar\Z'])
+            None, [r'\A.*foo\Z', r'\A.*bar\Z']
+        )
         self.assertTrue(p.is_ignored("blah_foo"))
         self.assertTrue(p.is_ignored("blah_bar"))
         self.assertFalse(p.is_ignored("bar_xxx"))
@@ -83,7 +80,8 @@ class IgnoreFileTests(unittest.TestCase):
     def test_filter_two_complex(self):
         """Filters stuff that matches (or not) these complex regexes."""
         p = notify_processor.NotifyProcessor(
-            None, [r'\A.*foo\Z|\Afoo.*\Z', r'\A.*bar\Z'])
+            None, [r'\A.*foo\Z|\Afoo.*\Z', r'\A.*bar\Z']
+        )
         self.assertTrue(p.is_ignored("blah_foo"))
         self.assertTrue(p.is_ignored("blah_bar"))
         self.assertTrue(p.is_ignored("foo_xxx"))
@@ -121,11 +119,13 @@ class BaseFSMonitorTestCase(BaseTwistedTestCase):
         self.tritcask_dir = self.mktemp("tritcask_dir")
         self.db = Tritcask(self.tritcask_dir)
         self.addCleanup(self.db.shutdown)
-        self.fs = filesystem_manager.FileSystemManager(fsmdir, partials_dir,
-                                                       self.vm, self.db)
+        self.fs = filesystem_manager.FileSystemManager(
+            fsmdir, partials_dir, self.vm, self.db
+        )
         self.fs.create(path=self.root_dir, share_id='', is_dir=True)
-        self.fs.set_by_path(path=self.root_dir,
-                            local_hash=None, server_hash=None)
+        self.fs.set_by_path(
+            path=self.root_dir, local_hash=None, server_hash=None
+        )
         eq = event_queue.EventQueue(self.fs)
 
         self.deferred = deferred = defer.Deferred()
@@ -172,7 +172,8 @@ class DynamicHitMe:
             """the function that actually be called"""
             if asked_args != should_args:
                 self.test_machinery.finished_error(
-                    "In step %d received wrong args (%r)" % (step, asked_args))
+                    "In step %d received wrong args (%r)" % (step, asked_args)
+                )
             else:
                 if step == self.final_step:
                     self.test_machinery.finished_ok()
@@ -220,7 +221,8 @@ class BaseTwisted(BaseFSMonitorTestCase):
                 msg += '\n'
             exception = self.failureException(
                 '%snot equal:\na = %s\nb = %s\n'
-                % (msg, repr(first), repr(second)))
+                % (msg, repr(first), repr(second))
+            )
             self.finished_error(exception)
             raise exception
         return first
@@ -239,26 +241,38 @@ class MutedSignalsTests(BaseTwisted):
         """Test add and remove the mute."""
         # add
         self.monitor.add_to_mute_filter('FS_FILE_OPEN', path='somepath')
-        self.assertEqual(self.monitor._processor.mute_filter._cnt,
-                         {'FS_FILE_OPEN': [{'path': 'somepath'}]})
+        self.assertEqual(
+            self.monitor._processor.mute_filter._cnt,
+            {'FS_FILE_OPEN': [{'path': 'somepath'}]},
+        )
         self.monitor.add_to_mute_filter('FS_FILE_OPEN', path='somepath')
-        self.assertEqual(self.monitor._processor.mute_filter._cnt,
-                         {'FS_FILE_OPEN': [{'path': 'somepath'},
-                                           {'path': 'somepath'}]})
+        self.assertEqual(
+            self.monitor._processor.mute_filter._cnt,
+            {'FS_FILE_OPEN': [{'path': 'somepath'}, {'path': 'somepath'}]},
+        )
         self.monitor.add_to_mute_filter('FS_FILE_OPEN', path='otherpath')
-        self.assertEqual(self.monitor._processor.mute_filter._cnt,
-                         {'FS_FILE_OPEN': [{'path': 'somepath'},
-                                           {'path': 'somepath'},
-                                           {'path': 'otherpath'}]})
+        self.assertEqual(
+            self.monitor._processor.mute_filter._cnt,
+            {
+                'FS_FILE_OPEN': [
+                    {'path': 'somepath'},
+                    {'path': 'somepath'},
+                    {'path': 'otherpath'},
+                ]
+            },
+        )
 
         # remove
         self.monitor.rm_from_mute_filter('FS_FILE_OPEN', path='somepath')
-        self.assertEqual(self.monitor._processor.mute_filter._cnt,
-                         {'FS_FILE_OPEN': [{'path': 'somepath'},
-                                           {'path': 'otherpath'}]})
+        self.assertEqual(
+            self.monitor._processor.mute_filter._cnt,
+            {'FS_FILE_OPEN': [{'path': 'somepath'}, {'path': 'otherpath'}]},
+        )
         self.monitor.rm_from_mute_filter('FS_FILE_OPEN', path='otherpath')
-        self.assertEqual(self.monitor._processor.mute_filter._cnt,
-                         {'FS_FILE_OPEN': [{'path': 'somepath'}]})
+        self.assertEqual(
+            self.monitor._processor.mute_filter._cnt,
+            {'FS_FILE_OPEN': [{'path': 'somepath'}]},
+        )
         self.monitor.rm_from_mute_filter('FS_FILE_OPEN', path='somepath')
         self.assertEqual(self.monitor._processor.mute_filter._cnt, {})
 
@@ -376,8 +390,9 @@ class MutedSignalsTests(BaseTwisted):
         self.fs.create(tofile, "")
         self.fs.set_node_id(tofile, "to_node_id")
         open(fromfile, "w").close()
-        self.monitor.add_to_mute_filter("FS_FILE_MOVE",
-                                        path_from=fromfile, path_to=tofile)
+        self.monitor.add_to_mute_filter(
+            "FS_FILE_MOVE", path_from=fromfile, path_to=tofile
+        )
         self.assertEqual(self._how_many_muted(), 1)
         yield self.monitor.add_watch(self.root_dir)
 
@@ -397,8 +412,9 @@ class MutedSignalsTests(BaseTwisted):
         self.fs.create(todir, "")
         self.fs.set_node_id(todir, "to_node_id")
         os.mkdir(fromdir)
-        self.monitor.add_to_mute_filter("FS_DIR_MOVE",
-                                        path_from=fromdir, path_to=todir)
+        self.monitor.add_to_mute_filter(
+            "FS_DIR_MOVE", path_from=fromdir, path_to=todir
+        )
         self.assertEqual(self._how_many_muted(), 1)
         yield self.monitor.add_watch(self.root_dir)
 
@@ -418,8 +434,9 @@ class MutedSignalsTests(BaseTwisted):
         self.fs.create(tofile, "")
         self.fs.set_node_id(tofile, "to_node_id")
         open(fromfile, "w").close()
-        self.monitor.add_to_mute_filter("FS_FILE_MOVE",
-                                        path_from=fromfile, path_to=tofile)
+        self.monitor.add_to_mute_filter(
+            "FS_FILE_MOVE", path_from=fromfile, path_to=tofile
+        )
         self.assertEqual(self._how_many_muted(), 2)
         yield self.monitor.add_watch(self.root_dir)
 

@@ -53,18 +53,20 @@ class BaseFSMonitorTestCase(testcase.BaseTwistedTestCase):
         self.vm = testcase.FakeVolumeManager(self.root_dir)
         self.tritcask_dir = self.mktemp("tritcask_dir")
         self.db = Tritcask(self.tritcask_dir)
-        self.fs = filesystem_manager.FileSystemManager(fsmdir, partials_dir,
-                                                       self.vm, self.db)
+        self.fs = filesystem_manager.FileSystemManager(
+            fsmdir, partials_dir, self.vm, self.db
+        )
         self.fs.create(path=self.root_dir, share_id='', is_dir=True)
-        self.fs.set_by_path(path=self.root_dir,
-                            local_hash=None, server_hash=None)
+        self.fs.set_by_path(
+            path=self.root_dir, local_hash=None, server_hash=None
+        )
         eq = event_queue.EventQueue(self.fs)
 
         self.deferred = deferred = defer.Deferred()
 
         class HitMe(object):
             def handle_default(innerself, event, **args):
-                reactor.callLater(.1, deferred.callback, True)
+                reactor.callLater(0.1, deferred.callback, True)
 
         eq.subscribe(HitMe())
         self.monitor = eq.monitor

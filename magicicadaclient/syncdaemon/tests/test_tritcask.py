@@ -133,7 +133,8 @@ class TritcaskTestCase(BaseTwistedTestCase):
 
         self.assertEqual([(0, k) for k in keys], list(db.keys()))
         self.assertEqual(
-            list(db._keydir.keys()), [(0, k.encode('utf-8')) for k in keys])
+            list(db._keydir.keys()), [(0, k.encode('utf-8')) for k in keys]
+        )
 
     def test__contains__(self):
         """Test for __contains__ method."""
@@ -153,7 +154,6 @@ class TritcaskTestCase(BaseTwistedTestCase):
 
 
 class TritcaskShelfTestCase(BaseTwistedTestCase):
-
     def test_deserialize_os_stat(self):
         # "Remove import copyreg from os module"
         # https://bugs.python.org/issue19209

@@ -40,10 +40,18 @@ from magicicadaclient.syncdaemon.mute_filter import MuteFilter
 class GeneralINotifyProcessor:
     """Processor that takes care of dealing with the events."""
 
-    def __init__(self, monitor, handle_dir_delete, name_translations,
-                 platform_is_ignored, ignore_mask, ignore_config=None):
+    def __init__(
+        self,
+        monitor,
+        handle_dir_delete,
+        name_translations,
+        platform_is_ignored,
+        ignore_mask,
+        ignore_config=None,
+    ):
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.log.setLevel(TRACE)
         self.invnames_log = logging.getLogger('magicicadaclient.InvalidNames')
         self.monitor = monitor
@@ -95,7 +103,8 @@ class GeneralINotifyProcessor:
     def get_paths_starting_with(self, path, include_base=True):
         """Return all the paths that start with the given one."""
         return self.monitor.fs.get_paths_starting_with(
-            path, include_base=False)
+            path, include_base=False
+        )
 
     def rm_watch(self, path):
         """Remove the watch for the given path."""
@@ -107,8 +116,11 @@ class GeneralINotifyProcessor:
         if not self.platform_is_ignored(path):
             # check if we can read
             if path_exists(path) and not access(path):
-                self.log.warning("Ignoring path as we don't have enough "
-                                 "permissions to track it: %r", path)
+                self.log.warning(
+                    "Ignoring path as we don't have enough "
+                    "permissions to track it: %r",
+                    path,
+                )
                 return True
 
             is_conflict = self.conflict_RE.search
@@ -122,8 +134,10 @@ class GeneralINotifyProcessor:
 
             # and ignore paths that are inside conflicts (why are we even
             # getting the event?)
-            if any(part.endswith('.u1partial') or is_conflict(part)
-                   for part in dirname.split(os.path.sep)):
+            if any(
+                part.endswith('.u1partial') or is_conflict(part)
+                for part in dirname.split(os.path.sep)
+            ):
                 return True
 
             if self.ignore_RE is not None and self.ignore_RE.match(filename):
@@ -183,7 +197,8 @@ class GeneralINotifyProcessor:
             - push the here received events, return False
         """
         self.log.trace(
-            "Freeze commit: %r (%d events)", self.frozen_path, len(events))
+            "Freeze commit: %r (%d events)", self.frozen_path, len(events)
+        )
         if self.frozen_evts:
             # ouch! we're dirty!
             self.log.debug("Dirty by %s", self.frozen_evts)

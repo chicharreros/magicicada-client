@@ -52,8 +52,9 @@ def expand_user(path):
     """Fix Python expanduser for weird chars in windows."""
     assert isinstance(path, str)
     tilde = '~'
-    if (not path.startswith(tilde) or
-            (len(path) > 1 and path[1:2] != os.path.sep)):
+    if not path.startswith(tilde) or (
+        len(path) > 1 and path[1:2] != os.path.sep
+    ):
         return path
     result = path.replace('~', user_home, 1)
     assert isinstance(result, str)

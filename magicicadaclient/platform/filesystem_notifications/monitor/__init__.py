@@ -47,9 +47,7 @@ if sys.platform == 'win32':
         windows,
     )
 
-    FILEMONITOR_IDS = {
-        DEFAULT_MONITOR: common.FilesystemMonitor,
-    }
+    FILEMONITOR_IDS = {DEFAULT_MONITOR: common.FilesystemMonitor}
     ACTIONS = windows.ACTIONS
 
 elif sys.platform == 'darwin':
@@ -68,9 +66,7 @@ else:
         linux,
     )
 
-    FILEMONITOR_IDS = {
-        DEFAULT_MONITOR: linux.FilesystemMonitor,
-    }
+    FILEMONITOR_IDS = {DEFAULT_MONITOR: linux.FilesystemMonitor}
 
 
 # mantain old API
@@ -80,8 +76,11 @@ FilesystemMonitor = FILEMONITOR_IDS[DEFAULT_MONITOR]
 @defer.inlineCallbacks
 def get_filemonitor_class(monitor_id=None):
     """Return the class to be used."""
-    logger.debug('File monitor ids for platform "%s" are "%s"', sys.platform,
-                 FILEMONITOR_IDS)
+    logger.debug(
+        'File monitor ids for platform "%s" are "%s"',
+        sys.platform,
+        FILEMONITOR_IDS,
+    )
 
     if monitor_id is None:
         logger.debug('monitor_id is None, using default.')
@@ -97,8 +96,9 @@ def get_filemonitor_class(monitor_id=None):
     is_available = yield cls.is_available_monitor()
 
     if is_available:
-        logger.debug('Monitor is available, returning monitor with id "%s"',
-                     monitor_id)
+        logger.debug(
+            'Monitor is available, returning monitor with id "%s"', monitor_id
+        )
         defer.returnValue(cls)
     elif not is_available and monitor_id != DEFAULT_MONITOR:
         logger.debug('Monitor is NOT available, returning default monitor.')

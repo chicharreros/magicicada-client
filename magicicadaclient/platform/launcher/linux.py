@@ -30,6 +30,7 @@
 
 try:
     from gi.repository import Unity
+
     use_libunity = True
 except ImportError:
     use_libunity = False
@@ -42,7 +43,8 @@ class LauncherUnity:
 
     def __init__(self):
         self.entry = Unity.LauncherEntry.get_for_desktop_id(
-            CONTROLPANEL_DOTDESKTOP)
+            CONTROLPANEL_DOTDESKTOP
+        )
 
     def show_progressbar(self):
         """Show the progress bar."""

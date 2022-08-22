@@ -39,4 +39,5 @@ class TestPlatform(unittest.TestCase):
         """Make sure we can import the platform module."""
 
         import magicicadaclient.platform as uplt
+
         self.assertTrue(sys.platform.startswith(uplt.platform))

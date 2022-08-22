@@ -131,10 +131,15 @@ class ProtocolTestCase(TestCase):
             prot.factory = FakeFactory()
             prot.factory._disconnecting = disconnecting
             prot.connectionLost()
-            self.assertIn('connectionLost', self.called,
-                          'Super connectionLost most be called')
-            self.assertEqual(disconnecting,
-                             prot.factory.testserver_on_connection_lost.called)
+            self.assertIn(
+                'connectionLost',
+                self.called,
+                'Super connectionLost most be called',
+            )
+            self.assertEqual(
+                disconnecting,
+                prot.factory.testserver_on_connection_lost.called,
+            )
 
     def test_connection_lost_disconnecting(self):
         """Test the connectionLost method."""
@@ -155,8 +160,11 @@ class ProtocolTestCase(TestCase):
             # exception
             prot.factory.testserver_on_connection_lost.callback(True)
             prot.connectionLost()
-            self.assertIn('connectionLost', self.called,
-                          'Super connectionLost must be called')
+            self.assertIn(
+                'connectionLost',
+                self.called,
+                'Super connectionLost must be called',
+            )
 
 
 class TidyServerProtocolTestCase(ProtocolTestCase):
@@ -181,8 +189,11 @@ class TidyClientProtocolTestCase(ProtocolTestCase):
         protocol_cls = self.class_factory(pb.Broker)
         protocol_instance = protocol_cls()
         protocol_instance.connectionMade()
-        self.assertIn('connectionMade', self.called,
-                      'Super connectionMade must be called')
+        self.assertIn(
+            'connectionMade',
+            self.called,
+            'Super connectionMade must be called',
+        )
 
     # factory outside init
     def test_connection_made_called(self):
@@ -197,8 +208,11 @@ class TidyClientProtocolTestCase(ProtocolTestCase):
         # exception
         protocol_instance.factory.testserver_on_connection_made.callback(True)
         protocol_instance.connectionMade()
-        self.assertIn('connectionMade', self.called,
-                      'Super connectionMade must be called')
+        self.assertIn(
+            'connectionMade',
+            self.called,
+            'Super connectionMade must be called',
+        )
 
 
 class TCPPlainTwistedTestCase(ServerTestCase):
@@ -276,9 +290,9 @@ class TCPNoConnectionTrackingTestCase(TCPServerTestCase):
         # perform some actions before the tests
         calculator = yield self.client_factory.getRootObject()
         adder = yield calculator.callRemote('get_adder')
-        self.setup_result = yield adder.callRemote('add',
-                                                   self.first_number,
-                                                   self.second_number)
+        self.setup_result = yield adder.callRemote(
+            'add', self.first_number, self.second_number
+        )
 
     def test_deferreds(self):
         """Test that the deferreds are not broken."""
@@ -384,11 +398,13 @@ class TCPMultipleServersTestCase(TestCase):
         """Test setting a single server."""
         first_number = 1
         second_number = 2
-        yield self.first_tcp_server.listen_server(pb.PBServerFactory,
-                                                  self.calculator)
+        yield self.first_tcp_server.listen_server(
+            pb.PBServerFactory, self.calculator
+        )
         self.addCleanup(self.first_tcp_server.clean_up)
         calculator_c = yield self.first_tcp_server.connect_client(
-            pb.PBClientFactory)
+            pb.PBClientFactory
+        )
         calculator = yield calculator_c.getRootObject()
         adder = yield calculator.callRemote('get_adder')
         result = yield adder.callRemote('add', first_number, second_number)
@@ -400,20 +416,24 @@ class TCPMultipleServersTestCase(TestCase):
         first_number = 1
         second_number = 2
         # first server
-        yield self.first_tcp_server.listen_server(pb.PBServerFactory,
-                                                  self.calculator)
+        yield self.first_tcp_server.listen_server(
+            pb.PBServerFactory, self.calculator
+        )
         self.addCleanup(self.first_tcp_server.clean_up)
 
         # second server
-        yield self.second_tcp_server.listen_server(pb.PBServerFactory,
-                                                   self.echoer)
+        yield self.second_tcp_server.listen_server(
+            pb.PBServerFactory, self.echoer
+        )
         self.addCleanup(self.second_tcp_server.clean_up)
 
         # connect the diff clients
         calculator_c = yield self.first_tcp_server.connect_client(
-            pb.PBClientFactory)
+            pb.PBClientFactory
+        )
         echoer_c = yield self.second_tcp_server.connect_client(
-            pb.PBClientFactory)
+            pb.PBClientFactory
+        )
 
         calculator = yield calculator_c.getRootObject()
         adder = yield calculator.callRemote('get_adder')
@@ -427,16 +447,18 @@ class TCPMultipleServersTestCase(TestCase):
     def test_no_single_client(self):
         """Test setting a single server no client."""
         # start server but do not connect a client
-        yield self.first_tcp_server.listen_server(pb.PBServerFactory,
-                                                  self.calculator)
+        yield self.first_tcp_server.listen_server(
+            pb.PBServerFactory, self.calculator
+        )
         self.addCleanup(self.first_tcp_server.clean_up)
 
     @defer.inlineCallbacks
     def test_no_multiple_clients(self):
         """Test setting multiple servers no clients."""
         # first server
-        yield self.first_tcp_server.listen_server(pb.PBServerFactory,
-                                                  self.calculator)
+        yield self.first_tcp_server.listen_server(
+            pb.PBServerFactory, self.calculator
+        )
         self.addCleanup(self.first_tcp_server.clean_up)
 
         # second server

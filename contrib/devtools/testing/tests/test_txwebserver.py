@@ -39,8 +39,9 @@ from devtools.testing.txwebserver import HTTPWebServer
 
 SAMPLE_KEY = b"result"
 SAMPLE_VALUE = b"sample result"
-SAMPLE_RESOURCE = '{{"{0}": "{1}"}}'.format(
-    SAMPLE_KEY, SAMPLE_VALUE).encode("utf8")
+SAMPLE_RESOURCE = '{{"{0}": "{1}"}}'.format(SAMPLE_KEY, SAMPLE_VALUE).encode(
+    "utf8"
+)
 SIMPLERESOURCE = b"simpleresource"
 OTHER_SIMPLERESOURCE = b"othersimpleresource"
 THROWERROR = b"throwerror"
@@ -68,14 +69,15 @@ class WebServerTestCase(TestCase):
         root.putChild(OTHER_SIMPLERESOURCE, SimpleResource())
         root.putChild(THROWERROR, resource.NoResource())
 
-        unauthorized_resource = resource.ErrorPage(http.UNAUTHORIZED,
-                                                   "Unauthorized",
-                                                   "Unauthorized")
+        unauthorized_resource = resource.ErrorPage(
+            http.UNAUTHORIZED, "Unauthorized", "Unauthorized"
+        )
         root.putChild(UNAUTHORIZED, unauthorized_resource)
         self.server = HTTPWebServer(root)
         self.server.start()
         self.uri = "http://127.0.0.1:{port}/".format(
-            port=self.server.get_port()).encode("utf8")
+            port=self.server.get_port()
+        ).encode("utf8")
         self.addCleanup(self.server.stop)
 
     @defer.inlineCallbacks
@@ -123,9 +125,9 @@ class MultipleWebServersTestCase(TestCase):
         self.root.putChild(OTHER_SIMPLERESOURCE, SimpleResource())
         self.root.putChild(THROWERROR, resource.NoResource())
 
-        unauthorized_resource = resource.ErrorPage(http.UNAUTHORIZED,
-                                                   "Unauthorized",
-                                                   "Unauthorized")
+        unauthorized_resource = resource.ErrorPage(
+            http.UNAUTHORIZED, "Unauthorized", "Unauthorized"
+        )
         self.root.putChild(UNAUTHORIZED, unauthorized_resource)
 
     def get_uri(self, server):

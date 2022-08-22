@@ -36,9 +36,9 @@ from twisted.python import procutils
 try:
     from dirspec.utils import get_program_path
 except ImportError:
-    get_program_path = (
-        lambda exe_name, **kw: os.path.abspath(
-            os.path.join(os.path.curdir, 'bin', exe_name)))
+
+    def get_program_path(exe_name, **kw):
+        return os.path.abspath(os.path.join(os.path.curdir, 'bin', exe_name))
 
 
 SYNCDAEMON_EXECUTABLE = 'ubuntuone-syncdaemon'
@@ -51,9 +51,9 @@ def _get_bin_cmd(exe_name, extra_fallbacks=[]):
     syncdaemon_dir = os.path.dirname(__file__)
     tree_dir = os.path.dirname(os.path.dirname(syncdaemon_dir))
     fallback_dirs = [os.path.join(tree_dir, 'bin')] + extra_fallbacks
-    path = get_program_path(exe_name,
-                            fallback_dirs=fallback_dirs,
-                            app_names=DARWIN_APP_NAMES)
+    path = get_program_path(
+        exe_name, fallback_dirs=fallback_dirs, app_names=DARWIN_APP_NAMES
+    )
     cmd_args = [path]
 
     # adjust cmd for platforms using buildout-generated python

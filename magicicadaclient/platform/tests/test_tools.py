@@ -67,12 +67,19 @@ class TestToolsBase(IPCTestCase):
         self.addCleanup(self.tool.log.removeHandler, self.handler)
 
         self.called = []
-        self.patch(self.tool.proxy, 'start',
-                   lambda: self.called.append('start') or defer.succeed(None))
-        self.patch(self.main, 'quit',
-                   lambda: self.called.append('quit') or defer.succeed(None))
-        self.patch(tools, 'is_already_running',
-                   lambda bus: defer.succeed(True))
+        self.patch(
+            self.tool.proxy,
+            'start',
+            lambda: self.called.append('start') or defer.succeed(None),
+        )
+        self.patch(
+            self.main,
+            'quit',
+            lambda: self.called.append('quit') or defer.succeed(None),
+        )
+        self.patch(
+            tools, 'is_already_running', lambda bus: defer.succeed(True)
+        )
 
         yield self.main.wait_for_nirvana(last_event_interval=0.001)
 
@@ -91,8 +98,9 @@ class TestToolsBase(IPCTestCase):
         else:
             assert isinstance(suggested_path, str)
         path = volume_manager.get_udf_path(suggested_path)
-        udf = volume_manager.UDF(str(volume_id), str(node_id), suggested_path,
-                                 path, subscribed)
+        udf = volume_manager.UDF(
+            str(volume_id), str(node_id), suggested_path, path, subscribed
+        )
         return udf
 
     def assert_dict_is_subset(self, actual, expected):
@@ -106,8 +114,10 @@ class TestToolsBase(IPCTestCase):
         """
         actual_set = set(actual.items())
         expected_set = set(expected.items())
-        self.assertTrue(actual_set.issubset(expected_set),
-                        '%r is not a subset of %r' % (actual, expected))
+        self.assertTrue(
+            actual_set.issubset(expected_set),
+            '%r is not a subset of %r' % (actual, expected),
+        )
 
 
 class TestToolsBasic(TestToolsBase):
@@ -141,7 +151,7 @@ class TestToolsBasic(TestToolsBase):
         # unsubscribe VM and States to not receive everything
         self.event_q.unsubscribe(self.main.vm)
         self.event_q.unsubscribe(self.main.state_manager)
-        d = self.tool.wait_for_nirvana(last_event_interval=.1)
+        d = self.tool.wait_for_nirvana(last_event_interval=0.1)
         d.addBoth(lambda result: self.assertTrue(result))
 
         # clear downloading
@@ -190,22 +200,25 @@ class TestToolsBasic(TestToolsBase):
         result = yield self.tool.search_files('file')
         expected = [
             os.path.join(self.root_dir, 'path/to/file_test'),
-            os.path.join(self.root_dir, 'path/to/my_files')]
+            os.path.join(self.root_dir, 'path/to/my_files'),
+        ]
         self.assertEqual(result, expected)
 
     @defer.inlineCallbacks
     def test_quit_when_running(self):
         """Test the quit method when the daemon is running."""
-        self.patch(tools, 'is_already_running',
-                   lambda bus: defer.succeed(True))
+        self.patch(
+            tools, 'is_already_running', lambda bus: defer.succeed(True)
+        )
         yield self.tool.quit()
         self.assertEqual(self.called, ['quit'])
 
     @defer.inlineCallbacks
     def test_quit_not_running(self):
         """Test the quit method when the daemon is not running."""
-        self.patch(tools, 'is_already_running',
-                   lambda bus: defer.succeed(False))
+        self.patch(
+            tools, 'is_already_running', lambda bus: defer.succeed(False)
+        )
         yield self.tool.quit()
         self.assertEqual(self.called, [])
 
@@ -213,9 +226,15 @@ class TestToolsBasic(TestToolsBase):
     def test_accept_share(self):
         """Test accept_share method."""
         share_path = os.path.join(self.main.shares_dir, 'share')
-        yield self.main.vm.add_share(volume_manager.Share(path=share_path,
-                                     volume_id='share_id', access_level='Read',
-                                     accepted=False, node_id="node_id"))
+        yield self.main.vm.add_share(
+            volume_manager.Share(
+                path=share_path,
+                volume_id='share_id',
+                access_level='Read',
+                accepted=False,
+                node_id="node_id",
+            )
+        )
         self.assertFalse(self.main.vm.shares['share_id'].accepted)
         result = yield self.tool.accept_share('share_id')
 
@@ -227,9 +246,14 @@ class TestToolsBasic(TestToolsBase):
     def test_reject_share(self):
         """Test the reject_share method."""
         share_path = os.path.join(self.main.shares_dir, 'share')
-        yield self.main.vm.add_share(volume_manager.Share(path=share_path,
-                                     volume_id='share_id', access_level='Read',
-                                     accepted=False))
+        yield self.main.vm.add_share(
+            volume_manager.Share(
+                path=share_path,
+                volume_id='share_id',
+                access_level='Read',
+                accepted=False,
+            )
+        )
         self.assertFalse(self.main.vm.shares['share_id'].accepted)
         result = yield self.tool.reject_share('share_id')
 
@@ -277,31 +301,41 @@ class TestWaitForSignals(TestToolsBase):
     def test_filter_yes(self):
         """Test emitting signal with filter returning True."""
         d = self.tool.wait_for_signals(
-            self.signal_ok, self.signal_error,
-            **{self.target_filter: lambda *a: True})
+            self.signal_ok,
+            self.signal_error,
+            **{self.target_filter: lambda *a: True}
+        )
         expected = object()
         self.emit_signal(self.target_signal, expected)
 
-        result, = yield d
+        (result,) = yield d
         self.assertEqual(expected, result)
         for signal in (self.signal_ok, self.signal_error):
             if signal is not None:
-                self.assertEqual(len(self.signals[signal]), 0,
-                                 '%s should be disconnected.' % signal)
+                self.assertEqual(
+                    len(self.signals[signal]),
+                    0,
+                    '%s should be disconnected.' % signal,
+                )
 
     def test_filter_no(self):
         """Test emitting signal with filter returning False."""
         d = self.tool.wait_for_signals(
-            self.signal_ok, self.signal_error,
-            **{self.target_filter: lambda *a: False})
+            self.signal_ok,
+            self.signal_error,
+            **{self.target_filter: lambda *a: False}
+        )
         expected = object()
         self.emit_signal(self.target_signal, expected)
 
         self.assertFalse(d.called)
         for signal in (self.signal_ok, self.signal_error):
             if signal is not None:
-                self.assertEqual(len(self.signals[signal]), 1,
-                                 '%s should be connected.' % signal)
+                self.assertEqual(
+                    len(self.signals[signal]),
+                    1,
+                    '%s should be connected.' % signal,
+                )
 
     @defer.inlineCallbacks
     def test_failing_filter(self):
@@ -312,8 +346,10 @@ class TestWaitForSignals(TestToolsBase):
             raise ValueError('DIE!!!!')
 
         d = self.tool.wait_for_signals(
-            self.signal_ok, self.signal_error,
-            **{self.target_filter: some_filter})
+            self.signal_ok,
+            self.signal_error,
+            **{self.target_filter: some_filter}
+        )
         args = (object(), 123456789)
         self.emit_signal(self.target_signal, *args)
 
@@ -323,8 +359,11 @@ class TestWaitForSignals(TestToolsBase):
         self.assertEqual(result.details, 'DIE!!!!')
 
         for signal in (self.signal_ok, self.signal_error):
-            self.assertEqual(len(self.signals[signal]), 0,
-                             '%s should be disconnected.' % signal)
+            self.assertEqual(
+                len(self.signals[signal]),
+                0,
+                '%s should be disconnected.' % signal,
+            )
 
 
 class TestWaitForSignalsSignalErrorNone(TestWaitForSignals):
@@ -343,8 +382,10 @@ class TestWaitForSignalsEmitSignalError(TestWaitForSignals):
     def test_filter_yes(self):
         """Test emitting signal with filter returning True."""
         d = self.tool.wait_for_signals(
-            self.signal_ok, self.signal_error,
-            **{self.target_filter: lambda *a: True})
+            self.signal_ok,
+            self.signal_error,
+            **{self.target_filter: lambda *a: True}
+        )
         expected = object()
         self.emit_signal(self.target_signal, expected)
 
@@ -366,7 +407,7 @@ class TestWaitForSignal(TestWaitForSignals):
         expected = object()
         self.emit_signal(self.signal_ok, expected)
 
-        result, = yield d
+        (result,) = yield d
         self.assertEqual(expected, result)
 
     def test_filter_no(self):
@@ -402,8 +443,9 @@ class TestToolsSomeMore(TestToolsBase):
 
     def test_connect(self):
         """Test the connect method."""
-        self.assertEqual(self.main.state_manager.state,
-                         states.StateManager.QUEUE_MANAGER)
+        self.assertEqual(
+            self.main.state_manager.state, states.StateManager.QUEUE_MANAGER
+        )
         d = self.main.wait_for('SYS_USER_DISCONNECT')
         self.tool.disconnect()
 
@@ -418,8 +460,9 @@ class TestToolsSomeMore(TestToolsBase):
 
     def test_disconnect(self):
         """Test the disconnect method."""
-        self.assertEqual(self.main.state_manager.state,
-                         states.StateManager.QUEUE_MANAGER)
+        self.assertEqual(
+            self.main.state_manager.state, states.StateManager.QUEUE_MANAGER
+        )
         d = self.main.wait_for('SYS_USER_DISCONNECT')
         self.tool.disconnect()
         d.addCallbacks(self.assertFalse, self.fail)
@@ -460,31 +503,49 @@ class TestToolsSomeMore(TestToolsBase):
 
         self.assertEqual(2, len(result))
 
-        pl = dict(share_id='node_a_foo', node_id='node_a_bar',
-                  other='', path='path', running='True')
+        pl = dict(
+            share_id='node_a_foo',
+            node_id='node_a_bar',
+            other='',
+            path='path',
+            running='True',
+        )
         self.assertEqual(result[0], ('FakeCommand', str(id(c1)), pl))
 
-        pl = dict(share_id='node_b_foo', node_id='node_b_bar',
-                  other='', running='')
+        pl = dict(
+            share_id='node_b_foo', node_id='node_b_bar', other='', running=''
+        )
         self.assertEqual(result[1], ('FakeCommand', str(id(c2)), pl))
 
     @defer.inlineCallbacks
     def test_waiting_metadata(self):
         """Test SyncDaemonTool.waiting_metadata."""
         # inject the fake data
-        self.action_q.queue.waiting.extend([
-            FakeCommand("node_a_foo", "node_a_bar", path='path'),
-            FakeCommand("node_b_foo", "node_b_bar")])
+        self.action_q.queue.waiting.extend(
+            [
+                FakeCommand("node_a_foo", "node_a_bar", path='path'),
+                FakeCommand("node_b_foo", "node_b_bar"),
+            ]
+        )
         result = yield self.tool.waiting_metadata()
 
         self.assertEqual(2, len(result))
 
-        pl = dict(share_id='node_a_foo', node_id='node_a_bar',
-                  other='', path='path', running='True')
+        pl = dict(
+            share_id='node_a_foo',
+            node_id='node_a_bar',
+            other='',
+            path='path',
+            running='True',
+        )
         self.assertEqual(result[0], ('FakeCommand', pl))
 
-        pl = dict(share_id='node_b_foo', node_id='node_b_bar',
-                  other='', running='True')
+        pl = dict(
+            share_id='node_b_foo',
+            node_id='node_b_bar',
+            other='',
+            running='True',
+        )
         self.assertEqual(result[1], ('FakeCommand', pl))
 
     @defer.inlineCallbacks
@@ -493,13 +554,17 @@ class TestToolsSomeMore(TestToolsBase):
 
         class FakeContentCommand(FakeCommand, action_queue.Upload):
             """Fake command that goes in content queue."""
+
             def __init__(self, *args, **kwargs):
                 FakeCommand.__init__(self, *args, **kwargs)
 
         # inject the fake data
-        self.action_q.queue.waiting.extend([
-            FakeContentCommand("", "node_id", path='/some/path'),
-            FakeContentCommand("", "node_id_1", path='/other/path')])
+        self.action_q.queue.waiting.extend(
+            [
+                FakeContentCommand("", "node_id", path='/some/path'),
+                FakeContentCommand("", "node_id_1", path='/other/path'),
+            ]
+        )
 
         result = yield self.tool.waiting_content()
 
@@ -515,10 +580,14 @@ class TestToolsSomeMore(TestToolsBase):
     @defer.inlineCallbacks
     def test_start_when_running(self):
         """Test the start method when the daemon is running."""
-        self.patch(tools, 'is_already_running',
-                   lambda bus: defer.succeed(True))
-        self.patch(self.tool, 'wait_for_signals',
-                   lambda *a: defer.fail(AssertionError(a)))
+        self.patch(
+            tools, 'is_already_running', lambda bus: defer.succeed(True)
+        )
+        self.patch(
+            self.tool,
+            'wait_for_signals',
+            lambda *a: defer.fail(AssertionError(a)),
+        )
         yield self.tool.start()
         self.assertEqual(self.called, [])
 
@@ -534,8 +603,9 @@ class TestToolsSomeMore(TestToolsBase):
             else:
                 return d.errback(AssertionError(signal_name))
 
-        self.patch(tools, 'is_already_running',
-                   lambda bus: defer.succeed(False))
+        self.patch(
+            tools, 'is_already_running', lambda bus: defer.succeed(False)
+        )
         self.patch(self.tool, 'wait_for_signals', succed_status_changed)
         assert not d.called
 
@@ -553,8 +623,12 @@ class TestToolsSomeMore(TestToolsBase):
 
         def create_udf(path, name, marker):
             """Fake create_udf."""
-            self.main.event_q.push("AQ_CREATE_UDF_OK", volume_id=volume_id,
-                                   node_id=node_id, marker=marker)
+            self.main.event_q.push(
+                "AQ_CREATE_UDF_OK",
+                volume_id=volume_id,
+                node_id=node_id,
+                marker=marker,
+            )
 
         self.patch(self.main.action_q, 'create_udf', create_udf)
 
@@ -569,13 +643,15 @@ class TestToolsSomeMore(TestToolsBase):
 
         def create_udf(path, name, marker):
             """Fake create_udf."""
-            self.main.event_q.push("AQ_CREATE_UDF_ERROR", marker=marker,
-                                   error=SOME_ERROR)
+            self.main.event_q.push(
+                "AQ_CREATE_UDF_ERROR", marker=marker, error=SOME_ERROR
+            )
 
         self.patch(self.main.action_q, 'create_udf', create_udf)
 
-        result = yield self.assertFailure(self.tool.create_folder(path),
-                                          tools.IPCError)
+        result = yield self.assertFailure(
+            self.tool.create_folder(path), tools.IPCError
+        )
         self.assertEqual('FolderCreateError', result.name)
         self.assertEqual(dict(path=path), result.info[0])
         self.assertEqual(SOME_ERROR, result.info[1])
@@ -588,8 +664,7 @@ class TestToolsSomeMore(TestToolsBase):
 
         def delete_volume(volume_id, path):
             """Fake delete_volume."""
-            self.main.event_q.push("AQ_DELETE_VOLUME_OK",
-                                   volume_id=volume_id)
+            self.main.event_q.push("AQ_DELETE_VOLUME_OK", volume_id=volume_id)
 
         self.patch(self.main.action_q, 'delete_volume', delete_volume)
         yield self.main.vm.add_udf(udf)
@@ -606,14 +681,16 @@ class TestToolsSomeMore(TestToolsBase):
 
         def delete_volume(volume_id, path):
             """Fake delete_volume."""
-            self.main.event_q.push("AQ_DELETE_VOLUME_ERROR",
-                                   volume_id=volume_id, error=SOME_ERROR)
+            self.main.event_q.push(
+                "AQ_DELETE_VOLUME_ERROR", volume_id=volume_id, error=SOME_ERROR
+            )
 
         self.patch(self.main.action_q, 'delete_volume', delete_volume)
         yield self.main.vm.add_udf(udf)
 
-        result = yield self.assertFailure(self.tool.delete_folder(volume_id),
-                                          tools.IPCError)
+        result = yield self.assertFailure(
+            self.tool.delete_folder(volume_id), tools.IPCError
+        )
         self.assertEqual('FolderDeleteError', result.name)
         self.assert_dict_is_subset(dict(volume_id=volume_id), result.info[0])
         self.assertEqual(SOME_ERROR, result.info[1])
@@ -625,8 +702,10 @@ class TestToolsSomeMore(TestToolsBase):
         yield self.main.vm.add_udf(udf)
         yield self.tool.subscribe_folder(udf.id)
 
-        self.assertTrue(self.main.vm.udfs[udf.id].subscribed,
-                        "UDF %s isn't subscribed" % udf.id)
+        self.assertTrue(
+            self.main.vm.udfs[udf.id].subscribed,
+            "UDF %s isn't subscribed" % udf.id,
+        )
 
     @defer.inlineCallbacks
     def test_unsubscribe_folder(self):
@@ -635,8 +714,10 @@ class TestToolsSomeMore(TestToolsBase):
         yield self.main.vm.add_udf(udf)
         yield self.tool.unsubscribe_folder(udf.id)
 
-        self.assertFalse(self.main.vm.udfs[udf.id].subscribed,
-                         "UDF %s is subscribed" % udf.id)
+        self.assertFalse(
+            self.main.vm.udfs[udf.id].subscribed,
+            "UDF %s is subscribed" % udf.id,
+        )
 
     @defer.inlineCallbacks
     def test_validate_path(self):
@@ -651,8 +732,10 @@ class TestToolsSomeMore(TestToolsBase):
         yield self.main.vm.add_share(share)
         yield self.tool.subscribe_share(share.volume_id)
 
-        self.assertTrue(self.main.vm.shares[share.id].subscribed,
-                        "share %s should be subscribed" % share)
+        self.assertTrue(
+            self.main.vm.shares[share.id].subscribed,
+            "share %s should be subscribed" % share,
+        )
 
     @defer.inlineCallbacks
     def test_unsubscribe_share(self):
@@ -661,8 +744,10 @@ class TestToolsSomeMore(TestToolsBase):
         yield self.main.vm.add_share(share)
         yield self.tool.unsubscribe_share(share.volume_id)
 
-        self.assertFalse(self.main.vm.shares[share.id].subscribed,
-                         "share %s should not be subscribed" % share)
+        self.assertFalse(
+            self.main.vm.shares[share.id].subscribed,
+            "share %s should not be subscribed" % share,
+        )
 
     @defer.inlineCallbacks
     def test_change_public_access(self):
@@ -678,12 +763,17 @@ class TestToolsSomeMore(TestToolsBase):
 
         def change_public_access(share_id, node_id, is_public):
             """Fake change_public_access"""
-            self.main.event_q.push("AQ_CHANGE_PUBLIC_ACCESS_OK",
-                                   share_id=share_id, node_id=node_id,
-                                   is_public=True,
-                                   public_url='http://example.com')
-        self.patch(self.main.action_q, 'change_public_access',
-                   change_public_access)
+            self.main.event_q.push(
+                "AQ_CHANGE_PUBLIC_ACCESS_OK",
+                share_id=share_id,
+                node_id=node_id,
+                is_public=True,
+                public_url='http://example.com',
+            )
+
+        self.patch(
+            self.main.action_q, 'change_public_access', change_public_access
+        )
 
         file_info = yield self.tool.change_public_access(path, True)
 
@@ -707,12 +797,17 @@ class TestToolsSomeMore(TestToolsBase):
 
         def change_public_access(share_id, node_id, is_public):
             """Fake change_public_access"""
-            self.main.event_q.push("AQ_CHANGE_PUBLIC_ACCESS_OK",
-                                   share_id=share_id, node_id=node_id,
-                                   is_public=True,
-                                   public_url='http://example.com')
-        self.patch(self.main.action_q, 'change_public_access',
-                   change_public_access)
+            self.main.event_q.push(
+                "AQ_CHANGE_PUBLIC_ACCESS_OK",
+                share_id=share_id,
+                node_id=node_id,
+                is_public=True,
+                public_url='http://example.com',
+            )
+
+        self.patch(
+            self.main.action_q, 'change_public_access', change_public_access
+        )
 
         file_info = yield self.tool.change_public_access(path, True)
 
@@ -729,13 +824,16 @@ class TestToolsSomeMore(TestToolsBase):
         vol_id = ""
         path = os.path.join(self.root_dir, "foo")
         self.fs.create(path, vol_id, node_id)
-        fake_response = dict(volume_id=vol_id, node_id=node_id,
-                             public_url='public_url')
+        fake_response = dict(
+            volume_id=vol_id, node_id=node_id, public_url='public_url'
+        )
 
         def fake_call():
             """Fake get public files."""
-            self.main.event_q.push("AQ_PUBLIC_FILES_LIST_OK",
-                                   public_files=[fake_response])
+            self.main.event_q.push(
+                "AQ_PUBLIC_FILES_LIST_OK", public_files=[fake_response]
+            )
+
         self.patch(self.main.action_q, 'get_public_files', fake_call)
 
         # get and check
@@ -806,10 +904,14 @@ class TestToolsSomeMore(TestToolsBase):
     @defer.inlineCallbacks
     def test_enable_files_sync_when_disabled(self):
         """Test for enable_files_sync."""
-        self.patch(self.tool, 'start',
-                   lambda: self.called.append('start') or defer.succeed(None))
-        self.patch(tools, 'is_already_running',
-                   lambda bus: defer.succeed(False))
+        self.patch(
+            self.tool,
+            'start',
+            lambda: self.called.append('start') or defer.succeed(None),
+        )
+        self.patch(
+            tools, 'is_already_running', lambda bus: defer.succeed(False)
+        )
         # be sure file sync is disabled and clear called
         yield self.tool.enable_files_sync(False)
         self.called = []
@@ -963,8 +1065,9 @@ class TestToolsSomeMore(TestToolsBase):
     @defer.inlineCallbacks
     def test_rescan_from_scratch_missing_volume(self):
         """Test for rescan_from_scratch method with a non-existing volume.."""
-        result = yield self.assertFailure(self.tool.rescan_from_scratch('foo'),
-                                          tools.IPCError)
+        result = yield self.assertFailure(
+            self.tool.rescan_from_scratch('foo'), tools.IPCError
+        )
         self.assertIn('VolumeDoesNotExist', result.name)
         self.assertIn('DOES_NOT_EXIST', result.info[0])
 
@@ -993,8 +1096,9 @@ class TestToolsSomeMore(TestToolsBase):
         self.assertIn(mdid4, dirty_mdids)
         self.assertNotIn(mdid1, dirty_mdids)
         self.assertNotIn(mdid3, dirty_mdids)
-        self.assertEqual(self.main.fs.get_by_mdid(mdid2).path,
-                         dirty_mdids[mdid2]['path'])
+        self.assertEqual(
+            self.main.fs.get_by_mdid(mdid2).path, dirty_mdids[mdid2]['path']
+        )
 
     @defer.inlineCallbacks
     def test_get_home_dir(self):

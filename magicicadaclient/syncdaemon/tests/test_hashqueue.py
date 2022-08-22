@@ -128,7 +128,7 @@ class HasherTests(BaseTwistedTestCase):
         # stop it, and release the processor to let the other thread run
         hasher.stop()
         self.addCleanup(hasher.join, timeout=5)
-        time.sleep(.1)
+        time.sleep(0.1)
 
         # "I see dead threads"
         self.assertFalse(hasher.isAlive())
@@ -164,8 +164,11 @@ class HasherTests(BaseTwistedTestCase):
         hasher.join(timeout=5)
 
         # check log
-        log_msg = [r.message for r in handler.records
-                   if "path hash pushed" in r.message][0]
+        log_msg = [
+            r.message
+            for r in handler.records
+            if "path hash pushed" in r.message
+        ][0]
         self.assertTrue("path" in log_msg)
         self.assertTrue("hash" in log_msg)
         self.assertTrue("crc" in log_msg)
@@ -205,10 +208,20 @@ class HasherTests(BaseTwistedTestCase):
         should_be = realh.content_hash()
         curr_stat = stat_path(testfile)
         self.assertEqual(should_be, kwargs['hash'])
-        for attr in ('st_mode', 'st_ino', 'st_dev', 'st_nlink', 'st_uid',
-                     'st_gid', 'st_size', 'st_ctime', 'st_mtime'):
-            self.assertEqual(getattr(curr_stat, attr),
-                             getattr(kwargs['stat'], attr))
+        for attr in (
+            'st_mode',
+            'st_ino',
+            'st_dev',
+            'st_nlink',
+            'st_uid',
+            'st_gid',
+            'st_size',
+            'st_ctime',
+            'st_mtime',
+        ):
+            self.assertEqual(
+                getattr(curr_stat, attr), getattr(kwargs['stat'], attr)
+            )
 
     @defer.inlineCallbacks
     def test_called_back_error(self):
@@ -246,8 +259,13 @@ class HasherTests(BaseTwistedTestCase):
             tfile = os.path.join(self.test_dir, "tfile" + str(i))
             with open_file(tfile, "wb") as fh:
                 fh.write(text)
-            d = dict(path=tfile, hash=hasher.content_hash(),
-                     crc32=crc32(text), size=len(text), stat=stat_path(tfile))
+            d = dict(
+                path=tfile,
+                hash=hasher.content_hash(),
+                crc32=crc32(text),
+                size=len(text),
+                stat=stat_path(tfile),
+            )
             should_be.append(("HQ_HASH_NEW", d))
 
         # create the hasher
@@ -278,7 +296,8 @@ class HasherTests(BaseTwistedTestCase):
         """The hasher works ok for a lot of info."""
         # calculate what we should receive
         testinfo = b"".join(
-            bytes(random.randint(0, 255)) for i in range(100000))
+            bytes(random.randint(0, 255)) for i in range(100000)
+        )
         hasher = content_hash_factory()
         hasher.hash_object.update(testinfo)
         testfile = os.path.join(self.test_dir, "testfile")
@@ -331,8 +350,9 @@ class HasherTests(BaseTwistedTestCase):
         d = defer.Deferred()
         eq = FakeEventQueue(d)
 
-        hasher = hash_queue._Hasher(queue=queue, end_mark='end-mark',
-                                    event_queue=eq)
+        hasher = hash_queue._Hasher(
+            queue=queue, end_mark='end-mark', event_queue=eq
+        )
         # start the hasher after putting the work items
         hasher.start()
 
@@ -361,7 +381,8 @@ class HasherSleepTests(BaseTwistedTestCase):
         self.event_d = defer.Deferred()
         self.eq = FakeEventQueue(self.event_d, expected_events)
         self.hasher = hash_queue._Hasher(
-            queue=self.queue, end_mark='end-mark', event_queue=self.eq)
+            queue=self.queue, end_mark='end-mark', event_queue=self.eq
+        )
 
         def stop_hasher():
             """Safely stop the hasher."""
@@ -444,7 +465,8 @@ class HashQueueTests(BaseTwistedTestCase):
         self.timeout = 2
         self.patch(hash_queue, "HASHQUEUE_DELAY", 0.0)
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.log.info("starting test %s", self.id())
 
     @defer.inlineCallbacks
@@ -471,10 +493,20 @@ class HashQueueTests(BaseTwistedTestCase):
         should_be = realh.content_hash()
         curr_stat = stat_path(testfile)
         self.assertEqual(should_be, kwargs['hash'])
-        for attr in ('st_mode', 'st_ino', 'st_dev', 'st_nlink', 'st_uid',
-                     'st_gid', 'st_size', 'st_ctime', 'st_mtime'):
-            self.assertEqual(getattr(curr_stat, attr),
-                             getattr(kwargs['stat'], attr))
+        for attr in (
+            'st_mode',
+            'st_ino',
+            'st_dev',
+            'st_nlink',
+            'st_uid',
+            'st_gid',
+            'st_size',
+            'st_ctime',
+            'st_mtime',
+        ):
+            self.assertEqual(
+                getattr(curr_stat, attr), getattr(kwargs['stat'], attr)
+            )
 
     @defer.inlineCallbacks
     def test_called_back_error(self):
@@ -492,7 +524,7 @@ class HashQueueTests(BaseTwistedTestCase):
             """Fake call later that checks and calls."""
             if func == reactor.callFromThread:
                 # if it is *our* call, check the args
-                self.assertEqual(delay, .1)
+                self.assertEqual(delay, 0.1)
                 self.assertEqual(args, (receiver.push, 'HQ_HASH_ERROR'))
                 self.assertEqual(kwargs, dict(mdid='foo'))
                 call_later_called.append(True)
@@ -517,6 +549,7 @@ class HashQueueTests(BaseTwistedTestCase):
 
         class C:
             """Bogus."""
+
             def push(self, e, **k):
                 """None."""
 
@@ -557,9 +590,13 @@ class HashQueueTests(BaseTwistedTestCase):
             tfile = os.path.join(self.test_dir, "tfile" + str(i))
             with open_file(tfile, "wb") as fh:
                 fh.write(binary_text)
-            d = dict(path=tfile, hash=hasher.content_hash(),
-                     crc32=crc32(binary_text), size=len(binary_text),
-                     stat=stat_path(tfile))
+            d = dict(
+                path=tfile,
+                hash=hasher.content_hash(),
+                crc32=crc32(binary_text),
+                size=len(binary_text),
+                stat=stat_path(tfile),
+            )
             should_be.append(("HQ_HASH_NEW", d))
 
         receiver = FakeReceiver(events_limit=10)
@@ -587,8 +624,13 @@ class HashQueueTests(BaseTwistedTestCase):
             tfile = os.path.join(self.test_dir, "tfile" + str(i))
             with open_file(tfile, "wb") as fh:
                 fh.write(text)
-            d = dict(path=tfile, hash=hasher.content_hash(),
-                     crc32=crc32(text), size=len(text), stat=stat_path(tfile))
+            d = dict(
+                path=tfile,
+                hash=hasher.content_hash(),
+                crc32=crc32(text),
+                size=len(text),
+                stat=stat_path(tfile),
+            )
             should_be.append(("HQ_HASH_NEW", d))
 
         receiver = FakeReceiver(events_limit=10)
@@ -687,7 +729,7 @@ class HashQueueTests(BaseTwistedTestCase):
         self.assertEqual(kwargs.get('hash'), testhash)
 
     def test_shutdown(self):
-        """Test that the HashQueue shutdown """
+        """Test that the HashQueue shutdown"""
         hq = hash_queue.HashQueue(FakeReceiver())
         hq.shutdown()
         self.assertTrue(hq._stopped)

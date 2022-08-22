@@ -32,9 +32,11 @@ import sys
 
 if sys.platform.startswith('linux'):
     from magicicadaclient.platform.tests.ipc import test_linux
+
     ipc_source = test_linux
 else:
     from magicicadaclient.platform.tests.ipc import test_perspective_broker
+
     ipc_source = test_perspective_broker
 
 IPCTestCase = ipc_source.IPCTestCase

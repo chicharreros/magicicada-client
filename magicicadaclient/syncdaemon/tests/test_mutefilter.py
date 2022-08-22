@@ -77,7 +77,8 @@ class MuteFilterTests(unittest.TestCase):
         self.mf.add("bar", b=3)
         self.mf.add("bar", b=3)
         self.assertEqual(
-            self.mf._cnt, dict(foo=[{}], bar=[{'b': 3}, {'b': 3}]))
+            self.mf._cnt, dict(foo=[{}], bar=[{'b': 3}, {'b': 3}])
+        )
 
     def test_pop_simple(self):
         """Pops one element."""

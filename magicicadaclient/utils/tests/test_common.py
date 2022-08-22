@@ -82,10 +82,9 @@ class GetProjectDirTestCase(TestCase):
     def test_get_dir_relative(self):
         """The relative path for the data directory is correctly retrieved."""
         module = utils.os.path.dirname(utils.__file__)
-        rel_data = utils.os.path.join(module,
-                                      utils.os.path.pardir,
-                                      utils.os.path.pardir,
-                                      self.DIR_NAME)
+        rel_data = utils.os.path.join(
+            module, utils.os.path.pardir, utils.os.path.pardir, self.DIR_NAME
+        )
         expected_dir = utils.os.path.abspath(rel_data)
 
         # ensure expected_path exists at os level
@@ -159,8 +158,11 @@ class GetCertDirTestCase(TestCase):
 
     def test_win(self):
         """Test geting a path when Common AppData is defined."""
-        self.patch(utils, "__file__",
-                   os.path.join("path", "to", "code", "utils", "__init__.py"))
+        self.patch(
+            utils,
+            "__file__",
+            os.path.join("path", "to", "code", "utils", "__init__.py"),
+        )
         self.patch(sys, "platform", "win32")
         path = utils.get_cert_dir()
         self.assertEqual(path, os.path.join("path", "to", "data"))
@@ -170,17 +172,23 @@ class GetCertDirTestCase(TestCase):
         self.patch(sys, "platform", "darwin")
         sys.frozen = "macosx-app"
         self.addCleanup(delattr, sys, "frozen")
-        self.patch(utils, "__file__",
-                   os.path.join("path", "to", "Main.app", "ignore"))
+        self.patch(
+            utils, "__file__", os.path.join("path", "to", "Main.app", "ignore")
+        )
         path = utils.get_cert_dir()
-        self.assertEqual(path, os.path.join("path", "to", "Main.app",
-                                            "Contents", "Resources"))
+        self.assertEqual(
+            path,
+            os.path.join("path", "to", "Main.app", "Contents", "Resources"),
+        )
 
     def test_darwin_unfrozen(self):
         """Test that we get a source-relative path on unfrozen darwin."""
         self.patch(sys, "platform", "darwin")
-        self.patch(utils, "__file__",
-                   os.path.join("path", "to", "code", "utils", "__init__.py"))
+        self.patch(
+            utils,
+            "__file__",
+            os.path.join("path", "to", "code", "utils", "__init__.py"),
+        )
         path = utils.get_cert_dir()
         self.assertEqual(path, os.path.join("path", "to", "data"))
 

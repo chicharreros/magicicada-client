@@ -30,5 +30,12 @@
 
 # required capabilities
 REQUIRED_CAPS = frozenset(
-    ["no-content", "account-info", "resumable-uploads", "fix462230", "volumes",
-     "generations"])
+    [
+        "no-content",
+        "account-info",
+        "resumable-uploads",
+        "fix462230",
+        "volumes",
+        "generations",
+    ]
+)

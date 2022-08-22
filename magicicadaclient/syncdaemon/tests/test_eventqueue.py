@@ -65,13 +65,15 @@ class BaseEQTestCase(BaseTwistedTestCase):
         self.db = tritcask.Tritcask(self.mktemp('tritcask'))
         self.addCleanup(self.db.shutdown)
         self.fs = filesystem_manager.FileSystemManager(
-            self.fsmdir, self.partials_dir, self.vm, self.db)
-        self.fs.create(
-            path=self.root_dir, share_id='', is_dir=True)
+            self.fsmdir, self.partials_dir, self.vm, self.db
+        )
+        self.fs.create(path=self.root_dir, share_id='', is_dir=True)
         self.fs.set_by_path(
-            path=self.root_dir, local_hash=None, server_hash=None)
+            path=self.root_dir, local_hash=None, server_hash=None
+        )
         self.eq = event_queue.EventQueue(
-            self.fs, monitor_class=self._monitor_class)
+            self.fs, monitor_class=self._monitor_class
+        )
         self.eq.listener_map = {}
         self.addCleanup(self.eq.shutdown)
         self.fs.register_eq(self.eq)
@@ -104,12 +106,16 @@ class SubscriptionTests(BaseEQTestCase):
         self.eq.subscribe(listener)
 
         # for FS_FILE_CREATE, it should have picked up the method
-        self.assertEqual(self.eq.listener_map['FS_FILE_CREATE'][listener],
-                         listener.handle_FS_FILE_CREATE)
+        self.assertEqual(
+            self.eq.listener_map['FS_FILE_CREATE'][listener],
+            listener.handle_FS_FILE_CREATE,
+        )
 
         # for any other event, it should have picked up the method
-        self.assertEqual(self.eq.listener_map['FS_DIR_DELETE'][listener].func,
-                         listener.handle_default)
+        self.assertEqual(
+            self.eq.listener_map['FS_DIR_DELETE'][listener].func,
+            listener.handle_default,
+        )
 
     def test_subscription_nodefault(self):
         """Don't subscribe if there's no default."""
@@ -125,8 +131,10 @@ class SubscriptionTests(BaseEQTestCase):
         self.eq.subscribe(listener)
 
         # for FS_FILE_CREATE, it should have picked up the method
-        self.assertEqual(self.eq.listener_map['FS_FILE_CREATE'][listener],
-                         listener.handle_FS_FILE_CREATE)
+        self.assertEqual(
+            self.eq.listener_map['FS_FILE_CREATE'][listener],
+            listener.handle_FS_FILE_CREATE,
+        )
 
         # for any other event, nothing
         self.assertFalse('FS_DIR_DELETE' in self.eq.listener_map)
@@ -164,10 +172,14 @@ class SubscriptionTests(BaseEQTestCase):
         self.assertEqual(lmap[listener2], listener2.handle_FS_FILE_CREATE)
 
         # for FS_DIR_CREATE and FS_DIR_DELETE, each one accordingly
-        self.assertEqual(self.eq.listener_map['FS_DIR_CREATE'][listener1],
-                         listener1.handle_FS_DIR_CREATE)
-        self.assertEqual(self.eq.listener_map['FS_DIR_DELETE'][listener2],
-                         listener2.handle_FS_DIR_DELETE)
+        self.assertEqual(
+            self.eq.listener_map['FS_DIR_CREATE'][listener1],
+            listener1.handle_FS_DIR_CREATE,
+        )
+        self.assertEqual(
+            self.eq.listener_map['FS_DIR_DELETE'][listener2],
+            listener2.handle_FS_DIR_DELETE,
+        )
 
     def test_unsubscription(self):
         """Test that unsubscription works."""
@@ -202,10 +214,14 @@ class SubscriptionTests(BaseEQTestCase):
         # check
         self.assertFalse(listener1 in self.eq.listener_map['FS_FILE_CREATE'])
         self.assertFalse('FS_DIR_CREATE' in self.eq.listener_map)
-        self.assertEqual(self.eq.listener_map['FS_FILE_CREATE'][listener2],
-                         listener2.handle_FS_FILE_CREATE)
-        self.assertEqual(self.eq.listener_map['FS_DIR_DELETE'][listener2],
-                         listener2.handle_FS_DIR_DELETE)
+        self.assertEqual(
+            self.eq.listener_map['FS_FILE_CREATE'][listener2],
+            listener2.handle_FS_FILE_CREATE,
+        )
+        self.assertEqual(
+            self.eq.listener_map['FS_DIR_DELETE'][listener2],
+            listener2.handle_FS_DIR_DELETE,
+        )
 
 
 class PushTests(BaseEQTestCase):
@@ -219,7 +235,8 @@ class PushTests(BaseEQTestCase):
         # incorrect args, only kwargs supported
         self.assertRaises(TypeError, self.eq.push, "FS_FILE_MOVE", 1)
         self.assertRaises(
-            TypeError, self.eq.push, "FS_FILE_MOVE", 1, path_to=2)
+            TypeError, self.eq.push, "FS_FILE_MOVE", 1, path_to=2
+        )
 
         # ok: just kwargs
         self.eq.push("FS_FILE_MOVE", path_from=1, path_to=2)
@@ -238,7 +255,6 @@ class PushTests(BaseEQTestCase):
 
         # helper class
         class Create:
-
             def __init__(self):
                 self.a = None
 
@@ -264,7 +280,6 @@ class PushTests(BaseEQTestCase):
 
         # helper class
         class Create:
-
             def handle_FS_FILE_CREATE(self, notpath):  # it should be path here
                 pass
 
@@ -276,29 +291,32 @@ class PushTests(BaseEQTestCase):
         # this is logged as an error/exception
         self.eq.push("FS_FILE_CREATE", path=1)
         self.assertTrue(
-            self.handler.check_error('FS_FILE_CREATE', 'Create object'))
+            self.handler.check_error('FS_FILE_CREATE', 'Create object')
+        )
 
         self.eq.unsubscribe(c)
 
     def test_log_pushing_data(self):
         """Pushed event and info should be logged."""
         self.eq.push("AQ_QUERY_ERROR", item='item', error='err')
-        self.assertTrue(self.handler.check_debug(
-                        "push_event: AQ_QUERY_ERROR, kwargs: "
-                        "{'item': 'item', 'error': 'err'}"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "push_event: AQ_QUERY_ERROR, kwargs: "
+                "{'item': 'item', 'error': 'err'}"
+            )
+        )
 
     def test_log_delete_in_info(self):
         """Pushed any deletion event should be logged in info."""
         self.eq.push("FS_DIR_DELETE", path='path')
-        self.assertTrue(self.handler.check_info(
-                        "push_event: FS_DIR_DELETE"))
+        self.assertTrue(self.handler.check_info("push_event: FS_DIR_DELETE"))
 
     def test_log_pushing_private_data(self):
         """SYS_USER_CONNECT event info must not be logged."""
         self.eq.push("SYS_USER_CONNECT", access_token='foo')
         self.assertTrue(
-            self.handler.check_debug(
-                "push_event: SYS_USER_CONNECT, kwargs: *"))
+            self.handler.check_debug("push_event: SYS_USER_CONNECT, kwargs: *")
+        )
 
 
 class PushTestsWithCallback(BaseEQTestCase):
@@ -315,12 +333,10 @@ class PushTestsWithCallback(BaseEQTestCase):
 
         # helper class
         class BadListener:
-
             def handle_FS_FILE_CREATE(self, notpath):  # it should be path here
                 d.callback(False)
 
         class GoodListener:
-
             def handle_FS_FILE_CREATE(self, path):
                 d.callback(path)
 
@@ -330,7 +346,7 @@ class PushTestsWithCallback(BaseEQTestCase):
         self.eq.subscribe(gl)
 
         def cleanup():
-            """unsubscribe the listeners """
+            """unsubscribe the listeners"""
             self.eq.unsubscribe(bl)
             self.eq.unsubscribe(gl)
 
@@ -353,7 +369,6 @@ class PushTestsWithCallback(BaseEQTestCase):
 
         # helper class
         class Listener:
-
             def handle_default(self, event, **kwargs):
                 d.callback((event, kwargs))
 
@@ -363,6 +378,7 @@ class PushTestsWithCallback(BaseEQTestCase):
         def cleanup():
             """Unsubscribe the listeners."""
             self.eq.unsubscribe(listener)
+
         self.addCleanup(cleanup)
 
         # push some event and expect it'll be handled by handle_default
@@ -383,7 +399,6 @@ class PushTestsWithCallback(BaseEQTestCase):
 
         # helper class
         class Listener:
-
             def __init__(self, eq):
                 self.eq = eq
                 self.events = []

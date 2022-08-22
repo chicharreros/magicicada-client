@@ -68,7 +68,7 @@ class FileShelf(MutableMapping):
         self._check_and_create_dirs(self._path)
 
     def _check_and_create_dirs(self, path):
-        """ check if the path isn't a file and in case it don't exists,
+        """check if the path isn't a file and in case it don't exists,
         creates it
         """
         try:
@@ -86,7 +86,7 @@ class FileShelf(MutableMapping):
                 raise
 
     def key_file(self, key):
-        """ get the real key used by the storage from a key """
+        """get the real key used by the storage from a key"""
         # cannot use None to create files in the disk
         if key is None:
             raise ValueError("Invalid key: %r" % key)
@@ -99,11 +99,11 @@ class FileShelf(MutableMapping):
         return os.path.join(os.path.join(self._path, *letters), key)
 
     def has_key(self, key):
-        """ True if the the shelf has the key """
+        """True if the the shelf has the key"""
         return path_exists(self.key_file(key))
 
     def keys(self):
-        """ returns a iterator over the keys """
+        """returns a iterator over the keys"""
         splitext = os.path.splitext
         for dirpath, dirnames, filenames in walk(self._path):
             for filename in filenames:
@@ -113,13 +113,13 @@ class FileShelf(MutableMapping):
                     yield filename
 
     def pop(self, key):
-        """ returns the key and deletes the entry """
+        """returns the key and deletes the entry"""
         k = self[key]
         del self[key]
         return k
 
     def __contains__(self, key):
-        """ returns if the file storage has that key """
+        """returns if the file storage has that key"""
         try:
             self[key]
         except KeyError:
@@ -157,7 +157,7 @@ class FileShelf(MutableMapping):
             return data
 
     def __getitem__(self, key):
-        """ getitem backed by the file storage """
+        """getitem backed by the file storage"""
         return self._load_pickle(key, self.key_file(key))
 
     def _pickle(self, value, fd, protocol):
@@ -165,7 +165,7 @@ class FileShelf(MutableMapping):
         pickle.dump(value, fd, protocol=protocol)
 
     def __setitem__(self, key, value):
-        """ setitem backed by the file storage """
+        """setitem backed by the file storage"""
         path = self.key_file(key)
         new_path = path + ".new"
         old_path = path + ".old"
@@ -178,7 +178,7 @@ class FileShelf(MutableMapping):
         rename(new_path, path)
 
     def __delitem__(self, key):
-        """ delitem backed by the file storage """
+        """delitem backed by the file storage"""
         path = self.key_file(key)
         try:
             remove_file(self.key_file(key))
@@ -193,7 +193,7 @@ class FileShelf(MutableMapping):
                 pass
 
     def __len__(self):
-        """ The len of the shelf.
+        """The len of the shelf.
         To get len(keys) we need to iterate over the full key set.
         """
         counter = 0
@@ -238,7 +238,7 @@ class CachedFileShelf(FileShelf):
         return self._cache.hits
 
     def __getitem__(self, key):
-        """ getitem backed by the file storage """
+        """getitem backed by the file storage"""
         try:
             return self._cache[key]
         except KeyError:
@@ -248,13 +248,13 @@ class CachedFileShelf(FileShelf):
             return value
 
     def __setitem__(self, key, value):
-        """ setitem backed by the file storage """
+        """setitem backed by the file storage"""
         super(CachedFileShelf, self).__setitem__(key, value)
         if key in self._cache:
             self._cache[key] = value
 
     def __delitem__(self, key):
-        """ delitem backed by the file storage """
+        """delitem backed by the file storage"""
         super(CachedFileShelf, self).__delitem__(key)
         if key in self._cache:
             del self._cache[key]
@@ -268,6 +268,7 @@ class LRUCache:
 
     Based on recipe #252524 by Raymond Hettinger
     """
+
     def __init__(self, maxsize, compact_threshold=4):
         """Create the instance.
         @param maxsize:
@@ -275,9 +276,9 @@ class LRUCache:
         """
         self._maxsize = maxsize
         self._compact_threshold = compact_threshold
-        self._cache = {}      # mapping of args to results
+        self._cache = {}  # mapping of args to results
         self._queue = deque()  # order that keys have been accessed
-        self._refcount = {}   # number of times each key is in the access queue
+        self._refcount = {}  # number of times each key is in the access queue
         self.hits = 0
         self.misses = 0
 
@@ -338,13 +339,19 @@ class LRUCache:
                     self._queue.append(k)
                 else:
                     self._refcount[k] -= 1
-            if (not (len(self._queue) == len(self._cache) ==
-                     len(self._refcount) == sum(self._refcount.values()))):
+            if not (
+                len(self._queue)
+                == len(self._cache)
+                == len(self._refcount)
+                == sum(self._refcount.values())
+            ):
                 # create a custom exception for this error
-                raise CacheInconsistencyError(len(self._queue),
-                                              len(self._cache),
-                                              len(self._refcount),
-                                              sum(self._refcount.values()))
+                raise CacheInconsistencyError(
+                    len(self._queue),
+                    len(self._cache),
+                    len(self._refcount),
+                    sum(self._refcount.values()),
+                )
 
 
 class CacheInconsistencyError(Exception):
@@ -353,4 +360,5 @@ class CacheInconsistencyError(Exception):
     def __str__(self):
         return (
             "Inconsistency in the cache: queue: %d cache: %d refcount: %d "
-            "sum(refcount.values): %d" % self.args)
+            "sum(refcount.values): %d" % self.args
+        )

@@ -43,9 +43,9 @@ logger = logging.getLogger(__name__)
 BIN_SUFFIX = 'bin'
 DATA_SUFFIX = 'data'
 
-QSS_MAP = dict(win32=':/windows.qss',
-               darwin=':/darwin.qss',
-               linux=':/linux.qss')
+QSS_MAP = dict(
+    win32=':/windows.qss', darwin=':/darwin.qss', linux=':/linux.qss'
+)
 
 # Setting linux as default if we don't find the
 # platform as a key in the dictionary
@@ -60,10 +60,14 @@ def _get_dir(dir_name, dir_constant):
 
     """
     module = os.path.dirname(__file__)
-    result = os.path.abspath(os.path.join(module, os.path.pardir,
-                                          os.path.pardir, dir_name))
-    logger.debug('_get_dir: trying use dir at %r (exists? %s)',
-                 result, os.path.exists(result))
+    result = os.path.abspath(
+        os.path.join(module, os.path.pardir, os.path.pardir, dir_name)
+    )
+    logger.debug(
+        '_get_dir: trying use dir at %r (exists? %s)',
+        result,
+        os.path.exists(result),
+    )
     if os.path.exists(result):
         logger.info('_get_dir: returning dir located at %r.', result)
         return result
@@ -74,8 +78,10 @@ def _get_dir(dir_name, dir_constant):
         module = sys.modules.get('magicicadaclient.clientdefs')
         return getattr(module, dir_constant)
     except (ImportError, AttributeError):
-        msg = '_get_dir: can not build a valid path. Giving up. ' \
-              '__file__ is %r, clientdefs module not available.'
+        msg = (
+            '_get_dir: can not build a valid path. Giving up. '
+            '__file__ is %r, clientdefs module not available.'
+        )
         logger.error(msg, __file__)
 
 
@@ -111,8 +117,7 @@ def get_bin_dir():
 
 def get_bin_cmd(program_name):
     """Return a list of arguments to launch the given executable."""
-    path = get_program_path(program_name,
-                            fallback_dirs=[get_bin_dir()])
+    path = get_program_path(program_name, fallback_dirs=[get_bin_dir()])
     cmd_args = [path]
 
     # adjust cmd for platforms using buildout-generated python
@@ -136,7 +141,8 @@ def get_cert_dir():
         elif sys.platform == "darwin":
             main_app_dir = "".join(__file__.partition(".app")[:-1])
             main_app_resources_dir = os.path.join(
-                main_app_dir, "Contents", "Resources")
+                main_app_dir, "Contents", "Resources"
+            )
             ssl_cert_location = main_app_resources_dir
     elif any(plat in sys.platform for plat in ("win32", "darwin")):
         pkg_dir = os.path.dirname(__file__)

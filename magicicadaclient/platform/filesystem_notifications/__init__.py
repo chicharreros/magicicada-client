@@ -28,8 +28,6 @@
 
 """File System Notification module."""
 
-from magicicadaclient.platform.filesystem_notifications import (
-    notify_processor,
-)
+from magicicadaclient.platform.filesystem_notifications import notify_processor
 
 _GeneralINotifyProcessor = notify_processor.NotifyProcessor

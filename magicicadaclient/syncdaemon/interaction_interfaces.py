@@ -224,8 +224,9 @@ class SyncdaemonStatus(SyncdaemonObject):
 
         As we don't have meta-queue anymore, this is faked.
         """
-        logger.warning('waiting_metadata is deprecated. '
-                       'Use "waiting" instead.')
+        logger.warning(
+            'waiting_metadata is deprecated. ' 'Use "waiting" instead.'
+        )
         waiting_metadata = []
         for cmd in self.action_queue.queue.waiting:
             if not isinstance(cmd, (Upload, Download)):
@@ -244,8 +245,12 @@ class SyncdaemonStatus(SyncdaemonObject):
         waiting_content = []
         for cmd in self.action_queue.queue.waiting:
             if isinstance(cmd, (Upload, Download)):
-                data = dict(path=cmd.path, share=cmd.share_id,
-                            node=cmd.node_id, operation=cmd.__class__.__name__)
+                data = dict(
+                    path=cmd.path,
+                    share=cmd.share_id,
+                    node=cmd.node_id,
+                    operation=cmd.__class__.__name__,
+                )
                 sanitize_dict(data)
                 waiting_content.append(data)
         return waiting_content
@@ -309,11 +314,13 @@ class SyncdaemonFileSystem(SyncdaemonObject):
                         # hm, nope. Dunno what to do then
                         pass
                     else:
-                        this_path = self.fs_manager.get_abspath(share_id,
-                                                                node_md.path)
+                        this_path = self.fs_manager.get_abspath(
+                            share_id, node_md.path
+                        )
                 else:
-                    this_path = self.fs_manager.get_abspath(share_id,
-                                                            node_md.path)
+                    this_path = self.fs_manager.get_abspath(
+                        share_id, node_md.path
+                    )
                 if this_path.startswith(path):
                     return True
         return False
@@ -682,8 +689,9 @@ class SyncdaemonEventListener(SyncdaemonObject):
             path = self.fs_manager.get_abspath(share_id, relpath)
         return path
 
-    def _path_from_ids(self, share_id, node_id, signal_name,
-                       info=None, error_info=None):
+    def _path_from_ids(
+        self, share_id, node_id, signal_name, info=None, error_info=None
+    ):
         """Return the path for the entry (share_id, node_id)."""
         path = None
         try:
@@ -692,8 +700,9 @@ class SyncdaemonEventListener(SyncdaemonObject):
                 path = self.fs_manager.get_abspath(share_id, mdobj.path)
         except KeyError as e:
             msg = 'The metadata is gone before sending %s signal' % signal_name
-            args = dict(message=msg, error=str(e),
-                        share_id=share_id, node_id=node_id)
+            args = dict(
+                message=msg, error=str(e), share_id=share_id, node_id=node_id
+            )
             if error_info is not None:
                 args.update(error_info)
             self.interface.status.SignalError(signal_name, args)
@@ -711,11 +720,13 @@ class SyncdaemonEventListener(SyncdaemonObject):
         self._path_from_ids(share_id, node_id, 'DownloadStarted')
 
     @log_call(logger.trace)
-    def handle_AQ_DOWNLOAD_FILE_PROGRESS(self, share_id, node_id,
-                                         n_bytes_read, deflated_size):
+    def handle_AQ_DOWNLOAD_FILE_PROGRESS(
+        self, share_id, node_id, n_bytes_read, deflated_size
+    ):
         """Handle AQ_DOWNLOAD_FILE_PROGRESS."""
-        info = dict(n_bytes_read=str(n_bytes_read),
-                    deflated_size=str(deflated_size))
+        info = dict(
+            n_bytes_read=str(n_bytes_read), deflated_size=str(deflated_size)
+        )
         self._path_from_ids(share_id, node_id, 'DownloadFileProgress', info)
 
     @log_call(logger.debug)
@@ -726,9 +737,13 @@ class SyncdaemonEventListener(SyncdaemonObject):
     @log_call(logger.debug)
     def handle_AQ_DOWNLOAD_ERROR(self, share_id, node_id, server_hash, error):
         """Handle AQ_DOWNLOAD_ERROR."""
-        self._path_from_ids(share_id, node_id, 'DownloadFinished',
-                            info=dict(error=str(error)),
-                            error_info=dict(download_error=str(error)))
+        self._path_from_ids(
+            share_id,
+            node_id,
+            'DownloadFinished',
+            info=dict(error=str(error)),
+            error_info=dict(download_error=str(error)),
+        )
 
     @log_call(logger.debug)
     def handle_AQ_UPLOAD_STARTED(self, share_id, node_id, hash):
@@ -736,25 +751,33 @@ class SyncdaemonEventListener(SyncdaemonObject):
         self._path_from_ids(share_id, node_id, 'UploadStarted')
 
     @log_call(logger.trace)
-    def handle_AQ_UPLOAD_FILE_PROGRESS(self, share_id, node_id,
-                                       n_bytes_written, deflated_size):
+    def handle_AQ_UPLOAD_FILE_PROGRESS(
+        self, share_id, node_id, n_bytes_written, deflated_size
+    ):
         """Handle AQ_UPLOAD_FILE_PROGRESS."""
-        info = dict(n_bytes_written=str(n_bytes_written),
-                    deflated_size=str(deflated_size))
+        info = dict(
+            n_bytes_written=str(n_bytes_written),
+            deflated_size=str(deflated_size),
+        )
         self._path_from_ids(share_id, node_id, 'UploadFileProgress', info)
 
     @log_call(logger.debug)
-    def handle_AQ_UPLOAD_FINISHED(self, share_id, node_id, hash,
-                                  new_generation):
+    def handle_AQ_UPLOAD_FINISHED(
+        self, share_id, node_id, hash, new_generation
+    ):
         """Handle AQ_UPLOAD_FINISHED."""
         self._path_from_ids(share_id, node_id, 'UploadFinished', info={})
 
     @log_call(logger.debug)
     def handle_AQ_UPLOAD_ERROR(self, share_id, node_id, error, hash):
         """Handle AQ_UPLOAD_ERROR."""
-        self._path_from_ids(share_id, node_id, 'UploadFinished',
-                            info=dict(error=str(error)),
-                            error_info=dict(upoad_error=str(error)))
+        self._path_from_ids(
+            share_id,
+            node_id,
+            'UploadFinished',
+            info=dict(error=str(error)),
+            error_info=dict(upoad_error=str(error)),
+        )
 
     @log_call(logger.debug)
     def handle_SV_ACCOUNT_CHANGED(self, account_info):
@@ -913,8 +936,11 @@ class SyncdaemonEventListener(SyncdaemonObject):
         elif isinstance(volume, UDF):
             self.interface.folders.FolderDeleted(get_udf_dict(volume))
         else:
-            logger.error("Unable to handle VM_VOLUME_DELETED for "
-                         "volume=%r as it's not a Share or UDF", volume)
+            logger.error(
+                "Unable to handle VM_VOLUME_DELETED for "
+                "volume=%r as it's not a Share or UDF",
+                volume,
+            )
 
     @log_call(logger.debug)
     def handle_VM_VOLUME_DELETE_ERROR(self, volume_id, error):
@@ -922,20 +948,28 @@ class SyncdaemonEventListener(SyncdaemonObject):
         try:
             volume = self.vm.get_volume(volume_id)
         except VolumeDoesNotExist:
-            logger.error("Unable to handle VM_VOLUME_DELETE_ERROR for "
-                         "volume_id=%r, no such volume.", volume_id)
+            logger.error(
+                "Unable to handle VM_VOLUME_DELETE_ERROR for "
+                "volume_id=%r, no such volume.",
+                volume_id,
+            )
         else:
             error = str(error)
             if isinstance(volume, Share):
-                self.interface.shares.ShareDeleteError(get_share_dict(volume),
-                                                       error)
+                self.interface.shares.ShareDeleteError(
+                    get_share_dict(volume), error
+                )
             elif isinstance(volume, UDF):
-                self.interface.folders.FolderDeleteError(get_udf_dict(volume),
-                                                         error)
+                self.interface.folders.FolderDeleteError(
+                    get_udf_dict(volume), error
+                )
             else:
-                logger.error("Unable to handle VM_VOLUME_DELETE_ERROR (%r) "
-                             "for volume_id=%r as it's not a Share or UDF",
-                             error, volume_id)
+                logger.error(
+                    "Unable to handle VM_VOLUME_DELETE_ERROR (%r) "
+                    "for volume_id=%r as it's not a Share or UDF",
+                    error,
+                    volume_id,
+                )
 
     @log_call(logger.debug)
     def handle_VM_SHARE_CHANGED(self, share_id):
@@ -955,17 +989,22 @@ class SyncdaemonEventListener(SyncdaemonObject):
         self.interface.sync_daemon.VolumesChanged(str_volumes)
 
     @log_call(logger.debug)
-    def handle_AQ_CHANGE_PUBLIC_ACCESS_OK(self, share_id, node_id,
-                                          is_public, public_url):
+    def handle_AQ_CHANGE_PUBLIC_ACCESS_OK(
+        self, share_id, node_id, is_public, public_url
+    ):
         """Handle the AQ_CHANGE_PUBLIC_ACCESS_OK event."""
         if share_id is None:
             share_id = ''
         share_id = str(share_id)
         node_id = str(node_id)
         path = self._get_path(share_id, node_id)
-        info = dict(share_id=share_id, node_id=node_id,
-                    is_public=bool_str(is_public),
-                    public_url=public_url, path=path)
+        info = dict(
+            share_id=share_id,
+            node_id=node_id,
+            is_public=bool_str(is_public),
+            public_url=public_url,
+            path=path,
+        )
         self.interface.public_files.PublicAccessChanged(info)
 
     @log_call(logger.debug)
@@ -988,8 +1027,14 @@ class SyncdaemonEventListener(SyncdaemonObject):
             node_id = pf['node_id']
             public_url = pf['public_url']
             path = self._get_path(volume_id, node_id)
-            files.append(dict(volume_id=volume_id, node_id=node_id,
-                              public_url=public_url, path=path))
+            files.append(
+                dict(
+                    volume_id=volume_id,
+                    node_id=node_id,
+                    public_url=public_url,
+                    path=path,
+                )
+            )
         self.interface.public_files.PublicFilesList(files)
 
     @log_call(logger.debug)
@@ -1076,7 +1121,8 @@ class SyncdaemonService(SyncdaemonObject):
 
         self.send_events = send_events
         self.network_manager = NetworkManagerState(
-            result_cb=self.network_state_changed)
+            result_cb=self.network_state_changed
+        )
         self.network_manager.find_online_state()
 
         if interface is None:
@@ -1103,8 +1149,9 @@ class SyncdaemonService(SyncdaemonObject):
         self.folders = SyncdaemonFolders(self.main, self.interface)
         self.public_files = SyncdaemonPublicFiles(self.main, self.interface)
         self.events = SyncdaemonEvents(self.main, self.interface)
-        self.event_listener = SyncdaemonEventListener(self.main,
-                                                      self.interface)
+        self.event_listener = SyncdaemonEventListener(
+            self.main, self.interface
+        )
         self.sync = self  # for API compatibility
 
     @log_call(logger.info)
@@ -1140,7 +1187,8 @@ class SyncdaemonService(SyncdaemonObject):
 
         logger.debug('connect: auth credentials were given by parameter.')
         self.main.event_q.push(
-            'SYS_USER_CONNECT', access_token=self.auth_credentials)
+            'SYS_USER_CONNECT', access_token=self.auth_credentials
+        )
 
         return d
 

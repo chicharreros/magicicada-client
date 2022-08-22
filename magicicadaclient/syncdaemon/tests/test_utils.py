@@ -42,7 +42,8 @@ class UtilsTestCase(TestCase):
         """Test that we use the buildout python running from source."""
         self.patch(sys, 'platform', 'darwin')
         self.patch(
-            utils, 'get_program_path', lambda _, *args, **kwargs: 'test-path')
+            utils, 'get_program_path', lambda _, *args, **kwargs: 'test-path'
+        )
         args = utils.get_sd_bin_cmd()
         self.assertEqual(len(args), 2)
         self.assertEqual(args[0], 'python')
@@ -51,7 +52,8 @@ class UtilsTestCase(TestCase):
         """Test that we DO NOT use the buildout python running from source."""
         self.patch(sys, 'platform', 'linux')
         self.patch(
-            utils, 'get_program_path', lambda _, *args, **kwargs: 'test-path')
+            utils, 'get_program_path', lambda _, *args, **kwargs: 'test-path'
+        )
         args = utils.get_sd_bin_cmd()
         self.assertEqual(len(args), 1)
         self.assertEqual(args[0], 'test-path')
@@ -62,7 +64,8 @@ class UtilsTestCase(TestCase):
         self.addCleanup(delattr, sys, 'frozen')
         self.patch(sys, 'platform', 'darwin')
         self.patch(
-            utils, 'get_program_path', lambda _, *args, **kwargs: 'test-path')
+            utils, 'get_program_path', lambda _, *args, **kwargs: 'test-path'
+        )
         args = utils.get_sd_bin_cmd()
         self.assertEqual(len(args), 1)
         self.assertEqual(args[0], 'test-path')
@@ -73,7 +76,8 @@ class UtilsTestCase(TestCase):
         self.addCleanup(delattr, sys, 'frozen')
         self.patch(sys, 'platform', 'linux')
         self.patch(
-            utils, 'get_program_path', lambda _, *args, **kwargs: 'test-path')
+            utils, 'get_program_path', lambda _, *args, **kwargs: 'test-path'
+        )
         args = utils.get_sd_bin_cmd()
         self.assertEqual(len(args), 1)
         self.assertEqual(args[0], 'test-path')

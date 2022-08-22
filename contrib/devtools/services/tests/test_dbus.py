@@ -49,12 +49,14 @@ class TestWithDBus(DBusTestCase):
         bus_address = os.environ.get('DBUS_SESSION_BUS_ADDRESS', None)
         self.assertEqual(
             os.path.dirname(unquote(bus_address.split(',')[0].split('=')[1])),
-            os.path.dirname(os.getcwd()))
+            os.path.dirname(os.getcwd()),
+        )
 
     def test_config_file_path(self):
         """Test that we loaded the config file from the local tree."""
         expected = os.path.abspath(
-            os.path.join(self.tmpdir, 'dbus-session.conf'))
+            os.path.join(self.tmpdir, 'dbus-session.conf')
+        )
         runner = DBusRunner()
         os.makedirs(self.tmpdir)
         runner._generate_config_file(tempdir=self.tmpdir)
