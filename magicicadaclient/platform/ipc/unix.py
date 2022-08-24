@@ -32,7 +32,7 @@ from magicicadaclient.syncdaemon.config import MAIN, get_user_config
 
 def get_domain_socket():
     """Compute the domain socket for the service ipc."""
-    return get_user_config().get_parsed(MAIN, 'socket_dir')
+    return get_user_config().get(MAIN, 'socket_dir')
 
 
 class DescriptionFactory:

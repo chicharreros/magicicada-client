@@ -32,9 +32,8 @@ import logging
 import os
 
 from argparse import ArgumentTypeError
-from configparser import ConfigParser
+from configparser import ConfigParser, NoOptionError
 from twisted.internet import defer
-from twisted.trial.unittest import TestCase
 from dirspec.basedir import xdg_data_home, xdg_cache_home
 
 from magicicadaclient.testing.testcase import BaseTwistedTestCase
@@ -45,6 +44,8 @@ from magicicadaclient.syncdaemon import config
 
 class TestConfigBasic(BaseTwistedTestCase):
     """Basic _Config object tests."""
+
+    OVERRIDE_CONFIG_FILES = False
 
     @defer.inlineCallbacks
     def setUp(self):
@@ -77,7 +78,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         """Test loading the a non-existent config file."""
         conf_file = os.path.join(self.test_root, 'test_missing_config.conf')
         # create the config object with an empty config file
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertFalse(conf.get_throttling())
         self.assertEqual(2097152, conf.get_throttling_read_limit())
         self.assertEqual(2097152, conf.get_throttling_write_limit())
@@ -91,7 +92,7 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('on = True\n')
             fp.write('read_limit = 1000\n')
             fp.write('write_limit = 200\n')
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf.get_throttling())
         self.assertEqual(1000, conf.get_throttling_read_limit())
         self.assertEqual(200, conf.get_throttling_write_limit())
@@ -102,14 +103,16 @@ class TestConfigBasic(BaseTwistedTestCase):
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
             fp.write('[__main__]\n')
-            fp.write('log_level = INFO\n')
-            fp.write('disable_ssl_verify = True\n')
+            fp.write('files_sync_enabled = True\n')
+            fp.write('\n')
+            fp.write('[logging]\n')
+            fp.write('level = INFO\n')
             fp.write('\n')
             fp.write('[bandwidth_throttling]\n')
             fp.write('on = True\n')
             fp.write('read_limit = 1000\n')
             fp.write('write_limit = 200\n')
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf.get_throttling())
         self.assertEqual(1000, conf.get_throttling_read_limit())
         self.assertEqual(200, conf.get_throttling_write_limit())
@@ -118,11 +121,11 @@ class TestConfigBasic(BaseTwistedTestCase):
         """Test writing the throttling section to a new config file."""
         conf_file = os.path.join(self.test_root, 'test_write_new_config.conf')
         self.assertFalse(path_exists(conf_file))
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         conf.set_throttling(True)
         conf.set_throttling_read_limit(1000)
         conf.set_throttling_write_limit(100)
-        conf.save()
+        conf.save(conf_file)
         # load the config in a barebone ConfigParser and check
         conf_1 = ConfigParser()
         conf_1.read(conf_file)
@@ -140,11 +143,11 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('read_limit = 1000\n')
             fp.write('write_limit = 100\n')
         self.assertTrue(path_exists(conf_file))
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         conf.set_throttling(True)
         conf.set_throttling_read_limit(2000)
         conf.set_throttling_write_limit(200)
-        conf.save()
+        conf.save(conf_file)
         # load the config in a barebone ConfigParser and check
         conf_1 = ConfigParser()
         conf_1.read(conf_file)
@@ -158,31 +161,31 @@ class TestConfigBasic(BaseTwistedTestCase):
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
             fp.write('[__main__]\n')
-            fp.write('log_level = INFO\n')
-            fp.write('disable_ssl_verify = True\n')
+            fp.write('files_sync_enabled = True\n')
+            fp.write('\n')
+            fp.write('[logging]\n')
+            fp.write('level = INFO\n')
             fp.write('\n')
             fp.write('[bandwidth_throttling]\n')
             fp.write('on = False\n')
             fp.write('read_limit = 2000\n')
             fp.write('write_limit = 200\n')
         self.assertTrue(path_exists(conf_file))
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         conf.set_throttling(True)
         conf.set_throttling_read_limit(3000)
         conf.set_throttling_write_limit(300)
-        conf.save()
+        conf.save(conf_file)
         # load the config in a barebone ConfigParser and check
         conf_1 = ConfigParser()
         conf_1.read(conf_file)
         self.assertThrottlingSection(conf_1, conf, True, 3000, 300)
         self.assertEqual(
-            conf_1.get('__main__', 'log_level'),
-            conf.get('__main__', 'log_level'),
+            conf_1.getboolean('__main__', 'files_sync_enabled'),
+            conf.get('__main__', 'files_sync_enabled'),
         )
-        self.assertEqual(
-            conf_1.getboolean('__main__', 'disable_ssl_verify'),
-            conf.getboolean('__main__', 'disable_ssl_verify'),
-        )
+        self.assertEqual(conf_1.get('logging', 'level'), 'INFO')
+        self.assertEqual(conf.get('logging', 'level'), 20)
 
     def test_write_existing_partial(self):
         """Writing a partially updated throttling section to existing file."""
@@ -196,9 +199,9 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('read_limit = 1000\n')
             fp.write('write_limit = 100\n')
         self.assertTrue(path_exists(conf_file))
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         conf.set_throttling(False)
-        conf.save()
+        conf.save(conf_file)
         # load the config in a barebone ConfigParser and check
         conf_1 = ConfigParser()
         conf_1.read(conf_file)
@@ -213,7 +216,7 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('on = True\n')
             fp.write('read_limit = -1\n')
             fp.write('write_limit = -1\n')
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf.get_throttling())
         self.assertIsNone(conf.get_throttling_read_limit())
         self.assertIsNone(conf.get_throttling_write_limit())
@@ -226,7 +229,7 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('[bandwidth_throttling]\n')
             fp.write('on = True\n')
             fp.write('read_limit = 1\n')
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf.get_throttling())
         self.assertEqual(1, conf.get_throttling_read_limit())
         self.assertEqual(2097152, conf.get_throttling_write_limit())
@@ -240,15 +243,15 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('on = True\n')
             fp.write('read_limit = 1000\n')
             fp.write('write_limit = 200\n')
-        conf = config._Config(conf_file)
-        conf_orig = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
+        conf_orig = config.SyncDaemonConfigParser(conf_file)
         overridden_opts = [('bandwidth_throttling', 'on', False)]
         conf.override_options(overridden_opts)
         self.assertFalse(conf.get_throttling())
-        self.assertFalse(conf.get_throttling() == conf_orig.get_throttling())
+        self.assertNotEqual(conf.get_throttling(), conf_orig.get_throttling())
         self.assertEqual(1000, conf.get_throttling_read_limit())
         self.assertEqual(200, conf.get_throttling_write_limit())
-        conf.save()
+        # conf.save(conf_file)  # XXX save should use overriden values?
         # load the config in a barebone ConfigParser and check
         conf_1 = ConfigParser()
         conf_1.read(conf_file)
@@ -262,8 +265,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
             fp.write('[__main__]\n')
-            fp.write('log_level = INFO\n')
-            fp.write('disable_ssl_verify = True\n')
+            fp.write('files_sync_enabled = True\n')
             fp.write('udf_autosubscribe = True\n')
             fp.write('\n')
             fp.write('[bandwidth_throttling]\n')
@@ -272,28 +274,28 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('write_limit = 200\n')
 
         # keep a original around
-        conf_orig = config._Config(conf_file)
+        conf_orig = config.SyncDaemonConfigParser(conf_file)
 
         # load the config
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf.get_udf_autosubscribe())
         # change it to False
         conf.set_udf_autosubscribe(False)
         self.assertFalse(conf.get_udf_autosubscribe())
         # save, load and check
-        conf.save()
-        conf_1 = config._Config(conf_file)
+        conf.save(conf_file)
+        conf_1 = config.SyncDaemonConfigParser(conf_file)
         self.assertFalse(conf_1.get_udf_autosubscribe())
         # change it to True
         conf.set_udf_autosubscribe(True)
         self.assertTrue(conf.get_udf_autosubscribe())
         # save, load and check
-        conf.save()
-        conf_1 = config._Config(conf_file)
+        conf.save(conf_file)
+        conf_1 = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf_1.get_udf_autosubscribe())
 
         # load the config, check the override of the value
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf.get_udf_autosubscribe())
         overridden_opts = [('__main__', 'udf_autosubscribe', False)]
         conf.override_options(overridden_opts)
@@ -301,8 +303,8 @@ class TestConfigBasic(BaseTwistedTestCase):
         self.assertNotEqual(
             conf.get_udf_autosubscribe(), conf_orig.get_udf_autosubscribe()
         )
-        conf.save()
-        conf_1 = config._Config(conf_file)
+        # conf.save(conf_file)  # XXX save should use overriden values?
+        conf_1 = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf_1.get_udf_autosubscribe())
 
     def test_load_share_autosubscribe(self):
@@ -316,28 +318,28 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('share_autosubscribe = True\n')
 
         # keep a original around
-        conf_orig = config._Config(conf_file)
+        conf_orig = config.SyncDaemonConfigParser(conf_file)
 
         # load the config
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf.get_share_autosubscribe())
         # change it to False
         conf.set_share_autosubscribe(False)
         self.assertFalse(conf.get_share_autosubscribe())
         # save, load and check
-        conf.save()
-        conf_1 = config._Config(conf_file)
+        conf.save(conf_file)
+        conf_1 = config.SyncDaemonConfigParser(conf_file)
         self.assertFalse(conf_1.get_share_autosubscribe())
         # change it to True
         conf.set_share_autosubscribe(True)
         self.assertTrue(conf.get_share_autosubscribe())
         # save, load and check
-        conf.save()
-        conf_1 = config._Config(conf_file)
+        conf.save(conf_file)
+        conf_1 = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf_1.get_share_autosubscribe())
 
         # load the config, check the override of the value
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf.get_share_autosubscribe())
         overridden_opts = [('__main__', 'share_autosubscribe', False)]
         conf.override_options(overridden_opts)
@@ -345,8 +347,8 @@ class TestConfigBasic(BaseTwistedTestCase):
         self.assertNotEqual(
             conf.get_share_autosubscribe(), conf_orig.get_share_autosubscribe()
         )
-        conf.save()
-        conf_1 = config._Config(conf_file)
+        # conf.save(conf_file)  # XXX save should use overriden values?
+        conf_1 = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf_1.get_share_autosubscribe())
 
     def test_load_autoconnect(self):
@@ -360,7 +362,7 @@ class TestConfigBasic(BaseTwistedTestCase):
             fp.write('autoconnect = True\n')
 
         # keep a original around
-        conf_orig = config._Config(conf_file)
+        conf_orig = config.SyncDaemonConfigParser(conf_file)
 
         # assert default is correct
         self.assertTrue(
@@ -368,7 +370,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         )
 
         # load the config
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf.get_autoconnect())
 
         # change it to False
@@ -376,19 +378,19 @@ class TestConfigBasic(BaseTwistedTestCase):
         self.assertFalse(conf.get_autoconnect())
 
         # save, load and check
-        conf.save()
-        conf_1 = config._Config(conf_file)
+        conf.save(conf_file)
+        conf_1 = config.SyncDaemonConfigParser(conf_file)
         self.assertFalse(conf_1.get_autoconnect())
         # change it to True
         conf.set_autoconnect(True)
         self.assertTrue(conf.get_autoconnect())
         # save, load and check
-        conf.save()
-        conf_1 = config._Config(conf_file)
+        conf.save(conf_file)
+        conf_1 = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf_1.get_autoconnect())
 
         # load the config, check the override of the value
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf.get_autoconnect())
         overridden_opts = [('__main__', 'autoconnect', False)]
         conf.override_options(overridden_opts)
@@ -396,8 +398,8 @@ class TestConfigBasic(BaseTwistedTestCase):
         self.assertNotEqual(
             conf.get_autoconnect(), conf_orig.get_autoconnect()
         )
-        conf.save()
-        conf_1 = config._Config(conf_file)
+        # conf.save(conf_file)  # XXX save should use overriden values?
+        conf_1 = config.SyncDaemonConfigParser(conf_file)
         self.assertTrue(conf_1.get_autoconnect())
 
     def test_get_simult_transfers(self):
@@ -406,7 +408,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         with open_file(conf_file, 'w') as fh:
             fh.write('[__main__]\n')
             fh.write('simult_transfers = 12345\n')
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertEqual(conf.get_simult_transfers(), 12345)
 
     def test_set_simult_transfers(self):
@@ -415,7 +417,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         with open_file(conf_file, 'w') as fh:
             fh.write('[__main__]\n')
             fh.write('simult_transfers = 12345\n')
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         conf.set_simult_transfers(666)
         self.assertEqual(conf.get_simult_transfers(), 666)
 
@@ -425,7 +427,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         with open_file(conf_file, 'w') as fh:
             fh.write('[__main__]\n')
             fh.write('max_payload_size = 12345\n')
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertEqual(conf.get_max_payload_size(), 12345)
 
     def test_set_max_payload_size(self):
@@ -434,7 +436,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         with open_file(conf_file, 'w') as fh:
             fh.write('[__main__]\n')
             fh.write('max_payload_size = 12345\n')
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         conf.set_max_payload_size(666)
         self.assertEqual(conf.get_max_payload_size(), 666)
 
@@ -444,7 +446,7 @@ class TestConfigBasic(BaseTwistedTestCase):
         with open_file(conf_file, 'w') as fh:
             fh.write('[__main__]\n')
             fh.write('memory_pool_limit = 12345\n')
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         self.assertEqual(conf.get_memory_pool_limit(), 12345)
 
     def test_set_memory_pool_limit(self):
@@ -453,13 +455,9 @@ class TestConfigBasic(BaseTwistedTestCase):
         with open_file(conf_file, 'w') as fh:
             fh.write('[__main__]\n')
             fh.write('memory_pool_limit = 12345\n')
-        conf = config._Config(conf_file)
+        conf = config.SyncDaemonConfigParser(conf_file)
         conf.set_memory_pool_limit(666)
         self.assertEqual(conf.get_memory_pool_limit(), 666)
-
-
-class PathsTestCase(TestCase):
-    """Tests for paths."""
 
     def test_get_config_files_path_encoding(self):
         """Check that get_config_files uses paths in the right encoding."""
@@ -476,10 +474,33 @@ class PathsTestCase(TestCase):
 
     def test_load_branch_configuration(self):
         """Check that the configuration from the branch is loaded."""
-        config_files = [os.path.normpath(p) for p in config.get_config_files()]
         rootdir = os.environ['ROOTDIR']
         branch_config = os.path.join(rootdir, "data", config.CONFIG_FILE)
-        self.assertIn(branch_config, config_files)
+        conf_1 = ConfigParser()
+        conf_1.read(branch_config)
+
+        conf = config.SyncDaemonConfigParser()
+
+        for section in conf_1.sections():
+            parser = value = None
+            last_item = None
+            for optname in conf_1.options(section):
+                optvalue = conf_1.get(section, optname)
+                item, subitem = optname.split('.', 1)
+                if last_item is None:
+                    last_item = item
+
+                if last_item != item:
+                    if parser is not None:
+                        value = parser(value)
+                    self.assertEqual(conf.get(section, last_item), value)
+                    parser = value = None
+                    last_item = item
+
+                if subitem == 'parser':
+                    parser = config.get_parsers()[optvalue]
+                elif subitem == 'default':
+                    value = optvalue
 
 
 class ParserBaseTestCase(BaseTwistedTestCase):
@@ -508,7 +529,7 @@ class ThrottlingLimitParserTests(ParserBaseTestCase):
 
 
 class BooleanParserTests(ParserBaseTestCase):
-    parser_name = 'bool-new'
+    parser_name = 'bool'
 
     def test_true(self):
         for i in ('1', 'yes', 'true', 'on', 'YES', 'Yes', 'True', 'True'):
@@ -709,7 +730,7 @@ class AuthParserTests(ParserBaseTestCase):
 
 
 class LinesParserTests(ParserBaseTestCase):
-    parser_name = 'lines-new'
+    parser_name = 'lines'
 
     def test_parser(self):
         cases = [
@@ -796,18 +817,6 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         with open(self.default_config) as f:
             self.cp.readfp(f)
 
-    def test_log_level_old_config(self):
-        """Test log_level upgrade hook."""
-        conf_file = os.path.join(self.test_root, 'test_old_config.conf')
-        # write some throttling values to the config file
-        with open_file(conf_file, 'w') as fp:
-            fp.write('[__main__]\n')
-            fp.write('log_level = DEBUG\n')
-        self.assertTrue(path_exists(conf_file))
-        self.cp.read([conf_file])
-        self.cp.parse_all()
-        self.assertEqual(self.cp.get('logging', 'level').value, logging.DEBUG)
-
     def test_log_level_new_config(self):
         """Test log_level upgrade hook with new config."""
         conf_file = os.path.join(self.test_root, 'test_new_config.conf')
@@ -818,50 +827,7 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEqual(self.cp.get('logging', 'level').value, logging.DEBUG)
-
-    def test_log_level_old_and_new_config(self):
-        """Test log_level upgrade hook with a mixed config."""
-        conf_file = os.path.join(
-            self.test_root, 'test_old_and_new_config.conf'
-        )
-        # write some throttling values to the config file (not default ones)
-        with open_file(conf_file, 'w') as fp:
-            fp.write('[__main__]\n')
-            fp.write('log_level = NOTE\n')
-            fp.write('[logging]\n')
-            fp.write('level = ERROR\n')
-        self.assertTrue(path_exists(conf_file))
-        self.cp.read([conf_file])
-        self.cp.parse_all()
-        self.assertEqual(self.cp.get('logging', 'level').value, logging.ERROR)
-
-    def test_old_default_config(self):
-        """Test log_level upgrade hook with an old default config."""
-        self.cp.read(config.get_config_files()[0])
-        # fake an old config
-        value = self.cp.get('logging', 'level.default')
-        help = self.cp.get('logging', 'level.help')
-        parser = self.cp.get('logging', 'level.parser')
-        self.cp.set('__main__', 'log_level.default', value)
-        self.cp.set('__main__', 'log_level.help', help)
-        self.cp.set('__main__', 'log_level.parser', parser)
-        self.cp.remove_option('logging', 'level.default')
-        self.cp.remove_option('logging', 'level.help')
-        self.cp.remove_option('logging', 'level.parser')
-        # parse it
-        self.cp.parse_all()
-        new_value = self.cp.get('logging', 'level')
-        self.assertEqual(new_value.value, new_value.parser(value))
-
-    def test_add_upgrade_hook(self):
-        """Test add_upgrade_hook method."""
-        self.cp.add_upgrade_hook('foo', 'bar', lambda x: None)
-        self.assertIn(('foo', 'bar'), self.cp.upgrade_hooks)
-        # try to add the same upgrade_hook
-        self.assertRaises(
-            ValueError, self.cp.add_upgrade_hook, 'foo', 'bar', lambda x: None
-        )
+        self.assertEqual(self.cp.get('logging', 'level'), logging.DEBUG)
 
     def test_ignore_one(self):
         """Test ignore files config, one regex."""
@@ -872,7 +838,7 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEqual(self.cp.get('__main__', 'ignore').value, [r'.*\.pyc'])
+        self.assertEqual(self.cp.get('__main__', 'ignore'), [r'.*\.pyc'])
 
     def test_ignore_two(self):
         """Test ignore files config, two regexes."""
@@ -885,7 +851,7 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.cp.read([conf_file])
         self.cp.parse_all()
         self.assertEqual(
-            self.cp.get('__main__', 'ignore').value,
+            self.cp.get('__main__', 'ignore'),
             ['.*\\.pyc', '.*\\.sw[opnx]'],
         )
 
@@ -899,29 +865,66 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEqual(
-            self.cp.get('__main__', 'fs_monitor').value, monitor_id
-        )
+        self.assertEqual(self.cp.get('__main__', 'fs_monitor'), monitor_id)
 
     def test_use_trash_default(self):
         """Test default configuration for use_trash."""
         self.cp.parse_all()
-        self.assertEqual(self.cp.get('__main__', 'use_trash').value, True)
+        self.assertEqual(self.cp.get('__main__', 'use_trash'), True)
 
     def test_ignore_libreoffice_lockfiles(self):
         """Test the default config includes ignoring libreoffice lockfiles."""
         self.cp.parse_all()
-        self.assertIn(
-            r'\A\.~lock\..*#\Z', self.cp.get('__main__', 'ignore').value
-        )
+        self.assertIn(r'\A\.~lock\..*#\Z', self.cp.get('__main__', 'ignore'))
 
     def test_simult_transfers(self):
         """Test default configuration for simultaneous transfers."""
         self.cp.parse_all()
-        self.assertEqual(self.cp.get('__main__', 'simult_transfers').value, 10)
+        self.assertEqual(self.cp.get('__main__', 'simult_transfers'), 10)
 
     def test_memory_pool_limit(self):
         """Test default configuration for memory pool limit."""
         self.cp.parse_all()
-        configured = self.cp.get('__main__', 'memory_pool_limit').value
+        configured = self.cp.get('__main__', 'memory_pool_limit')
         self.assertEqual(configured, 200)
+
+    def test_unknown_section_in_defaults(self):
+        self.cp.read_string('[foo]\ndebug = True\n')
+        configured = self.cp.get('foo', 'debug')
+        self.assertEqual(configured, 'True')
+
+    def test_unknown_optname_in_defaults(self):
+        self.cp.read_string('[__main__]\nfoo = bar\n')
+        configured = self.cp.get('__main__', 'foo')
+        self.assertEqual(configured, 'bar')
+
+    def test_unknown_section(self):
+        self.cp.read_string('[foo]\ndebug = True\n')
+        self.assertRaises(NoOptionError, self.cp.get, 'fooo', 'debug')
+
+    def test_unknown_optname(self):
+        self.cp.read_string('[__main__]\nfoo = bar\n')
+        self.assertRaises(NoOptionError, self.cp.get, '__main__', 'fooo')
+
+
+class ConfigglueTestCase(BaseTwistedTestCase):
+    def assert_default_args(self, final_args):
+        expected = {
+            vv.argparse_name: vv.value
+            for k, v in config.base_config_as_dict().items()
+            for kk, vv in v.items()
+        }
+        expected['conf_file'] = config.get_config_files()
+        actual = final_args.__dict__
+        self.assertEqual(sorted(actual.keys()), sorted(expected.keys()))
+        for k, v in expected.items():
+            self.assertEqual(
+                actual[k],
+                v,
+                f'Mismatch for {k=}, expected {v} but got {actual[k]} '
+                'instead.',
+            )
+
+    def test_args_none(self):
+        final_args = config.configglue(args=None)
+        self.assert_default_args(final_args)

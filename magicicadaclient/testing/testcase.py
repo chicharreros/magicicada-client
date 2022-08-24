@@ -410,15 +410,6 @@ class BaseTwistedTestCase(TwistedTestCase):
         self.home_dir = self.mktemp('chicharrero')
         self.patch(platform, "user_home", self.home_dir)
 
-        # use the config from the branch
-        self.patch(
-            config,
-            'get_config_files',
-            lambda: [
-                os.path.join(os.environ['ROOTDIR'], 'data', 'syncdaemon.conf')
-            ],
-        )
-
         # fake a very basic config file with sane defaults for the tests
         config_dir = self.mktemp('config')
         self.config_file = os.path.join(config_dir, 'syncdaemon.conf')
@@ -428,8 +419,9 @@ class BaseTwistedTestCase(TwistedTestCase):
             fp.write('read_limit = -1\n')
             fp.write('write_limit = -1\n')
         # invalidate the current config
-        config._user_config = None
-        config.get_user_config(config_file=self.config_file)
+        config.get_user_config(
+            config_files=[self.config_file], force_reload=True
+        )
 
         self.log = logging.getLogger(
             '.'.join((__name__, self.__class__.__name__))

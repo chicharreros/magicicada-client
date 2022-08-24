@@ -78,16 +78,8 @@ def check_death(failure):
 def main(argv):
     """Client entry point."""
     args = argv[1:]
-    usage = "Usage: %prog [config file] [extra config files] [options] "
-    configs = []
-    while len(args) > 0 and not args[0].startswith('-'):
-        configs.append(args.pop(0))
-    if len(configs) == 0:
-        configs.extend(config.get_config_files())
-    with open(configs[0]) as f:
-        (parser, options, argv) = config.configglue(
-            f, *configs[1:], args=args, usage=usage)
-    d = async_main(parser, options, argv)
+    options = config.configglue(args)
+    d = async_main(options)
     d.addErrback(check_death)
     d.addErrback(logger.root_logger.exception)
 
@@ -123,7 +115,7 @@ def startManhole():
 
 
 @defer.inlineCallbacks
-def async_main(parser, options, argv):
+def async_main(options):
     """The client entry point that can yield."""
     debug = os.environ.get("MAGICICADA_DEBUG", options.debug)
     logger.init(
@@ -144,7 +136,7 @@ def async_main(parser, options, argv):
     # we need to perform this check first because libsyncdaemon uses
     # NameOwnerChanged signal to set up internal syncdaemon structures.
     # In case we check config after acquiring DBus name we'll get LP:759714
-    if not config.get_user_config().get_files_sync_enabled():
+    if not options.files_sync_enabled:
         die('Files synchronization is disabled.')
 
     # check if there is another instance running
