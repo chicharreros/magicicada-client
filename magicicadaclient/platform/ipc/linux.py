@@ -29,8 +29,6 @@
 """IPC implementation for linux."""
 
 import logging
-import warnings
-
 import dbus
 import dbus.service
 
@@ -153,28 +151,6 @@ class Status(DBusExposedObject):
         """Return a list of the operations in action queue."""
         return self.service.status.waiting()
 
-    @dbus.service.method(DBUS_IFACE_STATUS_NAME, out_signature='a(sa{ss})')
-    def waiting_metadata(self):
-        """Return a list of the operations in the meta-queue.
-
-        As we don't have meta-queue anymore, this is faked. This method
-        is deprecated, and will go away in a near future.
-
-        """
-        warnings.warn('Use "waiting" method instead.', DeprecationWarning)
-        return self.service.status.waiting_metadata()
-
-    @dbus.service.method(DBUS_IFACE_STATUS_NAME, out_signature='aa{ss}')
-    def waiting_content(self):
-        """Return a list of files that are waiting to be up- or downloaded.
-
-        As we don't have content-queue anymore, this is faked.  This method
-        is deprecated, and will go away in a near future.
-
-        """
-        warnings.warn('Use "waiting" method instead.', DeprecationWarning)
-        return self.service.status.waiting_content()
-
     @dbus.service.signal(DBUS_IFACE_STATUS_NAME)
     def DownloadStarted(self, path):
         """Fire a signal to notify that a download has started."""
@@ -214,26 +190,6 @@ class Status(DBusExposedObject):
     @dbus.service.signal(DBUS_IFACE_STATUS_NAME, signature='a{ss}')
     def AccountChanged(self, account_info):
         """Fire a signal to notify that account information has changed."""
-
-    @dbus.service.signal(DBUS_IFACE_STATUS_NAME)
-    def ContentQueueChanged(self):
-        """Fire a signal to notify that the content queue has changed.
-
-        This signal is deprecated, and will go away in a near future.
-
-        """
-        msg = 'Connect to RequestQueueAdded/RequestQueueRemoved instead.'
-        warnings.warn(msg, DeprecationWarning)
-
-    @dbus.service.signal(DBUS_IFACE_STATUS_NAME)
-    def MetaQueueChanged(self):
-        """Fire a signal to notify that the meta queue has changed.
-
-        This signal is deprecated, and will go away in a near future.
-
-        """
-        msg = 'Connect to RequestQueueAdded/RequestQueueRemoved instead.'
-        warnings.warn(msg, DeprecationWarning)
 
     @dbus.service.signal(DBUS_IFACE_STATUS_NAME, signature='ssa{ss}')
     def RequestQueueAdded(self, op_name, op_id, data):
@@ -630,22 +586,6 @@ class Config(DBusExposedObject):
         self.service.config.disable_share_autosubscribe()
 
     @dbus.service.method(
-        DBUS_IFACE_CONFIG_NAME, in_signature='b', out_signature=''
-    )
-    def set_files_sync_enabled(self, enabled):
-        """Enable/disable file sync service.
-
-        DEPRECATED. Use {enable/disable}_files_sync instead.
-
-        """
-        msg = 'Use enable_files_sync/disable_files_sync instead.'
-        warnings.warn(msg, DeprecationWarning)
-        if enabled:
-            self.service.config.enable_files_sync()
-        else:
-            self.service.config.disable_files_sync()
-
-    @dbus.service.method(
         DBUS_IFACE_CONFIG_NAME, in_signature='', out_signature='b'
     )
     def files_sync_enabled(self):
@@ -686,22 +626,6 @@ class Config(DBusExposedObject):
     def disable_autoconnect(self):
         """Disable syncdaemon autoconnect."""
         self.service.config.disable_autoconnect()
-
-    @dbus.service.method(
-        DBUS_IFACE_CONFIG_NAME, in_signature='b', out_signature=''
-    )
-    def set_autoconnect_enabled(self, enabled):
-        """Enable syncdaemon autoconnect.
-
-        DEPRECATED. Use {enable/disable}_autoconnect instead.
-
-        """
-        msg = 'Use enable_autoconnect/disable_autoconnect instead.'
-        warnings.warn(msg, DeprecationWarning)
-        if enabled:
-            self.service.config.enable_autoconnect()
-        else:
-            self.service.config.disable_autoconnect()
 
 
 class Folders(DBusExposedObject):

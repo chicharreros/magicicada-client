@@ -30,8 +30,6 @@
 
 import logging
 import sys
-import warnings
-
 from functools import wraps
 from collections import defaultdict
 
@@ -247,8 +245,6 @@ class Status(IPCExposedObject, metaclass=RemoteMeta):
         'current_downloads',
         'free_space',
         'waiting',
-        'waiting_metadata',
-        'waiting_content',
     ]
 
     signal_mapping = {
@@ -262,8 +258,6 @@ class Status(IPCExposedObject, metaclass=RemoteMeta):
         'BrokenNode': 'on_broken_node',
         'StatusChanged': 'on_status_changed',
         'AccountChanged': 'on_account_changed',
-        'ContentQueueChanged': 'on_content_queue_changed',
-        'MetaQueueChanged': 'on_metaqueue_changed',
         'RequestQueueAdded': 'on_request_queue_added',
         'RequestQueueRemoved': 'on_request_queue_removed',
         'SignalError': 'on_error_signal',
@@ -288,26 +282,6 @@ class Status(IPCExposedObject, metaclass=RemoteMeta):
     def waiting(self):
         """Return a list of the operations in action queue."""
         return self.service.status.waiting()
-
-    def waiting_metadata(self):
-        """Return a list of the operations in the meta-queue.
-
-        As we don't have meta-queue anymore, this is faked. This method
-        is deprecated, and will go away in a near future.
-
-        """
-        warnings.warn('Use "waiting" method instead.', DeprecationWarning)
-        return self.service.status.waiting_metadata()
-
-    def waiting_content(self):
-        """Return a list of files that are waiting to be up- or downloaded.
-
-        As we don't have content-queue anymore, this is faked.  This method
-        is deprecated, and will go away in a near future.
-
-        """
-        warnings.warn('Use "waiting" method instead.', DeprecationWarning)
-        return self.service.status.waiting_content()
 
     @signal
     def DownloadStarted(self, path):
@@ -348,26 +322,6 @@ class Status(IPCExposedObject, metaclass=RemoteMeta):
     @signal
     def AccountChanged(self, account_info):
         """Fire a signal to notify that account information has changed."""
-
-    @signal
-    def ContentQueueChanged(self):
-        """Fire a signal to notify that the content queue has changed.
-
-        This signal is deprecated, and will go away in a near future.
-
-        """
-        msg = 'Connect to RequestQueueAdded/RequestQueueRemoved instead.'
-        warnings.warn(msg, DeprecationWarning)
-
-    @signal
-    def MetaQueueChanged(self):
-        """Fire a signal to notify that the meta queue has changed.
-
-        This signal is deprecated, and will go away in a near future.
-
-        """
-        msg = 'Connect to RequestQueueAdded/RequestQueueRemoved instead.'
-        warnings.warn(msg, DeprecationWarning)
 
     @signal
     def RequestQueueAdded(self, op_name, op_id, data):
@@ -685,11 +639,9 @@ class Config(IPCExposedObject, metaclass=RemoteMeta):
         'files_sync_enabled',
         'enable_files_sync',
         'disable_files_sync',
-        'set_files_sync_enabled',
         'autoconnect_enabled',
         'enable_autoconnect',
         'disable_autoconnect',
-        'set_autoconnect_enabled',
     ]
 
     signal_mapping = {}
@@ -743,19 +695,6 @@ class Config(IPCExposedObject, metaclass=RemoteMeta):
         """Disable share autosubscribe."""
         self.service.config.disable_share_autosubscribe()
 
-    def set_files_sync_enabled(self, enabled):
-        """Enable/disable file sync service.
-
-        DEPRECATED. Use {enable/disable}_files_sync instead.
-
-        """
-        msg = 'Use enable_files_sync/disable_files_sync instead.'
-        warnings.warn(msg, DeprecationWarning)
-        if enabled:
-            self.service.config.enable_files_sync()
-        else:
-            self.service.config.disable_files_sync()
-
     def files_sync_enabled(self):
         """Return the files_sync_enabled config value."""
         return self.service.config.files_sync_enabled()
@@ -779,19 +718,6 @@ class Config(IPCExposedObject, metaclass=RemoteMeta):
     def disable_autoconnect(self):
         """Disable syncdaemon autoconnect."""
         self.service.config.disable_autoconnect()
-
-    def set_autoconnect_enabled(self, enabled):
-        """Enable syncdaemon autoconnect.
-
-        DEPRECATED. Use {enable/disable}_autoconnect instead.
-
-        """
-        msg = 'Use enable_autoconnect/disable_autoconnect instead.'
-        warnings.warn(msg, DeprecationWarning)
-        if enabled:
-            self.service.config.enable_autoconnect()
-        else:
-            self.service.config.disable_autoconnect()
 
 
 class Folders(IPCExposedObject, metaclass=RemoteMeta):

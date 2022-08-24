@@ -61,8 +61,6 @@ from magicicadaclient.platform.tools import (
     show_state,
     show_uploads,
     show_waiting,
-    show_waiting_content,
-    show_waiting_metadata,
 )
 
 
@@ -192,12 +190,6 @@ def run(options, sync_daemon_tool, out):
     elif options.waiting:
         d = sync_daemon_tool.waiting()
         d.addCallback(lambda r: show_waiting(r, out))
-    elif options.waiting_metadata:
-        d = sync_daemon_tool.waiting_metadata()
-        d.addCallback(lambda r: show_waiting_metadata(r, out))
-    elif options.waiting_content:
-        d = sync_daemon_tool.waiting_content()
-        d.addCallback(lambda r: show_waiting_content(r, out))
     elif options.free_space is not None:
         d = sync_daemon_tool.free_space(options.free_space)
         d.addCallback(lambda r: show_free_space(r, out))
@@ -288,14 +280,6 @@ if __name__ == '__main__':
     parser.add_option("", "--waiting", dest="waiting",
                       action='store_true',
                       help="Get the list of operations being executed")
-    parser.add_option("", "--waiting-content", dest="waiting_content",
-                      action='store_true',
-                      help="Get the waiting content list - Warning: this "
-                      "option is deprecated, use '--waiting' instead")
-    parser.add_option("", "--waiting-metadata", dest="waiting_metadata",
-                      action='store_true',
-                      help="Get the waiting metadata list - Warning: this "
-                      "option is deprecated, use '--waiting' instead")
     parser.add_option("", "--free-space", dest="free_space",
                       metavar="VOLUME_ID",
                       help="Get the free space for the volume")

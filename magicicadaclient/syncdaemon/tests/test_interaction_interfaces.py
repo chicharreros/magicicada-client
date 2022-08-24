@@ -354,69 +354,6 @@ class SyncdaemonStatusTestCase(BaseTestCase):
         )
         self.assertEqual(node_c, ('FakeCommand', str(id(c3)), should))
 
-    def test_waiting_metadata(self):
-        """Test the waiting_metadata method."""
-        self.action_q.queue.waiting.extend(
-            [
-                FakeCommand("share_id", "node_id_b", "moño"),
-                FakeCommand("share_id", "node_id_c", path='/some/path'),
-                FakeCommand("share_id", "node_id_d"),
-            ]
-        )
-
-        result = self.sd_obj.waiting_metadata()
-
-        self.assertEqual(len(result), 3)
-
-        pl = dict(
-            share_id='share_id',
-            node_id='node_id_b',
-            other='moño',
-            running='True',
-        )
-        self.assertEqual(result[0], ('FakeCommand', pl))
-
-        pl = dict(
-            share_id='share_id',
-            node_id='node_id_c',
-            other='',
-            path='/some/path',
-            running='True',
-        )
-        self.assertEqual(result[1], ('FakeCommand', pl))
-
-        pl = dict(
-            share_id='share_id', node_id='node_id_d', other='', running='True'
-        )
-        self.assertEqual(result[2], ('FakeCommand', pl))
-
-        self.handler.debug = True
-        self.assertTrue(self.handler.check_warning('deprecated'))
-
-    def test_waiting_content(self):
-        """Test the waiting_content method."""
-        self.action_q.queue.waiting.extend(
-            [
-                FakeUpload("share_id", "node_id_b"),
-                FakeDownload("share_id", "node_id_c"),
-            ]
-        )
-
-        result = self.sd_obj.waiting_content()
-
-        self.assertEqual(2, len(result))
-        node_b, node_c = result
-
-        self.assertEqual('upload_path', node_b['path'])
-        self.assertEqual('share_id', node_b['share'])
-        self.assertEqual('node_id_b', node_b['node'])
-
-        self.assertEqual('download_path', node_c['path'])
-        self.assertEqual('share_id', node_c['share'])
-        self.assertEqual('node_id_c', node_c['node'])
-
-        self.assertTrue(self.handler.check_warning('deprecated'))
-
 
 class SyncdaemonFileSystemTestCase(BaseTestCase):
     """Test the SyncdaemonFileSystem class."""
@@ -2248,21 +2185,6 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
     """Test the request queue events in SyncdaemonEventListener."""
 
     @defer.inlineCallbacks
-    def setUp(self):
-        yield super(RequestQueueEventListenerTestCase, self).setUp()
-        self.called = []
-        self.patch(
-            self.sd_obj.interface.status,
-            'ContentQueueChanged',
-            lambda: self.called.append('ContentQueueChanged'),
-        )
-        self.patch(
-            self.sd_obj.interface.status,
-            'MetaQueueChanged',
-            lambda: self.called.append('MetaQueueChanged'),
-        )
-
-    @defer.inlineCallbacks
     def test_handle_SYS_QUEUE_ADDED(self):
         """Test the handle_SYS_QUEUE_ADDED method."""
         d = defer.Deferred()
@@ -2282,40 +2204,6 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
             share_id='share', node_id='node', running='True', other='123'
         )
         self.assertEqual(data, should)
-
-        self.assertEqual(self.called, ['MetaQueueChanged'])
-
-    @defer.inlineCallbacks
-    def test_handle_SYS_QUEUE_ADDED_content_queue_changed_upload(self):
-        """Test that handle_SYS_QUEUE_ADDED also calls ContentQueueChanged."""
-        d = defer.Deferred()
-        self.patch(
-            self.sd_obj.interface.status,
-            'RequestQueueAdded',
-            lambda *a: d.callback(a),
-        )
-        cmd = FakeUpload('share', 'node')
-        self.main.event_q.push('SYS_QUEUE_ADDED', command=cmd)
-
-        yield d
-
-        self.assertEqual(self.called, ['ContentQueueChanged'])
-
-    @defer.inlineCallbacks
-    def test_handle_SYS_QUEUE_ADDED_content_queue_changed_download(self):
-        """Test that handle_SYS_QUEUE_ADDED also calls ContentQueueChanged."""
-        d = defer.Deferred()
-        self.patch(
-            self.sd_obj.interface.status,
-            'RequestQueueAdded',
-            lambda *a: d.callback(a),
-        )
-        cmd = FakeDownload('share', 'node')
-        self.main.event_q.push('SYS_QUEUE_ADDED', command=cmd)
-
-        yield d
-
-        self.assertEqual(self.called, ['ContentQueueChanged'])
 
     @defer.inlineCallbacks
     def test_handle_SYS_QUEUE_REMOVED(self):
@@ -2339,40 +2227,6 @@ class RequestQueueEventListenerTestCase(SyncdaemonEventListenerTestCase):
             other='marker:foo',
         )
         self.assertEqual(data, should)
-
-        self.assertEqual(self.called, ['MetaQueueChanged'])
-
-    @defer.inlineCallbacks
-    def test_handle_SYS_QUEUE_REMOVED_content_queue_changed_upload(self):
-        """Test handle_SYS_QUEUE_REMOVED also calls ContentQueueChanged."""
-        d = defer.Deferred()
-        self.patch(
-            self.sd_obj.interface.status,
-            'RequestQueueRemoved',
-            lambda *a: d.callback(a),
-        )
-        cmd = FakeUpload('share', 'node')
-        self.main.event_q.push('SYS_QUEUE_REMOVED', command=cmd)
-
-        yield d
-
-        self.assertEqual(self.called, ['ContentQueueChanged'])
-
-    @defer.inlineCallbacks
-    def test_handle_SYS_QUEUE_REMOVED_content_queue_changed_download(self):
-        """Test handle_SYS_QUEUE_REMOVED also calls ContentQueueChanged."""
-        d = defer.Deferred()
-        self.patch(
-            self.sd_obj.interface.status,
-            'RequestQueueRemoved',
-            lambda *a: d.callback(a),
-        )
-        cmd = FakeDownload('share', 'node')
-        self.main.event_q.push('SYS_QUEUE_REMOVED', command=cmd)
-
-        yield d
-
-        self.assertEqual(self.called, ['ContentQueueChanged'])
 
 
 class SyncdaemonServiceTestCase(BaseTestCase):

@@ -39,7 +39,6 @@ from magicicadaclient.testing.testcase import FakeCommand
 from magicicadaclient.platform import tools
 from magicicadaclient.platform.tests import IPCTestCase
 from magicicadaclient.syncdaemon import (
-    action_queue,
     event_queue,
     interaction_interfaces,
     states,
@@ -367,7 +366,7 @@ class TestWaitForSignals(TestToolsBase):
 
 
 class TestWaitForSignalsSignalErrorNone(TestWaitForSignals):
-    """Test case for the wait_for_signal method from SyncDaemonTool."""
+    """Test case for the wait_for_signals method from SyncDaemonTool."""
 
     signal_error = None
 
@@ -392,50 +391,6 @@ class TestWaitForSignalsEmitSignalError(TestWaitForSignals):
         result = yield self.assertFailure(d, tools.IPCError)
         self.assertEqual(result.name, self.signal_error)
         self.assertEqual(result.info, (expected,))
-
-
-class TestWaitForSignal(TestWaitForSignals):
-    """Test case for the wait_for_signal method from SyncDaemonTool."""
-
-    signal_error = None
-
-    @defer.inlineCallbacks
-    def test_filter_yes(self):
-        """Test wait_for_signal method."""
-        d = self.tool.wait_for_signal(self.signal_ok, lambda *a: True)
-
-        expected = object()
-        self.emit_signal(self.signal_ok, expected)
-
-        (result,) = yield d
-        self.assertEqual(expected, result)
-
-    def test_filter_no(self):
-        """Test wait_for_signal method."""
-        d = self.tool.wait_for_signal(self.signal_ok, lambda *a: False)
-
-        expected = object()
-        self.emit_signal(self.signal_ok, expected)
-
-        self.assertFalse(d.called)
-
-    @defer.inlineCallbacks
-    def test_failing_filter(self):
-        """Test (with error) wait_for_signal method."""
-
-        def some_filter(*args):
-            """Broken filter"""
-            raise ValueError('DIE!!!!')
-
-        d = self.tool.wait_for_signal(self.signal_ok, some_filter)
-
-        args = (object(), 123456789)
-        self.emit_signal(self.signal_ok, *args)
-
-        result = yield self.assertFailure(d, tools.IPCError)
-        self.assertEqual(result.name, ValueError.__name__)
-        self.assertEqual(result.info, args)
-        self.assertEqual(result.details, 'DIE!!!!')
 
 
 class TestToolsSomeMore(TestToolsBase):
@@ -516,66 +471,6 @@ class TestToolsSomeMore(TestToolsBase):
             share_id='node_b_foo', node_id='node_b_bar', other='', running=''
         )
         self.assertEqual(result[1], ('FakeCommand', str(id(c2)), pl))
-
-    @defer.inlineCallbacks
-    def test_waiting_metadata(self):
-        """Test SyncDaemonTool.waiting_metadata."""
-        # inject the fake data
-        self.action_q.queue.waiting.extend(
-            [
-                FakeCommand("node_a_foo", "node_a_bar", path='path'),
-                FakeCommand("node_b_foo", "node_b_bar"),
-            ]
-        )
-        result = yield self.tool.waiting_metadata()
-
-        self.assertEqual(2, len(result))
-
-        pl = dict(
-            share_id='node_a_foo',
-            node_id='node_a_bar',
-            other='',
-            path='path',
-            running='True',
-        )
-        self.assertEqual(result[0], ('FakeCommand', pl))
-
-        pl = dict(
-            share_id='node_b_foo',
-            node_id='node_b_bar',
-            other='',
-            running='True',
-        )
-        self.assertEqual(result[1], ('FakeCommand', pl))
-
-    @defer.inlineCallbacks
-    def test_waiting_content(self):
-        """Test waiting_content."""
-
-        class FakeContentCommand(FakeCommand, action_queue.Upload):
-            """Fake command that goes in content queue."""
-
-            def __init__(self, *args, **kwargs):
-                FakeCommand.__init__(self, *args, **kwargs)
-
-        # inject the fake data
-        self.action_q.queue.waiting.extend(
-            [
-                FakeContentCommand("", "node_id", path='/some/path'),
-                FakeContentCommand("", "node_id_1", path='/other/path'),
-            ]
-        )
-
-        result = yield self.tool.waiting_content()
-
-        node, node_1 = result
-        self.assertEqual('/some/path', str(node['path']))
-        self.assertEqual('/other/path', str(node_1['path']))
-        self.assertEqual('', str(node['share']))
-        self.assertEqual('', str(node_1['share']))
-        self.assertEqual('node_id', str(node['node']))
-        self.assertEqual('node_id_1', str(node_1['node']))
-        self.assertTrue(result)
 
     @defer.inlineCallbacks
     def test_start_when_running(self):
