@@ -151,7 +151,6 @@ class StatusClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
 
     # calls that will be accessible remotely
     signal_handlers = [
-        'on_content_queue_changed',
         'on_invalid_name',
         'on_broken_node',
         'on_status_changed',
@@ -162,7 +161,6 @@ class StatusClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
         'on_upload_file_progress',
         'on_upload_finished',
         'on_account_changed',
-        'on_metaqueue_changed',
     ]
 
     @remote
@@ -186,26 +184,8 @@ class StatusClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
         """Return a list of the operations in action queue."""
 
     @remote
-    def waiting_metadata(self):
-        """Return a list of the operations in the meta-queue.
-
-        As we don't have meta-queue anymore, this is faked.
-        """
-
-    @remote
-    def waiting_content(self):
-        """Return a list of files that are waiting to be up- or downloaded.
-
-        As we don't have content-queue anymore, this is faked.
-        """
-
-    @remote
     def current_uploads(self):
         """Return a list of files with a upload in progress."""
-
-    @signal
-    def on_content_queue_changed(self):
-        """Emit ContentQueueChanged."""
 
     @signal
     def on_invalid_name(self, dirname, filename):
@@ -246,10 +226,6 @@ class StatusClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
     @signal
     def on_account_changed(self, account_info):
         """Emit AccountChanged."""
-
-    @signal
-    def on_metaqueue_changed(self):
-        """Emit MetaQueueChanged."""
 
     @signal
     def on_request_queue_added(self, op_name, op_id, data):
@@ -538,14 +514,6 @@ class ConfigClient(RemoteClient):
         """Enable UDF autosubscribe."""
 
     @remote
-    def set_files_sync_enabled(self, enabled):
-        """Enable/disable file sync service.
-
-        DEPRECATED.
-
-        """
-
-    @remote
     def files_sync_enabled(self):
         """Return the files_sync_enabled config value."""
 
@@ -568,13 +536,6 @@ class ConfigClient(RemoteClient):
     @remote
     def disable_autoconnect(self):
         """Disable the autoconnect config value."""
-
-    @remote
-    def set_autoconnect_enabled(self, enabled):
-        """Enable syncdaemon autoconnect.
-
-        DEPRECATED.
-        """
 
 
 class FoldersClient(RemoteClient, Referenceable, metaclass=RemoteMeta):

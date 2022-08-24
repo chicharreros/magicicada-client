@@ -30,8 +30,6 @@
 
 import logging
 import sys
-import warnings
-
 from twisted.internet import defer
 from magicicadaclient.logger import log_call
 
@@ -48,16 +46,6 @@ else:
 logger = logging.getLogger(__name__)
 is_already_running = source.is_already_running
 IPCError = source.IPCError
-
-
-def is_running(bus=None):
-    """Check if syncdaemon is running, without strating it.
-
-    This method is DEPRECATED, please use is_already_running instead.
-
-    """
-    warnings.warn('Use is_already_running instead.', DeprecationWarning)
-    return is_already_running(bus=bus)
 
 
 class SyncDaemonTool:
@@ -248,21 +236,6 @@ class SyncDaemonTool:
 
         d.addBoth(remove_signal_receiver)
         return d
-
-    @log_call(logger.debug)
-    def wait_for_signal(self, signal_name, filter):
-        """Wait for the specified signal (the first received).
-
-        @param signal_name: the signal name
-        @param filter: a callable to filter signal, must return True, and is
-        used to fire the deferred callback.
-
-        DEPRECATED. Use wait_for_signals instead.
-
-        """
-        return self.wait_for_signals(
-            signal_ok=signal_name, success_filter=filter
-        )
 
     @defer.inlineCallbacks
     @log_call(logger.debug)
@@ -527,16 +500,6 @@ class SyncDaemonTool:
     def waiting(self):
         """Return a description of the waiting queue elements."""
         return self.proxy.call_method('status', 'waiting')
-
-    @log_call(logger.debug)
-    def waiting_metadata(self):
-        """Return a description of the waiting metadata queue elements."""
-        return self.proxy.call_method('status', 'waiting_metadata')
-
-    @log_call(logger.debug)
-    def waiting_content(self):
-        """Return the waiting content queue elements."""
-        return self.proxy.call_method('status', 'waiting_content')
 
     @defer.inlineCallbacks
     @log_call(logger.debug)
@@ -829,29 +792,6 @@ def show_waiting(waiting_ops, out):
             attributes.append("%s='%s'" % (attr, op_data[attr]))
 
         out.write("  %s(%s)\n" % (op_name, ', '.join(attributes)))
-
-
-def show_waiting_metadata(waiting_ops, out):
-    """Print the waiting_metadata result.
-
-    We receive an unordered dict, but always try to show first the
-    share_id, then the node_id, then the path, and the rest in
-    alphabetical order.
-    """
-    out.write("Warning: this option is deprecated! Use '--waiting' instead\n")
-    return show_waiting(((x[0], None, x[1]) for x in waiting_ops), out)
-
-
-def show_waiting_content(waiting_ops, out):
-    """Print the waiting_content result."""
-    out.write("Warning: this option is deprecated! Use '--waiting' instead\n")
-    value_tpl = (
-        "operation='%(operation)s' node_id='%(node)s' share_id='%(share)s' "
-        "path='%(path)s'"
-    )
-    for value in waiting_ops:
-        str_value = value_tpl % value
-        out.write("%s\n" % str_value)
 
 
 def show_public_file_info(file_info, out):

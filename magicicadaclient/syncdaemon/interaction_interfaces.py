@@ -219,42 +219,6 @@ class SyncdaemonStatus(SyncdaemonObject):
             waiting.append((operation, str(id(cmd)), data))
         return waiting
 
-    def waiting_metadata(self):
-        """Return a list of the operations in the meta-queue.
-
-        As we don't have meta-queue anymore, this is faked.
-        """
-        logger.warning(
-            'waiting_metadata is deprecated. ' 'Use "waiting" instead.'
-        )
-        waiting_metadata = []
-        for cmd in self.action_queue.queue.waiting:
-            if not isinstance(cmd, (Upload, Download)):
-                operation = cmd.__class__.__name__
-                data = cmd.to_dict()
-                sanitize_dict(data)
-                waiting_metadata.append((operation, data))
-        return waiting_metadata
-
-    def waiting_content(self):
-        """Return a list of files that are waiting to be up- or downloaded.
-
-        As we don't have content-queue anymore, this is faked.
-        """
-        logger.warning('waiting_content is deprecated. Use "waiting" instead.')
-        waiting_content = []
-        for cmd in self.action_queue.queue.waiting:
-            if isinstance(cmd, (Upload, Download)):
-                data = dict(
-                    path=cmd.path,
-                    share=cmd.share_id,
-                    node=cmd.node_id,
-                    operation=cmd.__class__.__name__,
-                )
-                sanitize_dict(data)
-                waiting_content.append(data)
-        return waiting_content
-
 
 class SyncdaemonFileSystem(SyncdaemonObject):
     """An interface to the FileSystem Manager."""
@@ -1070,11 +1034,6 @@ class SyncdaemonEventListener(SyncdaemonObject):
         The content and meta queue changed signals are deprecacted and
         will go away in a near future.
         """
-        if isinstance(command, (Upload, Download)):
-            self.interface.status.ContentQueueChanged()
-        else:
-            self.interface.status.MetaQueueChanged()
-
         data = command.to_dict()
         op_name = command.__class__.__name__
         op_id = id(command)
@@ -1087,11 +1046,6 @@ class SyncdaemonEventListener(SyncdaemonObject):
         The content and meta queue changed signals are deprecacted and
         will go away in a near future.
         """
-        if isinstance(command, (Upload, Download)):
-            self.interface.status.ContentQueueChanged()
-        else:
-            self.interface.status.MetaQueueChanged()
-
         data = command.to_dict()
         op_name = command.__class__.__name__
         op_id = id(command)

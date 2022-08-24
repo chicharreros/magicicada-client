@@ -456,24 +456,6 @@ class TCPDummyClientTestCase(BaseIPCTestCase):
     ]
 
     @defer.inlineCallbacks
-    def test_deprecated_siganl_is_also_sent(self):
-        """Old-style, deprecated signals handler are also called."""
-        d1 = defer.Deferred()
-        d2 = defer.Deferred()
-
-        self.remote_service.next_result = 'yadda'
-
-        # old, deprecated way
-        self.remote_client.connect_to_signal('Success', d1.callback)
-        self.remote_client.on_success_cb = d2.callback
-
-        self.remote_client.foo()
-
-        result = yield defer.gatherResults([d1, d2])
-
-        self.assertEqual(result, ['yadda', 'yadda'])
-
-    @defer.inlineCallbacks
     def test_register_to_signals(self):
         """Test the register_to_signals method."""
         yield self.remote_client.register_to_signals()

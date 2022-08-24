@@ -61,8 +61,6 @@ class StatusTests(StatusTestCase):
         ('BrokenNode', (STR, STR, STR, STR)),
         ('StatusChanged', (STR_STR_DICT,)),
         ('AccountChanged', (STR_STR_DICT,)),
-        ('ContentQueueChanged', ()),
-        ('MetaQueueChanged', ()),
         ('RequestQueueAdded', (STR, STR, STR_STR_DICT)),
         ('RequestQueueRemoved', (STR, STR, STR_STR_DICT)),
     ]
@@ -124,28 +122,6 @@ class StatusTests(StatusTestCase):
         yield self.assert_method_called(self.service.status, 'waiting', result)
         self.assert_remote_method(
             'waiting', in_signature=None, out_signature='a(ssa{ss})'
-        )
-
-    @defer.inlineCallbacks
-    def test_waiting_metadata(self):
-        """Test waiting_metadata. DEPRECATED."""
-        result = []
-        yield self.assert_method_called(
-            self.service.status, 'waiting_metadata', result
-        )
-        self.assert_remote_method(
-            'waiting_metadata', in_signature=None, out_signature='a(sa{ss})'
-        )
-
-    @defer.inlineCallbacks
-    def test_waiting_content(self):
-        """Test waiting_content. DEPRECATED."""
-        result = []
-        yield self.assert_method_called(
-            self.service.status, 'waiting_content', result
-        )
-        self.assert_remote_method(
-            'waiting_metadata', in_signature=None, out_signature='a(sa{ss})'
         )
 
 
@@ -576,23 +552,6 @@ class AutoconnectConfigTests(ConfigTests):
     """Basic tests for the autoconnect setting."""
 
     setting_name = 'autoconnect'
-
-    @defer.inlineCallbacks
-    def test_set_autoconnect_enabled(self):
-        """Test for Config.set_autoconnect_enabled.
-
-        DEPRECATED.
-
-        """
-        client = yield self.get_client()
-
-        yield client.call_method('set_autoconnect_enabled', True)
-        called = self.service.config._called['enable_autoconnect']
-        self.assertEqual(called, [((), {})])
-
-        yield client.call_method('set_autoconnect_enabled', False)
-        called = self.service.config._called['disable_autoconnect']
-        self.assertEqual(called, [((), {})])
 
 
 class FoldersTests(FoldersTestCase):

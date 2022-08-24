@@ -57,8 +57,6 @@ from magicicadaclient.platform.tools import (
     show_state,
     show_uploads,
     show_waiting,
-    show_waiting_content,
-    show_waiting_metadata,
 )
 from magicicadaclient.platform.tests.test_tools import TestToolsBase
 
@@ -301,64 +299,6 @@ class U1SDToolTests(TestToolsBase):
 
         result = yield self.tool.waiting()
         show_waiting(result, out)
-        self.assertEqual(out.getvalue(), expected)
-
-    @defer.inlineCallbacks
-    def test_show_waiting_metadata(self):
-        """Test the output of --waiting-metadata"""
-        # inject the fake data
-        cmd1 = FakeCommand("", "node1", path='p')
-        cmd2 = FakeCommand("", "node2")
-        self.action_q.queue.waiting.extend([cmd1, cmd2])
-
-        out = StringIO()
-        expected = (
-            "Warning: this option is deprecated! Use '--waiting' instead\n"
-            "  FakeCommand(running=True, share_id='', node_id='node1', "
-            "path='p', other='')\n"
-            "  FakeCommand(running=True, share_id='', node_id='node2', "
-            "other='')\n"
-        )
-
-        result = yield self.tool.waiting_metadata()
-        show_waiting_metadata(result, out)
-        self.assertEqual(out.getvalue(), expected)
-
-    @defer.inlineCallbacks
-    def test_show_waiting_content(self):
-        """Test the output of --waiting-content"""
-
-        class FakeCommand2(FakeUpload):
-            """Fake command that goes in content queue."""
-
-            def __init__(self, *args):
-                FakeUpload.__init__(self, *args)
-                self.path = 'other_path'
-
-        # inject the fake data
-        self.action_q.queue.waiting.extend(
-            [
-                FakeUpload("", "node_id"),
-                FakeCommand2("", "node_id_2"),
-                FakeDownload("", "node_id_1"),
-                FakeCommand2("", "node_id_3"),
-            ]
-        )
-        out = StringIO()
-        expected = (
-            "Warning: this option is deprecated! Use '--waiting' instead\n"
-            "operation='FakeUpload' node_id='node_id' share_id='' "
-            "path='upload_path'\n"
-            "operation='FakeCommand2' node_id='node_id_2' share_id='' "
-            "path='other_path'\n"
-            "operation='FakeDownload' node_id='node_id_1' share_id='' "
-            "path='download_path'\n"
-            "operation='FakeCommand2' node_id='node_id_3' share_id='' "
-            "path='other_path'\n"
-        )
-
-        result = yield self.tool.waiting_content()
-        yield show_waiting_content(result, out)
         self.assertEqual(out.getvalue(), expected)
 
     def test_show_folders_empty(self):
