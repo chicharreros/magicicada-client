@@ -87,8 +87,11 @@ def move_to_trash(path):
     if full_path.startswith("/Volumes/"):
         components = full_path.split(os.path.sep)
         vol_components = components[:3]
-        file_components = [".Trashes", str(os.geteuid()),
-                           os.path.basename(full_path)]
+        file_components = [
+            ".Trashes",
+            str(os.geteuid()),
+            os.path.basename(full_path),
+        ]
         trashpath = os.path.sep.join(vol_components + file_components)
     else:
         trashpath = os.path.expanduser("~/.Trash")
@@ -96,8 +99,9 @@ def move_to_trash(path):
     try:
         shutil.move(path, trashpath)
     except Exception as reason:
-        logger.warning("Problems moving to trash! (%r) Removing anyway: %r",
-                       reason, path)
+        logger.warning(
+            "Problems moving to trash! (%r) Removing anyway: %r", reason, path
+        )
         if os.path.isdir(path):
             shutil.rmtree(path)
         else:
@@ -111,11 +115,14 @@ def set_application_name(app_name):
 
 # TODO: Implement this decorators to fix some encoding issues in darwin
 
+
 def is_valid_syncdaemon_path(path_indexes=None):
     def decorator(func):
         def wrapped(*args, **kwargs):
             return func(*args, **kwargs)
+
         return wrapped
+
     return decorator
 
 
@@ -125,7 +132,9 @@ def is_valid_os_path(path_indexes=None):
             for i in path_indexes:
                 assert isinstance(args[i], str), 'Path %r should be str.'
             return func(*args, **kwargs)
+
         return wrapped
+
     return decorator
 
 
@@ -138,7 +147,9 @@ def os_path(path_indexes=None):
             for i in path_indexes:
                 assert isinstance(args[i], str), 'Path %r should be str.'
             return func(*args, **kwargs)
+
         return wrapped
+
     return decorator
 
 

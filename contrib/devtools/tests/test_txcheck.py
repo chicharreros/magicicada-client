@@ -34,9 +34,14 @@ from twisted.internet import defer
 from twisted.internet.defer import inlineCallbacks
 
 from devtools.testing.txcheck import (
-    find_problems, MethodShadowed, MissingReturnValue,
-    SuperNotCalled, SuperResultDiscarded, MissingInlineCallbacks,
-    TXCheckSuite)
+    find_problems,
+    MethodShadowed,
+    MissingReturnValue,
+    SuperNotCalled,
+    SuperResultDiscarded,
+    MissingInlineCallbacks,
+    TXCheckSuite,
+)
 
 
 class TestCheckTwistedTestClass(TestCase):
@@ -88,9 +93,9 @@ class TestCheckTwistedTestClass(TestCase):
             """Mixin where trial's run method gets shadowed."""
 
         problems = find_problems(BadMixin)
-        expected_problem = MethodShadowed(method='run',
-                                          test_class=BadMixin,
-                                          ancestor_class=OtherTestCase)
+        expected_problem = MethodShadowed(
+            method='run', test_class=BadMixin, ancestor_class=OtherTestCase
+        )
         self.assertEqual(problems, set([expected_problem]))
 
     def test_missing_return(self):
@@ -110,10 +115,19 @@ class TestCheckTwistedTestClass(TestCase):
                 d.addCallback(lambda r: r)
 
         problems = find_problems(MissingReturnCase)
-        self.assertEqual(problems, set([
-            MissingReturnValue(method=m, test_class=MissingReturnCase,
-                               ancestor_class=MissingReturnCase)
-            for m in ('setUp', 'tearDown')]))
+        self.assertEqual(
+            problems,
+            set(
+                [
+                    MissingReturnValue(
+                        method=m,
+                        test_class=MissingReturnCase,
+                        ancestor_class=MissingReturnCase,
+                    )
+                    for m in ('setUp', 'tearDown')
+                ]
+            ),
+        )
 
     def test_super_not_called(self):
         """Test that we detect missing super()."""
@@ -130,10 +144,19 @@ class TestCheckTwistedTestClass(TestCase):
                 return 3
 
         problems = find_problems(NoSuperCase)
-        self.assertEqual(problems, set([
-            SuperNotCalled(method=m, test_class=NoSuperCase,
-                           ancestor_class=NoSuperCase)
-            for m in ('setUp', 'tearDown')]))
+        self.assertEqual(
+            problems,
+            set(
+                [
+                    SuperNotCalled(
+                        method=m,
+                        test_class=NoSuperCase,
+                        ancestor_class=NoSuperCase,
+                    )
+                    for m in ('setUp', 'tearDown')
+                ]
+            ),
+        )
 
     def test_bare_super(self):
         """Test that we detect bare super()."""
@@ -152,10 +175,19 @@ class TestCheckTwistedTestClass(TestCase):
                 return 3
 
         problems = find_problems(BareSuperCase)
-        self.assertEqual(problems, set([
-            SuperResultDiscarded(method=m, test_class=BareSuperCase,
-                                 ancestor_class=BareSuperCase)
-            for m in ('setUp', 'tearDown')]))
+        self.assertEqual(
+            problems,
+            set(
+                [
+                    SuperResultDiscarded(
+                        method=m,
+                        test_class=BareSuperCase,
+                        ancestor_class=BareSuperCase,
+                    )
+                    for m in ('setUp', 'tearDown')
+                ]
+            ),
+        )
 
     def test_inline_callbacks_missing(self):
         """Test that we detect missing inlineCallbacks."""
@@ -172,11 +204,19 @@ class TestCheckTwistedTestClass(TestCase):
                 yield super(NoInlineCallbacksCase, self).tearDown()
 
         problems = find_problems(NoInlineCallbacksCase)
-        self.assertEqual(problems, set([
-            MissingInlineCallbacks(method=m,
-                                   test_class=NoInlineCallbacksCase,
-                                   ancestor_class=NoInlineCallbacksCase)
-            for m in ('setUp', 'tearDown')]))
+        self.assertEqual(
+            problems,
+            set(
+                [
+                    MissingInlineCallbacks(
+                        method=m,
+                        test_class=NoInlineCallbacksCase,
+                        ancestor_class=NoInlineCallbacksCase,
+                    )
+                    for m in ('setUp', 'tearDown')
+                ]
+            ),
+        )
 
     def test_inline_callbacks(self):
         """Test that has inline callbacks, as it should."""

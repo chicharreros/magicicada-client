@@ -63,7 +63,7 @@ ACTIONS_NAMES = {
 
 
 # The implementation of the code that is provided as the pyinotify substitute
-class Watch(object):
+class Watch:
     """Implement the same functions as pyinotify.Watch."""
 
     def __init__(self, path, process_events):
@@ -79,7 +79,8 @@ class Watch(object):
         self.ignore_paths = []
         # Create stream with folder to watch
         self.stream = fsevents.Stream(
-            self._process_events, path, file_events=True)
+            self._process_events, path, file_events=True
+        )
 
     def _process_events(self, event):
         """Receive the filesystem event and move it to the main thread."""
@@ -90,8 +91,7 @@ class Watch(object):
         action, cookie, file_name = (event.mask, event.cookie, event.name)
 
         syncdaemon_path = os.path.join(self.path, file_name)
-        self.process_events(
-            action, file_name, cookie, syncdaemon_path)
+        self.process_events(action, file_name, cookie, syncdaemon_path)
 
     def start_watching(self):
         """Start watching."""
@@ -115,7 +115,7 @@ class Watch(object):
         return defer.succeed(self.watching)
 
 
-class WatchManager(object):
+class WatchManager:
     """Implement the same functions as pyinotify.WatchManager.
 
     All paths passed to methods in this class should be darwin paths.

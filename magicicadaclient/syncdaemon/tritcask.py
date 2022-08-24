@@ -73,7 +73,6 @@ class Tritcask(tritcask.Tritcask):
 
 
 class CustomPickler(pickle.Unpickler):
-
     def find_class(self, module, name):
         """Handle previous pickles of metadata produced by Python 2."""
         if (module, name) == ('os', '_make_stat_result'):
@@ -85,7 +84,6 @@ class CustomPickler(pickle.Unpickler):
 
 
 class TritcaskShelf(tritcask.TritcaskShelf):
-
     def _deserialize(self, raw_value):
         """Deserialize the bytes."""
         return CustomPickler(BytesIO(raw_value)).load()

@@ -39,12 +39,12 @@ from devtools.utils import OptionParser
 class FakeOptions(OptionParser):
     """Fake options class for testing."""
 
-    optFlags = [['foo', 'f', 'Save the manatees.'],
-                ['bar', None, 'Beyond all recognition.'],
-                ]
+    optFlags = [
+        ['foo', 'f', 'Save the manatees.'],
+        ['bar', None, 'Beyond all recognition.'],
+    ]
 
-    optParameters = [['stuff', 's', 'things'],
-                     ]
+    optParameters = [['stuff', 's', 'things']]
 
     def __init__(self, *args, **kwargs):
         super(FakeOptions, self).__init__(*args, **kwargs)

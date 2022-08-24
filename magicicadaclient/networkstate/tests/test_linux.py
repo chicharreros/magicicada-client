@@ -44,7 +44,9 @@ from magicicadaclient.networkstate.linux import (
     NM_DBUS_OBJECTPATH,
 )
 from magicicadaclient.networkstate.networkstates import (
-    ONLINE, OFFLINE, UNKNOWN,
+    ONLINE,
+    OFFLINE,
+    UNKNOWN,
     NM_STATE_ASLEEP,
     NM_STATE_ASLEEP_OLD,
     NM_STATE_CONNECTING,
@@ -62,12 +64,13 @@ from magicicadaclient.tests import TestCase
 
 class TestException(Exception):
     """An exception to test error conditions."""
+
     def get_dbus_name(self):
         """A fake dbus name for this exception."""
         return "Test Exception Message"
 
 
-class FakeNetworkManagerState(object):
+class FakeNetworkManagerState:
 
     """Fake Network Manager State."""
 
@@ -82,7 +85,7 @@ class FakeNetworkManagerState(object):
         self.call_function(self.connection_state)
 
 
-class FakeDBusMatch(object):
+class FakeDBusMatch:
 
     """Fake a DBus match."""
 
@@ -97,7 +100,7 @@ class FakeDBusMatch(object):
         self.removed = True
 
 
-class FakeDBusInterface(object):
+class FakeDBusInterface:
 
     """Fake DBus Interface."""
 
@@ -119,7 +122,7 @@ class FakeDBusInterface(object):
             match.callback(state)
 
 
-class FakeSystemBus(object):
+class FakeSystemBus:
 
     """Fake SystemBus."""
 
@@ -160,40 +163,41 @@ class TestConnection(TestCase):
         nms.find_online_state()
 
         self.nm_interface.emit_signal(
-            'StateChanged', NM_STATE_CONNECTED_GLOBAL)
+            'StateChanged', NM_STATE_CONNECTED_GLOBAL
+        )
         self.nm_interface.emit_signal('StateChanged', NM_STATE_DISCONNECTED)
         self.nm_interface.emit_signal(
-            'StateChanged', NM_STATE_CONNECTED_GLOBAL)
+            'StateChanged', NM_STATE_CONNECTED_GLOBAL
+        )
 
         self.assertEqual(nms.state_signal.name, "StateChanged")
         self.assertEqual(nms.state_signal.callback, nms.state_changed)
         self.assertEqual(
-            nms.state_signal.interface, "org.freedesktop.NetworkManager")
+            nms.state_signal.interface, "org.freedesktop.NetworkManager"
+        )
         self.assertEqual(
-            self.network_changes, [ONLINE, ONLINE, OFFLINE, ONLINE])
+            self.network_changes, [ONLINE, ONLINE, OFFLINE, ONLINE]
+        )
         self.assertFalse(nms.state_signal.removed)
 
     @inlineCallbacks
     def test_is_machine_connected_nm_state_online(self):
         """Callback given ONLINE should mean we are online"""
-        self.patch(FakeNetworkManagerState, "connection_state",
-                   ONLINE)
+        self.patch(FakeNetworkManagerState, "connection_state", ONLINE)
         d = yield is_machine_connected()
         self.assertTrue(d)
 
     @inlineCallbacks
     def test_is_machine_connected_nm_state_offline(self):
         """Callback given OFFLINE should mean we are offline"""
-        self.patch(FakeNetworkManagerState, "connection_state",
-                   OFFLINE)
+        self.patch(FakeNetworkManagerState, "connection_state", OFFLINE)
         d = yield is_machine_connected()
         self.assertFalse(d)
 
     @inlineCallbacks
     def test_is_machine_connected_nm_state_unknown(self):
         """Callback given ONLINE should mean we are not online"""
-        self.patch(FakeNetworkManagerState, "connection_state",
-                   UNKNOWN)
+        self.patch(FakeNetworkManagerState, "connection_state", UNKNOWN)
         d = yield is_machine_connected()
         self.assertFalse(d)
 
@@ -204,8 +208,11 @@ class TestConnection(TestCase):
         Passing anything other than ONLINE/OFFLINE/UNKNOWN should
         cause an exception.
         """
-        self.patch(FakeNetworkManagerState, "connection_state",
-                   NM_STATE_CONNECTED_GLOBAL)
+        self.patch(
+            FakeNetworkManagerState,
+            "connection_state",
+            NM_STATE_CONNECTED_GLOBAL,
+        )
         yield self.assertFailure(is_machine_connected(), NetworkFailException)
 
 
@@ -224,14 +231,18 @@ class NetworkManagerStateTestCase(TestCase):
             follow_name_owner_changes=True,
         )
         dbusmock.Interface.assert_called_once_with(
-            proxymock, 'org.freedesktop.NetworkManager')
+            proxymock, 'org.freedesktop.NetworkManager'
+        )
         ifmock.connect_to_signal.assert_called_once_with(
             signal_name='StateChanged',
             handler_function=mock.ANY,
-            dbus_interface='org.freedesktop.NetworkManager')
+            dbus_interface='org.freedesktop.NetworkManager',
+        )
         proxymock.state.assert_called_once_with(
             dbus_interface='org.freedesktop.NetworkManager',
-            reply_handler=mock.ANY, error_handler=mock.ANY)
+            reply_handler=mock.ANY,
+            error_handler=mock.ANY,
+        )
 
     def assertOnline(self, state):
         """Check that the state given is ONLINE."""
@@ -314,26 +325,29 @@ class NetworkManagerStateTestCase(TestCase):
 
     def test_nm_connecting_then_online_old(self):
         """Check the waiting for connection, old status, case."""
-        self.check_nm_state_change(self.assertOnline,
-                                   NM_STATE_CONNECTING_OLD,
-                                   NM_STATE_CONNECTED_OLD)
+        self.check_nm_state_change(
+            self.assertOnline, NM_STATE_CONNECTING_OLD, NM_STATE_CONNECTED_OLD
+        )
 
     def test_nm_connecting_then_online(self):
         """Check the waiting for connection case."""
-        self.check_nm_state_change(self.assertOnline,
-                                   NM_STATE_CONNECTING,
-                                   NM_STATE_CONNECTED_GLOBAL)
+        self.check_nm_state_change(
+            self.assertOnline, NM_STATE_CONNECTING, NM_STATE_CONNECTED_GLOBAL
+        )
 
     def test_nm_connecting_then_offline_old(self):
         """Check the waiting but fail, old status, case."""
-        self.check_nm_state_change(self.assertOffline,
-                                   NM_STATE_CONNECTING_OLD,
-                                   NM_STATE_DISCONNECTED_OLD)
+        self.check_nm_state_change(
+            self.assertOffline,
+            NM_STATE_CONNECTING_OLD,
+            NM_STATE_DISCONNECTED_OLD,
+        )
 
     def test_nm_connecting_then_offline(self):
         """Check the waiting but fail case."""
-        self.check_nm_state_change(self.assertOffline,
-                                   NM_STATE_CONNECTING, NM_STATE_DISCONNECTED)
+        self.check_nm_state_change(
+            self.assertOffline, NM_STATE_CONNECTING, NM_STATE_DISCONNECTED
+        )
 
     def test_nm_check_errors(self):
         """Trying to reach NM fails with some error."""

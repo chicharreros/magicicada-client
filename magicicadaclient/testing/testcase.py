@@ -71,11 +71,11 @@ from magicicadaclient.platform import (
 # use _trial_temp dir, it should be TRIAL_TEMP_DIR or os.getcwd()
 # define the root temp dir of the testcase
 root_tmp = os.path.join(
-    os.environ.get('TRIAL_TEMP_DIR', os.getcwd()), '_trial_temp')
+    os.environ.get('TRIAL_TEMP_DIR', os.getcwd()), '_trial_temp'
+)
 logger.init(base_dir=root_tmp)
 
-FAKED_CREDENTIALS = {'username': 'test_username',
-                     'password': 'test_password'}
+FAKED_CREDENTIALS = {'username': 'test_username', 'password': 'test_password'}
 
 
 def NOOP(*a, **kw):
@@ -94,8 +94,9 @@ def environ(env_var, new_value):
         os.environ[env_var] = old_value
 
 
-class FakeHashQueue(object):
+class FakeHashQueue:
     """A fake hash queue"""
+
     def __init__(self, eq):
         self.eq = eq
 
@@ -108,22 +109,29 @@ class FakeHashQueue(object):
         pass
 
     def __len__(self):
-        """ length is 0. we are empty, right?"""
+        """length is 0. we are empty, right?"""
         return 0
 
     def insert(self, path, mdid):
         """Fake insert."""
-        self.eq.push('HQ_HASH_NEW', path=path, hash='',
-                     crc32='', size=0, stat=stat_path(path))
+        self.eq.push(
+            'HQ_HASH_NEW',
+            path=path,
+            hash='',
+            crc32='',
+            size=0,
+            stat=stat_path(path),
+        )
 
 
-class FakeMark(object):
+class FakeMark:
     """A fake Mark Shuttleworth..."""
+
     def stop(self):
         """...that only knows how to stop"""
 
 
-class FakeExternalInterface(object):
+class FakeExternalInterface:
     """A fake DBusInterface..."""
 
     def start(self):
@@ -139,11 +147,11 @@ class FakeExternalInterface(object):
 
 
 @implementer(interfaces.IActionQueue)
-class FakeActionQueue(object):
+class FakeActionQueue:
     """Stub implementation."""
 
     def __init__(self, eq, *args, **kwargs):
-        """ Creates the instance """
+        """Creates the instance"""
         self.eq = self.event_queue = eq
         self.uuid_map = action_queue.DeferredMap()
         self.queue = action_queue.RequestQueue(self)
@@ -193,7 +201,7 @@ class FakeActionQueue(object):
     node_is_with_queued_move = cleanup = get_public_files = disconnect
 
 
-class FakeMonitor(object):
+class FakeMonitor:
     """A fake FilesystemMonitor."""
 
     def __init__(self, eq, fs, ignore_config=None, timeout=1):
@@ -233,7 +241,7 @@ class FakeMonitor(object):
 
 
 class FakeMain(main.Main):
-    """ A fake Main class to setup the tests """
+    """A fake Main class to setup the tests"""
 
     _fake_AQ_class = FakeActionQueue
     _fake_AQ_params = ()
@@ -241,11 +249,12 @@ class FakeMain(main.Main):
     _monitor_class = FakeMonitor
 
     def __init__(self, root_dir, shares_dir, data_dir, partials_dir):
-        """ create the instance. """
+        """create the instance."""
         # don't call Main.__init__: we take care of creating a fake main and
         # all its attributes.
         self.logger = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.root_dir = root_dir
         self.data_dir = data_dir
         self.shares_dir = shares_dir
@@ -254,12 +263,15 @@ class FakeMain(main.Main):
         self.db = tritcask.Tritcask(os.path.join(self.data_dir, 'tritcask'))
         self.vm = volume_manager.VolumeManager(self)
         self.fs = fs_manager.FileSystemManager(
-            self.data_dir, self.partials_dir, self.vm, self.db)
+            self.data_dir, self.partials_dir, self.vm, self.db
+        )
         self.event_q = event_queue.EventQueue(
-            self.fs, monitor_class=self._monitor_class)
+            self.fs, monitor_class=self._monitor_class
+        )
         self.fs.register_eq(self.event_q)
-        self.action_q = self._fake_AQ_class(self.event_q, self,
-                                            *self._fake_AQ_params)
+        self.action_q = self._fake_AQ_class(
+            self.event_q, self, *self._fake_AQ_params
+        )
         self.state_manager = main.StateManager(self, 2)
         if self._sync_class is not None:
             self.sync = self._sync_class(self)
@@ -268,8 +280,9 @@ class FakeMain(main.Main):
         self.hash_q = FakeHashQueue(self.event_q)
         self.mark = FakeMark()
         self.external = FakeExternalInterface()
-        self.lr = local_rescan.LocalRescan(self.vm, self.fs,
-                                           self.event_q, self.action_q)
+        self.lr = local_rescan.LocalRescan(
+            self.vm, self.fs, self.event_q, self.action_q
+        )
 
     def _connect_aq(self, _):
         """Connect the fake action queue."""
@@ -376,8 +389,10 @@ class BaseTwistedTestCase(TwistedTestCase):
         try:
             shutil.rmtree(path)
         except Exception as e:
-            print('ERROR!! could not recursively remove %r (error is %r).' % (
-                path, e))
+            print(
+                'ERROR!! could not recursively remove %r (error is %r).'
+                % (path, e)
+            )
 
     def makedirs(self, path):
         """Custom makedirs that handle ro parent."""
@@ -396,8 +411,13 @@ class BaseTwistedTestCase(TwistedTestCase):
         self.patch(platform, "user_home", self.home_dir)
 
         # use the config from the branch
-        self.patch(config, 'get_config_files', lambda: [
-            os.path.join(os.environ['ROOTDIR'], 'data', 'syncdaemon.conf')])
+        self.patch(
+            config,
+            'get_config_files',
+            lambda: [
+                os.path.join(os.environ['ROOTDIR'], 'data', 'syncdaemon.conf')
+            ],
+        )
 
         # fake a very basic config file with sane defaults for the tests
         config_dir = self.mktemp('config')
@@ -412,9 +432,13 @@ class BaseTwistedTestCase(TwistedTestCase):
         config.get_user_config(config_file=self.config_file)
 
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
-        self.log.info("starting test %s.%s", self.__class__.__name__,
-                      self._testMethodName)
+            '.'.join((__name__, self.__class__.__name__))
+        )
+        self.log.info(
+            "starting test %s.%s",
+            self.__class__.__name__,
+            self._testMethodName,
+        )
 
 
 class FakeMainTestCase(BaseTwistedTestCase):
@@ -431,8 +455,9 @@ class FakeMainTestCase(BaseTwistedTestCase):
         self.partials_dir = self.mktemp('partials')
         self.root_dir = self.mktemp('root_dir')
         self.shares_dir = self.mktemp('shares_dir')
-        self.main = FakeMain(self.root_dir, self.shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.root_dir, self.shares_dir, self.data_dir, self.partials_dir
+        )
         self.addCleanup(self.main.shutdown)
         self.vm = self.main.vm
         self.fs = self.main.fs
@@ -447,16 +472,17 @@ class FakeMainTestCase(BaseTwistedTestCase):
         self._called = (args, kwargs)
 
 
-class FakeVolumeManager(object):
-    """ A volume manager that only knows one share, the root"""
+class FakeVolumeManager:
+    """A volume manager that only knows one share, the root"""
 
     def __init__(self, root_path):
-        """ Creates the instance"""
+        """Creates the instance"""
         self.root = volume_manager.Root(node_id="root_node_id", path=root_path)
         self.shares = {'': self.root}
         self.udfs = {}
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
 
     def add_share(self, share):
         """Add share to the shares dict."""
@@ -502,8 +528,9 @@ class FakeVolumeManager(object):
         """Request the deletion of a volume."""
 
 
-class FakeLogger(object):
+class FakeLogger:
     """Helper logging class."""
+
     def __init__(self):
         self.logged = dict(debug=[], warning=[], info=[])
 
@@ -526,21 +553,23 @@ class FakeLogger(object):
         self._log(self.logged['info'], txt, args)
 
 
-class FakeCommand(object):
+class FakeCommand:
     """A fake command."""
 
     is_runnable = True
     running = True
 
-    def __init__(self, share_id=None, node_id=None,
-                 other='', path=None, **kwargs):
+    def __init__(
+        self, share_id=None, node_id=None, other='', path=None, **kwargs
+    ):
         self.share_id = share_id
         self.node_id = node_id
         self.other = other
         self.path = path
         self.cancelled = False
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
 
     @property
     def paused(self):
@@ -561,8 +590,12 @@ class FakeCommand(object):
 
     def to_dict(self):
         """Just send both values."""
-        d = dict(share_id=self.share_id, node_id=self.node_id,
-                 other=self.other, running=self.running)
+        d = dict(
+            share_id=self.share_id,
+            node_id=self.node_id,
+            other=self.other,
+            running=self.running,
+        )
         # some commands have path, others don't
         if self.path is not None:
             d['path'] = self.path
@@ -605,7 +638,7 @@ class EmptyCommand(FakeCommand):
         return {}
 
 
-class FakedObject(object):
+class FakedObject:
     """A class that records every call clients made to it."""
 
     def __init__(self, *args, **kwargs):
@@ -626,6 +659,7 @@ class FakedObject(object):
 
         def wrap_me(f):
             """Wrap 'f'."""
+
             @wraps(f)
             def inner(*a, **kw):
                 """Keep track of calls to 'f', execute it and return result."""
@@ -662,7 +696,7 @@ class FakedService(interaction_interfaces.SyncdaemonService):
             setattr(self, client, FakedObject())
 
 
-class Listener(object):
+class Listener:
     """Helper class to gather events."""
 
     def __init__(self):
@@ -673,7 +707,7 @@ class Listener(object):
         self.events.append((event_name, kwargs))
 
 
-class DummyClass(object):
+class DummyClass:
     """Dummy class, does nothing."""
 
     def __getattr__(self, name):
@@ -681,19 +715,21 @@ class DummyClass(object):
         return lambda *args, **kwargs: None
 
 
-skip_if_win32_and_uses_metadata_older_than_5 = \
-    skipIfOS('win32',
-             'In windows there is no need to migrate metadata older than v5.')
+skip_if_win32_and_uses_metadata_older_than_5 = skipIfOS(
+    'win32', 'In windows there is no need to migrate metadata older than v5.'
+)
 
 
-skip_if_win32_and_uses_readonly = \
-    skipIfOS('win32', 'Can not test RO shares until bug #820350 is resolved.')
+skip_if_win32_and_uses_readonly = skipIfOS(
+    'win32', 'Can not test RO shares until bug #820350 is resolved.'
+)
 
 
-skip_if_win32_missing_fs_event = \
-    skipIfOS('win32', 'Fails due to missing/out of order FS events, '
-                      'see bug #820598.')
+skip_if_win32_missing_fs_event = skipIfOS(
+    'win32', 'Fails due to missing/out of order FS events, ' 'see bug #820598.'
+)
 
-skip_if_darwin_missing_fs_event = \
-    skipIfOS('darwin', 'Fails due to missing/out of order FS events, '
-                       'see bug #820598.')
+skip_if_darwin_missing_fs_event = skipIfOS(
+    'darwin',
+    'Fails due to missing/out of order FS events, ' 'see bug #820598.',
+)

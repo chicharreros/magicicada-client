@@ -1,0 +1,10 @@
+[tool.black]
+line-length = 79
+skip-string-normalization = true
+exclude = '''
+/(
+    \.git
+  | .env
+  | build
+)/
+'''

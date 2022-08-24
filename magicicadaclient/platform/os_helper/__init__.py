@@ -33,12 +33,15 @@ import sys
 
 if sys.platform == "win32":
     from magicicadaclient.platform.os_helper import windows
+
     source = windows
 elif sys.platform == "darwin":
     from magicicadaclient.platform.os_helper import darwin
+
     source = darwin
 else:
     from magicicadaclient.platform.os_helper import linux
+
     source = linux
 
 set_no_rights = source.set_no_rights

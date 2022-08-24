@@ -38,10 +38,12 @@ from devtools.testcases.dbus import DBusTestCase
 from magicicadaclient.platform import session
 from functools import reduce
 
-INHIBIT_ALL = (session.INHIBIT_LOGGING_OUT |
-               session.INHIBIT_USER_SWITCHING |
-               session.INHIBIT_SUSPENDING_COMPUTER |
-               session.INHIBIT_SESSION_IDLE)
+INHIBIT_ALL = (
+    session.INHIBIT_LOGGING_OUT
+    | session.INHIBIT_USER_SWITCHING
+    | session.INHIBIT_SUSPENDING_COMPUTER
+    | session.INHIBIT_SESSION_IDLE
+)
 
 
 class FakeGnomeSessionManagerInhibitor(dbus.service.Object):
@@ -50,23 +52,30 @@ class FakeGnomeSessionManagerInhibitor(dbus.service.Object):
     cookie_counter = 0
     inhibitions = {}
 
-    @dbus.service.method(dbus_interface=session.SESSION_MANAGER_IFACE,
-                         in_signature="susu", out_signature="u")
+    @dbus.service.method(
+        dbus_interface=session.SESSION_MANAGER_IFACE,
+        in_signature="susu",
+        out_signature="u",
+    )
     def Inhibit(self, app_id, toplevel_xid, reason, flags):
         """Inhibit a set of flags."""
         self.cookie_counter += 1
         self.inhibitions[self.cookie_counter] = (flags, reason)
         return self.cookie_counter
 
-    @dbus.service.method(dbus_interface=session.SESSION_MANAGER_IFACE,
-                         in_signature="u")
+    @dbus.service.method(
+        dbus_interface=session.SESSION_MANAGER_IFACE, in_signature="u"
+    )
     def Uninhibit(self, inhibit_cookie):
         """Cancel a previous call to Inhibit() identified by the cookie."""
         if inhibit_cookie in self.inhibitions:
             self.inhibitions.pop(inhibit_cookie)
 
-    @dbus.service.method(dbus_interface=session.SESSION_MANAGER_IFACE,
-                         in_signature="u", out_signature="b")
+    @dbus.service.method(
+        dbus_interface=session.SESSION_MANAGER_IFACE,
+        in_signature="u",
+        out_signature="b",
+    )
     def IsInhibited(self, flags):
         """Determine if ops specified by flags are currently inhibited."""
         all_inhibitions = (v[0] for v in self.inhibitions.values())
@@ -103,12 +112,15 @@ class SessionDBusClientTestCase(DBusTestCase):
         self.assertFalse(inhibitor.IsInhibited(session.INHIBIT_LOGGING_OUT))
         self.assertFalse(inhibitor.IsInhibited(session.INHIBIT_USER_SWITCHING))
 
-    def register_fakeserver(self, bus_name, object_path, object_class,
-                            **kwargs):
+    def register_fakeserver(
+        self, bus_name, object_path, object_class, **kwargs
+    ):
         """The fake service is registered on the DBus."""
-        flags = (dbus.bus.NAME_FLAG_REPLACE_EXISTING |
-                 dbus.bus.NAME_FLAG_DO_NOT_QUEUE |
-                 dbus.bus.NAME_FLAG_ALLOW_REPLACEMENT)
+        flags = (
+            dbus.bus.NAME_FLAG_REPLACE_EXISTING
+            | dbus.bus.NAME_FLAG_DO_NOT_QUEUE
+            | dbus.bus.NAME_FLAG_ALLOW_REPLACEMENT
+        )
         name = self.bus.request_name(bus_name, flags=flags)
         self.assertNotEqual(name, dbus.bus.REQUEST_NAME_REPLY_EXISTS)
         fake = object_class(object_path=object_path, conn=self.bus, **kwargs)
@@ -121,8 +133,10 @@ class SessionDBusClientTestCase(DBusTestCase):
     def test_inhibit_call(self):
         """Test the inhibit call."""
         fakeinhibitor = self.register_fakeserver(
-            session.SESSION_MANAGER_BUSNAME, session.SESSION_MANAGER_PATH,
-            FakeGnomeSessionManagerInhibitor)
+            session.SESSION_MANAGER_BUSNAME,
+            session.SESSION_MANAGER_PATH,
+            FakeGnomeSessionManagerInhibitor,
+        )
         inhibit_result = yield session.inhibit_logout_suspend("fake reason")
         self.assertIsNotNone(inhibit_result)
         result = fakeinhibitor.IsInhibited(session.INHIBIT_LOGGING_OUT)
@@ -134,8 +148,10 @@ class SessionDBusClientTestCase(DBusTestCase):
     def test_uninhibit_call(self):
         """Test the uninhibit call."""
         fakeinhibitor = self.register_fakeserver(
-            session.SESSION_MANAGER_BUSNAME, session.SESSION_MANAGER_PATH,
-            FakeGnomeSessionManagerInhibitor)
+            session.SESSION_MANAGER_BUSNAME,
+            session.SESSION_MANAGER_PATH,
+            FakeGnomeSessionManagerInhibitor,
+        )
         i = yield session.inhibit_logout_suspend("fake reason")
         yield i.cancel()
         result = fakeinhibitor.IsInhibited(session.INHIBIT_LOGGING_OUT)

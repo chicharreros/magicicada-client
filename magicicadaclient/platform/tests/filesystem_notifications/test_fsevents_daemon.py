@@ -38,14 +38,13 @@ from magicicadaclient import fseventsd
 from magicicadaclient.platform.filesystem_notifications.monitor.darwin import (
     fsevents_daemon,
 )
-from magicicadaclient.platform.filesystem_notifications.agnostic \
-    import (
-        IN_CREATE,
-        IN_DELETE,
-        IN_MODIFY,
-        IN_MOVED_FROM,
-        IN_MOVED_TO,
-    )
+from magicicadaclient.platform.filesystem_notifications.agnostic import (
+    IN_CREATE,
+    IN_DELETE,
+    IN_MODIFY,
+    IN_MOVED_FROM,
+    IN_MOVED_TO,
+)
 
 
 class FakeServerProtocol(protocol.Protocol):
@@ -62,7 +61,7 @@ class FakeServerFactory(protocol.ServerFactory):
     protocol = FakeServerProtocol
 
 
-class FakeDaemonEvent(object):
+class FakeDaemonEvent:
     """A fake daemon event."""
 
     def __init__(self):
@@ -71,7 +70,7 @@ class FakeDaemonEvent(object):
         self.event_type = None
 
 
-class FakeProcessor(object):
+class FakeProcessor:
     """A fake processor."""
 
     def __init__(self, *args):
@@ -83,7 +82,7 @@ class FakeProcessor(object):
         self.processed_events.append(event)
 
 
-class FakePyInotifyEventsFactory(object):
+class FakePyInotifyEventsFactory:
     """Fake factory."""
 
     def __init__(self):
@@ -94,7 +93,7 @@ class FakePyInotifyEventsFactory(object):
         self.ignored_paths = []
 
 
-class FakeTransport(object):
+class FakeTransport:
     """A fake transport for the protocol."""
 
     def __init__(self):
@@ -106,7 +105,7 @@ class FakeTransport(object):
         self.called.append('loseConnection')
 
 
-class FakeProtocol(object):
+class FakeProtocol:
     """A fake protocol object to interact with the daemon."""
 
     def __init__(self):
@@ -266,8 +265,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
             self.assertEqual(0, pyinotify_event.wd)
             self.assertEqual(event.is_directory, pyinotify_event.dir)
             self.assertEqual(
-                fsevents_daemon.DARWIN_ACTIONS[action],
-                pyinotify_event.mask)
+                fsevents_daemon.DARWIN_ACTIONS[action], pyinotify_event.mask
+            )
             self.assertEqual(event_path, pyinotify_event.pathname)
 
     def test_convert_in_pyinotify_event_rename_create(self):
@@ -380,7 +379,8 @@ class PyInotifyEventsFactoryTestCase(BaseTwistedTestCase):
         self.factory.process_event(event)
         self.assertEqual(1, len(self.processor.processed_events))
         self.assertEqual(
-            event_path, self.processor.processed_events[0].pathname)
+            event_path, self.processor.processed_events[0].pathname
+        )
 
 
 class FilesystemMonitorTestCase(BaseTwistedTestCase):
@@ -406,8 +406,10 @@ class FilesystemMonitorTestCase(BaseTwistedTestCase):
 
         # patch the connect
         self.patch(
-            fsevents_daemon.FilesystemMonitor, '_connect_to_daemon',
-            self.fake_connect_to_daemon)
+            fsevents_daemon.FilesystemMonitor,
+            '_connect_to_daemon',
+            self.fake_connect_to_daemon,
+        )
 
     @defer.inlineCallbacks
     def test_shutdown_protocol(self):

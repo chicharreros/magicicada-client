@@ -94,8 +94,9 @@ class VMHelperTest(BaseVolumeManagerTests):
 
     def test_get_udf_suggested_path_value_error(self):
         """Test for get_udf_suggested_path."""
-        outside_home = os.path.join(self.home_dir, os.path.pardir,
-                                    'bar', 'foo')
+        outside_home = os.path.join(
+            self.home_dir, os.path.pardir, 'bar', 'foo'
+        )
         relative_home = os.path.join(os.path.pardir, os.path.pardir, 'foo')
         self.assertRaises(ValueError, get_udf_suggested_path, outside_home)
         self.assertRaises(ValueError, get_udf_suggested_path, None)
@@ -157,9 +158,11 @@ class GetShareDirNameTests(BaseVolumeManagerTests):
     def test_get_share_dir_name(self):
         """Test for get_share_dir_name."""
         other_name = 'Dorian Grey'
-        share = self._create_share_volume(volume_id=self.share_id,
-                                          name=self.name,
-                                          other_visible_name=other_name)
+        share = self._create_share_volume(
+            volume_id=self.share_id,
+            name=self.name,
+            other_visible_name=other_name,
+        )
         result = get_share_dir_name(share)
 
         expected = '%s (%s, %s)' % (self.name, other_name, self.share_id)
@@ -168,9 +171,11 @@ class GetShareDirNameTests(BaseVolumeManagerTests):
     def test_get_share_dir_name_visible_name_empty(self):
         """Test for get_share_dir_name."""
         other_name = ''
-        share = self._create_share_volume(volume_id=self.share_id,
-                                          name=self.name,
-                                          other_visible_name=other_name)
+        share = self._create_share_volume(
+            volume_id=self.share_id,
+            name=self.name,
+            other_visible_name=other_name,
+        )
         result = get_share_dir_name(share)
 
         expected = '%s (%s)' % (self.name, self.share_id)

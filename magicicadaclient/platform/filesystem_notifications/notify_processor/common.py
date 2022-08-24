@@ -85,7 +85,8 @@ NAME_TRANSLATIONS = {
     IN_MOVED_FROM: 'FS_FILE_DELETE',
     IN_MOVED_FROM | IN_ISDIR: 'FS_DIR_DELETE',
     IN_MOVED_TO: 'FS_FILE_CREATE',
-    IN_MOVED_TO | IN_ISDIR: 'FS_DIR_CREATE'}
+    IN_MOVED_TO | IN_ISDIR: 'FS_DIR_CREATE',
+}
 
 
 class NotifyProcessor(ProcessEvent):
@@ -97,8 +98,13 @@ class NotifyProcessor(ProcessEvent):
 
     def __init__(self, monitor, ignore_config=None):
         self.general_processor = GeneralINotifyProcessor(
-            monitor, self.handle_dir_delete, NAME_TRANSLATIONS,
-            path_is_ignored, IN_IGNORED, ignore_config=ignore_config)
+            monitor,
+            self.handle_dir_delete,
+            NAME_TRANSLATIONS,
+            path_is_ignored,
+            IN_IGNORED,
+            ignore_config=ignore_config,
+        )
         self.held_event = None
 
     def rm_from_mute_filter(self, event, paths):
@@ -130,7 +136,8 @@ class NotifyProcessor(ProcessEvent):
             'wd': event.wd,
             'dir': event.dir,
             'name': event.name,
-            'path': event.path}
+            'path': event.path,
+        }
         # caculate the open mask
         raw_open['mask'] = IN_OPEN
         # create the event using the raw data, then fix the pathname param
@@ -147,8 +154,9 @@ class NotifyProcessor(ProcessEvent):
     def process_IN_MOVED_FROM(self, event):
         """Capture the MOVED_FROM to maybe syntethize FILE_MOVED."""
         if self.held_event is not None:
-            self.general_processor.log.warn('Lost pair event of %s',
-                                            self.held_event)
+            self.general_processor.log.warn(
+                'Lost pair event of %s', self.held_event
+            )
         self.held_event = event
 
     def _fake_create_event(self, event):
@@ -161,8 +169,9 @@ class NotifyProcessor(ProcessEvent):
             evtname = "FS_FILE_"
         self.general_processor.eq_push(evtname + "CREATE", path=event.pathname)
         if not event.dir:
-            self.general_processor.eq_push('FS_FILE_CLOSE_WRITE',
-                                           path=event.pathname)
+            self.general_processor.eq_push(
+                'FS_FILE_CLOSE_WRITE', path=event.pathname
+            )
 
     def _fake_delete_create_event(self, event):
         """Fake the deletion and the creation."""
@@ -174,12 +183,14 @@ class NotifyProcessor(ProcessEvent):
             evtname = "FS_FILE_"
         m = "Delete because of different shares: %r"
         self.log.info(m, self.held_event.pathname)
-        self.general_processor.eq_push(evtname + "DELETE",
-                                       path=self.held_event.pathname)
+        self.general_processor.eq_push(
+            evtname + "DELETE", path=self.held_event.pathname
+        )
         self.general_processor.eq_push(evtname + "CREATE", path=event.pathname)
         if not event.dir:
-            self.general_processor.eq_push('FS_FILE_CLOSE_WRITE',
-                                           path=event.pathname)
+            self.general_processor.eq_push(
+                'FS_FILE_CLOSE_WRITE', path=event.pathname
+            )
 
     def process_IN_MOVED_TO(self, event):
         """Capture the MOVED_TO to maybe syntethize FILE_MOVED."""
@@ -192,9 +203,11 @@ class NotifyProcessor(ProcessEvent):
                 is_to_forreal = not self.is_ignored(event.pathname)
                 if is_from_forreal and is_to_forreal:
                     f_share_id = self.general_processor.get_path_share_id(
-                        f_path_dir)
+                        f_path_dir
+                    )
                     t_share_id = self.general_processor.get_path_share_id(
-                        t_path_dir)
+                        t_path_dir
+                    )
                     if f_share_id != t_share_id:
                         # if the share_id are != push a delete/create
                         self._fake_delete_create_event(event)
@@ -206,7 +219,8 @@ class NotifyProcessor(ProcessEvent):
                         self.general_processor.eq_push(
                             evtname + "MOVE",
                             path_from=self.held_event.pathname,
-                            path_to=event.pathname)
+                            path_to=event.pathname,
+                        )
                 elif is_to_forreal:
                     # this is the case of a MOVE from something ignored
                     # to a valid filename
@@ -221,7 +235,8 @@ class NotifyProcessor(ProcessEvent):
             # We should never get here, I really do not know how we
             # got here
             self.general_processor.log.warn(
-                'Cookie does not match the previoues held event!')
+                'Cookie does not match the previoues held event!'
+            )
             self.general_processor.log.warn('Ignoring %s', event)
 
     def process_default(self, event):
@@ -239,7 +254,8 @@ class NotifyProcessor(ProcessEvent):
 
         # handle the case of move a dir to a non-watched directory
         paths = self.general_processor.get_paths_starting_with(
-            fullpath, include_base=False)
+            fullpath, include_base=False
+        )
 
         paths.sort(reverse=True)
         for path, is_dir in paths:

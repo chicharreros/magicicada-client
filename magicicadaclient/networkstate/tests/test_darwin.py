@@ -30,17 +30,16 @@
 
 from twisted.internet.defer import inlineCallbacks
 
-from magicicadaclient.networkstate import (
-    darwin,
-    NetworkFailException,
-)
+from magicicadaclient.networkstate import darwin, NetworkFailException
 from magicicadaclient.networkstate.darwin import (
     NetworkManagerState,
     flags_say_reachable,
     is_machine_connected,
 )
 from magicicadaclient.networkstate.networkstates import (
-    ONLINE, OFFLINE, UNKNOWN,
+    ONLINE,
+    OFFLINE,
+    UNKNOWN,
 )
 from magicicadaclient.tests import TestCase
 
@@ -58,17 +57,13 @@ class TestSCNRFailingInDirect(TestCase):
 
     def test_cant_create_target(self):
         """SCNRCreateWithName returning None should cause an exception."""
-        self.patch(darwin, "SCNRCreateWithName",
-                   lambda _1, _2: None)
-        self.assertRaises(NetworkFailException,
-                          darwin.check_connected_state)
+        self.patch(darwin, "SCNRCreateWithName", lambda _1, _2: None)
+        self.assertRaises(NetworkFailException, darwin.check_connected_state)
 
     def test_cant_get_flags(self):
         """SCNRGetFlags returning False should cause an exception."""
-        self.patch(darwin, "SCNRGetFlags",
-                   lambda _1, _2: False)
-        self.assertRaises(NetworkFailException,
-                          darwin.check_connected_state)
+        self.patch(darwin, "SCNRGetFlags", lambda _1, _2: False)
+        self.assertRaises(NetworkFailException, darwin.check_connected_state)
 
 
 class TestFailingSCNRInCallbacks(TestCase):
@@ -83,12 +78,12 @@ class TestFailingSCNRInCallbacks(TestCase):
 
     def test_exc_in_find_online_state(self):
         """Expect UNKNOWN from find_online_state in case of exception."""
+
         def fake_check_connected_state():
             "fake a broken check_connected_state"
             raise NetworkFailException()
 
-        self.patch(darwin, "check_connected_state",
-                   fake_check_connected_state)
+        self.patch(darwin, "check_connected_state", fake_check_connected_state)
         NetworkManagerState(self.expect_unknown)
 
     def test_cant_create_target(self):
@@ -105,8 +100,7 @@ class TestFailingSCNRInCallbacks(TestCase):
 
     def test_cant_schedule_with_runloop(self):
         """SCNRScheduleWithRunLoop returning false -> callback gets UNKNOWN."""
-        self.patch(darwin, "SCNRScheduleWithRunLoop",
-                   lambda _1, _2, _3: False)
+        self.patch(darwin, "SCNRScheduleWithRunLoop", lambda _1, _2, _3: False)
         nms = NetworkManagerState(self.expect_unknown)
         nms._listen_on_separate_thread()
 
@@ -133,7 +127,7 @@ class TestReadingFlags(TestCase):
         """
         for flag in list(range(0, 17)) + [1 << 16, 1 << 17, 1 << 18]:
             # only test cases without the reachable bit set:
-            flag = flag & ~ 2
+            flag = flag & ~2
             self.assertFalse(flags_say_reachable(flag))
 
 
@@ -169,15 +163,13 @@ class TestIsMachineConnectedFunc(TestCase):
     @inlineCallbacks
     def test_not_connected_returns_false(self):
         """test that False comes back False"""
-        self.patch(darwin, "check_connected_state",
-                   lambda: False)
+        self.patch(darwin, "check_connected_state", lambda: False)
         con = yield is_machine_connected()
         self.assertEqual(con, False)
 
     @inlineCallbacks
     def test_connected_returns_true(self):
         """check that True comes back True"""
-        self.patch(darwin, "check_connected_state",
-                   lambda: True)
+        self.patch(darwin, "check_connected_state", lambda: True)
         con = yield is_machine_connected()
         self.assertEqual(con, True)

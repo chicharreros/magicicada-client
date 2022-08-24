@@ -65,14 +65,16 @@ class FakeNetworkManager(DBusExposedObject):
     def __init__(self, bus):
         """Create the instance."""
         self.bus = bus
-        self.bus.request_name('org.freedesktop.NetworkManager',
-                              flags=dbus.bus.NAME_FLAG_REPLACE_EXISTING |
-                              dbus.bus.NAME_FLAG_DO_NOT_QUEUE |
-                              dbus.bus.NAME_FLAG_ALLOW_REPLACEMENT)
-        self.busName = dbus.service.BusName('org.freedesktop.NetworkManager',
-                                            bus=self.bus)
-        DBusExposedObject.__init__(self, bus_name=self.busName,
-                                   service=None)
+        self.bus.request_name(
+            'org.freedesktop.NetworkManager',
+            flags=dbus.bus.NAME_FLAG_REPLACE_EXISTING
+            | dbus.bus.NAME_FLAG_DO_NOT_QUEUE
+            | dbus.bus.NAME_FLAG_ALLOW_REPLACEMENT,
+        )
+        self.busName = dbus.service.BusName(
+            'org.freedesktop.NetworkManager', bus=self.bus
+        )
+        super().__init__(bus_name=self.busName, service=None)
 
     def shutdown(self):
         """Shutdown the fake NetworkManager."""
@@ -91,9 +93,12 @@ class FakeNetworkManager(DBusExposedObject):
         """Emits the signal StateChanged(4)."""
         self.StateChanged(20)
 
-    @dbus.service.method(dbus.PROPERTIES_IFACE,
-                         in_signature='ss', out_signature='v',
-                         async_callbacks=('reply_handler', 'error_handler'))
+    @dbus.service.method(
+        dbus.PROPERTIES_IFACE,
+        in_signature='ss',
+        out_signature='v',
+        async_callbacks=('reply_handler', 'error_handler'),
+    )
     def Get(self, interface, propname, reply_handler=None, error_handler=None):
         """Fake dbus's Get method to get at the State property."""
         try:
@@ -123,9 +128,13 @@ class IPCTestCase(FakeMainTestCase, DBusTestCase):
         """Initialize this test instance."""
         yield super(IPCTestCase, self).setUp()
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
-        self.log.info("starting test %s.%s", self.__class__.__name__,
-                      self._testMethodName)
+            '.'.join((__name__, self.__class__.__name__))
+        )
+        self.log.info(
+            "starting test %s.%s",
+            self.__class__.__name__,
+            self._testMethodName,
+        )
         self.nm = FakeNetworkManager(self.bus)
 
         self.service = self.service_class(main=self.main, send_events=True)
@@ -171,9 +180,13 @@ class IPCTestCase(FakeMainTestCase, DBusTestCase):
         self.assertEqual(real_result, actual)
         self.assertEqual(service._called, {method: [(args, kwargs)]})
 
-    def assert_remote_method(self, method_name,
-                             in_signature='', out_signature='',
-                             async_callbacks=None):
+    def assert_remote_method(
+        self,
+        method_name,
+        in_signature='',
+        out_signature='',
+        async_callbacks=None,
+    ):
         """Assert that 'method_name' is a remote method.
 
         'in_signature' and 'out_signature' should match with the method's
@@ -296,7 +309,8 @@ class LauncherTests(IPCTestCase):
         yield client.call_method('unset_urgency')
         self.assertEqual(service._called, {'set_urgent': [((False,), {})]})
         self.assert_remote_method(
-            'unset_urgency', in_signature=None, out_signature=None)
+            'unset_urgency', in_signature=None, out_signature=None
+        )
 
 
 class TestDBusRestart(DBusTwistedTestCase):
@@ -309,6 +323,7 @@ class TestDBusRestart(DBusTwistedTestCase):
         def _handler(*a):
             """Async helper."""
             d.callback(True)
+
         # shutdown will fail when trying to restart because of our
         # half-backed dbus. That's OK, we don't actually want it
         # restarted :)
@@ -318,4 +333,5 @@ class TestDBusRestart(DBusTwistedTestCase):
         except SystemExit:
             pass
         return d
+
     test_restart.skip = "leaves dbus stuff around, need to cleanup"

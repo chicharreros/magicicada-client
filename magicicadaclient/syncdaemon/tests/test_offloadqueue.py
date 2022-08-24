@@ -243,8 +243,11 @@ class OffloadQueueTestCase(TwistedTestCase):
 
     def test_log_init_tempfile(self):
         """Log the initial temp file used."""
-        self.assertTrue(self.handler.check_debug("Using temporary file",
-                                                 repr(self.oq._tempfile_name)))
+        self.assertTrue(
+            self.handler.check_debug(
+                "Using temporary file", repr(self.oq._tempfile_name)
+            )
+        )
 
     def test_log_rotate(self):
         """Log new file in rotation."""
@@ -256,14 +259,19 @@ class OffloadQueueTestCase(TwistedTestCase):
         self.oq.push(data)
         self.oq.push(data)
 
-        self.assertTrue(self.handler.check_debug("Rotation into", "moving",
-                                                 repr(self.oq._tempfile_name)))
+        self.assertTrue(
+            self.handler.check_debug(
+                "Rotation into", "moving", repr(self.oq._tempfile_name)
+            )
+        )
 
     def test_safe_rotate_crash(self):
         """All is ok even after rotation crashes when getting temp file."""
+
         def crash(*a):
             """Will crash."""
             raise NameError("ugly")
+
         self.patch(tempfile, 'mkstemp', crash)
 
         # do a lot of things, rotating in the middle, checking all is ok
@@ -273,21 +281,27 @@ class OffloadQueueTestCase(TwistedTestCase):
 
     def test_safe_rotate_unlink(self):
         """All is ok after failing to unlink old file."""
+
         def crash(*a):
             """Will crash."""
             raise NameError("ugly")
+
         self.patch(os, 'unlink', crash)
 
         # do a lot of things, rotating in the middle, checking all is ok
         self.test_rotate_keep_working()
-        self.assertTrue(self.handler.check_warning(
-                        "Error when removing old tempfile", "NameError"))
+        self.assertTrue(
+            self.handler.check_warning(
+                "Error when removing old tempfile", "NameError"
+            )
+        )
 
     def _test_safe_push_write(self, count):
         """Fail when pushing an item will leave it all ok."""
 
         class CrashingFile(io.BytesIO):
             """File-like object that crashes in second write."""
+
             def __init__(self):
                 self._fail_counter = 0
                 super().__init__()

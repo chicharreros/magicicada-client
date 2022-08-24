@@ -43,13 +43,14 @@ TEST_FALLBACK_PATH = 'test-path/to/mofiles'
 TEST_FROZEN_PATH = 'frozen-test-path/to/mofiles'
 
 
-class MockGettextTranslations(object):
+class MockGettextTranslations:
     """Mock translations to test properties"""
+
     ugettext = 'ugettext'
     gettext = 'gettext'
 
 
-class MockNSUserDefaults(object):
+class MockNSUserDefaults:
     """Mock defaults for _get_languages on darwin."""
 
     def standardUserDefaults(self):
@@ -72,6 +73,7 @@ class TranslationsTestCase(TestCase):
     def test_import(self):
         """Test whether import translation defines _ as a builtin."""
         import magicicadaclient.utils.translation
+
         assert magicicadaclient.utils.translation
         self.assertFalse('_' in __builtins__)
 
@@ -79,6 +81,7 @@ class TranslationsTestCase(TestCase):
     def test_get_languages_darwin(self):
         """Test getting the user's list of preferred languages."""
         import Cocoa
+
         assert Cocoa
         self.patch(Cocoa, 'NSUserDefaults', MockNSUserDefaults())
         langs = translation._get_languages()
@@ -95,14 +98,25 @@ class TranslationsTestCase(TestCase):
         self.patch(sys, 'platform', 'darwin')
         sys.frozen = 'yes'
         self.addCleanup(delattr, sys, 'frozen')
-        self.patch(translation, '__file__',
-                   os.path.join('path', 'to', 'Main.app', 'ignore', 'me'))
+        self.patch(
+            translation,
+            '__file__',
+            os.path.join('path', 'to', 'Main.app', 'ignore', 'me'),
+        )
 
         path = translation._get_translations_data_path()
 
-        self.assertEqual(path, os.path.join('path', 'to', 'Main.app',
-                                            'Contents', 'Resources',
-                                            'translations'))
+        self.assertEqual(
+            path,
+            os.path.join(
+                'path',
+                'to',
+                'Main.app',
+                'Contents',
+                'Resources',
+                'translations',
+            ),
+        )
 
     def test_get_translations_data_path_darwin_unfrozen_nofallback(self):
         """Test that we use gettext defaults on darwin when not frozen."""
@@ -146,8 +160,9 @@ class TranslationsTestCase(TestCase):
         """test get_gettext on linux py3"""
         self._call_get_gettext('linux', py_version=(3,))
 
-    def _call_get_gettext_nonlinux(self, frozen, py_version,
-                                   lang_en_first=False):
+    def _call_get_gettext_nonlinux(
+        self, frozen, py_version, lang_en_first=False
+    ):
         """Helper function for non-linux runs of get_gettext."""
         if lang_en_first:
             lang_rv = TEST_LANG_DEFAULTS_EN_FIRST
@@ -161,8 +176,9 @@ class TranslationsTestCase(TestCase):
         else:
             expected_path = TEST_FALLBACK_PATH
 
-        self.patch(translation, '_get_translations_data_path',
-                   lambda x: expected_path)
+        self.patch(
+            translation, '_get_translations_data_path', lambda x: expected_path
+        )
 
         self._call_get_gettext('notlinux', py_version)
 
@@ -179,7 +195,8 @@ class TranslationsTestCase(TestCase):
             # though we don't ship an en.mo
             expected_arg = (
                 (TEST_DOMAIN, expected_path),
-                {'languages': lang_rv[:1], 'fallback': True})
+                {'languages': lang_rv[:1], 'fallback': True},
+            )
 
             self.assertEqual(self._called, [expected_arg])
 
@@ -202,7 +219,8 @@ class TranslationsTestCase(TestCase):
     def test_get_gettext_nonlinux_frozen_py2_enfirst(self):
         """test get_gettext returning nulltranslations when lang[0] = en"""
         self._call_get_gettext_nonlinux(
-            frozen=True, py_version=(2,), lang_en_first=True)
+            frozen=True, py_version=(2,), lang_en_first=True
+        )
 
     def test_get_gettext_darwin_unfrozen_fallback(self):
         """test using fallback path from source"""
@@ -210,8 +228,13 @@ class TranslationsTestCase(TestCase):
         self._call_get_gettext('darwin', (2,), TEST_FALLBACK_PATH)
         self.assertEqual(
             self._called,
-            [((TEST_DOMAIN, TEST_FALLBACK_PATH),
-              {'languages': ['not-en'], 'fallback': True})])
+            [
+                (
+                    (TEST_DOMAIN, TEST_FALLBACK_PATH),
+                    {'languages': ['not-en'], 'fallback': True},
+                )
+            ],
+        )
 
     def test_get_gettext_win32_unfrozen_fallback(self):
         """test using fallback path from source"""
@@ -219,5 +242,10 @@ class TranslationsTestCase(TestCase):
         self._call_get_gettext('win32', (2,), TEST_FALLBACK_PATH)
         self.assertEqual(
             self._called,
-            [((TEST_DOMAIN, TEST_FALLBACK_PATH),
-              {'languages': ['not-en'], 'fallback': True})])
+            [
+                (
+                    (TEST_DOMAIN, TEST_FALLBACK_PATH),
+                    {'languages': ['not-en'], 'fallback': True},
+                )
+            ],
+        )

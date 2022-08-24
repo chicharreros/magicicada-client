@@ -67,11 +67,12 @@ def replace_variables(files_to_replace, prefix=None, *args, **kwargs):
                 content = content.replace('@LOG_FILE_SIZE@', LOG_FILE_SIZE)
                 if prefix is not None:
                     content = content.replace(
-                        '@localedir@', os.path.join(prefix,
-                                                    'share', 'locale'))
+                        '@localedir@', os.path.join(prefix, 'share', 'locale')
+                    )
                     content = content.replace(
-                        '@libexecdir@', os.path.join(prefix,
-                                                     'lib', PROJECT_NAME))
+                        '@libexecdir@',
+                        os.path.join(prefix, 'lib', PROJECT_NAME),
+                    )
                 out_file.write(content)
 
 
@@ -88,19 +89,26 @@ class Install(install):
 
         # Remove the contrib and tests packages from the packages list
         # as they are not meant to be installed to the system.
-        pkgs = [x for x in self.distribution.packages if not (
-            x.startswith('contrib') or x.startswith('tests'))]
+        pkgs = [
+            x
+            for x in self.distribution.packages
+            if not (x.startswith('contrib') or x.startswith('tests'))
+        ]
         self.distribution.packages = pkgs
 
         # Remove the input and dev files from the data files list,
         # as they are not meant to be installed.
-        data_files = [x for x in self.distribution.data_files if not (
-            x[1][0].endswith('.in') or x[1][0].endswith('-dev.conf'))]
+        data_files = [
+            x
+            for x in self.distribution.data_files
+            if not (x[1][0].endswith('.in') or x[1][0].endswith('-dev.conf'))
+        ]
         self.distribution.data_files = data_files
 
         # Get just the prefix value, without the root
         prefix = self.install_data.replace(
-            self.root if self.root is not None else '', '')
+            self.root if self.root is not None else '', ''
+        )
         replace_variables(SERVICE_FILES, prefix)
         install.run(self)
 
@@ -110,13 +118,16 @@ class Install(install):
         # for use in installed systems.
         with open(CLIENTDEFS) as in_file:
             content = in_file.read()
-            with open(os.path.join(self.install_purelib,
-                                   PROJECT_NAME,
-                                   CLIENTDEFS), 'w') as out_file:
+            with open(
+                os.path.join(self.install_purelib, PROJECT_NAME, CLIENTDEFS),
+                'w',
+            ) as out_file:
                 content = content.replace(
-                    '@localedir@', os.path.join(prefix, 'share', 'locale'))
+                    '@localedir@', os.path.join(prefix, 'share', 'locale')
+                )
                 content = content.replace(
-                    '@libexecdir@', os.path.join(prefix, 'lib', PROJECT_NAME))
+                    '@libexecdir@', os.path.join(prefix, 'lib', PROJECT_NAME)
+                )
                 out_file.write(content)
 
 
@@ -147,6 +158,7 @@ def set_py2exe_paths():
     """Set the path so that py2exe finds the required modules."""
     # Pylint does not understand same spaced imports
     import win32com
+
     try:
         import py2exe.mf as modulefinder
     except ImportError:
@@ -166,19 +178,11 @@ def set_py2exe_paths():
             modulefinder.AddPackagePath(extra_mod, module_path)
 
 
-cmdclass = {
-    'build': Build,
-    'clean': Clean,
-    'install': Install,
-}
+cmdclass = {'build': Build, 'clean': Clean, 'install': Install}
 
-bin_scripts = [
-    'bin/u1sdtool',
-]
+bin_scripts = ['bin/u1sdtool']
 
-libexec_scripts = [
-    'bin/ubuntuone-syncdaemon',
-]
+libexec_scripts = ['bin/ubuntuone-syncdaemon']
 
 data_files = []
 scripts = []
@@ -192,19 +196,21 @@ if sys.platform == 'win32':
                 'skip_archive': 0,
                 'optimize': 1,
                 'dll_excludes': ["mswsock.dll", "powrprof.dll"],
-            },
+            }
         },
         # add the console script so that py2exe compiles it
         'console': bin_scripts + libexec_scripts,
         'zipfile': None,
     }
 else:
-    data_files.extend([
-        ('lib/%s' % PROJECT_NAME, libexec_scripts),
-        ('share/dbus-1/services', SERVICE_FILES),
-        ('/etc/xdg/ubuntuone', ['data/syncdaemon.conf']),
-        ('share/man/man1', ['docs/man/u1sdtool.1']),
-    ])
+    data_files.extend(
+        [
+            ('lib/%s' % PROJECT_NAME, libexec_scripts),
+            ('share/dbus-1/services', SERVICE_FILES),
+            ('/etc/xdg/ubuntuone', ['data/syncdaemon.conf']),
+            ('share/man/man1', ['docs/man/u1sdtool.1']),
+        ]
+    )
     scripts.extend(bin_scripts)
     extra = {}
 
@@ -221,4 +227,5 @@ setup(
     data_files=data_files,
     cmdclass=cmdclass,
     packages=['contrib', 'magicicadaclient'],
-    **extra)
+    **extra
+)

@@ -75,8 +75,12 @@ class BaseTestCase(BaseTwistedTestCase):
     """Base test case that builds test dirs and files."""
 
     @defer.inlineCallbacks
-    def setUp(self, test_dir_name=None, test_file_name=None,
-              valid_file_path_builder=None):
+    def setUp(
+        self,
+        test_dir_name=None,
+        test_file_name=None,
+        valid_file_path_builder=None,
+    ):
         """Setup for the tests."""
         yield super(BaseTestCase, self).setUp()
 
@@ -106,12 +110,18 @@ class OSWrapperTests(BaseTestCase):
     """Tests for os wrapper functions."""
 
     @defer.inlineCallbacks
-    def setUp(self, test_dir_name=None, test_file_name=None,
-              valid_file_path_builder=None):
+    def setUp(
+        self,
+        test_dir_name=None,
+        test_file_name=None,
+        valid_file_path_builder=None,
+    ):
         """Setup for the tests."""
         yield super(OSWrapperTests, self).setUp(
-            test_dir_name=test_dir_name, test_file_name=test_file_name,
-            valid_file_path_builder=valid_file_path_builder)
+            test_dir_name=test_dir_name,
+            test_file_name=test_file_name,
+            valid_file_path_builder=valid_file_path_builder,
+        )
         # make sure the file exists
         open_file(self.testfile, 'w').close()
 
@@ -239,7 +249,8 @@ class OSWrapperTests(BaseTestCase):
     def test_rename_not_there(self):
         """Rename something that does not exist."""
         exc = self.assertRaises(
-            OSError, rename, os.path.join(self.basedir, 'no'), 'foo')
+            OSError, rename, os.path.join(self.basedir, 'no'), 'foo'
+        )
         self.assertEqual(exc.errno, errno.ENOENT)
 
     def test_rename_file(self, target=None):
@@ -252,10 +263,11 @@ class OSWrapperTests(BaseTestCase):
 
         self.assertFalse(
             path_exists(self.testfile),
-            'Path %r should not exist after rename.' % self.testfile)
+            'Path %r should not exist after rename.' % self.testfile,
+        )
         self.assertTrue(
-            path_exists(target),
-            'Path %r should exist after rename.' % target)
+            path_exists(target), 'Path %r should exist after rename.' % target
+        )
 
     def test_rename_dir(self, source=None, target=None):
         """Rename a dir."""
@@ -269,10 +281,11 @@ class OSWrapperTests(BaseTestCase):
 
         self.assertFalse(
             path_exists(source),
-            'Path %r should not exist after rename.' % source)
+            'Path %r should not exist after rename.' % source,
+        )
         self.assertTrue(
-            path_exists(target),
-            'Path %r should exist after rename.' % target)
+            path_exists(target), 'Path %r should exist after rename.' % target
+        )
 
     def test_listdir(self, expected_result=None):
         """Return a list of the files in a dir."""
@@ -307,8 +320,7 @@ class OSWrapperTests(BaseTestCase):
 
     def test_stat_normal(self):
         """Test on a normal file."""
-        self.assertEqual(os.stat(self.valid_path),
-                         stat_path(self.testfile))
+        self.assertEqual(os.stat(self.valid_path), stat_path(self.testfile))
 
     def test_stat_no_path(self):
         """Test that it raises proper error when no file is there."""
@@ -346,8 +358,10 @@ class OSWrapperTests(BaseTestCase):
         make_link(self.testfile, destination)
 
         self.assertTrue(is_link(destination))
-        self.assertEqual(os.path.normcase(self.testfile),
-                         os.path.normcase(read_link(destination)))
+        self.assertEqual(
+            os.path.normcase(self.testfile),
+            os.path.normcase(read_link(destination)),
+        )
 
     def _assert_read_link(self, target):
         """Assert if the target path of the link is correct."""
@@ -440,12 +454,18 @@ class RecursiveMoveTests(BaseTestCase):
     """Tests for os wrapper functions."""
 
     @defer.inlineCallbacks
-    def setUp(self, test_dir_name=None, test_file_name=None,
-              valid_file_path_builder=None):
+    def setUp(
+        self,
+        test_dir_name=None,
+        test_file_name=None,
+        valid_file_path_builder=None,
+    ):
         """Setup for the tests."""
         yield super(RecursiveMoveTests, self).setUp(
-            test_dir_name=test_dir_name, test_file_name=test_file_name,
-            valid_file_path_builder=valid_file_path_builder)
+            test_dir_name=test_dir_name,
+            test_file_name=test_file_name,
+            valid_file_path_builder=valid_file_path_builder,
+        )
 
         # make sure the file exists
         open_file(self.testfile, 'w').close()
@@ -497,9 +517,11 @@ class RecursiveMoveTests(BaseTestCase):
 
     def test_move_dir_to_dir(self):
         """Test moving a dir inside an existing dir on the same filesystem."""
-        self._check_move_dir(self.src_dir, self.dst_dir,
-                             os.path.join(self.dst_dir,
-                                          os.path.basename(self.src_dir)))
+        self._check_move_dir(
+            self.src_dir,
+            self.dst_dir,
+            os.path.join(self.dst_dir, os.path.basename(self.src_dir)),
+        )
 
     def test_dont_move_dir_in_itself(self):
         """Test moving a dir inside itself raises an Error."""
@@ -511,12 +533,18 @@ class WalkTests(BaseTestCase):
     """Tests for os wrapper functions."""
 
     @defer.inlineCallbacks
-    def setUp(self, test_dir_name=None, test_file_name=None,
-              valid_file_path_builder=None):
+    def setUp(
+        self,
+        test_dir_name=None,
+        test_file_name=None,
+        valid_file_path_builder=None,
+    ):
         """Setup for the tests."""
         yield super(WalkTests, self).setUp(
-            test_dir_name=test_dir_name, test_file_name=test_file_name,
-            valid_file_path_builder=valid_file_path_builder)
+            test_dir_name=test_dir_name,
+            test_file_name=test_file_name,
+            valid_file_path_builder=valid_file_path_builder,
+        )
 
         self._create_paths()
         self.addCleanup(remove_tree, self.basedir)
@@ -550,22 +578,26 @@ class WalkTests(BaseTestCase):
             file_path = os.path.join(dir_path, file_name)
             open_file(file_path, "w").close()
 
-        make_link(os.path.devnull,
-                  os.path.join(self.basedir, 'dir0', 'link'))
+        make_link(os.path.devnull, os.path.join(self.basedir, 'dir0', 'link'))
         make_dir(os.path.join(self.basedir, 'dir1', 'dir11'))
         make_dir(os.path.join(self.basedir, 'dir3'), recursive=True)
 
-    def _build_dict_from_walk(self, walk_generator,
-                              path_transformer=lambda x: x,
-                              name_transformer=lambda x: x):
+    def _build_dict_from_walk(
+        self,
+        walk_generator,
+        path_transformer=lambda x: x,
+        name_transformer=lambda x: x,
+    ):
         """Build a dict from the result of a os.walk call."""
         result = defaultdict(dict)
         for dirpath, dirnames, filenames in walk_generator:
             dirpath = path_transformer(dirpath)
-            result[dirpath]['dirnames'] = \
-                sorted(map(name_transformer, dirnames))
-            result[dirpath]['filenames'] = \
-                sorted(map(name_transformer, filenames))
+            result[dirpath]['dirnames'] = sorted(
+                map(name_transformer, dirnames)
+            )
+            result[dirpath]['filenames'] = sorted(
+                map(name_transformer, filenames)
+            )
 
         return result
 

@@ -33,10 +33,7 @@ import logging
 from collections import namedtuple
 
 from twisted.internet import defer
-from twisted.spread.pb import (
-    DeadReferenceError,
-    NoSuchMethod,
-)
+from twisted.spread.pb import DeadReferenceError, NoSuchMethod
 
 from devtools.handlers import MementoHandler
 from devtools.testcases import skipIfOS
@@ -58,7 +55,7 @@ class RandomException(Exception):
     """A random exception."""
 
 
-class FakeActivationClient(object):
+class FakeActivationClient:
     """A fake ActivationClient."""
 
     def __init__(self, config):
@@ -70,7 +67,7 @@ class FakeActivationClient(object):
         return defer.succeed(self.config.description.client)
 
 
-class FakeActivationInstance(object):
+class FakeActivationInstance:
     """A fake ActivationInstance."""
 
     def __init__(self, config):
@@ -82,7 +79,7 @@ class FakeActivationInstance(object):
         return defer.succeed(self.config.description.server)
 
 
-class FakeDescriptionFactory(object):
+class FakeDescriptionFactory:
     """A fake description factory."""
 
     def __init__(self, server_description, client_description):
@@ -91,13 +88,14 @@ class FakeDescriptionFactory(object):
         self.client = client_description
 
 
-class FakeReactor(object):
+class FakeReactor:
     """A fake reactor."""
 
     def __init__(self):
         """Initialize this faker."""
-        self.connection_class = namedtuple("Connection",
-                                           "host port factory backlog")
+        self.connection_class = namedtuple(
+            "Connection", "host port factory backlog"
+        )
         self.connections = []
 
     def connectTCP(self, host, port, factory, timeout=None, bindAddress=None):
@@ -111,7 +109,7 @@ class FakeReactor(object):
         self.connections.append(connection)
 
 
-class FakeTCP4ClientEndpoint(object):
+class FakeTCP4ClientEndpoint:
     """A fake tcp4 client."""
 
     def __init__(self, protocol):
@@ -123,7 +121,7 @@ class FakeTCP4ClientEndpoint(object):
         return defer.succeed(self.protocol)
 
 
-class FakeRemoteClient(object):
+class FakeRemoteClient:
     """A fake RemoteClient."""
 
     missing_signal = "missing"
@@ -213,7 +211,7 @@ class DummyClient(ipc.BaseClient):
     service_cmdline = DummyService.cmdline
 
 
-class DummyDescription(object):
+class DummyDescription:
     """Return the descriptions accordingly."""
 
     def __init__(self, client, server):
@@ -252,8 +250,13 @@ class BaseIPCTestCase(TCPPbServerTestCase, TestCase):
             # we have clean connections
 
             @defer.inlineCallbacks
-            def server_listen(server_factory, service_name, activation_cmd,
-                              description, reactor=None):
+            def server_listen(
+                server_factory,
+                service_name,
+                activation_cmd,
+                description,
+                reactor=None,
+            ):
                 """Connect to the local running service."""
                 yield self.listen_server(self.service)
                 defer.returnValue(self.listener)
@@ -261,8 +264,13 @@ class BaseIPCTestCase(TCPPbServerTestCase, TestCase):
             self.patch(ipc, 'server_listen', server_listen)
 
             @defer.inlineCallbacks
-            def client_connect(client_factory, service_name,
-                               activation_cmdline, description, reactor=None):
+            def client_connect(
+                client_factory,
+                service_name,
+                activation_cmdline,
+                description,
+                reactor=None,
+            ):
                 """Connect the local running client."""
                 yield self.connect_client()
                 self.client.factory = self.client_factory
@@ -365,13 +373,18 @@ class TCPListenConnectTestCase(BaseIPCTestCase):
         """Test the server_listen function."""
         self.patch(ipc, "ActivationInstance", FakeActivationInstance)
 
-        description_factory = FakeDescriptionFactory(TEST_SERVER_DESCRIPTION,
-                                                     TEST_CLIENT_DESCRIPTION)
+        description_factory = FakeDescriptionFactory(
+            TEST_SERVER_DESCRIPTION, TEST_CLIENT_DESCRIPTION
+        )
 
         fake_factory = object()
-        yield ipc.server_listen(fake_factory, TEST_SERVICE,
-                                TEST_CMDLINE, description_factory,
-                                reactor=self.fake_reactor)
+        yield ipc.server_listen(
+            fake_factory,
+            TEST_SERVICE,
+            TEST_CMDLINE,
+            description_factory,
+            reactor=self.fake_reactor,
+        )
 
         self.assertEqual(len(self.fake_reactor.connections), 1)
         conn = self.fake_reactor.connections[0]
@@ -394,15 +407,23 @@ class TCPListenConnectTestCase(BaseIPCTestCase):
 
         self.patch(ipc.endpoints, 'clientFromString', client_from_string)
 
-        description_factory = FakeDescriptionFactory(TEST_SERVER_DESCRIPTION,
-                                                     TEST_CLIENT_DESCRIPTION)
+        description_factory = FakeDescriptionFactory(
+            TEST_SERVER_DESCRIPTION, TEST_CLIENT_DESCRIPTION
+        )
 
         fake_factory = object()
         returned_protocol = yield ipc.client_connect(
-            fake_factory, TEST_SERVICE, TEST_CMDLINE, description_factory,
-            reactor=self.fake_reactor)
+            fake_factory,
+            TEST_SERVICE,
+            TEST_CMDLINE,
+            description_factory,
+            reactor=self.fake_reactor,
+        )
         expected = (
-            'clientFromString', self.fake_reactor, description_factory.client)
+            'clientFromString',
+            self.fake_reactor,
+            description_factory.client,
+        )
         self.assertIn(expected, called)
         self.assertEqual(protocol, returned_protocol)
 
@@ -424,10 +445,7 @@ class TCPDummyClientTestCase(BaseIPCTestCase):
 
     remote_client_name = remote_service_name = 'dummy'
 
-    method_mapping = [
-        ('foo', (), {}),
-        ('bar', (object(),), {}),
-    ]
+    method_mapping = [('foo', (), {}), ('bar', (object(),), {})]
     signal_mapping = [
         ('Success', ('test',), {}),
         ('NotSuccess', ('yadda',), {}),
@@ -436,24 +454,6 @@ class TCPDummyClientTestCase(BaseIPCTestCase):
         ('JustKwargs', (), {'foo': 'bar'}),
         ('BothArgsAndKwargs', ('zaraza', 8), {'foo': -42}),
     ]
-
-    @defer.inlineCallbacks
-    def test_deprecated_siganl_is_also_sent(self):
-        """Old-style, deprecated signals handler are also called."""
-        d1 = defer.Deferred()
-        d2 = defer.Deferred()
-
-        self.remote_service.next_result = 'yadda'
-
-        # old, deprecated way
-        self.remote_client.connect_to_signal('Success', d1.callback)
-        self.remote_client.on_success_cb = d2.callback
-
-        self.remote_client.foo()
-
-        result = yield defer.gatherResults([d1, d2])
-
-        self.assertEqual(result, ['yadda', 'yadda'])
 
     @defer.inlineCallbacks
     def test_register_to_signals(self):
@@ -548,12 +548,14 @@ class SignalBroadcasterTestCase(TestCase):
         fake_remote_client = FakeRemoteClient(dead_remote=True)
 
         self.sb.remote_register_to_signals(fake_remote_client, [sample_signal])
-        self.assertIn(fake_remote_client,
-                      self.sb.clients_per_signal[sample_signal])
+        self.assertIn(
+            fake_remote_client, self.sb.clients_per_signal[sample_signal]
+        )
 
         self.sb.emit_signal(sample_signal)
-        self.assertNotIn(fake_remote_client,
-                         self.sb.clients_per_signal[sample_signal])
+        self.assertNotIn(
+            fake_remote_client, self.sb.clients_per_signal[sample_signal]
+        )
 
     def test_emit_signal_some_dead_some_not(self):
         """Test a clean reference after a dead one."""
@@ -603,7 +605,7 @@ class SignalBroadcasterTestCase(TestCase):
         self.assertTrue(self.memento.check_warning(*expected))
 
 
-class FakeRootObject(object):
+class FakeRootObject:
     """A fake root object."""
 
     def __init__(self, called, remote_obj):
@@ -617,7 +619,7 @@ class FakeRootObject(object):
         return defer.succeed(self.remote_obj)
 
 
-class FakeWorkingRemoteClient(object):
+class FakeWorkingRemoteClient:
     """A fake remote client."""
 
     def __init__(self, called):
@@ -658,8 +660,10 @@ class ReconnectTestCase(TestCase):
     @defer.inlineCallbacks
     def test_reconnect_method(self):
         """Test the execcution of the reconnect method."""
-        clients = dict(first=FakeWorkingRemoteClient(self.called),
-                       second=FakeWorkingRemoteClient(self.called))
+        clients = dict(
+            first=FakeWorkingRemoteClient(self.called),
+            second=FakeWorkingRemoteClient(self.called),
+        )
 
         base_client = ipc.BaseClient()
         base_client.clients = clients
@@ -675,4 +679,5 @@ class ReconnectTestCase(TestCase):
             self.assertIn('get_%s' % name, self.called)
 
         self.assertEqual(
-            len(clients), self.called.count('register_to_signals'))
+            len(clients), self.called.count('register_to_signals')
+        )

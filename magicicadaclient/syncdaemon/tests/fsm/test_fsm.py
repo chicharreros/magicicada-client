@@ -140,8 +140,10 @@ class TestParse(unittest.TestCase):
             for t in s.transitions.values():
                 for k in t.source:
                     self.assertEqual(
-                        t.source[k], t.target[k],
-                        "on transition %s target is %s" % (t, t.target))
+                        t.source[k],
+                        t.target[k],
+                        "on transition %s target is %s" % (t, t.target),
+                    )
 
     def test_equal_wrong_places(self):
         """make sure "=" are not allowed on state or params."""
@@ -157,8 +159,8 @@ class TestParse(unittest.TestCase):
         f = fsm.StateMachine(p("test_param_na.ods"))
         f.validate()
         self.assertEqual(
-            list(f.events["EVENT_2"].transitions[0].parameters.keys()),
-            ["MV2"])
+            list(f.events["EVENT_2"].transitions[0].parameters.keys()), ["MV2"]
+        )
 
     def test_func_na(self):
         """Test that na param columns are ignored."""

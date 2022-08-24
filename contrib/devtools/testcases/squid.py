@@ -34,14 +34,16 @@ from devtools.services.squid import (
     SquidLaunchError,
     get_squid_executable,
     get_htpasswd_executable,
-    retrieve_proxy_settings)
+    retrieve_proxy_settings,
+)
 
 squid, _ = get_squid_executable()
 htpasswd = get_htpasswd_executable()
 
 
-@skipIf(squid is None or htpasswd is None,
-        'The test requires squid and htpasswd.')
+@skipIf(
+    squid is None or htpasswd is None, 'The test requires squid and htpasswd.'
+)
 class SquidTestCase(BaseTestCase):
     """Test that uses a proxy."""
 
@@ -63,6 +65,9 @@ class SquidTestCase(BaseTestCase):
         settings = retrieve_proxy_settings()
         if settings is None:
             raise SquidLaunchError('Proxy is not running.')
-        return dict(host='localhost', port=settings['auth_port'],
-                    username=settings['username'],
-                    password=settings['password'])
+        return dict(
+            host='localhost',
+            port=settings['auth_port'],
+            username=settings['username'],
+            password=settings['password'],
+        )

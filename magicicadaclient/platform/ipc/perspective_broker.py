@@ -30,8 +30,6 @@
 
 import logging
 import sys
-import warnings
-
 from functools import wraps
 from collections import defaultdict
 
@@ -55,9 +53,11 @@ from magicicadaclient.utils.tcpactivation import (
 # we do not do from package import as source becauser pyflakes will complain
 if sys.platform == 'win32':
     from magicicadaclient.platform.ipc import windows
+
     source = windows
 else:
     from magicicadaclient.platform.ipc import unix
+
     source = unix
 
 DescriptionFactory = source.DescriptionFactory
@@ -121,8 +121,10 @@ def ipc_client_connect(client_factory, reactor=None):
 def remote_handler(handler):
     result = handler
     if handler:
+
         def result(x):
             return handler.callRemote('execute', x)
+
     return result
 
 
@@ -143,7 +145,7 @@ class RemoteMeta(type):
         return super(RemoteMeta, cls).__new__(cls, name, bases, attrs)
 
 
-class SignalBroadcaster(object):
+class SignalBroadcaster:
     """Object that allows to emit signals to clients over the IPC."""
 
     MSG_NO_SIGNAL_HANDLER = "No signal handler for %r in %r"
@@ -160,8 +162,12 @@ class SignalBroadcaster(object):
 
     def _other_failure(self, failure, signal_name, current_client):
         """Log the issue when emitting a signal."""
-        logger.warning(self.MSG_COULD_NOT_EMIT_SIGNAL, signal_name,
-                       current_client, failure.value)
+        logger.warning(
+            self.MSG_COULD_NOT_EMIT_SIGNAL,
+            signal_name,
+            current_client,
+            failure.value,
+        )
         logger.warning('Traceback is:\n%s', failure.printDetailedTraceback())
 
     def remote_register_to_signals(self, client, signals):
@@ -177,14 +183,18 @@ class SignalBroadcaster(object):
 
     def emit_signal(self, signal_name, *args, **kwargs):
         """Emit the given signal to the clients."""
-        logger.debug("emitting %r to all (%i) connected clients.",
-                     signal_name, len(self.clients_per_signal[signal_name]))
+        logger.debug(
+            "emitting %r to all (%i) connected clients.",
+            signal_name,
+            len(self.clients_per_signal[signal_name]),
+        )
         dead_clients = set()
         for current_client in self.clients_per_signal[signal_name]:
             try:
                 d = current_client.callRemote(signal_name, *args, **kwargs)
                 d.addErrback(
-                    self._ignore_no_such_method, signal_name, current_client)
+                    self._ignore_no_such_method, signal_name, current_client
+                )
                 d.addErrback(self._other_failure, signal_name, current_client)
             except DeadReferenceError:
                 dead_clients.add(current_client)
@@ -203,8 +213,12 @@ def signal(f):
         if signal_name:
             self.emit_signal(signal_name, *args, **kwargs)
         else:
-            logger.error('Can not emit signal %r since is not in the class '
-                         'mapping %r.', f.__name__, self.signal_mapping)
+            logger.error(
+                'Can not emit signal %r since is not in the class '
+                'mapping %r.',
+                f.__name__,
+                self.signal_mapping,
+            )
 
     return inner
 
@@ -231,8 +245,6 @@ class Status(IPCExposedObject, metaclass=RemoteMeta):
         'current_downloads',
         'free_space',
         'waiting',
-        'waiting_metadata',
-        'waiting_content',
     ]
 
     signal_mapping = {
@@ -246,8 +258,6 @@ class Status(IPCExposedObject, metaclass=RemoteMeta):
         'BrokenNode': 'on_broken_node',
         'StatusChanged': 'on_status_changed',
         'AccountChanged': 'on_account_changed',
-        'ContentQueueChanged': 'on_content_queue_changed',
-        'MetaQueueChanged': 'on_metaqueue_changed',
         'RequestQueueAdded': 'on_request_queue_added',
         'RequestQueueRemoved': 'on_request_queue_removed',
         'SignalError': 'on_error_signal',
@@ -272,26 +282,6 @@ class Status(IPCExposedObject, metaclass=RemoteMeta):
     def waiting(self):
         """Return a list of the operations in action queue."""
         return self.service.status.waiting()
-
-    def waiting_metadata(self):
-        """Return a list of the operations in the meta-queue.
-
-        As we don't have meta-queue anymore, this is faked. This method
-        is deprecated, and will go away in a near future.
-
-        """
-        warnings.warn('Use "waiting" method instead.', DeprecationWarning)
-        return self.service.status.waiting_metadata()
-
-    def waiting_content(self):
-        """Return a list of files that are waiting to be up- or downloaded.
-
-        As we don't have content-queue anymore, this is faked.  This method
-        is deprecated, and will go away in a near future.
-
-        """
-        warnings.warn('Use "waiting" method instead.', DeprecationWarning)
-        return self.service.status.waiting_content()
 
     @signal
     def DownloadStarted(self, path):
@@ -334,26 +324,6 @@ class Status(IPCExposedObject, metaclass=RemoteMeta):
         """Fire a signal to notify that account information has changed."""
 
     @signal
-    def ContentQueueChanged(self):
-        """Fire a signal to notify that the content queue has changed.
-
-        This signal is deprecated, and will go away in a near future.
-
-        """
-        msg = 'Connect to RequestQueueAdded/RequestQueueRemoved instead.'
-        warnings.warn(msg, DeprecationWarning)
-
-    @signal
-    def MetaQueueChanged(self):
-        """Fire a signal to notify that the meta queue has changed.
-
-        This signal is deprecated, and will go away in a near future.
-
-        """
-        msg = 'Connect to RequestQueueAdded/RequestQueueRemoved instead.'
-        warnings.warn(msg, DeprecationWarning)
-
-    @signal
     def RequestQueueAdded(self, op_name, op_id, data):
         """Fire a signal to notify that this command was added."""
 
@@ -376,9 +346,7 @@ class Events(IPCExposedObject, metaclass=RemoteMeta):
     """The events of the system translated to signals."""
 
     # calls that will be accessible remotely
-    remote_calls = [
-        'push_event',
-    ]
+    remote_calls = ['push_event']
 
     signal_mapping = {'Event': 'on_event'}
 
@@ -437,8 +405,9 @@ class SyncDaemon(IPCExposedObject, metaclass=RemoteMeta):
         """Return the shares dir/mount point."""
         return self.service.sync.get_sharesdir_link()
 
-    def wait_for_nirvana(self, last_event_interval,
-                         reply_handler=None, error_handler=None):
+    def wait_for_nirvana(
+        self, last_event_interval, reply_handler=None, error_handler=None
+    ):
         """Call the reply handler when there are no more events/transfers."""
         d = self.service.sync.wait_for_nirvana(last_event_interval)
         if reply_handler is not None:
@@ -500,7 +469,8 @@ class FileSystem(IPCExposedObject, metaclass=RemoteMeta):
 
         """
         return self.service.file_system.get_metadata_and_quick_tree_synced(
-            path)
+            path
+        )
 
     def get_dirty_nodes(self):
         """Return a list of dirty nodes."""
@@ -669,11 +639,9 @@ class Config(IPCExposedObject, metaclass=RemoteMeta):
         'files_sync_enabled',
         'enable_files_sync',
         'disable_files_sync',
-        'set_files_sync_enabled',
         'autoconnect_enabled',
         'enable_autoconnect',
         'disable_autoconnect',
-        'set_autoconnect_enabled',
     ]
 
     signal_mapping = {}
@@ -727,19 +695,6 @@ class Config(IPCExposedObject, metaclass=RemoteMeta):
         """Disable share autosubscribe."""
         self.service.config.disable_share_autosubscribe()
 
-    def set_files_sync_enabled(self, enabled):
-        """Enable/disable file sync service.
-
-        DEPRECATED. Use {enable/disable}_files_sync instead.
-
-        """
-        msg = 'Use enable_files_sync/disable_files_sync instead.'
-        warnings.warn(msg, DeprecationWarning)
-        if enabled:
-            self.service.config.enable_files_sync()
-        else:
-            self.service.config.disable_files_sync()
-
     def files_sync_enabled(self):
         """Return the files_sync_enabled config value."""
         return self.service.config.files_sync_enabled()
@@ -763,19 +718,6 @@ class Config(IPCExposedObject, metaclass=RemoteMeta):
     def disable_autoconnect(self):
         """Disable syncdaemon autoconnect."""
         self.service.config.disable_autoconnect()
-
-    def set_autoconnect_enabled(self, enabled):
-        """Enable syncdaemon autoconnect.
-
-        DEPRECATED. Use {enable/disable}_autoconnect instead.
-
-        """
-        msg = 'Use enable_autoconnect/disable_autoconnect instead.'
-        warnings.warn(msg, DeprecationWarning)
-        if enabled:
-            self.service.config.enable_autoconnect()
-        else:
-            self.service.config.disable_autoconnect()
 
 
 class Folders(IPCExposedObject, metaclass=RemoteMeta):
@@ -873,10 +815,7 @@ class PublicFiles(IPCExposedObject, metaclass=RemoteMeta):
     """An interface for handling public files."""
 
     # calls that will be accessible remotely
-    remote_calls = [
-        'change_public_access',
-        'get_public_files',
-    ]
+    remote_calls = ['change_public_access', 'get_public_files']
 
     signal_mapping = {
         'PublicAccessChanged': 'on_public_access_changed',
@@ -887,8 +826,9 @@ class PublicFiles(IPCExposedObject, metaclass=RemoteMeta):
 
     def change_public_access(self, share_id, node_id, is_public):
         """Change the public access of a file."""
-        self.service.public_files.change_public_access(share_id, node_id,
-                                                       is_public)
+        self.service.public_files.change_public_access(
+            share_id, node_id, is_public
+        )
 
     def get_public_files(self):
         """Request the list of public files to the server.
@@ -926,7 +866,8 @@ class IPCInterface(Root, metaclass=RemoteMeta):
         'get_shares',
         'get_config',
         'get_folders',
-        'get_public_files']
+        'get_public_files',
+    ]
 
     def __init__(self, service):
         """Create the instance and add the exposed objects.

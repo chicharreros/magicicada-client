@@ -56,6 +56,7 @@ class SampleMiscException(Exception):
 
 class ItemMock(dbus.service.Object):
     """An item contains a secret, lookup attributes and has a label."""
+
     get_secret_fail = False
     delete_fail = False
     delete_prompt = False
@@ -69,8 +70,9 @@ class ItemMock(dbus.service.Object):
         self.attributes = attributes
         self.value = value
 
-    @dbus.service.method(dbus_interface=txsecrets.ITEM_IFACE,
-                         out_signature="o")
+    @dbus.service.method(
+        dbus_interface=txsecrets.ITEM_IFACE, out_signature="o"
+    )
     def Delete(self):
         """Delete this item."""
         if self.delete_fail:
@@ -78,15 +80,18 @@ class ItemMock(dbus.service.Object):
         self.collection.items.remove(self)
         if self.delete_prompt:
             prompt_path = create_object_path(PROMPT_BASE_PATH)
-            prompt = self.dbus_publish(prompt_path, PromptMock,
-                                       result="",
-                                       dismissed=self.dismissed)
+            prompt = self.dbus_publish(
+                prompt_path, PromptMock, result="", dismissed=self.dismissed
+            )
             return prompt
         else:
             return "/"
 
-    @dbus.service.method(dbus_interface=txsecrets.ITEM_IFACE,
-                         in_signature="o", out_signature="(oayay)")
+    @dbus.service.method(
+        dbus_interface=txsecrets.ITEM_IFACE,
+        in_signature="o",
+        out_signature="(oayay)",
+    )
     def GetSecret(self, session):
         """Retrieve the secret for this item."""
         if self.get_secret_fail:
@@ -106,27 +111,33 @@ class ItemMock(dbus.service.Object):
 class PromptMock(dbus.service.Object):
     """A prompt necessary to complete an operation."""
 
-    def __init__(self, dismissed=True,
-                 result=dbus.String("", variant_level=1), *args, **kwargs):
+    def __init__(
+        self,
+        dismissed=True,
+        result=dbus.String("", variant_level=1),
+        *args,
+        **kwargs
+    ):
         """Initialize this instance."""
         super(PromptMock, self).__init__(*args, **kwargs)
         self.dismissed = dismissed
         self.result = result
 
-    @dbus.service.method(dbus_interface=txsecrets.PROMPT_IFACE,
-                         in_signature="s")
+    @dbus.service.method(
+        dbus_interface=txsecrets.PROMPT_IFACE, in_signature="s"
+    )
     def Prompt(self, window_id):
         """Perform the prompt."""
         self.Completed(self.dismissed, self.result)
 
-    @dbus.service.signal(dbus_interface=txsecrets.PROMPT_IFACE,
-                         signature="bv")
+    @dbus.service.signal(dbus_interface=txsecrets.PROMPT_IFACE, signature="bv")
     def Completed(self, dismissed, result):
         """The prompt and operation completed."""
 
 
 class BaseCollectionMock(dbus.service.Object):
     """Base collection of items containing secrets."""
+
     SUPPORTS_MULTIPLE_OBJECT_PATHS = True
     SUPPORTS_MULTIPLE_CONNECTIONS = True
     create_item_prompt = False
@@ -160,24 +171,35 @@ class BaseCollectionMock(dbus.service.Object):
         item_label = properties[self.item_label_property]
         value = secret[2]
         item_path = create_object_path(make_coll_path(self.label))
-        item = self.dbus_publish(item_path, self.item_mock_class, self,
-                                 item_label, attributes, value)
+        item = self.dbus_publish(
+            item_path,
+            self.item_mock_class,
+            self,
+            item_label,
+            attributes,
+            value,
+        )
         self.items.append(item)
         if self.create_item_prompt:
             prompt_path = create_object_path(PROMPT_BASE_PATH)
-            prompt = self.dbus_publish(prompt_path, PromptMock,
-                                       result=item,
-                                       dismissed=self.dismissed)
+            prompt = self.dbus_publish(
+                prompt_path, PromptMock, result=item, dismissed=self.dismissed
+            )
             return "/", prompt
         else:
             return item, "/"
 
-    @dbus.service.method(dbus_interface=txsecrets.PROPERTIES_IFACE,
-                         in_signature="ss", out_signature="v")
+    @dbus.service.method(
+        dbus_interface=txsecrets.PROPERTIES_IFACE,
+        in_signature="ss",
+        out_signature="v",
+    )
     def Get(self, interface, propname):
         """The only property implemented is Label."""
-        if interface == txsecrets.COLLECTION_IFACE and \
-                propname == self.clxn_label_property:
+        if (
+            interface == txsecrets.COLLECTION_IFACE
+            and propname == self.clxn_label_property
+        ):
             return dbus.String(self.label)
         raise InvalidProperty("Invalid property: {}".format(propname))
 
@@ -185,9 +207,12 @@ class BaseCollectionMock(dbus.service.Object):
 class CollectionMock(BaseCollectionMock):
     """Collection of items containing secrets."""
 
-    @dbus.service.method(dbus_interface=txsecrets.COLLECTION_IFACE,
-                         in_signature="a{sv}(oayay)b", out_signature="oo",
-                         byte_arrays=True)
+    @dbus.service.method(
+        dbus_interface=txsecrets.COLLECTION_IFACE,
+        in_signature="a{sv}(oayay)b",
+        out_signature="oo",
+        byte_arrays=True,
+    )
     def CreateItem(self, properties, secret, replace):
         """Expose the _create_item method on DBus."""
         assert len(secret) == 3
@@ -209,6 +234,7 @@ def make_coll_path(label):
 
 class SecretServiceMock(dbus.service.Object):
     """The Secret Service manages all the sessions and collections."""
+
     create_collection_prompt = False
     create_collection_fail = False
     open_session_fail = False
@@ -225,8 +251,11 @@ class SecretServiceMock(dbus.service.Object):
         self.collections = {}
         self.aliases = {}
 
-    @dbus.service.method(dbus_interface=txsecrets.SERVICE_IFACE,
-                         in_signature="sv", out_signature="vo")
+    @dbus.service.method(
+        dbus_interface=txsecrets.SERVICE_IFACE,
+        in_signature="sv",
+        out_signature="vo",
+    )
     def OpenSession(self, algorithm, algorithm_parameters):
         """Open a unique session for the caller application."""
         if self.open_session_fail:
@@ -236,29 +265,39 @@ class SecretServiceMock(dbus.service.Object):
         self.sessions[session_path] = session
         return True, session
 
-    @dbus.service.method(dbus_interface=txsecrets.SERVICE_IFACE,
-                         in_signature="a{sv}", out_signature="oo")
+    @dbus.service.method(
+        dbus_interface=txsecrets.SERVICE_IFACE,
+        in_signature="a{sv}",
+        out_signature="oo",
+    )
     def CreateCollection(self, properties):
         """Create a new collection with the specified properties."""
         if self.create_collection_fail:
             raise SampleMiscException()
         label = str(properties[self.clxn_label_property])
         coll_path = make_coll_path(label)
-        collection = self.dbus_publish(coll_path, self.collection_mock_class,
-                                       label)
+        collection = self.dbus_publish(
+            coll_path, self.collection_mock_class, label
+        )
         self.collections[label] = collection
 
         if self.create_collection_prompt:
             prompt_path = create_object_path(PROMPT_BASE_PATH)
-            prompt = self.dbus_publish(prompt_path, PromptMock,
-                                       result=collection,
-                                       dismissed=self.dismissed)
+            prompt = self.dbus_publish(
+                prompt_path,
+                PromptMock,
+                result=collection,
+                dismissed=self.dismissed,
+            )
             return "/", prompt
         else:
             return collection, "/"
 
-    @dbus.service.method(dbus_interface=txsecrets.SERVICE_IFACE,
-                         in_signature="a{ss}", out_signature="aoao")
+    @dbus.service.method(
+        dbus_interface=txsecrets.SERVICE_IFACE,
+        in_signature="a{ss}",
+        out_signature="aoao",
+    )
     def SearchItems(self, attributes):
         """Find items in any collection."""
         unlocked_items = []
@@ -287,8 +326,11 @@ class SecretServiceMock(dbus.service.Object):
                     if path in objects:
                         c.locked = False
 
-    @dbus.service.method(dbus_interface=txsecrets.SERVICE_IFACE,
-                         in_signature="ao", out_signature="aoo")
+    @dbus.service.method(
+        dbus_interface=txsecrets.SERVICE_IFACE,
+        in_signature="ao",
+        out_signature="aoo",
+    )
     def Unlock(self, objects):
         """Unlock the specified objects."""
         locked = []
@@ -304,33 +346,45 @@ class SecretServiceMock(dbus.service.Object):
         if locked:
             prompt_path = create_object_path(PROMPT_BASE_PATH)
             self.unlock_objects(objects)
-            prompt = self.dbus_publish(prompt_path, PromptMock,
-                                       result=locked,
-                                       dismissed=self.dismissed)
+            prompt = self.dbus_publish(
+                prompt_path,
+                PromptMock,
+                result=locked,
+                dismissed=self.dismissed,
+            )
             return unlocked, prompt
         else:
             self.unlock_objects(objects)
             return objects, "/"
 
-    @dbus.service.method(dbus_interface=txsecrets.SERVICE_IFACE,
-                         in_signature="s", out_signature="o")
+    @dbus.service.method(
+        dbus_interface=txsecrets.SERVICE_IFACE,
+        in_signature="s",
+        out_signature="o",
+    )
     def ReadAlias(self, name):
         """Get the collection with the given alias."""
         result = self.aliases.get(name, "/")
         return result
 
-    @dbus.service.method(dbus_interface=txsecrets.SERVICE_IFACE,
-                         in_signature="so")
+    @dbus.service.method(
+        dbus_interface=txsecrets.SERVICE_IFACE, in_signature="so"
+    )
     def SetAlias(self, name, collection_path):
         """Setup a collection alias."""
         self.aliases[name] = collection_path
 
-    @dbus.service.method(dbus_interface=txsecrets.PROPERTIES_IFACE,
-                         in_signature="ss", out_signature="v")
+    @dbus.service.method(
+        dbus_interface=txsecrets.PROPERTIES_IFACE,
+        in_signature="ss",
+        out_signature="v",
+    )
     def Get(self, interface, propname):
         """The only property implemented is Collections."""
-        if interface == txsecrets.SERVICE_IFACE and \
-                propname == self.collections_property:
+        if (
+            interface == txsecrets.SERVICE_IFACE
+            and propname == self.collections_property
+        ):
             coll_paths = [make_coll_path(loc) for loc in self.collections]
             return dbus.Array(coll_paths, signature="o", variant_level=1)
         raise InvalidProperty("Invalid property: {}".format(propname))
@@ -339,8 +393,11 @@ class SecretServiceMock(dbus.service.Object):
 class AltItemMock(ItemMock):
     """The secret in this item has a content_type."""
 
-    @dbus.service.method(dbus_interface=txsecrets.ITEM_IFACE,
-                         in_signature="o", out_signature="(oayays)")
+    @dbus.service.method(
+        dbus_interface=txsecrets.ITEM_IFACE,
+        in_signature="o",
+        out_signature="(oayays)",
+    )
     def GetSecret2(self, session):
         """Retrieve the secret for this item."""
         if self.get_secret_fail:
@@ -357,9 +414,12 @@ class AltCollectionMock(BaseCollectionMock):
     item_label_property = txsecrets.ITEM_LABEL_PROPERTY
     clxn_label_property = txsecrets.CLXN_LABEL_PROPERTY
 
-    @dbus.service.method(dbus_interface=txsecrets.COLLECTION_IFACE,
-                         in_signature="a{sv}(oayays)b", out_signature="oo",
-                         byte_arrays=True)
+    @dbus.service.method(
+        dbus_interface=txsecrets.COLLECTION_IFACE,
+        in_signature="a{sv}(oayays)b",
+        out_signature="oo",
+        byte_arrays=True,
+    )
     def CreateItem(self, properties, secret, replace):
         """Expose the _create_item method on DBus."""
         assert len(secret) == 4
@@ -374,12 +434,16 @@ class AltSecretServiceMock(SecretServiceMock):
     clxn_label_property = txsecrets.CLXN_LABEL_PROPERTY
     collections_property = txsecrets.COLLECTIONS_PROPERTY
 
-    @dbus.service.method(dbus_interface=txsecrets.SERVICE_IFACE,
-                         in_signature="a{sv}s", out_signature="oo")
+    @dbus.service.method(
+        dbus_interface=txsecrets.SERVICE_IFACE,
+        in_signature="a{sv}s",
+        out_signature="oo",
+    )
     def CreateCollection(self, properties, alias):
         """Create a new collection with the specified properties."""
-        collection, prompt = super(AltSecretServiceMock,
-                                   self).CreateCollection(properties)
+        collection, prompt = super(
+            AltSecretServiceMock, self
+        ).CreateCollection(properties)
         self.SetAlias(alias, collection)
         return collection, prompt
 
@@ -390,7 +454,7 @@ def create_object_path(base):
     return base + "/" + random
 
 
-class TextFilter(object):
+class TextFilter:
     """Prevents the logging of messages containing a given text."""
 
     def __init__(self, *args):
@@ -405,6 +469,7 @@ class TextFilter(object):
 
 class BaseTestCase(DBusTestCase):
     """Base class for DBus tests."""
+
     timeout = 10
     secret_service_class = SecretServiceMock
 
@@ -412,8 +477,9 @@ class BaseTestCase(DBusTestCase):
     def setUp(self):
         yield super(BaseTestCase, self).setUp()
         self.session_bus = dbus.SessionBus()
-        self.mock_service = self.dbus_publish(txsecrets.SECRETS_SERVICE,
-                                              self.secret_service_class)
+        self.mock_service = self.dbus_publish(
+            txsecrets.SECRETS_SERVICE, self.secret_service_class
+        )
         self.secretservice = txsecrets.SecretService()
         self.silence_dbus_logging()
 
@@ -426,20 +492,25 @@ class BaseTestCase(DBusTestCase):
 
     def dbus_publish(self, object_path, object_class, *args, **kwargs):
         """Create an object and publish it on the bus."""
-        name = self.session_bus.request_name(txsecrets.BUS_NAME,
-                                             dbus.bus.NAME_FLAG_DO_NOT_QUEUE)
+        name = self.session_bus.request_name(
+            txsecrets.BUS_NAME, dbus.bus.NAME_FLAG_DO_NOT_QUEUE
+        )
         self.assertNotEqual(name, dbus.bus.REQUEST_NAME_REPLY_EXISTS)
-        mock_object = object_class(*args, object_path=object_path,
-                                   conn=self.session_bus, **kwargs)
-        self.addCleanup(mock_object.remove_from_connection,
-                        connection=self.session_bus,
-                        path=object_path)
+        mock_object = object_class(
+            *args, object_path=object_path, conn=self.session_bus, **kwargs
+        )
+        self.addCleanup(
+            mock_object.remove_from_connection,
+            connection=self.session_bus,
+            path=object_path,
+        )
         mock_object.dbus_publish = self.dbus_publish
         return mock_object
 
     @inlineCallbacks
-    def create_sample_collection(self, label, make_alias=True,
-                                 publish_default_path=False):
+    def create_sample_collection(
+        self, label, make_alias=True, publish_default_path=False
+    ):
         """Create a collection with a given label."""
         coll = yield self.secretservice.create_collection(label)
         if make_alias:
@@ -447,11 +518,14 @@ class BaseTestCase(DBusTestCase):
             self.mock_service.SetAlias("default", coll_path)
         if publish_default_path:
             mock_object = self.mock_service.collections[label]
-            mock_object.add_to_connection(self.session_bus,
-                                          txsecrets.DEFAULT_COLLECTION)
-            self.addCleanup(mock_object.remove_from_connection,
-                            connection=self.session_bus,
-                            path=txsecrets.DEFAULT_COLLECTION)
+            mock_object.add_to_connection(
+                self.session_bus, txsecrets.DEFAULT_COLLECTION
+            )
+            self.addCleanup(
+                mock_object.remove_from_connection,
+                connection=self.session_bus,
+                path=txsecrets.DEFAULT_COLLECTION,
+            )
         returnValue(coll)
 
 
@@ -510,7 +584,8 @@ class SecretServiceTestCase(BaseTestCase):
         collection_label = "sample_keyring"
         yield self.assertFailure(
             self.create_sample_collection(collection_label),
-            txsecrets.UserCancelled)
+            txsecrets.UserCancelled,
+        )
 
     @inlineCallbacks
     def test_create_collection_throws_dbus_error(self):
@@ -520,7 +595,8 @@ class SecretServiceTestCase(BaseTestCase):
         collection_label = "sample_keyring"
         yield self.assertFailure(
             self.create_sample_collection(collection_label),
-            dbus.exceptions.DBusException)
+            dbus.exceptions.DBusException,
+        )
 
     @inlineCallbacks
     def test_prompt_accepted(self):
@@ -528,8 +604,9 @@ class SecretServiceTestCase(BaseTestCase):
         yield self.secretservice.open_session()
         expected_result = "hello world"
         prompt_path = "/prompt"
-        self.dbus_publish(prompt_path, PromptMock, result=expected_result,
-                          dismissed=False)
+        self.dbus_publish(
+            prompt_path, PromptMock, result=expected_result, dismissed=False
+        )
         result = yield self.secretservice.do_prompt(prompt_path)
         self.assertEqual(result, expected_result)
 
@@ -539,8 +616,9 @@ class SecretServiceTestCase(BaseTestCase):
         yield self.secretservice.open_session()
         expected_result = "hello world2"
         prompt_path = "/prompt"
-        self.dbus_publish(prompt_path, PromptMock, result=expected_result,
-                          dismissed=True)
+        self.dbus_publish(
+            prompt_path, PromptMock, result=expected_result, dismissed=True
+        )
         d = self.secretservice.do_prompt(prompt_path)
         self.assertFailure(d, txsecrets.UserCancelled)
 
@@ -683,8 +761,9 @@ class SecretServiceTestCase(BaseTestCase):
         """The default collection is returned from the default path."""
         yield self.secretservice.open_session()
         collection_name = "sample_default_keyring"
-        yield self.create_sample_collection(collection_name, make_alias=False,
-                                            publish_default_path=True)
+        yield self.create_sample_collection(
+            collection_name, make_alias=False, publish_default_path=True
+        )
         self.assertEqual(len(self.mock_service.collections), 1)
         yield self.secretservice.get_default_collection()
         self.assertEqual(len(self.mock_service.collections), 1)
@@ -730,9 +809,9 @@ class SecretServiceTestCase(BaseTestCase):
         yield self.secretservice.open_session()
         collection_name = "sample_keyring"
         self.assertEqual(len(self.mock_service.collections), 0)
-        coll = yield self.create_sample_collection(collection_name,
-                                                   make_alias=False,
-                                                   publish_default_path=True)
+        coll = yield self.create_sample_collection(
+            collection_name, make_alias=False, publish_default_path=True
+        )
         self.assertEqual(len(self.mock_service.collections), 1)
         mock_collection = self.mock_service.collections[collection_name]
         mock_collection.locked = True
@@ -785,7 +864,8 @@ class CollectionTestCase(BaseTestCase):
         yield coll.create_item("Cucaracha", attr, sample_secret)
         self.assertEqual(len(mock_collection.items), 1)
         self.assertEqual(
-            mock_collection.items[0].value, sample_secret.encode('utf-8'))
+            mock_collection.items[0].value, sample_secret.encode('utf-8')
+        )
 
     @inlineCallbacks
     def test_create_item_prompt(self):
@@ -801,7 +881,8 @@ class CollectionTestCase(BaseTestCase):
         yield coll.create_item("Cucaracha", attr, sample_secret)
         self.assertEqual(len(mock_collection.items), 1)
         self.assertEqual(
-            mock_collection.items[0].value, sample_secret.encode('utf-8'))
+            mock_collection.items[0].value, sample_secret.encode('utf-8')
+        )
 
     @inlineCallbacks
     def test_create_item_prompt_dismissed(self):
@@ -815,8 +896,10 @@ class CollectionTestCase(BaseTestCase):
         mock_collection.dismissed = True
         attr = KEY_TYPE_ATTR
         sample_secret = "secret3!"
-        yield self.assertFailure(coll.create_item("Cuca", attr, sample_secret),
-                                 txsecrets.UserCancelled)
+        yield self.assertFailure(
+            coll.create_item("Cuca", attr, sample_secret),
+            txsecrets.UserCancelled,
+        )
 
     @inlineCallbacks
     def test_create_item_throws_dbus_error(self):
@@ -829,8 +912,10 @@ class CollectionTestCase(BaseTestCase):
         mock_collection.create_item_fail = True
         attr = KEY_TYPE_ATTR
         sample_secret = "secret4!"
-        yield self.assertFailure(coll.create_item("Cuca", attr, sample_secret),
-                                 dbus.exceptions.DBusException)
+        yield self.assertFailure(
+            coll.create_item("Cuca", attr, sample_secret),
+            dbus.exceptions.DBusException,
+        )
 
 
 class ItemTestCase(BaseTestCase):
@@ -862,8 +947,9 @@ class ItemTestCase(BaseTestCase):
         self.assertEqual(len(items), 1)
         mock = self.mock_service.collections[collection_label].items[0]
         mock.get_secret_fail = True
-        yield self.assertFailure(items[0].get_value(),
-                                 dbus.exceptions.DBusException)
+        yield self.assertFailure(
+            items[0].get_value(), dbus.exceptions.DBusException
+        )
 
     @inlineCallbacks
     def test_delete(self):
@@ -925,12 +1011,14 @@ class ItemTestCase(BaseTestCase):
         self.assertEqual(len(items), 1)
         mock_item = self.mock_service.collections[collection_label].items[0]
         mock_item.delete_fail = True
-        yield self.assertFailure(items[0].delete(),
-                                 dbus.exceptions.DBusException)
+        yield self.assertFailure(
+            items[0].delete(), dbus.exceptions.DBusException
+        )
 
 
 class AltItemTestCase(BaseTestCase):
     """Test the Item class with 4 fields in the secret struct."""
+
     secret_service_class = AltSecretServiceMock
 
     @inlineCallbacks
@@ -946,7 +1034,8 @@ class AltItemTestCase(BaseTestCase):
         yield coll.create_item("Cucaracha", attr, sample_secret)
         self.assertEqual(len(mock_collection.items), 1)
         self.assertEqual(
-            mock_collection.items[0].value, sample_secret.encode('utf-8'))
+            mock_collection.items[0].value, sample_secret.encode('utf-8')
+        )
 
     @inlineCallbacks
     def test_get_value_four_fields_per_secret(self):

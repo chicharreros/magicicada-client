@@ -62,7 +62,7 @@ from magicicadaclient.testing.testcase import (
 TRACE = logging.getLevelName('TRACE')
 
 
-class DontHitMe(object):
+class DontHitMe:
     """We shouldn't be called."""
 
     def __init__(self, test_instance):
@@ -70,11 +70,12 @@ class DontHitMe(object):
 
     def handle_default(self, *a, **k):
         """Something here? Error!"""
-        self.test_instance.finished_error("Don't hit me! Received %s %s" %
-                                          (a, k))
+        self.test_instance.finished_error(
+            "Don't hit me! Received %s %s" % (a, k)
+        )
 
 
-class FakedVolume(object):
+class FakedVolume:
 
     path = __file__
 
@@ -111,8 +112,11 @@ class WatchTests(BaseEQTestCase):
             called.append(path)
             return defer.succeed(method_resp)
 
-        self.patch(self.eq.monitor, 'add_watches_to_udf_ancestors',
-                   add_watches_to_udf_ancestors)
+        self.patch(
+            self.eq.monitor,
+            'add_watches_to_udf_ancestors',
+            add_watches_to_udf_ancestors,
+        )
         res = yield self.eq.add_watches_to_udf_ancestors(method_arg)
         self.assertEqual(called, [method_arg])
         self.assertEqual(res, method_resp)
@@ -130,8 +134,11 @@ class WatchTests(BaseEQTestCase):
             return defer.succeed(method_resp)
 
         self.patch(event_queue, 'access', lambda path: False)
-        self.patch(self.eq.monitor, 'add_watches_to_udf_ancestors',
-                   add_watches_to_udf_ancestors)
+        self.patch(
+            self.eq.monitor,
+            'add_watches_to_udf_ancestors',
+            add_watches_to_udf_ancestors,
+        )
         added = yield self.eq.add_watches_to_udf_ancestors(method_arg)
         self.assertFalse(added, 'Watches should have not been added.')
         self.assertEqual(0, len(called))
@@ -144,7 +151,7 @@ class WatchTests(BaseEQTestCase):
         self.assertEqual(called, [('foo',)])
 
 
-class DynamicHitMe(object):
+class DynamicHitMe:
     """Helper class to test a sequence of signals."""
 
     def __init__(self, should_events, test_machinery):
@@ -173,7 +180,8 @@ class DynamicHitMe(object):
 
             if asked_args != should_args:
                 self.test_machinery.finished_error(
-                    "In step %d received wrong args (%r)" % (step, asked_args))
+                    "In step %d received wrong args (%r)" % (step, asked_args)
+                )
             else:
                 if step == self.final_step:
                     self.test_machinery.finished_ok()
@@ -200,7 +208,7 @@ class BaseTwisted(BaseEQTestCase):
 
     def finished_ok(self, data=True):
         """Called to indicate that the tests finished ok."""
-        reactor.callLater(.1, self._deferred.callback, data)
+        reactor.callLater(0.1, self._deferred.callback, data)
 
     def finished_error(self, msg):
         """Called to indicate that the tests finished badly."""
@@ -220,10 +228,12 @@ class BaseTwisted(BaseEQTestCase):
                 msg += '\n'
             exception = self.failureException(
                 '%snot equal:\na = %s\nb = %s\n'
-                % (msg, repr(first), repr(second)))
+                % (msg, repr(first), repr(second))
+            )
             self.finished_error(exception)
             raise exception
         return first
+
     assertEqual = failUnlessEqual
 
 
@@ -278,18 +288,22 @@ class FreezeTests(BaseTwisted):
         """Test the log when freeze is commited ok."""
         self.eq.freeze_begin("path")
         self.eq.freeze_commit([])
-        self.assertTrue(self.handler.check(TRACE, "Freeze commit", "path",
-                                           "0 events"))
+        self.assertTrue(
+            self.handler.check(TRACE, "Freeze commit", "path", "0 events")
+        )
 
     def test_log_commit_dirty(self):
         """Test the log when freeze is commited but dirty."""
         self.eq.freeze_begin("path")
-        self.eq.monitor._processor.general_processor.frozen_evts = ('event',
-                                                                    'otherpth')
+        self.eq.monitor._processor.general_processor.frozen_evts = (
+            'event',
+            'otherpth',
+        )
         self.eq.freeze_commit([])
         self.handler.debug = True
-        self.assertTrue(self.handler.check_debug("Dirty by", "otherpth",
-                                                 "event"))
+        self.assertTrue(
+            self.handler.check_debug("Dirty by", "otherpth", "event")
+        )
 
     @defer.inlineCallbacks
     def test_commit_no_middle_events(self):
@@ -297,8 +311,7 @@ class FreezeTests(BaseTwisted):
         testdir = os.path.join(self.root_dir, "foo")
         make_dir(testdir)
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_DIR_DELETE(innerself, path):
                 if path != "foobar":
                     self.finished_error("received a wrong path")
@@ -313,6 +326,7 @@ class FreezeTests(BaseTwisted):
                 """check dirty"""
                 if dirty:
                     self.finished_error("should not be dirty here")
+
             d.addCallback(check)
 
         # set up everything and freeze
@@ -322,7 +336,7 @@ class FreezeTests(BaseTwisted):
         self.addCleanup(self.eq.unsubscribe, listener)
         self.eq.freeze_begin(testdir)
 
-        reactor.callLater(.1, freeze_commit)
+        reactor.callLater(0.1, freeze_commit)
         yield self._deferred
 
     @skip_if_win32_missing_fs_event
@@ -344,6 +358,7 @@ class FreezeTests(BaseTwisted):
                     self.finished_error("it *should* be dirty here")
                 else:
                     self.finished_ok()
+
             d.addCallback(check)
 
         # set up everything and freeze
@@ -354,7 +369,7 @@ class FreezeTests(BaseTwisted):
         self.eq.freeze_begin(testdir)
 
         open_file(testfile, "w").close()
-        reactor.callLater(.1, freeze_commit)
+        reactor.callLater(0.1, freeze_commit)
         yield self._deferred
 
     @defer.inlineCallbacks
@@ -364,8 +379,7 @@ class FreezeTests(BaseTwisted):
         testfile = os.path.join(testdir, "bar")
         make_dir(testdir)
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_DIR_DELETE(innerself, path):
                 if path != "foobar":
                     self.finished_error("received a wrong path")
@@ -377,7 +391,8 @@ class FreezeTests(BaseTwisted):
             self.eq.freeze_rollback()
             self.eq.freeze_begin(testdir)
             reactor.callLater(
-                .1, self.eq.freeze_commit, [("FS_DIR_DELETE", "foobar")])
+                0.1, self.eq.freeze_commit, [("FS_DIR_DELETE", "foobar")]
+            )
 
         # set up everything and freeze
         yield self.eq.add_watch(testdir)
@@ -388,7 +403,7 @@ class FreezeTests(BaseTwisted):
 
         # don't matter if had changes, rollback cleans them
         open_file(testfile, "w").close()
-        reactor.callLater(.1, freeze_rollback)
+        reactor.callLater(0.1, freeze_rollback)
         yield self._deferred
 
     @skip_if_win32_missing_fs_event
@@ -400,8 +415,7 @@ class FreezeTests(BaseTwisted):
         make_dir(testdir)
         testfile = os.path.join(self.root_dir, "bar")
 
-        class HitMe(object):
-
+        class HitMe:
             def __init__(innerself):
                 innerself.hist = []
 
@@ -461,7 +475,7 @@ class MutedSignalsTests(BaseTwisted):
 
         # generate the event
         open_file(testfile)
-        reactor.callLater(.1, self._deferred.callback, True)
+        reactor.callLater(0.1, self._deferred.callback, True)
         yield self._deferred
 
     @defer.inlineCallbacks
@@ -479,7 +493,7 @@ class MutedSignalsTests(BaseTwisted):
 
         # generate the event
         fh.close()
-        reactor.callLater(.1, self._deferred.callback, True)
+        reactor.callLater(0.1, self._deferred.callback, True)
         yield self._deferred
 
     @defer.inlineCallbacks
@@ -497,7 +511,7 @@ class MutedSignalsTests(BaseTwisted):
 
         # generate the event
         open_file(testfile, "w").close()
-        reactor.callLater(.1, self._deferred.callback, True)
+        reactor.callLater(0.1, self._deferred.callback, True)
         yield self._deferred
 
     @defer.inlineCallbacks
@@ -513,7 +527,7 @@ class MutedSignalsTests(BaseTwisted):
 
         # generate the event
         make_dir(testdir)
-        reactor.callLater(.1, self._deferred.callback, True)
+        reactor.callLater(0.1, self._deferred.callback, True)
         yield self._deferred
 
     @defer.inlineCallbacks
@@ -530,7 +544,7 @@ class MutedSignalsTests(BaseTwisted):
 
         # generate the event
         remove_file(testfile)
-        reactor.callLater(.1, self._deferred.callback, True)
+        reactor.callLater(0.1, self._deferred.callback, True)
         yield self._deferred
 
     @defer.inlineCallbacks
@@ -547,7 +561,7 @@ class MutedSignalsTests(BaseTwisted):
 
         # generate the event
         remove_dir(testdir)
-        reactor.callLater(.1, self._deferred.callback, True)
+        reactor.callLater(0.1, self._deferred.callback, True)
         yield self._deferred
 
     @skip_if_win32_missing_fs_event
@@ -561,8 +575,9 @@ class MutedSignalsTests(BaseTwisted):
         self.fs.create(tofile, "")
         self.fs.set_node_id(tofile, "to_node_id")
         open_file(fromfile, "w").close()
-        self.eq.add_to_mute_filter("FS_FILE_MOVE",
-                                   path_from=fromfile, path_to=tofile)
+        self.eq.add_to_mute_filter(
+            "FS_FILE_MOVE", path_from=fromfile, path_to=tofile
+        )
 
         yield self.eq.add_watch(self.root_dir)
         listener = DontHitMe(self)
@@ -571,7 +586,7 @@ class MutedSignalsTests(BaseTwisted):
 
         # generate the event
         rename(fromfile, tofile)
-        reactor.callLater(.1, self._deferred.callback, True)
+        reactor.callLater(0.1, self._deferred.callback, True)
         yield self._deferred
 
     @defer.inlineCallbacks
@@ -584,8 +599,9 @@ class MutedSignalsTests(BaseTwisted):
         self.fs.create(todir, "")
         self.fs.set_node_id(todir, "to_node_id")
         make_dir(fromdir)
-        self.eq.add_to_mute_filter("FS_DIR_MOVE",
-                                   path_from=fromdir, path_to=todir)
+        self.eq.add_to_mute_filter(
+            "FS_DIR_MOVE", path_from=fromdir, path_to=todir
+        )
 
         yield self.eq.add_watch(self.root_dir)
         listener = DontHitMe(self)
@@ -594,7 +610,7 @@ class MutedSignalsTests(BaseTwisted):
 
         # generate the event
         rename(fromdir, todir)
-        reactor.callLater(.1, self._deferred.callback, True)
+        reactor.callLater(0.1, self._deferred.callback, True)
         yield self._deferred
 
     @defer.inlineCallbacks
@@ -616,7 +632,7 @@ class MutedSignalsTests(BaseTwisted):
 
         # generate the event
         rename(fromfile, tofile)
-        reactor.callLater(.1, self._deferred.callback, True)
+        reactor.callLater(0.1, self._deferred.callback, True)
         yield self._deferred
 
     @skip_if_win32_missing_fs_event
@@ -640,7 +656,7 @@ class MutedSignalsTests(BaseTwisted):
 
         # generate the event
         rename(fromfile, tofile)
-        reactor.callLater(.1, self._deferred.callback, True)
+        reactor.callLater(0.1, self._deferred.callback, True)
         yield self._deferred
 
 
@@ -658,8 +674,9 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         self.shares_dir = self.mktemp('shares_dir')
         self.partials_dir = self.mktemp('partials_dir')
         self.patch(FakeMain, '_monitor_class', None)
-        self.main = FakeMain(self.root_dir, self.shares_dir,
-                             self.data_dir, self.partials_dir)
+        self.main = FakeMain(
+            self.root_dir, self.shares_dir, self.data_dir, self.partials_dir
+        )
         self.addCleanup(self.main.shutdown)
         self.eq = self.main.event_q
         assert self.eq is self.eq.fs.vm.m.event_q
@@ -672,8 +689,9 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         suggested_path = '~/Documents/Reading/Books/PDFs'
         udf_id, node_id = 'udf_id', 'node_id'
         path = volume_manager.get_udf_path(suggested_path)
-        self.udf = volume_manager.UDF(udf_id, node_id,
-                                      suggested_path, path, True)
+        self.udf = volume_manager.UDF(
+            udf_id, node_id, suggested_path, path, True
+        )
         make_dir(path, recursive=True)
         yield self.eq.fs.vm.add_udf(self.udf)
 
@@ -681,8 +699,9 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         suggested_path = '~/Documents/Reading/Magazines/Text'
         udf_id2, node_id2 = 'udf_id_2', 'node_id_2'
         path = volume_manager.get_udf_path(suggested_path)
-        self.udf2 = volume_manager.UDF(udf_id2, node_id2,
-                                       suggested_path, path, True)
+        self.udf2 = volume_manager.UDF(
+            udf_id2, node_id2, suggested_path, path, True
+        )
         make_dir(path, recursive=True)
         yield self.eq.fs.vm.add_udf(self.udf2)
 
@@ -710,10 +729,12 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
             if len(msg) > 0:
                 msg += '\n'
             exception = self.failureException(
-                '%snot equal:\na = %r\nb = %r\n' % (msg, first, second))
+                '%snot equal:\na = %r\nb = %r\n' % (msg, first, second)
+            )
             self._deferred.errback(exception)
             raise exception
         return first
+
     assertEqual = failUnlessEqual
 
     @defer.inlineCallbacks
@@ -743,7 +764,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
             self.assertEqual([], self.listener.events)
             self._deferred.callback(True)
 
-        reactor.callLater(.1, check)
+        reactor.callLater(0.1, check)
         yield self._deferred
 
     @defer.inlineCallbacks
@@ -767,32 +788,36 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         # generate FS_DIR_DELETE
         remove_dir(fnamedir)
 
-        expected = [('FS_FILE_CREATE', {'path': fname}),
-                    ('FS_FILE_OPEN', {'path': fname}),
-                    ('FS_FILE_CLOSE_WRITE', {'path': fname}),
-                    ('FS_FILE_OPEN', {'path': fname}),
-                    ('FS_FILE_CLOSE_NOWRITE', {'path': fname}),
-                    ('FS_FILE_DELETE', {'path': fname}),
-                    ('FS_DIR_CREATE', {'path': fnamedir}),
-                    ('FS_DIR_DELETE', {'path': fnamedir})]
+        expected = [
+            ('FS_FILE_CREATE', {'path': fname}),
+            ('FS_FILE_OPEN', {'path': fname}),
+            ('FS_FILE_CLOSE_WRITE', {'path': fname}),
+            ('FS_FILE_OPEN', {'path': fname}),
+            ('FS_FILE_CLOSE_NOWRITE', {'path': fname}),
+            ('FS_FILE_DELETE', {'path': fname}),
+            ('FS_DIR_CREATE', {'path': fnamedir}),
+            ('FS_DIR_DELETE', {'path': fnamedir}),
+        ]
 
         def check():
             """Check."""
             self.assertEqual(expected, self.listener.events)
             self._deferred.callback(True)
 
-        reactor.callLater(.1, check)
+        reactor.callLater(0.1, check)
         yield self._deferred
 
     @defer.inlineCallbacks
     def test_file_events_are_not_ignored_on_common_prefix_name(self):
         """Events in a UDF with similar name to ancestor are not ignored."""
         fname = os.path.join(self.udf2.path, 'testit')
-        expected = [('FS_FILE_CREATE', {'path': fname}),
-                    ('FS_FILE_OPEN', {'path': fname}),
-                    ('FS_FILE_CLOSE_WRITE', {'path': fname}),
-                    ('FS_FILE_OPEN', {'path': fname}),
-                    ('FS_FILE_CLOSE_NOWRITE', {'path': fname})]
+        expected = [
+            ('FS_FILE_CREATE', {'path': fname}),
+            ('FS_FILE_OPEN', {'path': fname}),
+            ('FS_FILE_CLOSE_WRITE', {'path': fname}),
+            ('FS_FILE_OPEN', {'path': fname}),
+            ('FS_FILE_CLOSE_NOWRITE', {'path': fname}),
+        ]
 
         def check():
             """Check."""
@@ -807,7 +832,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         f.read()
         f.close()
 
-        reactor.callLater(.1, check)
+        reactor.callLater(0.1, check)
         yield self._deferred
 
     def test_move_udf_ancestor(self):
@@ -835,8 +860,11 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
                     udf = self.udf2
                 else:
                     self._deferred.errback(ValueError("uid %s is wrong" % uid))
-                self.assertNotIn(udf.path, self.eq.monitor._ancestors_watchs,
-                                 'watch must be removed')
+                self.assertNotIn(
+                    udf.path,
+                    self.eq.monitor._ancestors_watchs,
+                    'watch must be removed',
+                )
                 self.assertFalse(self.eq.fs.vm.udfs[udf.id].subscribed)
             self._deferred.callback(True)
 
@@ -848,7 +876,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
 
         self.patch(self.eq.fs.vm, 'unsubscribe_udf', unsubsc)
 
-        reactor.callLater(.1, check)
+        reactor.callLater(0.1, check)
         return self._deferred
 
     def test_move_udf_itself(self):
@@ -867,10 +895,11 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
             uid = unsubscribed[0]
             self.assertEqual(uid, self.udf.id, "wrong UDF removed!")
             self.assertNotIn(
-                self.udf.path, self.eq.monitor._ancestors_watchs,
-                'watch must be removed')
-            self.assertEqual(
-                False, self.eq.fs.vm.udfs[self.udf.id].subscribed)
+                self.udf.path,
+                self.eq.monitor._ancestors_watchs,
+                'watch must be removed',
+            )
+            self.assertEqual(False, self.eq.fs.vm.udfs[self.udf.id].subscribed)
             self._deferred.callback(True)
 
         original = self.eq.fs.vm.unsubscribe_udf
@@ -878,9 +907,10 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         def unsubsc(uid):
             original(uid)
             unsubscribed.append(uid)
+
         self.patch(self.eq.fs.vm, 'unsubscribe_udf', unsubsc)
 
-        reactor.callLater(.1, check)
+        reactor.callLater(0.1, check)
         return self._deferred
 
     def test_remove_udf_per_se_subsc(self):
@@ -898,7 +928,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
             self.assertEqual(expected, [uid], 'udf deleted')
             self._deferred.callback(True)
 
-        reactor.callLater(.1, check)
+        reactor.callLater(0.1, check)
         return self._deferred
 
     def test_remove_udf_per_se_unsubsc(self):
@@ -919,7 +949,7 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
             self.assertEqual(expected, [], 'udf should not be deleted')
             self._deferred.callback(True)
 
-        reactor.callLater(.1, check)
+        reactor.callLater(0.1, check)
         return self._deferred
 
     def test_removeudf_removeancestors(self):
@@ -932,12 +962,15 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         expected = os.path.dirname(self.udf.path)
 
         def check():
-            self.assertEqual([expected], removed_watches,
-                             "Removed watches don't match the expected")
+            self.assertEqual(
+                [expected],
+                removed_watches,
+                "Removed watches don't match the expected",
+            )
             self._deferred.callback(True)
 
         remove_dir(self.udf.path)
-        reactor.callLater(.1, check)
+        reactor.callLater(0.1, check)
         return self._deferred
 
     def test_unsubscribe_removeancestors(self):
@@ -957,12 +990,15 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         expected = [os.path.dirname(self.udf.path), self.udf.path]
 
         def check():
-            self.assertEqual(sorted(expected), sorted(removed_watches),
-                             "Removed watches don't match the expected")
+            self.assertEqual(
+                sorted(expected),
+                sorted(removed_watches),
+                "Removed watches don't match the expected",
+            )
             self._deferred.callback(True)
 
         rename(self.udf.path, self.udf.path + ".old")
-        reactor.callLater(.1, check)
+        reactor.callLater(0.1, check)
         return self._deferred
 
     def test_unsubscribe_rename_removeancestors(self):
@@ -982,15 +1018,18 @@ class AncestorsUDFTestCase(BaseTwistedTestCase):
         expected += [self.udf.path, self.udf2.path]
 
         def check():
-            self.assertEqual(sorted(expected), sorted(removed_watches),
-                             "Removed watches don't match the expected")
+            self.assertEqual(
+                sorted(expected),
+                sorted(removed_watches),
+                "Removed watches don't match the expected",
+            )
             self._deferred.callback(True)
 
         path = self.udf.ancestors[-2]  # an ancestor common to both UDFs
 
         rename(self.udf.path, self.udf.path + ".old")
         rename(path, path + ".old")
-        reactor.callLater(.1, check)
+        reactor.callLater(0.1, check)
         return self._deferred
 
 
@@ -1004,8 +1043,7 @@ class SignalingTests(BaseTwisted):
         """Test receiving the open signal on files."""
         testfile = os.path.join(self.root_dir, "foo")
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_FILE_OPEN(innerself, path):
                 if path != testfile:
                     self.finished_error("received a wrong path")
@@ -1027,8 +1065,7 @@ class SignalingTests(BaseTwisted):
         open_file(testfile, "w").close()
         fh = open_file(testfile)
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_FILE_CLOSE_NOWRITE(innerself, path):
                 if path != testfile:
                     self.finished_error("received a wrong path")
@@ -1048,8 +1085,7 @@ class SignalingTests(BaseTwisted):
         """Test receiving the create and close_write signals on files."""
         testfile = os.path.join(self.root_dir, "foo")
 
-        class HitMe(object):
-
+        class HitMe:
             def __init__(innerself):
                 innerself.hist = []
 
@@ -1082,8 +1118,7 @@ class SignalingTests(BaseTwisted):
         """Test receiving the create signal on dirs."""
         testdir = os.path.join(self.root_dir, "foo")
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_DIR_CREATE(innerself, path):
                 if path != testdir:
                     self.finished_error("received a wrong path")
@@ -1104,8 +1139,7 @@ class SignalingTests(BaseTwisted):
         testfile = os.path.join(self.root_dir, "foo")
         open_file(testfile, "w").close()
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_FILE_DELETE(innerself, path):
                 if path != testfile:
                     self.finished_error("received a wrong path")
@@ -1130,8 +1164,7 @@ class SignalingTests(BaseTwisted):
         testdir = os.path.join(self.root_dir, "foo")
         make_dir(testdir)
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_DIR_DELETE(innerself, path):
                 if path != testdir:
                     self.finished_error("received a wrong path")
@@ -1171,7 +1204,7 @@ class SignalingTests(BaseTwisted):
         self.eq.subscribe(DontHitMe(self))
 
         make_link(fromfile, symlpath)
-        reactor.callLater(.1, confirm)
+        reactor.callLater(0.1, confirm)
         yield self._deferred
 
     @defer.inlineCallbacks
@@ -1183,8 +1216,7 @@ class SignalingTests(BaseTwisted):
         open_file(fromfile, "w").close()
         make_dir(helpdir)
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_FILE_DELETE(innerself, path):
                 if path != fromfile:
                     self.finished_error("received a wrong path")
@@ -1209,8 +1241,7 @@ class SignalingTests(BaseTwisted):
         make_dir(fromdir)
         make_dir(helpdir)
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_DIR_DELETE(innerself, path):
                 self.eq.rm_watch(self.root_dir)
                 if path != fromdir:
@@ -1239,8 +1270,7 @@ class SignalingTests(BaseTwisted):
         make_dir(helpdir)
         open_file(fromfile, "w").close()
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_FILE_CREATE(innerself, path):
                 if path != tofile:
                     self.finished_error("received a wrong path")
@@ -1265,8 +1295,7 @@ class SignalingTests(BaseTwisted):
         make_dir(helpdir)
         make_dir(fromdir)
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_DIR_CREATE(innerself, path):
                 if path != todir:
                     self.finished_error("received a wrong path")
@@ -1290,8 +1319,11 @@ class SignalingTests(BaseTwisted):
         make_dir(fromdir)
 
         # patch the general processor to ignore all that ends with bar
-        self.patch(self.eq.monitor._processor.general_processor, "is_ignored",
-                   lambda path: path.endswith("bar"))
+        self.patch(
+            self.eq.monitor._processor.general_processor,
+            "is_ignored",
+            lambda path: path.endswith("bar"),
+        )
 
         should_events = [("FS_DIR_CREATE", dict(path=todir))]
 
@@ -1311,12 +1343,18 @@ class SignalingTests(BaseTwisted):
 
         # patch to check proper dir deletion is handled
         called = []
-        self.patch(self.eq.monitor._processor.general_processor,
-                   'handle_dir_delete', lambda p: called.append(p))
+        self.patch(
+            self.eq.monitor._processor.general_processor,
+            'handle_dir_delete',
+            lambda p: called.append(p),
+        )
 
         # patch the general processor to ignore all that ends with bar
-        self.patch(self.eq.monitor._processor.general_processor, "is_ignored",
-                   lambda path: path.endswith("bar"))
+        self.patch(
+            self.eq.monitor._processor.general_processor,
+            "is_ignored",
+            lambda path: path.endswith("bar"),
+        )
 
         should_events = [("FS_DIR_DELETE", dict(path=fromdir))]
 
@@ -1336,8 +1374,11 @@ class SignalingTests(BaseTwisted):
         open_file(fromfile, 'w').close()
 
         # patch the general processor to ignore all that ends with bar
-        self.patch(self.eq.monitor._processor.general_processor, "is_ignored",
-                   lambda path: path.endswith("bar"))
+        self.patch(
+            self.eq.monitor._processor.general_processor,
+            "is_ignored",
+            lambda path: path.endswith("bar"),
+        )
 
         should_events = [
             ("FS_FILE_CREATE", dict(path=tofile)),
@@ -1358,8 +1399,11 @@ class SignalingTests(BaseTwisted):
         open_file(fromfile, 'w').close()
 
         # patch the general processor to ignore all that ends with bar
-        self.patch(self.eq.monitor._processor.general_processor, "is_ignored",
-                   lambda path: path.endswith("bar"))
+        self.patch(
+            self.eq.monitor._processor.general_processor,
+            "is_ignored",
+            lambda path: path.endswith("bar"),
+        )
 
         should_events = [("FS_FILE_DELETE", dict(path=fromfile))]
 
@@ -1419,8 +1463,7 @@ class SignalingTests(BaseTwisted):
         self.fs.set_node_id(tofile, "to_node_id")
         open_file(fromfile, "w").close()
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_FILE_MOVE(innerself, path_from, path_to):
                 if path_from != fromfile:
                     self.finished_error("received a wrong path in from")
@@ -1448,8 +1491,7 @@ class SignalingTests(BaseTwisted):
         self.fs.set_node_id(todir, "to_node_id")
         make_dir(fromdir)
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_DIR_MOVE(innerself, path_from, path_to):
                 if path_from != fromdir:
                     self.finished_error("received a wrong path in from")
@@ -1488,8 +1530,10 @@ class SignalingTests(BaseTwisted):
             ("FS_FILE_CLOSE_WRITE", dict(path=mypath("bar"))),
             ("FS_FILE_DELETE", dict(path=mypath("foo"))),
             ("FS_FILE_CREATE", dict(path=mypath("foo"))),
-            ("FS_FILE_MOVE", dict(path_from=mypath("bar"),
-                                  path_to=mypath("baz"))),
+            (
+                "FS_FILE_MOVE",
+                dict(path_from=mypath("bar"), path_to=mypath("baz")),
+            ),
             ("FS_FILE_DELETE", dict(path=mypath("foo"))),
             ("FS_FILE_DELETE", dict(path=mypath("baz"))),
         ]
@@ -1507,7 +1551,7 @@ class SignalingTests(BaseTwisted):
 
     @defer.inlineCallbacks
     def test_dir_with_contents_moved_outside(self):
-        """ test the move of a dir outside the watched diresctory."""
+        """test the move of a dir outside the watched diresctory."""
         root = os.path.join(self.root_dir, "watched_root")
         make_dir(root)
         trash = os.path.join(self.root_dir, "trash")
@@ -1524,13 +1568,14 @@ class SignalingTests(BaseTwisted):
 
         paths = [testdir, testfile]
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_DIR_DELETE(innerself, path):
                 expected = paths.pop()
                 if path != expected:
-                    self.finished_error("received a wrong path, expected:"
-                                        " %s was: %s " % (expected, path))
+                    self.finished_error(
+                        "received a wrong path, expected:"
+                        " %s was: %s " % (expected, path)
+                    )
                 elif len(paths) == 0:
                     self.finished_ok()
 
@@ -1553,8 +1598,7 @@ class SignalingTests(BaseTwisted):
         make_dir(testdir)
         newdirname = os.path.join(self.root_dir, "newdir")
 
-        class HitMe(object):
-
+        class HitMe:
             def handle_FS_FILE_CREATE(innerself, path):
                 if path != newfilepath:
                     self.finished_error("received a wrong path")
@@ -1608,9 +1652,7 @@ class SignalingTests(BaseTwisted):
         make_dir(fromdir)
         open_file(fromfile, "w").close()
 
-        should_events = [
-            ("FS_DIR_CREATE", dict(path=mypath("foo_dir"))),
-        ]
+        should_events = [("FS_DIR_CREATE", dict(path=mypath("foo_dir")))]
         self.eq.subscribe(DynamicHitMe(should_events, self))
         yield self.eq.add_watch(root_dir)
 
@@ -1695,9 +1737,7 @@ class SignalingTests(BaseTwisted):
         make_dir(testdir, recursive=True)
         self.fs.move_to_conflict(mdid)
 
-        should_events = [
-            ("FS_DIR_CREATE", dict(path=testdir)),
-        ]
+        should_events = [("FS_DIR_CREATE", dict(path=testdir))]
         self.eq.subscribe(DynamicHitMe(should_events, self))
         yield self.eq.add_watch(self.root_dir)
 
@@ -1714,9 +1754,7 @@ class SignalingTests(BaseTwisted):
         make_dir(testdir, recursive=True)
         self.fs.move_to_conflict(mdid)
 
-        should_events = [
-            ("FS_DIR_CREATE", dict(path=destdir)),
-        ]
+        should_events = [("FS_DIR_CREATE", dict(path=destdir))]
         self.eq.subscribe(DynamicHitMe(should_events, self))
         yield self.eq.add_watch(self.root_dir)
 
@@ -1758,6 +1796,7 @@ class SignalingTests(BaseTwisted):
         def check(record):
             self.assertIn(testfile, record.args)
             self.assertEqual(1, len(record.args))
+
         self._deferred.addCallback(check)
         yield self._deferred
 
@@ -1795,6 +1834,7 @@ class SignalingTests(BaseTwisted):
         def check(record):
             self.assertIn(testdir, record.args)
             self.assertEqual(1, len(record.args))
+
         self._deferred.addCallback(check)
         yield self._deferred
 
@@ -1820,8 +1860,11 @@ class SignalingTests(BaseTwisted):
 
         # patch to check proper dir deletion is handled
         called = []
-        self.patch(self.eq.monitor._processor.general_processor,
-                   'handle_dir_delete', lambda p: called.append(p))
+        self.patch(
+            self.eq.monitor._processor.general_processor,
+            'handle_dir_delete',
+            lambda p: called.append(p),
+        )
 
         # working stuff
         moving1 = os.path.join(base1, "test")

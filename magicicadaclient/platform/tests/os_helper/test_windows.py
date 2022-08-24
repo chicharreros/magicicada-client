@@ -46,7 +46,7 @@ from win32file import (
     FILE_ATTRIBUTE_NORMAL,
     FILE_ATTRIBUTE_SYSTEM,
     GetFileAttributesW,
-    SetFileAttributesW
+    SetFileAttributesW,
 )
 
 from magicicadaclient.platform.os_helper import windows as os_helper
@@ -83,13 +83,19 @@ class TestIllegalPaths(OSWrapperTests):
     """Test all the operations using illegal paths."""
 
     @defer.inlineCallbacks
-    def setUp(self, test_dir_name=None, test_file_name=None,
-              valid_file_path_builder=None):
+    def setUp(
+        self,
+        test_dir_name=None,
+        test_file_name=None,
+        valid_file_path_builder=None,
+    ):
         """Setup for the tests."""
         test_file_name = _build_invalid_windows_bytes_name()
         yield super(TestIllegalPaths, self).setUp(
-            test_dir_name=test_dir_name, test_file_name=test_file_name,
-            valid_file_path_builder=get_windows_valid_path)
+            test_dir_name=test_dir_name,
+            test_file_name=test_file_name,
+            valid_file_path_builder=get_windows_valid_path,
+        )
 
     def test_rename_file(self, target=None):
         """Rename a file."""
@@ -122,19 +128,23 @@ class TestSpecialOSCalls(BaseTwistedTestCase):
 
     def test_normpath_with_longprefix(self):
         """Ensure that the normpath is correct when it uses the long prefix."""
-        paths = [os.path.join('A', 'B?'),
-                 os.path.join('A', 'B?') + os.path.sep,
-                 os.path.join('A:C', '.', 'B?'),
-                 os.path.join('A', 'foo', '..', 'B?')]
+        paths = [
+            os.path.join('A', 'B?'),
+            os.path.join('A', 'B?') + os.path.sep,
+            os.path.join('A:C', '.', 'B?'),
+            os.path.join('A', 'foo', '..', 'B?'),
+        ]
         for current_path in paths:
             valid_path = get_windows_valid_path(current_path)
             normalized_path = os.path.normpath(valid_path)
-            self.assertEqual(get_syncdaemon_valid_path(normalized_path),
-                             normpath(current_path))
+            self.assertEqual(
+                get_syncdaemon_valid_path(normalized_path),
+                normpath(current_path),
+            )
             self.assertFalse(LONG_PATH_PREFIX in current_path)
 
 
-class FakeSecurityInfo(object):
+class FakeSecurityInfo:
 
     user_sid = 'user_sid'
 
@@ -301,10 +311,12 @@ class TestAccess(BaseTwistedTestCase):
         groups = [(EVERYONE_SID, FILE_ALL_ACCESS)]
         # file does not exist.
         self.patch(os_helper.os.path, 'exists', lambda f: False)
-        exc = self.assertRaises(WindowsError, _set_file_attributes,
-                                self.valid_path, groups)
-        self.assertEqual(errno.ENOENT, exc.errno,
-                         'Errno should be file not found.')
+        exc = self.assertRaises(
+            WindowsError, _set_file_attributes, self.valid_path, groups
+        )
+        self.assertEqual(
+            errno.ENOENT, exc.errno, 'Errno should be file not found.'
+        )
 
 
 class DecoratorsTestCase(TestCase):
@@ -315,7 +327,8 @@ class DecoratorsTestCase(TestCase):
             self.assertRaises(AssertionError, assert_windows_path, path)
         else:
             exc = self.assertRaises(
-                AssertionError, assert_windows_path, path, method_name)
+                AssertionError, assert_windows_path, path, method_name
+            )
             self.assertIn(method_name, str(exc))
 
     def test_assert_windows_path_slash(self):
@@ -378,23 +391,33 @@ class TestIllegalPathsWalk(WalkTests):
     """Tests for os wrapper functions."""
 
     @defer.inlineCallbacks
-    def setUp(self, test_dir_name=None, test_file_name=None,
-              valid_file_path_builder=None, valid_file_name_builder=None):
+    def setUp(
+        self,
+        test_dir_name=None,
+        test_file_name=None,
+        valid_file_path_builder=None,
+        valid_file_name_builder=None,
+    ):
         """Setup for the tests."""
         test_file_name = _build_invalid_windows_bytes_name()
         yield super(TestIllegalPathsWalk, self).setUp(
-            test_dir_name=test_dir_name, test_file_name=test_file_name,
-            valid_file_path_builder=get_windows_valid_path)
+            test_dir_name=test_dir_name,
+            test_file_name=test_file_name,
+            valid_file_path_builder=get_windows_valid_path,
+        )
 
     def test_top_down(self, topdown=True, expected=None):
         """Walk the tree top-down."""
         valid_base_dir = get_windows_valid_path(self.basedir)
         result = os.walk(valid_base_dir, topdown)
         expected = self._build_dict_from_walk(
-            result, path_transformer=get_syncdaemon_valid_path,
-            name_transformer=_windows_to_linux_path)
-        super(TestIllegalPathsWalk, self).test_top_down(topdown=topdown,
-                                                        expected=expected)
+            result,
+            path_transformer=get_syncdaemon_valid_path,
+            name_transformer=_windows_to_linux_path,
+        )
+        super(TestIllegalPathsWalk, self).test_top_down(
+            topdown=topdown, expected=expected
+        )
 
 
 class TestSystemPaths(TestCase):
@@ -438,7 +461,8 @@ class TestSystemPaths(TestCase):
         """Test the list dir."""
         expected_result = self.dirs + self.files
         self.assertEqual(
-            sorted(expected_result), sorted(os_helper.listdir(self.temp)))
+            sorted(expected_result), sorted(os_helper.listdir(self.temp))
+        )
 
     def test_os_walk(self):
         """Test the walk."""

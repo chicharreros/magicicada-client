@@ -51,9 +51,11 @@ def server_protocol_factory(cls):
             """Lost the connection."""
             cls.connectionLost(self, *args)
             # lets tell everyone
-            if (self.factory._disconnecting and
-                    self.factory.testserver_on_connection_lost is not None and
-                    not self.factory.testserver_on_connection_lost.called):
+            if (
+                self.factory._disconnecting
+                and self.factory.testserver_on_connection_lost is not None
+                and not self.factory.testserver_on_connection_lost.called
+            ):
                 self.factory.testserver_on_connection_lost.callback(self)
 
     return ServerTidyProtocol
@@ -90,15 +92,17 @@ def client_protocol_factory(cls):
         def connectionLost(self, *a):
             """Connection list."""
             cls.connectionLost(self, *a)
-            if (self.factory._disconnecting and
-                    self.factory.testserver_on_connection_lost is not None and
-                    not self.factory.testserver_on_connection_lost.called):
+            if (
+                self.factory._disconnecting
+                and self.factory.testserver_on_connection_lost is not None
+                and not self.factory.testserver_on_connection_lost.called
+            ):
                 self.factory.testserver_on_connection_lost.callback(self)
 
     return ClientTidyProtocol
 
 
-class TidySocketServer(object):
+class TidySocketServer:
     """Ensure that twisted servers are correctly managed in tests.
 
     Closing a twisted server is a complicated matter. In order to do so you
@@ -112,6 +116,7 @@ class TidySocketServer(object):
     the reactor is left clean by following the pattern described at
     http://mumak.net/stuff/twisted-disconnect.html
     """
+
     def __init__(self):
         """Create a new instance."""
         self.listener = None
@@ -132,13 +137,16 @@ class TidySocketServer(object):
     def listen_server(self, server_class, *args, **kwargs):
         """Start a server in a random port."""
         from twisted.internet import reactor
+
         tidy_class = server_factory_factory(server_class)
         self.server_factory = tidy_class(*args, **kwargs)
         self.server_factory._disconnecting = False
         self.server_factory.protocol = server_protocol_factory(
-            self.server_factory.protocol)
-        endpoint = endpoints.serverFromString(reactor,
-                                              self.get_server_endpoint())
+            self.server_factory.protocol
+        )
+        endpoint = endpoints.serverFromString(
+            reactor, self.get_server_endpoint()
+        )
         self.listener = yield endpoint.listen(self.server_factory)
         defer.returnValue(self.server_factory)
 
@@ -150,16 +158,19 @@ class TidySocketServer(object):
         if self.server_factory is None:
             raise ValueError('Server Factory was not provided.')
         if self.listener is None:
-            raise ValueError('%s has not started listening.',
-                             self.server_factory)
+            raise ValueError(
+                '%s has not started listening.', self.server_factory
+            )
 
         self.client_factory = client_class(*args, **kwargs)
         self.client_factory._disconnecting = False
         self.client_factory.protocol = client_protocol_factory(
-            self.client_factory.protocol)
+            self.client_factory.protocol
+        )
         self.client_factory.testserver_on_connection_lost = defer.Deferred()
-        endpoint = endpoints.clientFromString(reactor,
-                                              self.get_client_endpoint())
+        endpoint = endpoints.clientFromString(
+            reactor, self.get_client_endpoint()
+        )
         self.connector = yield endpoint.connect(self.client_factory)
         defer.returnValue(self.client_factory)
 
@@ -177,13 +188,16 @@ class TidySocketServer(object):
             self.connector.transport.loseConnection()
             if self.server_factory.testserver_on_connection_lost:
                 return defer.gatherResults(
-                    [d,
-                     self.client_factory.testserver_on_connection_lost,
-                     self.server_factory.testserver_on_connection_lost])
+                    [
+                        d,
+                        self.client_factory.testserver_on_connection_lost,
+                        self.server_factory.testserver_on_connection_lost,
+                    ]
+                )
             else:
                 return defer.gatherResults(
-                    [d,
-                     self.client_factory.testserver_on_connection_lost])
+                    [d, self.client_factory.testserver_on_connection_lost]
+                )
         if self.listener:
             # just clean the server since there is no client
             self.server_factory._disconnecting = True
@@ -205,8 +219,9 @@ class TidyTCPServer(TidySocketServer):
         if self.server_factory is None:
             raise ValueError('Server Factory was not provided.')
         if self.listener is None:
-            raise ValueError('%s has not started listening.',
-                             self.server_factory)
+            raise ValueError(
+                '%s has not started listening.', self.server_factory
+            )
         return self.client_endpoint_pattern % self.listener.getHost().port
 
 
@@ -272,9 +287,11 @@ class ServerTestCase(BaseTestCase):
         passed to the server constructor.
         """
         self.server_factory = yield self.server_runner.listen_server(
-            server_class, *args, **kwargs)
-        self.server_disconnected = \
+            server_class, *args, **kwargs
+        )
+        self.server_disconnected = (
             self.server_factory.testserver_on_connection_lost
+        )
         self.listener = self.server_runner.listener
 
     @defer.inlineCallbacks
@@ -285,9 +302,11 @@ class ServerTestCase(BaseTestCase):
         should be passed to the client constructor.
         """
         self.client_factory = yield self.server_runner.connect_client(
-            client_class, *args, **kwargs)
-        self.client_disconnected = \
+            client_class, *args, **kwargs
+        )
+        self.client_disconnected = (
             self.client_factory.testserver_on_connection_lost
+        )
         self.connector = self.server_runner.connector
 
     def tear_down_server_client(self):
@@ -322,14 +341,16 @@ class PbServerTestCase(ServerTestCase):
     @defer.inlineCallbacks
     def listen_server(self, *args, **kwargs):
         """Listen a pb server."""
-        yield super(PbServerTestCase, self).listen_server(pb.PBServerFactory,
-                                                          *args, **kwargs)
+        yield super(PbServerTestCase, self).listen_server(
+            pb.PBServerFactory, *args, **kwargs
+        )
 
     @defer.inlineCallbacks
     def connect_client(self, *args, **kwargs):
         """Connect a pb client."""
-        yield super(PbServerTestCase, self).connect_client(pb.PBClientFactory,
-                                                           *args, **kwargs)
+        yield super(PbServerTestCase, self).connect_client(
+            pb.PBClientFactory, *args, **kwargs
+        )
 
 
 class TCPPbServerTestCase(PbServerTestCase):

@@ -31,15 +31,17 @@
 import logging
 
 
-class DownloadFinishedNanny(object):
+class DownloadFinishedNanny:
     """Supervises the download finished signals.
 
     It listens AQ_DOWNLOAD_COMMIT, and generates AQ_DOWNLOAD_FINISHED when
     the external world is ready for it.
     """
+
     def __init__(self, fsm, eq, hq):
         self.logger = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.fsm = fsm
         self.eq = eq
         self.hq = hq
@@ -58,8 +60,12 @@ class DownloadFinishedNanny(object):
 
     def eq_push(self, share_id, node_id, server_hash):
         """Push the event to EQ."""
-        self.eq.push("AQ_DOWNLOAD_FINISHED", share_id=share_id,
-                     node_id=node_id, server_hash=server_hash)
+        self.eq.push(
+            "AQ_DOWNLOAD_FINISHED",
+            share_id=share_id,
+            node_id=node_id,
+            server_hash=server_hash,
+        )
 
     def handle_FS_DIR_MOVE(self, path_from, path_to):
         """Receives DIR_MOVE to change paths."""
@@ -71,17 +77,21 @@ class DownloadFinishedNanny(object):
             for path in d.copy():
                 if path.startswith(path_from):
                     info = d.pop(path)
-                    d[path_to + path[len(path_from) - 1:]] = info
+                    i = len(path_from) - 1
+                    d[path_to + path[i:]] = info
+
         fix(self._opened)
         fix(self._blocked)
 
     def handle_FS_FILE_MOVE(self, path_from, path_to):
         """Receives FILE_MOVE to change paths."""
+
         def fix(d):
             """Fixes the dict."""
             if path_from in d:
                 info = d.pop(path_from)
                 d[path_to] = info
+
         fix(self._opened)
         fix(self._blocked)
 
@@ -176,9 +186,14 @@ class DownloadFinishedNanny(object):
 
         # ok, so we unblock and release it!
         del self._blocked[path]
-        self.logger.debug("Released! (%s)  path %r  share %r  "
-                          "node %r  server_hash %s", why,
-                          path, share_id, node_id, server_hash)
+        self.logger.debug(
+            "Released! (%s)  path %r  share %r  " "node %r  server_hash %s",
+            why,
+            path,
+            share_id,
+            node_id,
+            server_hash,
+        )
         self.eq_push(share_id, node_id, server_hash)
 
     def handle_AQ_DOWNLOAD_COMMIT(self, share_id, node_id, server_hash):
@@ -189,21 +204,34 @@ class DownloadFinishedNanny(object):
         except KeyError:
             # the node is gone.. we just forward the message for Sync to
             # handle this
-            self.logger.debug("Forwarded (no MD)  share %r  node %r",
-                              share_id, node_id)
+            self.logger.debug(
+                "Forwarded (no MD)  share %r  node %r", share_id, node_id
+            )
             self.eq_push(share_id, node_id, server_hash)
             return
 
         abspath = self.fsm.get_abspath(share_id, mdobj.path)
         if abspath in self._opened:
-            self.logger.debug("Blocked! (opened)  share %r  node %r  path %r",
-                              share_id, node_id, abspath)
+            self.logger.debug(
+                "Blocked! (opened)  share %r  node %r  path %r",
+                share_id,
+                node_id,
+                abspath,
+            )
             self._blocked[abspath] = (share_id, node_id, server_hash)
         elif self.hq.is_hashing(abspath, node_id):
-            self.logger.debug("Blocked! (hashing)  share %r  node %r  path %r",
-                              share_id, node_id, abspath)
+            self.logger.debug(
+                "Blocked! (hashing)  share %r  node %r  path %r",
+                share_id,
+                node_id,
+                abspath,
+            )
             self._blocked[abspath] = (share_id, node_id, server_hash)
         else:
-            self.logger.debug("Forwarded!  share %r  node %r  path %r",
-                              share_id, node_id, abspath)
+            self.logger.debug(
+                "Forwarded!  share %r  node %r  path %r",
+                share_id,
+                node_id,
+                abspath,
+            )
             self.eq_push(share_id, node_id, server_hash)

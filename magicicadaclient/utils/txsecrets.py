@@ -70,8 +70,9 @@ def no_op(*args):
     """Do nothing."""
 
 
-class SecretService(object):
+class SecretService:
     """The Secret Service manages all the sessions and collections."""
+
     service = None
     properties = None
     session = None
@@ -85,10 +86,12 @@ class SecretService(object):
             self.window_id = str(window_id)
             self.bus = dbus.SessionBus()
             service_object = self.bus.get_object(BUS_NAME, SECRETS_SERVICE)
-            self.service = dbus.Interface(service_object,
-                                          dbus_interface=SERVICE_IFACE)
-            self.properties = dbus.Interface(service_object,
-                                             dbus_interface=PROPERTIES_IFACE)
+            self.service = dbus.Interface(
+                service_object, dbus_interface=SERVICE_IFACE
+            )
+            self.properties = dbus.Interface(
+                service_object, dbus_interface=PROPERTIES_IFACE
+            )
 
             def session_opened(result, session):
                 """The session was successfully opened."""
@@ -96,9 +99,12 @@ class SecretService(object):
                 d.callback(self)
 
             parameters = dbus.String(ALGORITHM_PARAMS, variant_level=1)
-            self.service.OpenSession(ALGORITHM, parameters,
-                                     reply_handler=session_opened,
-                                     error_handler=d.errback)
+            self.service.OpenSession(
+                ALGORITHM,
+                parameters,
+                reply_handler=session_opened,
+                error_handler=d.errback,
+            )
         except dbus.exceptions.DBusException as e:
             d.errback(e)
         return d
@@ -118,9 +124,9 @@ class SecretService(object):
                 d.callback(result)
 
         sigcompleted = prompt.connect_to_signal("Completed", prompt_completed)
-        prompt.Prompt(self.window_id,
-                      reply_handler=no_op,
-                      error_handler=d.errback)
+        prompt.Prompt(
+            self.window_id, reply_handler=no_op, error_handler=d.errback
+        )
         return d
 
     def make_item_list(self, object_path_list):
@@ -151,15 +157,17 @@ class SecretService(object):
             """Called with two lists of found items."""
             result.extend(unlocked)
             if len(locked) > 0:
-                self.service.Unlock(locked,
-                                    reply_handler=unlock_handler,
-                                    error_handler=d.errback)
+                self.service.Unlock(
+                    locked,
+                    reply_handler=unlock_handler,
+                    error_handler=d.errback,
+                )
             else:
                 d.callback(result)
 
-        self.service.SearchItems(attributes,
-                                 reply_handler=items_found,
-                                 error_handler=d.errback)
+        self.service.SearchItems(
+            attributes, reply_handler=items_found, error_handler=d.errback
+        )
         d.addCallback(self.make_item_list)
         return d
 
@@ -176,21 +184,23 @@ class SecretService(object):
 
         def error_fallback(error):
             """Fall back to using the old property name."""
-            properties = {CLXN_LABEL_PROPERTY_OLD: dbus.String(
-                    label,
-                    variant_level=1)}
+            properties = {
+                CLXN_LABEL_PROPERTY_OLD: dbus.String(label, variant_level=1)
+            }
             self.service.CreateCollection(
                 properties,
                 reply_handler=createcollection_handler,
-                error_handler=d.errback)
+                error_handler=d.errback,
+            )
 
-        properties = {CLXN_LABEL_PROPERTY: dbus.String(label,
-                                                       variant_level=1)}
+        properties = {CLXN_LABEL_PROPERTY: dbus.String(label, variant_level=1)}
         try:
             self.service.CreateCollection(
-                properties, alias,
+                properties,
+                alias,
                 reply_handler=createcollection_handler,
-                error_handler=error_fallback)
+                error_handler=error_fallback,
+            )
         except TypeError:
             error_fallback(None)
 
@@ -211,13 +221,19 @@ class SecretService(object):
 
         def error_fallback(error):
             """Fall back to the old property name."""
-            self.properties.Get(SERVICE_IFACE, COLLECTIONS_PROPERTY_OLD,
-                                reply_handler=propertyget_handler,
-                                error_handler=d.errback)
+            self.properties.Get(
+                SERVICE_IFACE,
+                COLLECTIONS_PROPERTY_OLD,
+                reply_handler=propertyget_handler,
+                error_handler=d.errback,
+            )
 
-        self.properties.Get(SERVICE_IFACE, COLLECTIONS_PROPERTY,
-                            reply_handler=propertyget_handler,
-                            error_handler=error_fallback)
+        self.properties.Get(
+            SERVICE_IFACE,
+            COLLECTIONS_PROPERTY,
+            reply_handler=propertyget_handler,
+            error_handler=error_fallback,
+        )
         return d
 
     def get_default_collection(self):
@@ -243,9 +259,11 @@ class SecretService(object):
             d4 = Deferred()
             object_path = dbus.ObjectPath(collection.object_path)
             self.service.SetAlias(
-                DEFAULT_LABEL, object_path,
+                DEFAULT_LABEL,
+                object_path,
                 reply_handler=lambda: d4.callback(collection),
-                error_handler=d4.errback)
+                error_handler=d4.errback,
+            )
             return d4
 
         def readalias_handler(collection_path):
@@ -253,9 +271,11 @@ class SecretService(object):
             if collection_path != "/":
                 # The collection was found, make sure it's unlocked
                 objects = dbus.Array([collection_path], signature="o")
-                self.service.Unlock(objects,
-                                    reply_handler=unlock_handler,
-                                    error_handler=d.errback)
+                self.service.Unlock(
+                    objects,
+                    reply_handler=unlock_handler,
+                    error_handler=d.errback,
+                )
             else:
                 # The collection was not found, so create it
                 d3 = self.create_collection(DEFAULT_LABEL)
@@ -264,16 +284,18 @@ class SecretService(object):
 
         def default_collection_not_found(e):
             """Try the default alias."""
-            self.service.ReadAlias(DEFAULT_LABEL,
-                                   reply_handler=readalias_handler,
-                                   error_handler=d.errback)
+            self.service.ReadAlias(
+                DEFAULT_LABEL,
+                reply_handler=readalias_handler,
+                error_handler=d.errback,
+            )
 
         def found_default_collection(label):
             """Make sure the default collection is unlocked."""
             objects = dbus.Array([DEFAULT_COLLECTION], signature="o")
-            self.service.Unlock(objects,
-                                reply_handler=unlock_handler,
-                                error_handler=d.errback)
+            self.service.Unlock(
+                objects, reply_handler=unlock_handler, error_handler=d.errback
+            )
 
         collection = Collection(self, DEFAULT_COLLECTION)
         d0 = collection.get_label()
@@ -283,19 +305,22 @@ class SecretService(object):
         return d
 
 
-class Collection(object):
+class Collection:
     """A collection of items containing secrets."""
 
     def __init__(self, service, object_path):
         """Initialize a new collection."""
         self.service = service
         self.object_path = object_path
-        collection_object = service.bus.get_object(BUS_NAME, object_path,
-                                                   introspect=False)
-        self.collection_iface = dbus.Interface(collection_object,
-                                               dbus_interface=COLLECTION_IFACE)
-        self.properties = dbus.Interface(collection_object,
-                                         dbus_interface=PROPERTIES_IFACE)
+        collection_object = service.bus.get_object(
+            BUS_NAME, object_path, introspect=False
+        )
+        self.collection_iface = dbus.Interface(
+            collection_object, dbus_interface=COLLECTION_IFACE
+        )
+        self.properties = dbus.Interface(
+            collection_object, dbus_interface=PROPERTIES_IFACE
+        )
 
     def get_label(self):
         """Return the label for this collection from the keyring."""
@@ -303,13 +328,19 @@ class Collection(object):
 
         def error_fallback(error):
             """Fall back to the old property name."""
-            self.properties.Get(COLLECTION_IFACE, CLXN_LABEL_PROPERTY_OLD,
-                                reply_handler=d.callback,
-                                error_handler=d.errback)
+            self.properties.Get(
+                COLLECTION_IFACE,
+                CLXN_LABEL_PROPERTY_OLD,
+                reply_handler=d.callback,
+                error_handler=d.errback,
+            )
 
-        self.properties.Get(COLLECTION_IFACE, CLXN_LABEL_PROPERTY,
-                            reply_handler=d.callback,
-                            error_handler=error_fallback)
+        self.properties.Get(
+            COLLECTION_IFACE,
+            CLXN_LABEL_PROPERTY,
+            reply_handler=d.callback,
+            error_handler=error_fallback,
+        )
         return d
 
     def create_item(self, label, attr, value, replace=True):
@@ -333,8 +364,12 @@ class Collection(object):
         properties[ITEM_ATTRIBUTES_PROPERTY] = attributes
         parameters = dbus.ByteArray(ALGORITHM_PARAMS.encode('utf-8'))
         value_bytes = dbus.ByteArray(value.encode('utf-8'))
-        secret = (self.service.session, parameters, value_bytes,
-                  SECRET_CONTENT_TYPE)
+        secret = (
+            self.service.session,
+            parameters,
+            value_bytes,
+            SECRET_CONTENT_TYPE,
+        )
 
         def error_fallback(error):
             """A fallback for using old property names and signature."""
@@ -342,17 +377,25 @@ class Collection(object):
             oldprops[ITEM_LABEL_PROPERTY_OLD] = label
             oldprops[ITEM_ATTRIBUTES_PROPERTY_OLD] = attributes
             secret = (self.service.session, parameters, value_bytes)
-            self.collection_iface.CreateItem(oldprops, secret, replace,
-                                             reply_handler=createitem_handler,
-                                             error_handler=d.errback)
+            self.collection_iface.CreateItem(
+                oldprops,
+                secret,
+                replace,
+                reply_handler=createitem_handler,
+                error_handler=d.errback,
+            )
 
-        self.collection_iface.CreateItem(properties, secret, replace,
-                                         reply_handler=createitem_handler,
-                                         error_handler=error_fallback)
+        self.collection_iface.CreateItem(
+            properties,
+            secret,
+            replace,
+            reply_handler=createitem_handler,
+            error_handler=error_fallback,
+        )
         return d
 
 
-class Item(object):
+class Item:
     """An item contains a secret, lookup attributes and has a label."""
 
     def __init__(self, service, object_path):
@@ -360,8 +403,9 @@ class Item(object):
         self.service = service
         self.object_path = object_path
         item_object = service.bus.get_object(BUS_NAME, object_path)
-        self.item_iface = dbus.Interface(item_object,
-                                         dbus_interface=ITEM_IFACE)
+        self.item_iface = dbus.Interface(
+            item_object, dbus_interface=ITEM_IFACE
+        )
 
     def get_value(self):
         """Retrieve the secret for this item."""
@@ -372,9 +416,12 @@ class Item(object):
             value = secret[2]
             d.callback(value.decode('utf-8'))
 
-        self.item_iface.GetSecret(self.service.session, byte_arrays=True,
-                                  reply_handler=getsecret_handler,
-                                  error_handler=d.errback)
+        self.item_iface.GetSecret(
+            self.service.session,
+            byte_arrays=True,
+            reply_handler=getsecret_handler,
+            error_handler=d.errback,
+        )
         return d
 
     def delete(self):
@@ -388,6 +435,7 @@ class Item(object):
             else:
                 d.callback(True)
 
-        self.item_iface.Delete(reply_handler=delete_handler,
-                               error_handler=d.errback)
+        self.item_iface.Delete(
+            reply_handler=delete_handler, error_handler=d.errback
+        )
         return d

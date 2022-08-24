@@ -29,6 +29,7 @@
 """Configure-time definitions for the client."""
 
 import os
+
 try:
     from urllib.parse import urlencode
 except ImportError:
@@ -47,8 +48,10 @@ BIN_DIR = os.path.join('@prefix@', 'lib', PROJECT_NAME)
 
 
 def platform_data():
-    result = {'platform': platform.system(),
-              'platform_version': platform.release(),
-              'platform_arch': platform.machine(),
-              'client_version': VERSION}
+    result = {
+        'platform': platform.system(),
+        'platform_version': platform.release(),
+        'platform_arch': platform.machine(),
+        'client_version': VERSION,
+    }
     return urlencode(result)

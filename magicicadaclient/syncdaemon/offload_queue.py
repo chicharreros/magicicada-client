@@ -39,23 +39,24 @@ STRUCT_FMT = 'h'
 STRUCT_SIZE = struct.calcsize(STRUCT_FMT)
 
 
-class OffloadQueue(object):
+class OffloadQueue:
     """A FIFO queue that stores items in disk."""
 
     # limits for file rotation...
     # after the soft limit, we'll rotate if queue is short enough
-    _rotation_soft_limit = 2 * 1024 ** 3
+    _rotation_soft_limit = 2 * 1024**3
     # if the queue is shorter than this, we'll rotate after the soft limit
-    _rotation_too_big_size = 50 * 1024 ** 2
+    _rotation_too_big_size = 50 * 1024**2
     # rotate if file gets larger than this, no matter the queue size
-    _rotation_hard_limit = 10 * 1024 ** 3
+    _rotation_hard_limit = 10 * 1024**3
 
     def __init__(self):
         # create the temp file
         fd, self._tempfile_name = tempfile.mkstemp()
         self._tempfile = os.fdopen(fd, 'w+b')
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.log.debug("Using temporary file: %r", self._tempfile_name)
 
         # position to read in the file
@@ -113,7 +114,9 @@ class OffloadQueue(object):
     def pop(self):
         """Pop the oldest item of the queue."""
         self._tempfile.seek(self._pos)
-        data_len, = struct.unpack(STRUCT_FMT, self._tempfile.read(STRUCT_SIZE))
+        (data_len,) = struct.unpack(
+            STRUCT_FMT, self._tempfile.read(STRUCT_SIZE)
+        )
         data = self._tempfile.read(data_len)
         item = pickle.loads(data)
         self._pos = self._tempfile.tell()
@@ -150,8 +153,9 @@ class OffloadQueue(object):
 
         try:
             fd, new_name = tempfile.mkstemp()
-            self.log.debug("Rotation into %r (moving %d bytes)",
-                           new_name, queuesize)
+            self.log.debug(
+                "Rotation into %r (moving %d bytes)", new_name, queuesize
+            )
             new_file = os.fdopen(fd, 'w+b')
         except Exception:
             self.log.exception("Crashed while getting new file to rotate")

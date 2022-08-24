@@ -38,10 +38,7 @@ from collections import OrderedDict
 from magicicadaprotocol.content_hash import content_hash_factory, crc32
 from twisted.internet import reactor
 
-from magicicadaclient.platform import (
-    open_file,
-    stat_path,
-)
+from magicicadaclient.platform import open_file, stat_path
 from magicicadaclient.platform.constants import HASHQUEUE_DELAY
 
 
@@ -57,7 +54,8 @@ class _Hasher(threading.Thread):
 
     def __init__(self, queue, end_mark, event_queue):
         self.logger = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.end_mark = end_mark
         self.queue = queue
         self.eq = event_queue
@@ -65,7 +63,7 @@ class _Hasher(threading.Thread):
         self.mutex = threading.Lock()
         self._should_cancel = None
         self._stopped = True  # start stopped
-        self.chunk_size = 2 ** 16
+        self.chunk_size = 2**16
         self.hashing = None
         threading.Thread.__init__(self)
 
@@ -99,19 +97,37 @@ class _Hasher(threading.Thread):
                 m = 'Hasher: hash error "%s" (path %r  mdid %s)'
                 self.logger.debug(m, e, path, mdid)
                 reactor.callLater(
-                    .1, reactor.callFromThread, self.eq.push,
-                    "HQ_HASH_ERROR", mdid=mdid)
+                    0.1,
+                    reactor.callFromThread,
+                    self.eq.push,
+                    "HQ_HASH_ERROR",
+                    mdid=mdid,
+                )
             except StopHashing as e:
                 self.logger.debug(str(e))
             else:
                 hashdata, crc, size, stat = result
-                self.logger.debug("Hasher: path hash pushed:  path=%r  hash=%s"
-                                  "  crc=%s  size=%d  st_ino=%d  st_size=%d"
-                                  "  st_mtime=%r", path, hashdata, crc, size,
-                                  stat.st_ino, stat.st_size, stat.st_mtime)
-                reactor.callFromThread(self.eq.push, "HQ_HASH_NEW", path=path,
-                                                     hash=hashdata, crc32=crc,
-                                                     size=size, stat=stat)
+                self.logger.debug(
+                    "Hasher: path hash pushed:  path=%r  hash=%s"
+                    "  crc=%s  size=%d  st_ino=%d  st_size=%d"
+                    "  st_mtime=%r",
+                    path,
+                    hashdata,
+                    crc,
+                    size,
+                    stat.st_ino,
+                    stat.st_size,
+                    stat.st_mtime,
+                )
+                reactor.callFromThread(
+                    self.eq.push,
+                    "HQ_HASH_NEW",
+                    path=path,
+                    hash=hashdata,
+                    crc32=crc,
+                    size=size,
+                    stat=stat,
+                )
             finally:
                 with self.mutex:
                     self.hashing = None
@@ -170,12 +186,13 @@ class _Hasher(threading.Thread):
                 self._should_cancel = path
 
 
-class HashQueue(object):
+class HashQueue:
     """Interface between the real Hasher and the rest of the world."""
 
     def __init__(self, event_queue):
         self.logger = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self._stopped = False
         self._queue = UniqueQueue()
         self._end_mark = object()
@@ -191,8 +208,11 @@ class HashQueue(object):
     def insert(self, path, mdid):
         """Insert the path of a file to be hashed."""
         if self._stopped:
-            self.logger.warning("HashQueue: already stopped when received "
-                                "path %r  mdid %s", path, mdid)
+            self.logger.warning(
+                "HashQueue: already stopped when received " "path %r  mdid %s",
+                path,
+                mdid,
+            )
             return
         self.logger.debug("HashQueue: inserting path %r  mdid %s", path, mdid)
         self.hasher.cancel_if_running(path)
@@ -232,7 +252,8 @@ class UniqueQueue(queue.Queue):
         """create the instance"""
         super().__init__(*args, **kwargs)
         self.logger = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
 
     def _init(self, maxsize):
         """Override the underlaying data initialization."""

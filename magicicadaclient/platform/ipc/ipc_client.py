@@ -57,8 +57,9 @@ def remote(function):
     def remote_wrapper(self, *args, **kwargs):
         """Return the deferred for the remote call."""
         fname = function.__name__
-        logger.debug('Performing %s as a remote call (%r, %r).',
-                     fname, args, kwargs)
+        logger.debug(
+            'Performing %s as a remote call (%r, %r).', fname, args, kwargs
+        )
         return self.remote.callRemote(fname, *args, **kwargs)
 
     return remote_wrapper
@@ -79,7 +80,7 @@ def signal(function):
     return callback_wrapper
 
 
-class RemoteClient(object):
+class RemoteClient:
     """Represent a client for remote calls."""
 
     signal_handlers = []
@@ -90,8 +91,9 @@ class RemoteClient(object):
 
     def register_to_signals(self):
         """Register to the signals."""
-        return self.remote.callRemote('register_to_signals', self,
-                                      self.signal_handlers)
+        return self.remote.callRemote(
+            'register_to_signals', self, self.signal_handlers
+        )
 
     def unregister_to_signals(self):
         """Register to the signals."""
@@ -113,8 +115,10 @@ class RemoteHandler(Referenceable):
 
 def callbacks(callbacks_indexes=None, callbacks_names=None):
     """Ensure that the callbacks can be remotely called."""
+
     def decorator(function):
         """Decorate the function to make sure the callbacks can be executed."""
+
         @wraps(function)
         def callbacks_wrapper(*args, **kwargs):
             """Set the paths to be absolute."""
@@ -127,14 +131,18 @@ def callbacks(callbacks_indexes=None, callbacks_names=None):
                 for current_key, current_index in callbacks_names:
                     try:
                         kwargs[current_key] = RemoteHandler(
-                            kwargs[current_key])
+                            kwargs[current_key]
+                        )
                     except KeyError:
                         if len(args) >= current_index + 1:
                             fixed_args[current_index] = RemoteHandler(
-                                args[current_index])
+                                args[current_index]
+                            )
             fixed_args = tuple(fixed_args)
             return function(*fixed_args, **kwargs)
+
         return callbacks_wrapper
+
     return decorator
 
 
@@ -143,7 +151,6 @@ class StatusClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
 
     # calls that will be accessible remotely
     signal_handlers = [
-        'on_content_queue_changed',
         'on_invalid_name',
         'on_broken_node',
         'on_status_changed',
@@ -154,7 +161,6 @@ class StatusClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
         'on_upload_file_progress',
         'on_upload_finished',
         'on_account_changed',
-        'on_metaqueue_changed',
     ]
 
     @remote
@@ -178,26 +184,8 @@ class StatusClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
         """Return a list of the operations in action queue."""
 
     @remote
-    def waiting_metadata(self):
-        """Return a list of the operations in the meta-queue.
-
-        As we don't have meta-queue anymore, this is faked.
-        """
-
-    @remote
-    def waiting_content(self):
-        """Return a list of files that are waiting to be up- or downloaded.
-
-        As we don't have content-queue anymore, this is faked.
-        """
-
-    @remote
     def current_uploads(self):
         """Return a list of files with a upload in progress."""
-
-    @signal
-    def on_content_queue_changed(self):
-        """Emit ContentQueueChanged."""
 
     @signal
     def on_invalid_name(self, dirname, filename):
@@ -238,10 +226,6 @@ class StatusClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
     @signal
     def on_account_changed(self, account_info):
         """Emit AccountChanged."""
-
-    @signal
-    def on_metaqueue_changed(self):
-        """Emit MetaQueueChanged."""
 
     @signal
     def on_request_queue_added(self, op_name, op_id, data):
@@ -299,12 +283,13 @@ class SyncDaemonClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
 
     @remote
     def get_sharesdir_link(self):
-        """Return the shares dir/mount point. """
+        """Return the shares dir/mount point."""
 
     @callbacks(callbacks_names=[('reply_handler', 2), ('error_handler', 3)])
     @remote
-    def wait_for_nirvana(self, last_event_interval,
-                         reply_handler=None, error_handler=None):
+    def wait_for_nirvana(
+        self, last_event_interval, reply_handler=None, error_handler=None
+    ):
         """Call the reply handler when there are no more events/transfers."""
 
     @remote
@@ -477,7 +462,7 @@ class SharesClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
 
 
 class ConfigClient(RemoteClient):
-    """The Syncdaemon config/settings ipc interface. """
+    """The Syncdaemon config/settings ipc interface."""
 
     @remote
     def get_throttling_limits(self, reply_handler=None, error_handler=None):
@@ -529,14 +514,6 @@ class ConfigClient(RemoteClient):
         """Enable UDF autosubscribe."""
 
     @remote
-    def set_files_sync_enabled(self, enabled):
-        """Enable/disable file sync service.
-
-        DEPRECATED.
-
-        """
-
-    @remote
     def files_sync_enabled(self):
         """Return the files_sync_enabled config value."""
 
@@ -559,13 +536,6 @@ class ConfigClient(RemoteClient):
     @remote
     def disable_autoconnect(self):
         """Disable the autoconnect config value."""
-
-    @remote
-    def set_autoconnect_enabled(self, enabled):
-        """Enable syncdaemon autoconnect.
-
-        DEPRECATED.
-        """
 
 
 class FoldersClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
@@ -687,7 +657,7 @@ class PublicFilesClient(RemoteClient, Referenceable, metaclass=RemoteMeta):
         """Emit the PublicFilesListError signal."""
 
 
-class UbuntuOneClient(object):
+class UbuntuOneClient:
     """Root object that provides access to all the remote objects."""
 
     connection_lock = defer.DeferredLock()
@@ -749,7 +719,8 @@ class UbuntuOneClient(object):
             defer.returnValue(self)
         except Exception as e:
             raise SyncDaemonClientConnectionError(
-                'Could not connect to the syncdaemon ipc.', e)
+                'Could not connect to the syncdaemon ipc.', e
+            )
         finally:
             self.connection_lock.release()
 
@@ -763,17 +734,24 @@ class UbuntuOneClient(object):
             defer.returnValue(self)
         except Exception as e:
             raise SyncDaemonClientConnectionError(
-                'Could not reconnect to the syncdaemon ipc.', e)
+                'Could not reconnect to the syncdaemon ipc.', e
+            )
 
     def is_connected(self):
         """Return if the client is connected."""
-        return (self.client is not None)
+        return self.client is not None
 
     @defer.inlineCallbacks
     def register_to_signals(self):
         """Register the different clients to the signals."""
-        for client in [self.status, self.events, self.sync_daemon, self.shares,
-                       self.folders, self.public_files]:
+        for client in [
+            self.status,
+            self.events,
+            self.sync_daemon,
+            self.shares,
+            self.folders,
+            self.public_files,
+        ]:
             register = getattr(client, 'register_to_signals', None)
             if register is not None:
                 yield register()
@@ -782,8 +760,14 @@ class UbuntuOneClient(object):
     @defer.inlineCallbacks
     def unregister_to_signals(self):
         """Unregister from the diff signals."""
-        for client in [self.status, self.events, self.sync_daemon, self.shares,
-                       self.folders, self.public_files]:
+        for client in [
+            self.status,
+            self.events,
+            self.sync_daemon,
+            self.shares,
+            self.folders,
+            self.public_files,
+        ]:
             unregister = getattr(client, 'unregister_to_signals', None)
             if unregister is not None:
                 yield unregister()

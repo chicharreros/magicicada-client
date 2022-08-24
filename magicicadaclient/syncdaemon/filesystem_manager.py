@@ -163,8 +163,9 @@ class DirectoryNotRemovable(Exception):
     """The directory can not be emptied to delete."""
 
 
-class _MDObject(object):
+class _MDObject:
     """Wrapper around MD dict."""
+
     def __init__(self, **mdobj):
         self.__dict__.update(mdobj)
 
@@ -226,9 +227,9 @@ class TrashFileShelf(file_shelf.CachedFileShelf):
             if node_id == 'None':
                 node_id = None
             elif node_id.endswith(self._marker_flag):
-                node_id = MDMarker(node_id[:-self._marker_len])
+                node_id = MDMarker(node_id[: -self._marker_len])
             if share_id.endswith(self._marker_flag):
-                share_id = MDMarker(share_id[:-self._marker_len])
+                share_id = MDMarker(share_id[: -self._marker_len])
             yield (share_id, node_id)
 
 
@@ -278,13 +279,13 @@ class TrashTritcaskShelf(TritcaskShelf):
             if node_id == 'None':
                 node_id = None
             elif node_id.endswith(self._marker_flag):
-                node_id = MDMarker(node_id[:-self._marker_len])
+                node_id = MDMarker(node_id[: -self._marker_len])
             if share_id.endswith(self._marker_flag):
-                share_id = MDMarker(share_id[:-self._marker_len])
+                share_id = MDMarker(share_id[: -self._marker_len])
             yield (share_id, node_id)
 
 
-class FileSystemManager(object):
+class FileSystemManager:
     """Keeps the files/dirs metadata and interacts with the filesystem.
 
     It has a FileShelf where all the metadata is stored, using 'mdid's as
@@ -305,8 +306,9 @@ class FileSystemManager(object):
 
     def __init__(self, data_dir, partials_dir, vm, db):
         if not isinstance(data_dir, str):
-            raise TypeError("data_dir should be a string instead of %s" %
-                            type(data_dir))
+            raise TypeError(
+                "data_dir should be a string instead of %s" % type(data_dir)
+            )
         fsmdir = os.path.join(data_dir, 'fsm')
         self._trash_dir = os.path.join(data_dir, 'trash')
         self._movelimbo_dir = os.path.join(data_dir, 'move_limbo')
@@ -318,7 +320,8 @@ class FileSystemManager(object):
             platform.set_dir_readwrite(self.partials_dir)
         self.fs = TritcaskShelf(FSM_ROW_TYPE, db)
         self.old_fs = file_shelf.CachedFileShelf(
-            fsmdir, cache_size=1500, cache_compact_threshold=4)
+            fsmdir, cache_size=1500, cache_compact_threshold=4
+        )
         self.trash = TrashTritcaskShelf(TRASH_ROW_TYPE, db)
         self.move_limbo = TrashTritcaskShelf(MOVE_LIMBO_ROW_TYPE, db)
         self.shares = {}
@@ -347,8 +350,12 @@ class FileSystemManager(object):
         # load some config
         self.user_config = config.get_user_config()
 
-        logger("initialized: idx_path: %s, idx_node_id: %s, shares: %s",
-               len(self._idx_path), len(self._idx_node_id), len(self.shares))
+        logger(
+            "initialized: idx_path: %s, idx_node_id: %s, shares: %s",
+            len(self._idx_path),
+            len(self._idx_node_id),
+            len(self.shares),
+        )
 
     def register_eq(self, eq):
         """Registers an EventQueue here."""
@@ -360,6 +367,7 @@ class FileSystemManager(object):
         It's 'safe' because broken metadata objects are deleted and not
         returned.
         """
+
         def safeget_mdobj(mdid):
             """check if the mdobj is valid and return mdid, mdobj.
             If a KeyError is raised, returns False.
@@ -378,12 +386,16 @@ class FileSystemManager(object):
                     self._get_share(mdobj["share_id"])
                 except VolumeDoesNotExist:
                     # oops, the share is gone!, invalidate this mdid
-                    log_warning('Share %r disappeared! deleting mdid: %s',
-                                mdobj['share_id'], mdid)
+                    log_warning(
+                        'Share %r disappeared! deleting mdid: %s',
+                        mdobj['share_id'],
+                        mdid,
+                    )
                     del self.old_fs[mdid]
                     return False
                 else:
                     return mdid, mdobj
+
         safe_items = map(safeget_mdobj, self.old_fs.keys())
         # filter all False values
         return filter(None, safe_items)
@@ -391,18 +403,23 @@ class FileSystemManager(object):
     def _fix_path_for_new_layout(self, mdobj):
         """fix the mdobj path for the new layout, only for shares root"""
         base_path, name = os.path.split(mdobj['path'])
-        if (base_path.startswith('/') and
-                base_path.endswith('%s/Shared With Me' % NAME)):
+        if base_path.startswith('/') and base_path.endswith(
+            '%s/Shared With Me' % NAME
+        ):
             realpath = os.path.realpath(mdobj['path'])
             mdobj['path'] = realpath
-        if (base_path.startswith('/') and base_path.endswith(NAME) and
-                name == 'My Files'):
+        if (
+            base_path.startswith('/')
+            and base_path.endswith(NAME)
+            and name == 'My Files'
+        ):
             mdobj['path'] = base_path
 
     def _migrate_trash_to_tritcask(self):
         """Migrate trash from FileShelf to Tritcask."""
-        old_trash = TrashFileShelf(self._trash_dir, cache_size=100,
-                                   cache_compact_threshold=4)
+        old_trash = TrashFileShelf(
+            self._trash_dir, cache_size=100, cache_compact_threshold=4
+        )
         for key, value in old_trash.items():
             self.trash[key] = value
         # delete the old trash
@@ -410,8 +427,9 @@ class FileSystemManager(object):
 
     def _migrate_movelimbo_to_tritcask(self):
         """Migrate move limbo from FileShelf to Tritcask."""
-        old_move_limbo = TrashFileShelf(self._movelimbo_dir, cache_size=100,
-                                        cache_compact_threshold=4)
+        old_move_limbo = TrashFileShelf(
+            self._movelimbo_dir, cache_size=100, cache_compact_threshold=4
+        )
         for key, value in old_move_limbo.items():
             self.move_limbo[key] = value
         # delete the old move limbo
@@ -627,16 +645,23 @@ class FileSystemManager(object):
                 log_warning("Path already in the index: %s", abspath)
                 current_mdobj = self.fs[self._idx_path[abspath]]
                 if current_mdobj['info']['created'] < mdobj['info']['created']:
-                    log_debug("Replacing and deleting node: %s with newer "
-                              "node: %s", current_mdobj['mdid'], mdid)
+                    log_debug(
+                        "Replacing and deleting node: %s with newer "
+                        "node: %s",
+                        current_mdobj['mdid'],
+                        mdid,
+                    )
                     self._idx_path[abspath] = mdid
                     # and delete the old node
                     del self.fs[current_mdobj['mdid']]
                 else:
                     # do nothing if the current mdobj is newer
-                    log_debug("The node: %s is newer than: %s, "
-                              "leaving it alone and deleting the old one.",
-                              current_mdobj['mdid'], mdid)
+                    log_debug(
+                        "The node: %s is newer than: %s, "
+                        "leaving it alone and deleting the old one.",
+                        current_mdobj['mdid'],
+                        mdid,
+                    )
                     # but delete the old node
                     del self.fs[mdid]
             else:
@@ -657,17 +682,32 @@ class FileSystemManager(object):
         mdid = str(uuid.uuid4())
         # make path relative to the share_id
         relpath = self._share_relative_path(share_id, path)
-        newobj = dict(path=relpath, node_id=None, share_id=share_id,
-                      is_dir=is_dir, local_hash="", server_hash="",
-                      mdid=mdid, generation=None, crc32=None, size=None)
+        newobj = dict(
+            path=relpath,
+            node_id=None,
+            share_id=share_id,
+            is_dir=is_dir,
+            local_hash="",
+            server_hash="",
+            mdid=mdid,
+            generation=None,
+            crc32=None,
+            size=None,
+        )
         newobj["info"] = dict(created=time.time(), is_partial=False)
         # only one stat, (instead of path_exists & os.stat)
         newobj["stat"] = get_stat(path)
         if node_id is not None:
             self._set_node_id(newobj, node_id, path)
 
-        log_debug("create: path=%r mdid=%r share_id=%r node_id=%r is_dir=%r",
-                  path, mdid, share_id, None, is_dir)
+        log_debug(
+            "create: path=%r mdid=%r share_id=%r node_id=%r is_dir=%r",
+            path,
+            mdid,
+            share_id,
+            None,
+            is_dir,
+        )
         self.fs[mdid] = newobj
 
         # adjust the index
@@ -688,8 +728,12 @@ class FileSystemManager(object):
         if mdobj["node_id"] is not None:
             # the object is already there! it's ok if it has the same id
             if mdobj["node_id"] == node_id:
-                log_warning("set_node_id (repeated!): path=%r mdid=%r "
-                            "node_id=%r", path, mdobj['mdid'], node_id)
+                log_warning(
+                    "set_node_id (repeated!): path=%r mdid=%r " "node_id=%r",
+                    path,
+                    mdobj['mdid'],
+                    node_id,
+                )
                 return
             msg = "The path %r already has node_id (%r)" % (path, node_id)
             raise ValueError(msg)
@@ -701,8 +745,13 @@ class FileSystemManager(object):
         mdobj["node_id"] = node_id
         mdobj["info"]["node_id_assigned"] = time.time()
 
-        log_debug("set_node_id: path=%r mdid=%r share_id=%r node_id=%r",
-                  path, mdobj['mdid'], share_id, node_id)
+        log_debug(
+            "set_node_id: path=%r mdid=%r share_id=%r node_id=%r",
+            path,
+            mdobj['mdid'],
+            share_id,
+            node_id,
+        )
 
     def get_mdobjs_by_share_id(self, share_id, base_path=None):
         """Get all the mdobjs from a share.
@@ -742,7 +791,8 @@ class FileSystemManager(object):
         for _, v in self.fs.items():
             if v['node_id']:
                 all_data.append(
-                    (v['share_id'], v['node_id'], v['server_hash']))
+                    (v['share_id'], v['node_id'], v['server_hash'])
+                )
         return all_data
 
     def get_for_server_rescan_by_path(self, base_path):
@@ -756,9 +806,9 @@ class FileSystemManager(object):
             mdid = self._idx_path[path]
             mdobj = self.fs[mdid]
             if mdobj['node_id']:
-                all_data.append((mdobj['share_id'],
-                                 mdobj['node_id'],
-                                 mdobj['server_hash']))
+                all_data.append(
+                    (mdobj['share_id'], mdobj['node_id'], mdobj['server_hash'])
+                )
         return all_data
 
     def get_by_mdid(self, mdid):
@@ -783,8 +833,10 @@ class FileSystemManager(object):
         """Set some values to the md object with that mdid."""
         forbidden = is_forbidden(set(kwargs))
         if forbidden:
-            raise ValueError("The following attributes can not be set "
-                             "externally: %s" % forbidden)
+            raise ValueError(
+                "The following attributes can not be set "
+                "externally: %s" % forbidden
+            )
 
         log_debug("set mdid=%r: %s", mdid, kwargs)
         mdobj = self.fs[mdid]
@@ -826,13 +878,15 @@ class FileSystemManager(object):
             with contextlib.ExitStack() as stack:
                 stack.enter_context(from_context)
                 stack.enter_context(to_context)
-                self.eq.add_to_mute_filter(expected_event, path_from=path_from,
-                                           path_to=path_to)
+                self.eq.add_to_mute_filter(
+                    expected_event, path_from=path_from, path_to=path_to
+                )
                 platform.recursive_move(path_from, path_to)
         except IOError as e:
             # file was not yet created
-            self.eq.rm_from_mute_filter(expected_event,
-                                        path_from=path_from, path_to=path_to)
+            self.eq.rm_from_mute_filter(
+                expected_event, path_from=path_from, path_to=path_to
+            )
             m = "IOError %s when trying to move file/dir %r"
             log_warning(m, e, path_from)
         self.moved(new_share_id, path_from, path_to)
@@ -842,8 +896,12 @@ class FileSystemManager(object):
         path_from = platform.normpath(path_from)
         path_to = platform.normpath(path_to)
         mdid = self._idx_path.pop(path_from)
-        log_debug("move_file: mdid=%r path_from=%r path_to=%r",
-                  mdid, path_from, path_to)
+        log_debug(
+            "move_file: mdid=%r path_from=%r path_to=%r",
+            mdid,
+            path_from,
+            path_to,
+        )
 
         # if the move overwrites other file, send it to trash
         if path_to in self._idx_path:
@@ -917,8 +975,11 @@ class FileSystemManager(object):
         for (dirpath, dirnames, filenames) in platform.walk(path):
             for fname in filenames + dirnames:
                 if fname.endswith(self.CONFLICT_SUFFIX):
-                    logger("Conflicting dir on remove because of previous "
-                           "conflict on: %r", os.path.join(dirpath, fname))
+                    logger(
+                        "Conflicting dir on remove because of previous "
+                        "conflict on: %r",
+                        os.path.join(dirpath, fname),
+                    )
                     raise DirectoryNotRemovable()
 
         return subtree
@@ -945,12 +1006,14 @@ class FileSystemManager(object):
                     subtree = self._delete_dir_tree(path=path)
                     for p, is_dir in subtree:
                         filter_name = (
-                            "FS_DIR_DELETE" if is_dir else "FS_FILE_DELETE")
+                            "FS_DIR_DELETE" if is_dir else "FS_FILE_DELETE"
+                        )
                         self.eq.add_to_mute_filter(filter_name, path=p)
                         self.delete_metadata(p)
 
-                    with self._enable_share_write(mdobj['share_id'], path,
-                                                  recursive=True):
+                    with self._enable_share_write(
+                        mdobj['share_id'], path, recursive=True
+                    ):
                         if self.user_config.get_use_trash():
                             platform.move_to_trash(path)
                         else:
@@ -972,8 +1035,9 @@ class FileSystemManager(object):
 
         except OSError as e:
             self.eq.rm_from_mute_filter(filter_event, path=path)
-            log_warning("OSError %s when trying to remove file/dir %r",
-                        e, path)
+            log_warning(
+                "OSError %s when trying to remove file/dir %r", e, path
+            )
 
         self.delete_metadata(path)
 
@@ -1007,7 +1071,8 @@ class FileSystemManager(object):
                     raise
 
         for p, is_dir in self.get_paths_starting_with(
-                path, include_base=False):
+            path, include_base=False
+        ):
             if is_dir:
                 # remove inotify watch
                 try:
@@ -1032,8 +1097,10 @@ class FileSystemManager(object):
 
         # check and return
         if partial_in_md != partial_in_disk:
-            msg = "'partial' inconsistency for object with mdid %r!  In disk:"\
-                  " %s, In MD: %s" % (mdid, partial_in_disk, partial_in_md)
+            msg = (
+                "'partial' inconsistency for object with mdid %r!  In disk:"
+                " %s, In MD: %s" % (mdid, partial_in_disk, partial_in_md)
+            )
             raise InconsistencyError(msg)
         return partial_in_md
 
@@ -1044,11 +1111,12 @@ class FileSystemManager(object):
 
         path = self.get_abspath(mdobj['share_id'], mdobj['path'])
         partial_path = os.path.join(
-            self.partials_dir, mdobj['mdid'] + '.u1partial')
+            self.partials_dir, mdobj['mdid'] + '.u1partial'
+        )
         dirname, filename = os.path.split(path)
 
         if trim is not None:
-            filename = filename[:-10 * trim]
+            filename = filename[: -10 * trim]
             mdobj["info"]["partial_path"] = partial_path + '.' + filename
 
         return partial_path + '.' + filename
@@ -1056,11 +1124,19 @@ class FileSystemManager(object):
     def create_partial(self, node_id, share_id):
         """Create a .partial in disk and set the flag in metadata."""
         mdid = self._idx_node_id[(share_id, node_id)]
-        log_debug("create_partial: mdid=%r share_id=%r node_id=%r",
-                  mdid, share_id, node_id)
+        log_debug(
+            "create_partial: mdid=%r share_id=%r node_id=%r",
+            mdid,
+            share_id,
+            node_id,
+        )
         if self._check_partial(mdid):
-            raise ValueError("The object with share_id %r and node_id %r is "
-                             "already partial!", share_id, node_id)
+            raise ValueError(
+                "The object with share_id %r and node_id %r is "
+                "already partial!",
+                share_id,
+                node_id,
+            )
 
         # create an empty partial and set the flag
         mdobj = self.fs[mdid]
@@ -1100,8 +1176,12 @@ class FileSystemManager(object):
     def get_partial_for_writing(self, node_id, share_id):
         """Get a write-only fd to a partial file"""
         mdid = self._idx_node_id[(share_id, node_id)]
-        log_debug("get_partial_for_writing: mdid=%r share_id=%r node_id=%r",
-                  mdid, share_id, node_id)
+        log_debug(
+            "get_partial_for_writing: mdid=%r share_id=%r node_id=%r",
+            mdid,
+            share_id,
+            node_id,
+        )
 
         mdobj = self.fs[mdid]
         partial_path = self._get_partial_path(mdobj)
@@ -1111,8 +1191,10 @@ class FileSystemManager(object):
         """Get a read-only fd to a partial file."""
         mdid = self._idx_node_id[(share_id, node_id)]
         if not self._check_partial(mdid):
-            raise ValueError("The object with share_id %r and node_id %r is "
-                             "not partial!" % (share_id, node_id))
+            raise ValueError(
+                "The object with share_id %r and node_id %r is "
+                "not partial!" % (share_id, node_id)
+            )
 
         partial_path = self._get_partial_path(self.fs[mdid])
         fd = platform.open_file(partial_path, "rb")
@@ -1125,13 +1207,20 @@ class FileSystemManager(object):
         if mdobj["is_dir"]:
             raise ValueError("Directory partials can not be commited!")
         if not self._check_partial(mdid):
-            raise ValueError("The object with share_id %r and node_id %r is "
-                             "not partial!" % (share_id, node_id))
+            raise ValueError(
+                "The object with share_id %r and node_id %r is "
+                "not partial!" % (share_id, node_id)
+            )
 
         # move the .partial to the real path, and set the md info
         path = self.get_abspath(mdobj['share_id'], mdobj['path'])
-        log_debug("commit_partial: path=%r mdid=%r share_id=%r node_id=%r",
-                  path, mdid, share_id, node_id)
+        log_debug(
+            "commit_partial: path=%r mdid=%r share_id=%r node_id=%r",
+            path,
+            mdid,
+            share_id,
+            node_id,
+        )
 
         partial_path = self._get_partial_path(mdobj)
         with self._enable_share_write(share_id, path):
@@ -1143,8 +1232,9 @@ class FileSystemManager(object):
         mdobj["info"]["is_partial"] = False
         mdobj["stat"] = get_stat(path)
         self.fs[mdid] = mdobj
-        self.eq.push("FSM_PARTIAL_COMMITED", share_id=share_id,
-                     node_id=node_id)
+        self.eq.push(
+            "FSM_PARTIAL_COMMITED", share_id=share_id, node_id=node_id
+        )
 
     def remove_partial(self, node_id, share_id):
         """Remove a .partial in disk and set the flag in metadata."""
@@ -1153,8 +1243,13 @@ class FileSystemManager(object):
         # delete the .partial, and set the md info
         mdobj = self.fs[mdid]
         path = self.get_abspath(mdobj['share_id'], mdobj['path'])
-        log_debug("remove_partial: path=%r mdid=%r share_id=%r node_id=%r",
-                  path, mdid, share_id, node_id)
+        log_debug(
+            "remove_partial: path=%r mdid=%r share_id=%r node_id=%r",
+            path,
+            mdid,
+            share_id,
+            node_id,
+        )
         partial_path = self._get_partial_path(mdobj)
         try:
             # don't alert EQ, partials are in other directory, not watched
@@ -1227,8 +1322,10 @@ class FileSystemManager(object):
         # return the status
         if local_hash == server_hash:
             if is_partial:
-                return "We broke the Universe! local_hash %r, server_hash %r,"\
-                       " is_partial %r" % (local_hash, server_hash, is_partial)
+                return (
+                    "We broke the Universe! local_hash %r, server_hash %r,"
+                    " is_partial %r" % (local_hash, server_hash, is_partial)
+                )
             else:
                 return self.CHANGED_NONE
         else:
@@ -1265,7 +1362,10 @@ class FileSystemManager(object):
                 if os.path.dirname(p) == path and p != path:
                     mdobj = self.fs[m]
                     yield (
-                        os.path.basename(p), mdobj["is_dir"], mdobj["node_id"])
+                        os.path.basename(p),
+                        mdobj["is_dir"],
+                        mdobj["node_id"],
+                    )
 
         return sorted(_get_all())
 
@@ -1276,7 +1376,8 @@ class FileSystemManager(object):
             raise ValueError("You can only open files, not directories.")
 
         return platform.open_file(
-            self.get_abspath(mdobj['share_id'], mdobj['path']), 'rb')
+            self.get_abspath(mdobj['share_id'], mdobj['path']), 'rb'
+        )
 
     def _share_relative_path(self, share_id, path):
         """Return the relative path from the share_id."""
@@ -1349,9 +1450,11 @@ class FileSystemManager(object):
                 mdobj = self.fs[m]
                 # ignore shares that are not root (root is id='')
                 # and ignore files not present on the server
-                if ((ignore_shares and mdobj["share_id"] != '' and
-                        mdobj["share_id"] in self.vm.shares) or
-                        not mdobj["server_hash"]):
+                if (
+                    ignore_shares
+                    and mdobj["share_id"] != ''
+                    and mdobj["share_id"] in self.vm.shares
+                ) or not mdobj["server_hash"]:
                     continue
                 if pattern.search(p):
                     yield p
@@ -1367,9 +1470,16 @@ class FileSystemManager(object):
         share_id = mdobj["share_id"]
         path = self.get_abspath(mdobj['share_id'], mdobj['path'])
         is_dir = mdobj["is_dir"]
-        log_debug("delete_to_trash: mdid=%r, parent=%r, share=%r, node=%r, "
-                  "path=%r is_dir=%r", mdid, parent_id, share_id, node_id,
-                  path, is_dir)
+        log_debug(
+            "delete_to_trash: mdid=%r, parent=%r, share=%r, node=%r, "
+            "path=%r is_dir=%r",
+            mdid,
+            parent_id,
+            share_id,
+            node_id,
+            path,
+            is_dir,
+        )
         self.delete_metadata(path)
         self.trash[(share_id, node_id)] = (mdid, parent_id, path, is_dir)
 
@@ -1405,19 +1515,39 @@ class FileSystemManager(object):
             if v.get('dirty'):
                 yield _MDObject(**v)
 
-    def add_to_move_limbo(self, share_id, node_id, old_parent_id,
-                          new_parent_id, new_name, path_from, path_to):
+    def add_to_move_limbo(
+        self,
+        share_id,
+        node_id,
+        old_parent_id,
+        new_parent_id,
+        new_name,
+        path_from,
+        path_to,
+    ):
         """Add the operation info to the move limbo."""
-        log_debug("add to move limbo: share=%r, node=%r, old_parent=%r, "
-                  "new_parent=%r, new_name=%r", share_id, node_id,
-                  old_parent_id, new_parent_id, new_name)
-        self.move_limbo[(share_id, node_id)] = (old_parent_id, new_parent_id,
-                                                new_name, path_from, path_to)
+        log_debug(
+            "add to move limbo: share=%r, node=%r, old_parent=%r, "
+            "new_parent=%r, new_name=%r",
+            share_id,
+            node_id,
+            old_parent_id,
+            new_parent_id,
+            new_name,
+        )
+        self.move_limbo[(share_id, node_id)] = (
+            old_parent_id,
+            new_parent_id,
+            new_name,
+            path_from,
+            path_to,
+        )
 
     def remove_from_move_limbo(self, share_id, node_id):
         """Remove the node from the move limbo."""
-        log_debug("remove from move limbo: share=%r, node=%r",
-                  share_id, node_id)
+        log_debug(
+            "remove from move limbo: share=%r, node=%r", share_id, node_id
+        )
         if (share_id, node_id) in self.move_limbo:
             del self.move_limbo[(share_id, node_id)]
 
@@ -1433,8 +1563,15 @@ class FileSystemManager(object):
                 old_parent_id, new_parent_id, new_name = v
             else:
                 old_parent_id, new_parent_id, new_name, path_from, path_to = v
-            yield (share_id, node_id, old_parent_id, new_parent_id,
-                   new_name, path_from, path_to)
+            yield (
+                share_id,
+                node_id,
+                old_parent_id,
+                new_parent_id,
+                new_name,
+                path_from,
+                path_to,
+            )
 
     def make_dir(self, mdid):
         """Create the dir in disk."""
@@ -1460,17 +1597,27 @@ class FileSystemManager(object):
 
     def dereference_ok_limbos(self, marker, value):
         """Dereference markers in the limbos with a value."""
-        for (share, node), (mdid, parent, path, is_dir) in \
-                self.trash.items():
+        for (share, node), (mdid, parent, path, is_dir) in self.trash.items():
             if node == marker:
                 del self.trash[(share, node)]
                 self.trash[(share, value)] = (mdid, parent, path, is_dir)
-                log_debug("dereference ok trash: share=%r  marker=%r  "
-                          "new node=%r", share, marker, value)
+                log_debug(
+                    "dereference ok trash: share=%r  marker=%r  "
+                    "new node=%r",
+                    share,
+                    marker,
+                    value,
+                )
             elif parent == marker:
                 self.trash[(share, node)] = (mdid, value, path, is_dir)
-                log_debug("dereference ok trash: share=%r  node=%r  marker=%r"
-                          "  new parent=%r", share, node, marker, value)
+                log_debug(
+                    "dereference ok trash: share=%r  node=%r  marker=%r"
+                    "  new parent=%r",
+                    share,
+                    node,
+                    marker,
+                    value,
+                )
 
         for k, v in self.move_limbo.items():
             share, node = k
@@ -1479,8 +1626,13 @@ class FileSystemManager(object):
             if node == marker:
                 del self.move_limbo[(share, node)]
                 self.move_limbo[(share, value)] = v
-                log_debug("dereference ok move limbo: share=%r  marker=%r  "
-                          "new node=%r", share, marker, value)
+                log_debug(
+                    "dereference ok move limbo: share=%r  marker=%r  "
+                    "new node=%r",
+                    share,
+                    marker,
+                    value,
+                )
             else:
                 # both parents can be the same marker at the same time
                 if old_parent == marker or new_parent == marker:
@@ -1488,11 +1640,22 @@ class FileSystemManager(object):
                         old_parent = value
                     if new_parent == marker:
                         new_parent = value
-                log_debug("dereference ok move limbo: share=%r  node=%r  "
-                          "marker=%r  old_parent=%r  new_parent=%r",
-                          share, node, marker, old_parent, new_parent)
-                self.move_limbo[k] = (old_parent, new_parent, new_name,
-                                      path_from, path_to)
+                log_debug(
+                    "dereference ok move limbo: share=%r  node=%r  "
+                    "marker=%r  old_parent=%r  new_parent=%r",
+                    share,
+                    node,
+                    marker,
+                    old_parent,
+                    new_parent,
+                )
+                self.move_limbo[k] = (
+                    old_parent,
+                    new_parent,
+                    new_name,
+                    path_from,
+                    path_to,
+                )
 
     def dereference_err_limbos(self, marker):
         """Dereference markers in the limbos with an error.
@@ -1501,19 +1664,28 @@ class FileSystemManager(object):
         """
         for (share, node), (_, parent, _, _) in self.trash.items():
             if node == marker or parent == marker:
-                log_debug("dereference err trash: share=%r  node=%r  "
-                          "marker=%r", share, node, marker)
+                log_debug(
+                    "dereference err trash: share=%r  node=%r  " "marker=%r",
+                    share,
+                    node,
+                    marker,
+                )
                 del self.trash[(share, node)]
 
         move_items = self.move_limbo.items()
         for (share, node), (old_parent, new_parent, _, _, _) in move_items:
             if node == marker or old_parent == marker or new_parent == marker:
-                log_debug("dereference err move limbo: share=%r  node=%r  "
-                          "marker=%r", share, node, marker)
+                log_debug(
+                    "dereference err move limbo: share=%r  node=%r  "
+                    "marker=%r",
+                    share,
+                    node,
+                    marker,
+                )
                 del self.move_limbo[(share, node)]
 
 
-class EnableShareWrite(object):
+class EnableShareWrite:
     """Context manager to allow write in ro-shares."""
 
     def __init__(self, share, path, recursive=False):
@@ -1553,7 +1725,8 @@ class EnableShareWrite(object):
         # if needed, change the whole subtree
         if self.recursive:
             for dirpath, dirnames, filenames in platform.walk(
-                    self.path, topdown=False):
+                self.path, topdown=False
+            ):
                 for dname in dirnames:
                     path = os.path.join(dirpath, dname)
                     platform.set_dir_readwrite(path)

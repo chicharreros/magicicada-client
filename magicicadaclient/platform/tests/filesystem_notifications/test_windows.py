@@ -49,7 +49,7 @@ from magicicadaclient.platform.tests.filesystem_notifications import (
 )
 
 
-class FakeEventsProcessor(object):
+class FakeEventsProcessor:
 
     """Handle fake events creation and processing."""
 
@@ -74,13 +74,13 @@ class TestWatch(common_tests.TestWatch):
         self.common_path = u'C:\\path'
         self.invalid_path = u'\\\\?\\C:\\path\\to\\no\\dir'
         self.mask = (
-            windows.FILE_NOTIFY_CHANGE_FILE_NAME |
-            windows.FILE_NOTIFY_CHANGE_DIR_NAME |
-            windows.FILE_NOTIFY_CHANGE_ATTRIBUTES |
-            windows.FILE_NOTIFY_CHANGE_SIZE |
-            windows.FILE_NOTIFY_CHANGE_LAST_WRITE |
-            windows.FILE_NOTIFY_CHANGE_SECURITY |
-            windows.FILE_NOTIFY_CHANGE_LAST_ACCESS
+            windows.FILE_NOTIFY_CHANGE_FILE_NAME
+            | windows.FILE_NOTIFY_CHANGE_DIR_NAME
+            | windows.FILE_NOTIFY_CHANGE_ATTRIBUTES
+            | windows.FILE_NOTIFY_CHANGE_SIZE
+            | windows.FILE_NOTIFY_CHANGE_LAST_WRITE
+            | windows.FILE_NOTIFY_CHANGE_SECURITY
+            | windows.FILE_NOTIFY_CHANGE_LAST_ACCESS
         )
         self.fake_events_processor = FakeEventsProcessor()
 
@@ -92,13 +92,14 @@ class TestWatch(common_tests.TestWatch):
             # group all events in a single lists which is not what the COM API
             # does.
             str_events = [
-                (common.ACTIONS_NAMES[action], p) for action, p in events]
+                (common.ACTIONS_NAMES[action], p) for action, p in events
+            ]
             self.raw_events.append(str_events)
             return events
 
         self.patch(
-            windows, 'FILE_NOTIFY_INFORMATION',
-            file_notify_information_wrapper)
+            windows, 'FILE_NOTIFY_INFORMATION', file_notify_information_wrapper
+        )
 
     @defer.inlineCallbacks
     def test_file_write(self):
@@ -114,8 +115,9 @@ class TestWatch(common_tests.TestWatch):
             fd.write('test')
             fd.close()
 
-        events = yield self._perform_operations(self.basedir, self.mask,
-                                                write_file, 1)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, write_file, 1
+        )
         event = events[0]
         self.assertFalse(event.dir)
         self.assertEqual(0x2, event.mask)
@@ -132,7 +134,7 @@ class TestWatch(common_tests.TestWatch):
 
         def fake_call(*args, **kwargs):
             """Execute the call."""
-            method_args.append((args, kwargs),)
+            method_args.append((args, kwargs))
 
         watch = Watch(1, self.path, None)
         yield watch.platform_watch._watch_started_deferred.callback(True)
@@ -145,7 +147,7 @@ class TestWatch(common_tests.TestWatch):
 
         def fake_call(*args, **kwargs):
             """Execute the call."""
-            method_args.append((args, kwargs),)
+            method_args.append((args, kwargs))
 
         watch = Watch(1, self.path, None)
         watch.platform_watch._call_deferred(fake_call, None)
@@ -155,13 +157,15 @@ class TestWatch(common_tests.TestWatch):
         """Test that the started property returns the started deferred."""
         watch = Watch(1, self.path, None)
         self.assertEqual(
-            watch.started, watch.platform_watch._watch_started_deferred)
+            watch.started, watch.platform_watch._watch_started_deferred
+        )
 
     def test_stopped_property(self):
         """Test that the stopped property returns the stopped deferred."""
         watch = Watch(1, self.path, None)
         self.assertEqual(
-            watch.stopped, watch.platform_watch._watch_stopped_deferred)
+            watch.stopped, watch.platform_watch._watch_stopped_deferred
+        )
 
     @defer.inlineCallbacks
     def test_start_watching_fails_early_in_thread(self):
@@ -239,7 +243,8 @@ class TestWatchManager(common_tests.TestWatchManager):
         self.assertEqual(self.path + os.path.sep, self.manager._wdm[0].path)
         self.assertEqual(
             windows.FILESYSTEM_MONITOR_MASK,
-            self.manager._wdm[0].platform_watch._mask)
+            self.manager._wdm[0].platform_watch._mask,
+        )
         self.manager._wdm[0].stopped.callback(None)
 
     @defer.inlineCallbacks
@@ -328,18 +333,21 @@ class FilesystemMonitorTestCase(common_tests.FilesystemMonitorTestCase):
     def test_add_watches_to_udf_ancestors(self):
         """Test that the ancestor watches are not added."""
 
-        class FakeVolume(object):
+        class FakeVolume:
             """A fake UDF."""
 
             def __init__(self, ancestors):
                 """Create a new instance."""
                 self.ancestors = ancestors
 
-        ancestors = ['~', '~\\Pictures', '~\\Pictures\\Home', ]
+        ancestors = ['~', '~\\Pictures', '~\\Pictures\\Home']
         volume = FakeVolume(ancestors)
         monitor = FilesystemMonitor(None, None)
         added = yield monitor.add_watches_to_udf_ancestors(volume)
         self.assertTrue(added, 'We should always return true.')
         # lets ensure that we never added the watches
-        self.assertEqual(0, len(monitor._watch_manager._wdm.values()),
-                         'No watches should have been added.')
+        self.assertEqual(
+            0,
+            len(monitor._watch_manager._wdm.values()),
+            'No watches should have been added.',
+        )

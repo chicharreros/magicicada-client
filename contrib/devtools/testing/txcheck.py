@@ -75,14 +75,17 @@ class Problem(AssertionError):
     def __str__(self):
         """Return a friendlier representation."""
         if self.ancestor_class != self.test_class:
-            method_string = ("%s in ancestor method %s.%s" %
-                             (type_to_name(self.test_class),
-                              type_to_name(self.ancestor_class),
-                              self.method))
+            method_string = "%s in ancestor method %s.%s" % (
+                type_to_name(self.test_class),
+                type_to_name(self.ancestor_class),
+                self.method,
+            )
         else:
-            method_string = ("%s.%s" %
-                             (type_to_name(self.test_class), self.method))
-        return ("%s for %s" % (type(self).__name__, method_string))
+            method_string = "%s.%s" % (
+                type_to_name(self.test_class),
+                self.method,
+            )
+        return "%s for %s" % (type(self).__name__, method_string)
 
     def __repr__(self):
         """Return representation string."""
@@ -233,32 +236,32 @@ def iter_matching_child_nodes(node, *tests):
 
 
 SETUP_FUNCTION_NAMES = ('setUp', 'tearDown')
-SETUP_FUNCTION = match_path(match_type(ast.FunctionDef),
-                            ('name', match_in(SETUP_FUNCTION_NAMES)))
+SETUP_FUNCTION = match_path(
+    match_type(ast.FunctionDef), ('name', match_in(SETUP_FUNCTION_NAMES))
+)
 
-SUPER = match_path(match_type(ast.Call),
-                   ('func', match_type(ast.Attribute)),
-                   ('value', match_type(ast.Call)),
-                   ('func', match_type(ast.Name)),
-                   ('id', match_equal("super")))
+SUPER = match_path(
+    match_type(ast.Call),
+    ('func', match_type(ast.Attribute)),
+    ('value', match_type(ast.Call)),
+    ('func', match_type(ast.Name)),
+    ('id', match_equal("super")),
+)
 
-BARE_SUPER = match_path(match_type(ast.Expr),
-                        ('value', SUPER))
+BARE_SUPER = match_path(match_type(ast.Expr), ('value', SUPER))
 
 YIELD = match_type(ast.Yield)
 
-INLINE_CALLBACKS_DECORATOR = \
-    match_any(match_path(match_type(ast.Attribute),
-                         ('attr', match_equal('inlineCallbacks'))),
-              match_path(match_type(ast.Name),
-                         ('id', match_equal('inlineCallbacks'))))
+INLINE_CALLBACKS_DECORATOR = match_any(
+    match_path(
+        match_type(ast.Attribute), ('attr', match_equal('inlineCallbacks'))
+    ),
+    match_path(match_type(ast.Name), ('id', match_equal('inlineCallbacks'))),
+)
 
-RETURN_VALUE = \
-    match_path(match_type(ast.Return),
-               ('value', match_not_none()))
+RETURN_VALUE = match_path(match_type(ast.Return), ('value', match_not_none()))
 
-DEFS = match_any(match_type(ast.ClassDef),
-                 match_type(ast.FunctionDef))
+DEFS = match_any(match_type(ast.ClassDef), match_type(ast.FunctionDef))
 
 
 def find_problems(class_to_check):
@@ -272,9 +275,11 @@ def find_problems(class_to_check):
     ancestry = takewhile(lambda c: c != TwistedTestCase, mro)
     for ancestor_class in ancestry:
         if 'run' in ancestor_class.__dict__:
-            problem = MethodShadowed(method='run',
-                                     test_class=class_to_check,
-                                     ancestor_class=ancestor_class)
+            problem = MethodShadowed(
+                method='run',
+                test_class=class_to_check,
+                ancestor_class=ancestor_class,
+            )
             problems.add(problem)
 
         source = dedent(getsource(ancestor_class))
@@ -286,15 +291,19 @@ def find_problems(class_to_check):
         for def_node in iter_matching_child_nodes(class_node, SETUP_FUNCTION):
             if matches(def_node, match_child(BARE_SUPER)):
                 # Superclass method called, but its result wasn't used
-                problem = SuperResultDiscarded(method=def_node.name,
-                                               test_class=class_to_check,
-                                               ancestor_class=ancestor_class)
+                problem = SuperResultDiscarded(
+                    method=def_node.name,
+                    test_class=class_to_check,
+                    ancestor_class=ancestor_class,
+                )
                 problems.add(problem)
             if not matches(def_node, match_descendant(SUPER, DEFS)):
                 # The call to the overridden superclass method is missing
-                problem = SuperNotCalled(method=def_node.name,
-                                         test_class=class_to_check,
-                                         ancestor_class=ancestor_class)
+                problem = SuperNotCalled(
+                    method=def_node.name,
+                    test_class=class_to_check,
+                    ancestor_class=ancestor_class,
+                )
                 problems.add(problem)
 
             decorators = def_node.decorator_list
@@ -306,7 +315,8 @@ def find_problems(class_to_check):
                     problem = MissingInlineCallbacks(
                         method=def_node.name,
                         test_class=class_to_check,
-                        ancestor_class=ancestor_class)
+                        ancestor_class=ancestor_class,
+                    )
                     problems.add(problem)
             else:
                 if not matches(def_node, match_descendant(RETURN_VALUE, DEFS)):
@@ -314,7 +324,8 @@ def find_problems(class_to_check):
                     problem = MissingReturnValue(
                         method=def_node.name,
                         test_class=class_to_check,
-                        ancestor_class=ancestor_class)
+                        ancestor_class=ancestor_class,
+                    )
                     problems.add(problem)
 
     return problems

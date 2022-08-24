@@ -41,6 +41,7 @@ def _get_languages():
     """list of langs ordered by preference, or None for gettext defaults."""
     if sys.platform == 'darwin':
         from Cocoa import NSUserDefaults
+
         su = NSUserDefaults.standardUserDefaults()
         return su['AppleLanguages']
     else:
@@ -54,17 +55,18 @@ def _get_translations_data_path(fallback_path=None):
     if getattr(sys, 'frozen', None) is not None:
         if sys.platform == 'darwin':
             main_app_dir = ''.join(__file__.partition('.app')[:-1])
-            path = os.path.join(main_app_dir, 'Contents', 'Resources',
-                                'translations')
+            path = os.path.join(
+                main_app_dir, 'Contents', 'Resources', 'translations'
+            )
             return path
         elif sys.platform == 'win32':
-            return None         # TODO
+            return None  # TODO
 
-    exists = (os.path.exists(fallback_path)
-              if fallback_path else False)
-    logger.debug("Using fallback translation path %r "
-                 "which does %s exist." %
-                 (fallback_path, "" if exists else "**NOT**"))
+    exists = os.path.exists(fallback_path) if fallback_path else False
+    logger.debug(
+        "Using fallback translation path %r "
+        "which does %s exist." % (fallback_path, "" if exists else "**NOT**")
+    )
 
     return fallback_path
 
@@ -79,10 +81,12 @@ def get_gettext(translation_domain, fallback_path=None):
 
         translation = gettext.translation(translation_domain, fallback=True)
     else:
-        translation = gettext.translation(translation_domain,
-                                          translations_path,
-                                          languages=languages[:1],
-                                          fallback=True)
+        translation = gettext.translation(
+            translation_domain,
+            translations_path,
+            languages=languages[:1],
+            fallback=True,
+        )
     if isinstance(translation, gettext.NullTranslations):
         logger.warn('Translations not found, using null translator.')
     if sys.version_info < (3,):

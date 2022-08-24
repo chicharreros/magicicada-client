@@ -55,8 +55,9 @@ LOCALHOST = '127.0.0.1'
 
 
 @defer.inlineCallbacks
-def server_listen(server_factory, service_name, activation_cmdline,
-                  description, reactor=None):
+def server_listen(
+    server_factory, service_name, activation_cmdline, description, reactor=None
+):
     """Connect the IPC server factory."""
     config = ActivationConfig(service_name, activation_cmdline, description)
     ai = ActivationInstance(config)
@@ -70,8 +71,9 @@ def server_listen(server_factory, service_name, activation_cmdline,
 
 
 @defer.inlineCallbacks
-def client_connect(client_factory, service_name, activation_cmdline,
-                   description, reactor=None):
+def client_connect(
+    client_factory, service_name, activation_cmdline, description, reactor=None
+):
     """Connect the IPC client factory."""
     config = ActivationConfig(service_name, activation_cmdline, description)
     ac = ActivationClient(config)
@@ -101,7 +103,7 @@ def signal(f):
     return inner
 
 
-class SignalBroadcaster(object):
+class SignalBroadcaster:
     """Object that allows to emit signals to clients over the IPC."""
 
     MSG_NO_SIGNAL_HANDLER = "No signal handler for %r in %r"
@@ -119,8 +121,12 @@ class SignalBroadcaster(object):
 
     def _other_failure(self, failure, signal_name, current_client):
         """Log the issue when emitting a signal."""
-        logger.warning(self.MSG_COULD_NOT_EMIT_SIGNAL, signal_name,
-                       current_client, failure.value)
+        logger.warning(
+            self.MSG_COULD_NOT_EMIT_SIGNAL,
+            signal_name,
+            current_client,
+            failure.value,
+        )
         logger.warning('Traceback is:\n%s', failure.printDetailedTraceback())
 
     def remote_register_to_signals(self, client, signals):
@@ -136,15 +142,19 @@ class SignalBroadcaster(object):
 
     def emit_signal(self, signal_name, *args, **kwargs):
         """Emit the given signal to the clients."""
-        logger.debug("emitting %r to all (%i) connected clients.",
-                     signal_name, len(self.clients_per_signal[signal_name]))
+        logger.debug(
+            "emitting %r to all (%i) connected clients.",
+            signal_name,
+            len(self.clients_per_signal[signal_name]),
+        )
         result = []
         dead_clients = set()
         for current_client in self.clients_per_signal[signal_name]:
             try:
                 d = current_client.callRemote(signal_name, *args, **kwargs)
                 d.addErrback(
-                    self._ignore_no_such_method, signal_name, current_client)
+                    self._ignore_no_such_method, signal_name, current_client
+                )
                 d.addErrback(self._other_failure, signal_name, current_client)
                 result.append(d)
             except DeadReferenceError:
@@ -176,8 +186,7 @@ def meta_base(meta):
     return meta("MetaBase", (object,), {})
 
 
-class RemoteService(meta_base(RemoteMeta),
-                    Referenceable, SignalBroadcaster):
+class RemoteService(meta_base(RemoteMeta), Referenceable, SignalBroadcaster):
     """A remote service that provides the methods listed in remote_calls."""
 
     remote_calls = []
@@ -205,8 +214,9 @@ class BaseService(Root):
         for name, service_class in self.services.items():
             service = service_class(*a, **kw)
             setattr(self, name, service)
-            setattr(self, 'remote_get_%s' % name,
-                    partial(self._get_service, name))
+            setattr(
+                self, 'remote_get_%s' % name, partial(self._get_service, name)
+            )
 
     def _get_service(self, name):
         """Return the instance of the service named 'name'."""
@@ -216,10 +226,9 @@ class BaseService(Root):
     def start(self):
         """Start listening in the proper description."""
         self.factory = PBServerFactory(self)
-        self.listener = yield server_listen(self.factory,
-                                            self.name,
-                                            self.cmdline,
-                                            self.description)
+        self.listener = yield server_listen(
+            self.factory, self.name, self.cmdline, self.description
+        )
 
     def shutdown(self):
         """Stop listening."""
@@ -261,8 +270,11 @@ class RemoteClient(Referenceable):
         def callback_wrapper(*args, **kwargs):
             """Return the result of the callback if present."""
             for callback in self._mapping[fname]:
-                logger.info('Emitting remote signal for %s with callback %r.',
-                            fname, callback)
+                logger.info(
+                    'Emitting remote signal for %s with callback %r.',
+                    fname,
+                    callback,
+                )
                 callback(*args, **kwargs)
 
             # execute methods ending with _cb as signal handlers,
@@ -277,8 +289,11 @@ class RemoteClient(Referenceable):
 
             callback = getattr(self, ''.join(old_name), None)
             if callback is not None:
-                logger.info('Emitting remote signal for %s with callback %r.',
-                            fname, callback)
+                logger.info(
+                    'Emitting remote signal for %s with callback %r.',
+                    fname,
+                    callback,
+                )
                 callback(*args, **kwargs)
 
         return callback_wrapper
@@ -291,8 +306,12 @@ class RemoteClient(Referenceable):
         For now, **kwargs are ignored.
 
         """
-        logger.debug('Performing %r as a remote call (%r, %r).',
-                     method_name, args, kwargs)
+        logger.debug(
+            'Performing %r as a remote call (%r, %r).',
+            method_name,
+            args,
+            kwargs,
+        )
         try:
             result = yield self.remote.callRemote(method_name, *args)
         except DeadReferenceError:
@@ -305,7 +324,8 @@ class RemoteClient(Referenceable):
         """Register to the signals."""
         try:
             result = yield self.remote.callRemote(
-                'register_to_signals', self, self.signal_handlers)
+                'register_to_signals', self, self.signal_handlers
+            )
         except DeadReferenceError:
             yield self.base_client.reconnect()
             result = yield self.register_to_signals()
@@ -330,7 +350,7 @@ class RemoteClient(Referenceable):
             self._mapping[signal_name].remove(match)
 
 
-class BaseClient(object):
+class BaseClient:
     """Client that will connect to the service listening on the description.
 
     Inherit from this class and define service_name, service_description and
@@ -358,8 +378,11 @@ class BaseClient(object):
     @defer.inlineCallbacks
     def _request_remote_objects(self, root):
         """Request all the diff remote objects used for the communication."""
-        logger.debug('Requesting remote objects (%r) for %s',
-                     self.clients.keys(), self.__class__.__name__)
+        logger.debug(
+            'Requesting remote objects (%r) for %s',
+            self.clients.keys(),
+            self.__class__.__name__,
+        )
         for name, client_class in self.clients.items():
             remote = yield root.callRemote('get_%s' % name)
             setattr(self, name, client_class(self, remote))
@@ -368,10 +391,12 @@ class BaseClient(object):
     def connect(self):
         """Connect to the remote service."""
         self.factory = PBClientFactory()
-        self.client = yield client_connect(self.factory,
-                                           self.service_name,
-                                           self.service_cmdline,
-                                           self.service_description)
+        self.client = yield client_connect(
+            self.factory,
+            self.service_name,
+            self.service_cmdline,
+            self.service_description,
+        )
         root = yield self.factory.getRootObject()
         yield self._request_remote_objects(root)
         yield self.register_to_signals()
@@ -380,10 +405,12 @@ class BaseClient(object):
     def reconnect(self):
         """Reconnect with the server."""
         self.factory = PBClientFactory()
-        self.client = yield client_connect(self.factory,
-                                           self.service_name,
-                                           self.service_cmdline,
-                                           self.service_description)
+        self.client = yield client_connect(
+            self.factory,
+            self.service_name,
+            self.service_cmdline,
+            self.service_description,
+        )
         root = yield self.factory.getRootObject()
         # loop over the already present remote clients and reset their remotes
         for name in self.clients:

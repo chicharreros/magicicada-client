@@ -33,12 +33,15 @@ import sys
 
 if sys.platform == "win32":
     from magicicadaclient.platform.logger import windows
+
     source = windows
 elif sys.platform == "darwin":
     from magicicadaclient.platform.logger import darwin
+
     source = darwin
 else:
     from magicicadaclient.platform.logger import linux
+
     source = linux
 
 

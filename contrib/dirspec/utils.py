@@ -19,15 +19,16 @@ import errno
 import os
 import sys
 
-__all__ = ['user_home',
-           'default_cache_home',
-           'default_config_home',
-           'default_config_path',
-           'default_data_home',
-           'default_data_path',
-           'get_env_path',
-           'get_program_path',
-           ]
+__all__ = [
+    'user_home',
+    'default_cache_home',
+    'default_config_home',
+    'default_config_path',
+    'default_data_home',
+    'default_data_path',
+    'get_env_path',
+    'get_program_path',
+]
 
 
 def _get_exe_path_frozen_win32(exe_name):
@@ -43,13 +44,12 @@ def _get_exe_path_frozen_darwin(exe_name, app_names):
 
     sub_app_name = app_names[exe_name]
     main_app_dir = "".join(__file__.partition(".app")[:-1])
-    main_app_resources_dir = os.path.join(main_app_dir,
-                                          "Contents",
-                                          "Resources")
-    exe_bin = os.path.join(main_app_resources_dir,
-                           sub_app_name,
-                           "Contents", "MacOS",
-                           exe_name)
+    main_app_resources_dir = os.path.join(
+        main_app_dir, "Contents", "Resources"
+    )
+    exe_bin = os.path.join(
+        main_app_resources_dir, sub_app_name, "Contents", "MacOS", exe_name
+    )
     return exe_bin
 
 
@@ -75,11 +75,11 @@ def get_program_path(program_name, *args, **kwargs):
         if sys.platform == 'win32':
             program_path = _get_exe_path_frozen_win32(program_name)
         elif sys.platform == 'darwin':
-            program_path = _get_exe_path_frozen_darwin(program_name,
-                                                       app_names)
+            program_path = _get_exe_path_frozen_darwin(program_name, app_names)
         else:
-            raise Exception("Unsupported platform for frozen execution: %r" %
-                            sys.platform)
+            raise Exception(
+                "Unsupported platform for frozen execution: %r" % sys.platform
+            )
     else:
         if search_dirs is not None:
             for dirname in search_dirs:
@@ -89,11 +89,13 @@ def get_program_path(program_name, *args, **kwargs):
         else:
             # Check in normal system $PATH, if no fallback dirs specified
             from distutils.spawn import find_executable
+
             program_path = find_executable(program_name)
 
     if program_path is None or not os.path.exists(program_path):
-        raise OSError(errno.ENOENT,
-                      "Could not find executable %r" % program_name)
+        raise OSError(
+            errno.ENOENT, "Could not find executable %r" % program_name
+        )
 
     return program_path
 
@@ -119,7 +121,7 @@ def get_env_path(key, default):
 
 
 def get_special_folders():
-    """ Routine to grab all the Windows Special Folders locations.
+    """Routine to grab all the Windows Special Folders locations.
 
     If successful, returns dictionary
     of shell folder locations indexed on Windows keyword for each;
@@ -129,6 +131,7 @@ def get_special_folders():
 
     if sys.platform == 'win32':
         from win32com.shell import shell, shellcon
+
         # CSIDL_LOCAL_APPDATA = C:\Users\<username>\AppData\Local
         # CSIDL_PROFILE = C:\Users\<username>
         # CSIDL_COMMON_APPDATA = C:\ProgramData
@@ -144,7 +147,8 @@ def get_special_folders():
         special_folders['Personal'] = get_path("CSIDL_PROFILE")
         special_folders['Local AppData'] = get_path("CSIDL_LOCAL_APPDATA")
         special_folders['AppData'] = os.path.dirname(
-            special_folders['Local AppData'])
+            special_folders['Local AppData']
+        )
         special_folders['Common AppData'] = get_path("CSIDL_COMMON_APPDATA")
 
     return special_folders
@@ -164,9 +168,11 @@ elif sys.platform == 'darwin':
     default_config_path = '/Library/Preferences:/etc/xdg'
     default_config_home = os.path.join(user_home, 'Library', 'Preferences')
     default_data_path = ':'.join(
-        ['/Library/Application Support', '/usr/local/share', '/usr/share'])
+        ['/Library/Application Support', '/usr/local/share', '/usr/share']
+    )
     default_data_home = os.path.join(
-        user_home, 'Library', 'Application Support')
+        user_home, 'Library', 'Application Support'
+    )
 else:
     user_home = os.path.expanduser('~')
     default_cache_home = os.path.join(user_home, '.cache')

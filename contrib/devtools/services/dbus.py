@@ -43,15 +43,17 @@ DBUS_CONFIG_FILE = 'dbus-session.conf.in'
 
 class DBusLaunchError(Exception):
     """Error while launching dbus-daemon"""
+
     pass
 
 
 class NotFoundError(Exception):
     """Not found error"""
+
     pass
 
 
-class DBusRunner(object):
+class DBusRunner:
     """Class for running dbus-daemon with a private session."""
 
     def __init__(self):
@@ -80,19 +82,25 @@ class DBusRunner(object):
 
         self._generate_config_file(tempdir)
 
-        dbus_args = ["--fork",
-                     "--config-file=" + self.config_file,
-                     "--print-address=1",
-                     "--print-pid=2"]
-        sp = subprocess.Popen([dbus] + dbus_args,
-                              bufsize=4096, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
+        dbus_args = [
+            "--fork",
+            "--config-file=" + self.config_file,
+            "--print-address=1",
+            "--print-pid=2",
+        ]
+        sp = subprocess.Popen(
+            [dbus] + dbus_args,
+            bufsize=4096,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
 
         # Call wait here as under the qt4 reactor we get an error about
         # interrupted system call if we don't.
         sp.wait()
         self.dbus_address = (
-            b"".join(sp.stdout.readlines()).strip().decode("utf8"))
+            b"".join(sp.stdout.readlines()).strip().decode("utf8")
+        )
         self.dbus_pid = int(b"".join(sp.stderr.readlines()).strip())
 
         if self.dbus_address != "":

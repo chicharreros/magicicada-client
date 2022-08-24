@@ -33,9 +33,11 @@ import sys
 
 if sys.platform == "win32":
     from magicicadaclient.platform.launcher import windows
+
     source = windows
 else:
     from magicicadaclient.platform.launcher import linux
+
     source = linux
 
 CONTORLPANEL_DOTDESKTOP = source.CONTROLPANEL_DOTDESKTOP

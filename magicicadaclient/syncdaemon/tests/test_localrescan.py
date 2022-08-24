@@ -52,7 +52,10 @@ from magicicadaclient.platform import (
     stat_path,
 )
 from magicicadaclient.syncdaemon import (
-    event_queue, filesystem_manager, local_rescan, volume_manager
+    event_queue,
+    filesystem_manager,
+    local_rescan,
+    volume_manager,
 )
 from magicicadaclient.syncdaemon.marker import MDMarker
 from magicicadaclient.syncdaemon.tritcask import Tritcask
@@ -70,8 +73,7 @@ from magicicadaclient.testing.testcase import (
 TRACE = logging.getLevelName('TRACE')
 
 
-class Listener(object):
-
+class Listener:
     def __init__(self):
         self.events = []
 
@@ -79,8 +81,9 @@ class Listener(object):
         self.events.append(args + tuple(kwargs.values()))
 
 
-class FakeEQ(object):
+class FakeEQ:
     """Fake EQ"""
+
     def __init__(self):
         self.pushed = []
 
@@ -90,6 +93,7 @@ class FakeEQ(object):
 
     def _fake(self, *a, **k):
         """fake"""
+
     add_watch = freeze_rollback = is_frozen = _fake
     rm_watch = freeze_begin = add_to_mute_filter = _fake
 
@@ -102,8 +106,9 @@ class FakeEQ(object):
         self.pushed.extend(events)
 
 
-class FakeAQ(object):
+class FakeAQ:
     """Fake AQ"""
+
     def __init__(self):
         self.unlinked = []
         self.moved = []
@@ -128,11 +133,11 @@ class FakeAQ(object):
 
 
 class BaseTestCase(BaseTwistedTestCase):
-    """ Base test case """
+    """Base test case"""
 
     @defer.inlineCallbacks
     def setUp(self):
-        """ Setup the test """
+        """Setup the test"""
         yield super(BaseTestCase, self).setUp()
         self.shares_dir = self.mktemp('shares')
         usrdir = self.mktemp("usrdir")
@@ -143,9 +148,9 @@ class BaseTestCase(BaseTwistedTestCase):
         self.vm = FakeVolumeManager(usrdir)
         self.db = Tritcask(self.tritcask_dir)
         self.addCleanup(self.db.shutdown)
-        self.fsm = filesystem_manager.FileSystemManager(self.fsmdir,
-                                                        self.partials_dir,
-                                                        self.vm, self.db)
+        self.fsm = filesystem_manager.FileSystemManager(
+            self.fsmdir, self.partials_dir, self.vm, self.db
+        )
         self.fsm.create(usrdir, "", is_dir=True)
         self.eq = FakeEQ()
         self.fsm.register_eq(self.eq)
@@ -153,30 +158,48 @@ class BaseTestCase(BaseTwistedTestCase):
 
     @defer.inlineCallbacks
     def create_share(
-            self, share_id, share_name, access_level=ACCESS_LEVEL_RW,
-            accepted=True, subscribed=True):
+        self,
+        share_id,
+        share_name,
+        access_level=ACCESS_LEVEL_RW,
+        accepted=True,
+        subscribed=True,
+    ):
         """Create a share."""
         assert isinstance(share_name, str)
 
         share_path = os.path.join(self.shares_dir, share_name)
         make_dir(share_path, recursive=True)
-        share = volume_manager.Share(path=share_path, volume_id=share_id,
-                                     access_level=access_level,
-                                     accepted=accepted,
-                                     subscribed=subscribed)
+        share = volume_manager.Share(
+            path=share_path,
+            volume_id=share_id,
+            access_level=access_level,
+            accepted=accepted,
+            subscribed=subscribed,
+        )
         yield self.fsm.vm.add_share(share)
         defer.returnValue(share)
 
     @defer.inlineCallbacks
-    def create_udf(self, udf_id, node_id, suggested_path='~/myudf',
-                   subscribed=True, generation=None, free_bytes=100):
+    def create_udf(
+        self,
+        udf_id,
+        node_id,
+        suggested_path='~/myudf',
+        subscribed=True,
+        generation=None,
+        free_bytes=100,
+    ):
         """Create an UDF and add it to the volume manager."""
         assert isinstance(suggested_path, str)
 
-        volume = volumes.UDFVolume(volume_id=udf_id, node_id=node_id,
-                                   generation=generation,
-                                   free_bytes=free_bytes,
-                                   suggested_path=suggested_path)
+        volume = volumes.UDFVolume(
+            volume_id=udf_id,
+            node_id=node_id,
+            generation=generation,
+            free_bytes=free_bytes,
+            suggested_path=suggested_path,
+        )
         path = volume_manager.get_udf_path(suggested_path)
         udf = volume_manager.UDF.from_udf_volume(volume, path)
         udf.subscribed = subscribed
@@ -233,8 +256,9 @@ class CollectionTests(BaseTestCase):
     def test_empty_rw(self):
         """Test with one empty Modify share."""
         # create the share
-        share = yield self.create_share('share_id', 'rw_share',
-                                        access_level=ACCESS_LEVEL_RW)
+        share = yield self.create_share(
+            'share_id', 'rw_share', access_level=ACCESS_LEVEL_RW
+        )
         self.fsm.create(share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(share.path, "uuid")
 
@@ -254,8 +278,9 @@ class CollectionTests(BaseTestCase):
     def test_not_empty_rw(self):
         """Test with a Modify share with info."""
         # create the share
-        share = yield self.create_share('share_id', 'ro_share',
-                                        access_level=ACCESS_LEVEL_RW)
+        share = yield self.create_share(
+            'share_id', 'ro_share', access_level=ACCESS_LEVEL_RW
+        )
         self.fsm.create(share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(share.path, "uuid1")
 
@@ -281,8 +306,9 @@ class CollectionTests(BaseTestCase):
     def test_deleted_rw(self):
         """Test with a deleted rw share."""
         # create the share
-        share = yield self.create_share('share_id', 'rw_share',
-                                        access_level=ACCESS_LEVEL_RW)
+        share = yield self.create_share(
+            'share_id', 'rw_share', access_level=ACCESS_LEVEL_RW
+        )
         self.fsm.create(share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(share.path, "uuid")
 
@@ -310,8 +336,9 @@ class CollectionTests(BaseTestCase):
     def test_deleted_rw_not_empty(self):
         """Test with a deleted rw share with some nodes in it."""
         # create the share
-        share = yield self.create_share('share_id', 'rw_share',
-                                        access_level=ACCESS_LEVEL_RW)
+        share = yield self.create_share(
+            'share_id', 'rw_share', access_level=ACCESS_LEVEL_RW
+        )
         self.fsm.create(share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(share.path, "uuid")
 
@@ -521,8 +548,9 @@ class TwistedBase(BaseTestCase):
         self.lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
 
         # create a share
-        self.share = yield self.create_share('share_id', 'ro_share',
-                                             access_level=ACCESS_LEVEL_RW)
+        self.share = yield self.create_share(
+            'share_id', 'ro_share', access_level=ACCESS_LEVEL_RW
+        )
         self.fsm.create(self.share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(self.share.path, "uuidshare")
         self.share.node_id = "uuidshare"
@@ -562,8 +590,11 @@ class ComparationTests(TwistedBase):
 
         yield self.lr.start()
         self.assertEqual(self.eq.pushed, [])
-        self.assertTrue(self.handler.check(TRACE,
-                        "comp yield", "was here, let's check stat"))
+        self.assertTrue(
+            self.handler.check(
+                TRACE, "comp yield", "was here, let's check stat"
+            )
+        )
 
     @defer.inlineCallbacks
     def test_equal_dir(self):
@@ -573,8 +604,13 @@ class ComparationTests(TwistedBase):
 
         yield self.lr.start()
         self.assertEqual(self.eq.pushed, [])
-        self.assertTrue(self.handler.check(TRACE, "comp yield",
-                        "will be scaned later because it's in NONE!"))
+        self.assertTrue(
+            self.handler.check(
+                TRACE,
+                "comp yield",
+                "will be scaned later because it's in NONE!",
+            )
+        )
 
     @defer.inlineCallbacks
     def test_disc_more_file_empty_normal(self):
@@ -587,8 +623,10 @@ class ComparationTests(TwistedBase):
         open_file(path, "w").close()
 
         yield self.lr.start()
-        self.assertEqual(self.eq.pushed, [('FS_FILE_CREATE', path),
-                                          ('FS_FILE_CLOSE_WRITE', path)])
+        self.assertEqual(
+            self.eq.pushed,
+            [('FS_FILE_CREATE', path), ('FS_FILE_CLOSE_WRITE', path)],
+        )
 
     @defer.inlineCallbacks
     def test_disc_more_file_empty_udf(self):
@@ -601,8 +639,10 @@ class ComparationTests(TwistedBase):
         open_file(path, "w").close()
 
         yield self.lr.scan_dir("mdid", self.share.path, udfmode=True)
-        self.assertEqual(self.eq.pushed, [('FS_FILE_CREATE', path),
-                                          ('FS_FILE_CLOSE_WRITE', path)])
+        self.assertEqual(
+            self.eq.pushed,
+            [('FS_FILE_CREATE', path), ('FS_FILE_CLOSE_WRITE', path)],
+        )
 
     @defer.inlineCallbacks
     def test_disc_more_file_content(self):
@@ -616,8 +656,10 @@ class ComparationTests(TwistedBase):
             fh.write("foo")
 
         yield self.lr.start()
-        self.assertEqual(self.eq.pushed, [('FS_FILE_CREATE', path),
-                                          ('FS_FILE_CLOSE_WRITE', path)])
+        self.assertEqual(
+            self.eq.pushed,
+            [('FS_FILE_CREATE', path), ('FS_FILE_CLOSE_WRITE', path)],
+        )
 
     @defer.inlineCallbacks
     def test_disc_symlink(self):
@@ -632,8 +674,9 @@ class ComparationTests(TwistedBase):
 
         yield self.lr.start()
         self.assertEqual(self.eq.pushed, [])
-        self.assertTrue(self.handler.check_info("Ignoring path",
-                                                "symlink", symlname))
+        self.assertTrue(
+            self.handler.check_info("Ignoring path", "symlink", symlname)
+        )
 
     @defer.inlineCallbacks
     def test_disc_more_dir_normal(self):
@@ -674,8 +717,9 @@ class ComparationTests(TwistedBase):
     def test_disc_less_file_udf(self):
         """Test having less in disc than in metadata, udf mode."""
         # create a node in the share, but no in disk
-        filepath = self.create_node("a", is_dir=False, real=False,
-                                    which_share=self.udf)
+        filepath = self.create_node(
+            "a", is_dir=False, real=False, which_share=self.udf
+        )
         assert self.fsm.has_metadata(path=filepath)
         parentpath = os.path.dirname(filepath)
         self.fsm.set_by_path(parentpath, local_hash="foo", server_hash="foo")
@@ -712,8 +756,9 @@ class ComparationTests(TwistedBase):
     def test_disc_less_dir_udf(self):
         """Test having less in disc than in metadata, udf mode."""
         # create a node in the share, but no in disk
-        filepath = self.create_node("a", is_dir=True, real=False,
-                                    which_share=self.udf)
+        filepath = self.create_node(
+            "a", is_dir=True, real=False, which_share=self.udf
+        )
         assert self.fsm.has_metadata(path=filepath)
         parentpath = os.path.dirname(filepath)
         self.fsm.set_by_path(parentpath, local_hash="foo", server_hash="foo")
@@ -758,12 +803,14 @@ class ComparationTests(TwistedBase):
         """Several dirs, several files, some differences."""
         self.create_node("a", is_dir=True)
         self.create_node(os.path.join("a", "b"), is_dir=True)
-        sh1 = self.create_node(os.path.join("a", "b", "e"),
-                               is_dir=True, real=False)
+        sh1 = self.create_node(
+            os.path.join("a", "b", "e"), is_dir=True, real=False
+        )
         self.create_node(os.path.join("a", "c"), is_dir=True)
         self.create_node(os.path.join("a", "c", "d"), is_dir=False)
-        sh2 = self.create_node(os.path.join("a", "c", "e"),
-                               is_dir=False, real=False)
+        sh2 = self.create_node(
+            os.path.join("a", "c", "e"), is_dir=False, real=False
+        )
         self.create_node("d", is_dir=True)
         sh3 = self.create_node("e", is_dir=False, real=False)
         sh4 = self.create_node("f", is_dir=True, real=False)
@@ -778,18 +825,21 @@ class ComparationTests(TwistedBase):
 
         # scan!
         yield self.lr.start()
-        self.assertItemsEqual(self.eq.pushed, [
-            ('FS_DIR_CREATE', sh8),
-            ('FS_DIR_CREATE', sh7),
-            ('FS_DIR_DELETE', sh1),
-            ('FS_DIR_DELETE', sh4),
-            ('FS_FILE_CLOSE_WRITE', sh6),
-            ('FS_FILE_CLOSE_WRITE', sh5),
-            ('FS_FILE_CREATE', sh6),
-            ('FS_FILE_CREATE', sh5),
-            ('FS_FILE_DELETE', sh2),
-            ('FS_FILE_DELETE', sh3),
-        ])
+        self.assertItemsEqual(
+            self.eq.pushed,
+            [
+                ('FS_DIR_CREATE', sh8),
+                ('FS_DIR_CREATE', sh7),
+                ('FS_DIR_DELETE', sh1),
+                ('FS_DIR_DELETE', sh4),
+                ('FS_FILE_CLOSE_WRITE', sh6),
+                ('FS_FILE_CLOSE_WRITE', sh5),
+                ('FS_FILE_CREATE', sh6),
+                ('FS_FILE_CREATE', sh5),
+                ('FS_FILE_DELETE', sh2),
+                ('FS_FILE_DELETE', sh3),
+            ],
+        )
 
     @defer.inlineCallbacks
     def test_deep_and_wide(self):
@@ -816,11 +866,14 @@ class ComparationTests(TwistedBase):
 
         # scan!
         yield self.lr.start()
-        self.assertItemsEqual(self.eq.pushed, [
-            ('FS_FILE_CLOSE_WRITE', sh2),
-            ('FS_FILE_CREATE', sh2),
-            ('FS_FILE_DELETE', sh1),
-        ])
+        self.assertItemsEqual(
+            self.eq.pushed,
+            [
+                ('FS_FILE_CLOSE_WRITE', sh2),
+                ('FS_FILE_CREATE', sh2),
+                ('FS_FILE_DELETE', sh1),
+            ],
+        )
 
     @defer.inlineCallbacks
     def test_subtree_removal_normal(self):
@@ -835,22 +888,30 @@ class ComparationTests(TwistedBase):
         remove_tree(sh1)
 
         yield self.lr.start()
-        self.assertEqual(self.eq.pushed, [
-            ('FS_FILE_DELETE', sh3),
-            ('FS_DIR_DELETE', sh2),
-            ('FS_DIR_DELETE', sh1),
-        ])
+        self.assertEqual(
+            self.eq.pushed,
+            [
+                ('FS_FILE_DELETE', sh3),
+                ('FS_DIR_DELETE', sh2),
+                ('FS_DIR_DELETE', sh1),
+            ],
+        )
 
     @defer.inlineCallbacks
     def test_subtree_removal_udf(self):
         """A whole subtree was removed, udf mode."""
         self.create_node("a", is_dir=True, which_share=self.udf)
-        sh1 = self.create_node(os.path.join("a", "b"),
-                               is_dir=True, which_share=self.udf)
-        sh2 = self.create_node(os.path.join("a", "b", "c"),
-                               is_dir=True, which_share=self.udf)
-        sh3 = self.create_node(os.path.join("a", "b", "c", "d"),
-                               is_dir=False, which_share=self.udf)
+        sh1 = self.create_node(
+            os.path.join("a", "b"), is_dir=True, which_share=self.udf
+        )
+        sh2 = self.create_node(
+            os.path.join("a", "b", "c"), is_dir=True, which_share=self.udf
+        )
+        sh3 = self.create_node(
+            os.path.join("a", "b", "c", "d"),
+            is_dir=False,
+            which_share=self.udf,
+        )
 
         # remove the whole subtree
         parentpath = os.path.dirname(sh1)
@@ -876,8 +937,9 @@ class ComparationTests(TwistedBase):
 
         # one in both, one only in share, one only in disk
         self.create_node(os.path.join("a", "b", "c"), is_dir=True)
-        sh1 = self.create_node(os.path.join("a", "b", "d"),
-                               is_dir=True, real=False)
+        sh1 = self.create_node(
+            os.path.join("a", "b", "d"), is_dir=True, real=False
+        )
         sh2 = os.path.join(self.share.path, "a", "b", "e")
         open_file(sh2, "w").close()
 
@@ -916,15 +978,16 @@ class ComparationTests(TwistedBase):
         self.assertRaises(ValueError, lr.scan_dir, "mdid", nodir)
 
         # need to wait the generated event before finishing the test
-        reactor.callLater(.2, self.deferred.callback, None)
+        reactor.callLater(0.2, self.deferred.callback, None)
         return self.deferred
 
     @defer.inlineCallbacks
     def test_one_dir_ro_share(self):
         """The dir is in a share that's RO, no error but no action."""
         # create the share
-        share = yield self.create_share('share_id', 'ro_share2',
-                                        access_level=ACCESS_LEVEL_RO)
+        share = yield self.create_share(
+            'share_id', 'ro_share2', access_level=ACCESS_LEVEL_RO
+        )
         self.fsm.create(share.path, "share_id", is_dir=True)
         self.fsm.set_node_id(share.path, "uuidshare")
 
@@ -941,8 +1004,9 @@ class ComparationTests(TwistedBase):
 
         yield self.lr.start()
         self.assertEqual(self.eq.pushed, [('FS_FILE_CLOSE_WRITE', path)])
-        self.assertTrue(self.handler.check_debug("comp yield",
-                                                 "file content changed"))
+        self.assertTrue(
+            self.handler.check_debug("comp yield", "file content changed")
+        )
         self.assertTrue(self.handler.check_debug("differ", "Old", "New"))
 
     @skipIfOS('win32', 'Windows does not report inode info, see bug #823284.')
@@ -971,13 +1035,14 @@ class ComparationTests(TwistedBase):
         # scan!
         def check(_):
             """check"""
-            self.assertEqual(self.eq.pushed, [
-                ('LR_SCAN_ERROR', dict(mdid="mdid", udfmode=False)),
-            ])
+            self.assertEqual(
+                self.eq.pushed,
+                [('LR_SCAN_ERROR', dict(mdid="mdid", udfmode=False))],
+            )
 
         self.deferred.addCallback(check)
         # trigger the control later, as it the scan error es slightly delayed
-        reactor.callLater(.2, self.deferred.callback, None)
+        reactor.callLater(0.2, self.deferred.callback, None)
         return self.deferred
 
     def test_scandir_no_dir_udfmode(self):
@@ -988,13 +1053,14 @@ class ComparationTests(TwistedBase):
         # scan!
         def check(_):
             """check"""
-            self.assertEqual(self.eq.pushed, [
-                ('LR_SCAN_ERROR', dict(mdid="mdid", udfmode=True)),
-            ])
+            self.assertEqual(
+                self.eq.pushed,
+                [('LR_SCAN_ERROR', dict(mdid="mdid", udfmode=True))],
+            )
 
         self.deferred.addCallback(check)
         # trigger the control later, as it the scan error es slightly delayed
-        reactor.callLater(.2, self.deferred.callback, None)
+        reactor.callLater(0.2, self.deferred.callback, None)
         return self.deferred
 
     @skip_if_win32_and_uses_readonly
@@ -1026,6 +1092,7 @@ class ComparationTests(TwistedBase):
 
 class InotifyTests(TwistedBase):
     """Test LocalRescan pushing events to the EventQueue."""
+
     timeout = 2
 
     @defer.inlineCallbacks
@@ -1100,8 +1167,9 @@ class InotifyTests(TwistedBase):
                 if events_pushed:
                     d.callback(events)
                 else:
-                    reactor.callLater(.1, check_events)
-            reactor.callLater(.1, check_events)
+                    reactor.callLater(0.1, check_events)
+
+            reactor.callLater(0.1, check_events)
             return d
 
         def middle_compare(*args, **kwargs):
@@ -1120,8 +1188,11 @@ class InotifyTests(TwistedBase):
             real_push(event)
 
         real_push = self.eq.monitor._processor.general_processor.push_event
-        self.patch(self.eq.monitor._processor.general_processor,
-                   'push_event', fake_pusher)
+        self.patch(
+            self.eq.monitor._processor.general_processor,
+            'push_event',
+            fake_pusher,
+        )
 
         yield self.lr.start()
         self.assertItemsEqual(hm.events, should_receive_events)
@@ -1129,6 +1200,7 @@ class InotifyTests(TwistedBase):
 
 class QueuingTests(BaseTestCase):
     """Test that simultaneus calls are queued."""
+
     timeout = 2
 
     @defer.inlineCallbacks
@@ -1140,12 +1212,14 @@ class QueuingTests(BaseTestCase):
         self.lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
 
         # create two shares
-        self.share1 = yield self.create_share('share_id1', 'ro_share_1',
-                                              access_level=ACCESS_LEVEL_RW)
+        self.share1 = yield self.create_share(
+            'share_id1', 'ro_share_1', access_level=ACCESS_LEVEL_RW
+        )
         self.fsm.create(self.share1.path, "share_id1", is_dir=True)
         self.fsm.set_node_id(self.share1.path, "uuidshare1")
-        self.share2 = yield self.create_share('share_id2', 'ro_share_2',
-                                              access_level=ACCESS_LEVEL_RW)
+        self.share2 = yield self.create_share(
+            'share_id2', 'ro_share_2', access_level=ACCESS_LEVEL_RW
+        )
         self.fsm.create(self.share2.path, "share_id2", is_dir=True)
         self.fsm.set_node_id(self.share2.path, "uuidshare2")
 
@@ -1335,10 +1409,7 @@ class PushTests(TwistedBase):
             fh.write("foo")
 
         yield self.lr.start()
-        expected = [
-            ('FS_FILE_CREATE', path),
-            ('FS_FILE_CLOSE_WRITE', path),
-        ]
+        expected = [('FS_FILE_CREATE', path), ('FS_FILE_CLOSE_WRITE', path)]
         self.assertItemsEqual(listener.events, expected)
 
     @defer.inlineCallbacks
@@ -1394,8 +1465,10 @@ class BadStateTests(TwistedBase):
         open_file(path, "w").close()
 
         yield self.lr.start()
-        self.assertEqual(self.eq.pushed, [('FS_FILE_CREATE', path),
-                                          ('FS_FILE_CLOSE_WRITE', path)])
+        self.assertEqual(
+            self.eq.pushed,
+            [('FS_FILE_CREATE', path), ('FS_FILE_CLOSE_WRITE', path)],
+        )
         self.assertEqual(self.fsm.has_metadata(path=path), False)
 
     @defer.inlineCallbacks
@@ -1409,8 +1482,10 @@ class BadStateTests(TwistedBase):
         open_file(path2, "w").close()
 
         yield self.lr.scan_dir("mdid", path1)
-        self.assertEqual(self.eq.pushed, [('FS_FILE_CREATE', path2),
-                                          ('FS_FILE_CLOSE_WRITE', path2)])
+        self.assertEqual(
+            self.eq.pushed,
+            [('FS_FILE_CREATE', path2), ('FS_FILE_CLOSE_WRITE', path2)],
+        )
         self.assertEqual(self.fsm.has_metadata(path=path1), True)
         self.assertEqual(self.fsm.has_metadata(path=path2), False)
 
@@ -1423,8 +1498,10 @@ class BadStateTests(TwistedBase):
             fh.write("foo")
 
         yield self.lr.start()
-        self.assertEqual(self.eq.pushed, [('FS_FILE_CREATE', path),
-                                          ('FS_FILE_CLOSE_WRITE', path)])
+        self.assertEqual(
+            self.eq.pushed,
+            [('FS_FILE_CREATE', path), ('FS_FILE_CLOSE_WRITE', path)],
+        )
         self.assertEqual(self.fsm.has_metadata(path=path), False)
 
     @defer.inlineCallbacks
@@ -1446,12 +1523,22 @@ class BadStateTests(TwistedBase):
 
         yield self.lr.start()
         mdobj = self.fsm.get_by_mdid(mdid)
-        self.assertEqual(self.aq.uploaded[0][:7],
-                         (mdobj.share_id, mdobj.node_id, mdobj.server_hash,
-                          mdobj.local_hash, mdobj.crc32, mdobj.size, mdid))
+        self.assertEqual(
+            self.aq.uploaded[0][:7],
+            (
+                mdobj.share_id,
+                mdobj.node_id,
+                mdobj.server_hash,
+                mdobj.local_hash,
+                mdobj.crc32,
+                mdobj.size,
+                mdid,
+            ),
+        )
         self.assertEqual(self.aq.uploaded[1], {'upload_id': None})
-        self.assertTrue(self.handler.check_debug("resuming upload",
-                                                 "interrupted"))
+        self.assertTrue(
+            self.handler.check_debug("resuming upload", "interrupted")
+        )
 
     @defer.inlineCallbacks
     def test_LOCAL_different(self):
@@ -1472,8 +1559,11 @@ class BadStateTests(TwistedBase):
 
         yield self.lr.start()
         self.assertEqual(self.eq.pushed, [('FS_FILE_CLOSE_WRITE', path)])
-        self.assertTrue(self.handler.check_debug("comp yield", repr(path),
-                                                 "LOCAL and changed"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "comp yield", repr(path), "LOCAL and changed"
+            )
+        )
 
     @defer.inlineCallbacks
     def test_LOCAL_with_upload_id(self):
@@ -1495,12 +1585,22 @@ class BadStateTests(TwistedBase):
 
         yield self.lr.start()
         mdobj = self.fsm.get_by_mdid(mdid)
-        self.assertEqual(self.aq.uploaded[0][:7],
-                         (mdobj.share_id, mdobj.node_id, mdobj.server_hash,
-                          mdobj.local_hash, mdobj.crc32, mdobj.size, mdid))
+        self.assertEqual(
+            self.aq.uploaded[0][:7],
+            (
+                mdobj.share_id,
+                mdobj.node_id,
+                mdobj.server_hash,
+                mdobj.local_hash,
+                mdobj.crc32,
+                mdobj.size,
+                mdid,
+            ),
+        )
         self.assertEqual(self.aq.uploaded[1], {'upload_id': 'hola'})
-        self.assertTrue(self.handler.check_debug("resuming upload",
-                                                 "interrupted"))
+        self.assertTrue(
+            self.handler.check_debug("resuming upload", "interrupted")
+        )
 
     @defer.inlineCallbacks
     def test_SERVER_file_empty(self):
@@ -1511,7 +1611,8 @@ class BadStateTests(TwistedBase):
         mdid = self.fsm.create(path, self.share.volume_id, is_dir=False)
         partial_path = os.path.join(
             self.fsm.partials_dir,
-            mdid + ".u1partial." + os.path.basename(path))
+            mdid + ".u1partial." + os.path.basename(path),
+        )
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -1524,9 +1625,10 @@ class BadStateTests(TwistedBase):
 
         yield self.lr.start()
         mdobj = self.fsm.get_by_mdid(mdid)
-        self.assertEqual(self.aq.downloaded[:4],
-                         (mdobj.share_id, mdobj.node_id,
-                          mdobj.server_hash, mdid))
+        self.assertEqual(
+            self.aq.downloaded[:4],
+            (mdobj.share_id, mdobj.node_id, mdobj.server_hash, mdid),
+        )
         self.assertTrue(self.handler.check_debug("comp yield", "SERVER"))
 
     @defer.inlineCallbacks
@@ -1534,11 +1636,13 @@ class BadStateTests(TwistedBase):
         """We just queued the Download, and it was interrupted."""
         # create the file in metadata
         path = os.path.join(self.share.path, "a")
-        mdid = self.fsm.create(path, self.share.volume_id, is_dir=False,
-                               node_id="uuid")
+        mdid = self.fsm.create(
+            path, self.share.volume_id, is_dir=False, node_id="uuid"
+        )
         partial_path = os.path.join(
             self.fsm.partials_dir,
-            mdid + ".u1partial." + os.path.basename(path))
+            mdid + ".u1partial." + os.path.basename(path),
+        )
 
         # this mimic Sync.get_file
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
@@ -1549,9 +1653,10 @@ class BadStateTests(TwistedBase):
 
         yield self.lr.start()
         mdobj = self.fsm.get_by_mdid(mdid)
-        self.assertEqual(self.aq.downloaded[:4],
-                         (mdobj.share_id, mdobj.node_id,
-                          mdobj.server_hash, mdid))
+        self.assertEqual(
+            self.aq.downloaded[:4],
+            (mdobj.share_id, mdobj.node_id, mdobj.server_hash, mdid),
+        )
         self.assertTrue(self.handler.check_debug("comp yield", "SERVER"))
 
     @defer.inlineCallbacks
@@ -1564,7 +1669,8 @@ class BadStateTests(TwistedBase):
         mdid = self.fsm.create(path, self.share.volume_id, is_dir=False)
         partial_path = os.path.join(
             self.fsm.partials_dir,
-            mdid + ".u1partial." + os.path.basename(path))
+            mdid + ".u1partial." + os.path.basename(path),
+        )
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -1603,7 +1709,8 @@ class BadStateTests(TwistedBase):
         mdid = self.fsm.create(path, self.share.volume_id, is_dir=True)
         partial_path = os.path.join(
             self.fsm.partials_dir,
-            mdid + ".u1partial." + os.path.basename(path))
+            mdid + ".u1partial." + os.path.basename(path),
+        )
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -1626,17 +1733,21 @@ class BadStateTests(TwistedBase):
         self.assertFalse(path_exists(partial_path))
 
         # file inside dir should be found
-        self.assertEqual(self.eq.pushed, [('FS_FILE_CREATE', fpath),
-                                          ('FS_FILE_CLOSE_WRITE', fpath)])
+        self.assertEqual(
+            self.eq.pushed,
+            [('FS_FILE_CREATE', fpath), ('FS_FILE_CLOSE_WRITE', fpath)],
+        )
         # logged in warning
         self.assertTrue(
-            self.handler.check_warning("Found a directory in SERVER"))
+            self.handler.check_warning("Found a directory in SERVER")
+        )
 
     @defer.inlineCallbacks
     def test_partial_nomd(self):
         """Found a .partial with no metadata at all."""
         path = os.path.join(
-            self.fsm.partials_dir, 'anduuid' + ".u1partial.foo")
+            self.fsm.partials_dir, 'anduuid' + ".u1partial.foo"
+        )
         open_file(path, "w").close()
 
         yield self.lr.start()
@@ -1664,8 +1775,9 @@ class BadStateTests(TwistedBase):
         self.assertFalse(self.fsm.has_metadata(path=path1))
 
         # check MD is gone also for children
-        self.assertFalse(self.fsm.has_metadata(path=path2),
-                         "no metadata for %r" % path2)
+        self.assertFalse(
+            self.fsm.has_metadata(path=path2), "no metadata for %r" % path2
+        )
 
     @defer.inlineCallbacks
     def test_file_partial_dir(self):
@@ -1681,8 +1793,9 @@ class BadStateTests(TwistedBase):
         fh = self.fsm.get_partial_for_writing("uuid", self.share.volume_id)
         fh.write(b"foobar")
         fh.close()
-        partial_path = os.path.join(self.fsm.partials_dir,
-                                    mdid + ".u1partial.a")
+        partial_path = os.path.join(
+            self.fsm.partials_dir, mdid + ".u1partial.a"
+        )
         self.assertTrue(path_exists(partial_path))
 
         # now change the dir for a file, for LR to find it
@@ -1706,8 +1819,9 @@ class BadStateTests(TwistedBase):
         make_dir(path)
 
         # create the partial (not through FSM to don't signal the MD)
-        partial_path = os.path.join(self.fsm.partials_dir,
-                                    mdid + ".u1partial.a")
+        partial_path = os.path.join(
+            self.fsm.partials_dir, mdid + ".u1partial.a"
+        )
         with open_file(partial_path, "w") as fh:
             fh.write("foobar")
 
@@ -1724,7 +1838,8 @@ class BadStateTests(TwistedBase):
         mdid = self.fsm.create(path, self.share.volume_id, is_dir=False)
         partial_path = os.path.join(
             self.fsm.partials_dir,
-            mdid + ".u1partial." + os.path.basename(path))
+            mdid + ".u1partial." + os.path.basename(path),
+        )
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -1838,8 +1953,10 @@ class BadStateTests(TwistedBase):
             fh.write("foo")
 
         yield self.lr.start()
-        self.assertEqual(self.eq.pushed, [('FS_FILE_CREATE', path),
-                                          ('FS_FILE_CLOSE_WRITE', path)])
+        self.assertEqual(
+            self.eq.pushed,
+            [('FS_FILE_CREATE', path), ('FS_FILE_CLOSE_WRITE', path)],
+        )
 
     @defer.inlineCallbacks
     def test_notcontent_file(self):
@@ -1857,8 +1974,9 @@ class BadStateTests(TwistedBase):
     def test_SERVER_file_ro_share(self):
         """We were downloading the file, but it was interrupted in RO share."""
         # create the file in metadata
-        ro_share = yield self.create_share('share_ro_id', 'share_ro2',
-                                           access_level=ACCESS_LEVEL_RO)
+        ro_share = yield self.create_share(
+            'share_ro_id', 'share_ro2', access_level=ACCESS_LEVEL_RO
+        )
         self.fsm.create(ro_share.path, ro_share.id, is_dir=True)
         self.fsm.set_node_id(ro_share.path, "uuidshare")
         path = os.path.join(ro_share.path, "a")
@@ -1867,7 +1985,8 @@ class BadStateTests(TwistedBase):
         mdid = self.fsm.create(path, ro_share.volume_id, is_dir=False)
         partial_path = os.path.join(
             self.fsm.partials_dir,
-            mdid + ".u1partial." + os.path.basename(path))
+            mdid + ".u1partial." + os.path.basename(path),
+        )
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -1880,9 +1999,10 @@ class BadStateTests(TwistedBase):
 
         yield self.lr.start()
         mdobj = self.fsm.get_by_mdid(mdid)
-        self.assertEqual(self.aq.downloaded[:4],
-                         (mdobj.share_id, mdobj.node_id,
-                          mdobj.server_hash, mdid))
+        self.assertEqual(
+            self.aq.downloaded[:4],
+            (mdobj.share_id, mdobj.node_id, mdobj.server_hash, mdid),
+        )
         self.assertTrue(self.handler.check_debug("comp yield", "SERVER"))
 
     @defer.inlineCallbacks
@@ -1892,8 +2012,9 @@ class BadStateTests(TwistedBase):
         This was valid before, but no more, so we just fix and log in warning.
         """
         # create the dir in metadata
-        ro_share = yield self.create_share('share_ro_id', 'share_ro2',
-                                           access_level=ACCESS_LEVEL_RO)
+        ro_share = yield self.create_share(
+            'share_ro_id', 'share_ro2', access_level=ACCESS_LEVEL_RO
+        )
         self.fsm.create(ro_share.path, ro_share.id, is_dir=True)
         self.fsm.set_node_id(ro_share.path, "uuidshare")
 
@@ -1901,7 +2022,8 @@ class BadStateTests(TwistedBase):
         mdid = self.fsm.create(path, ro_share.volume_id, is_dir=True)
         partial_path = os.path.join(
             self.fsm.partials_dir,
-            mdid + ".u1partial." + os.path.basename(path))
+            mdid + ".u1partial." + os.path.basename(path),
+        )
         self.fsm.set_node_id(path, "uuid")
 
         # start the download, never complete it
@@ -1919,8 +2041,9 @@ class BadStateTests(TwistedBase):
         self.assertEqual(mdobj.server_hash, mdobj.local_hash)
         self.assertFalse(path_exists(partial_path))
         # logged in warning
-        self.assertTrue(self.handler.check_warning(
-            "Found a directory in SERVER"))
+        self.assertTrue(
+            self.handler.check_warning("Found a directory in SERVER")
+        )
 
     def test_check_stat_None(self):
         """Test check_stat with oldstat = None."""
@@ -1940,7 +2063,8 @@ class RootBadStateTests(TwistedBase):
         mdid = self.fsm.get_by_path(path).mdid
         partial_path = os.path.join(
             self.fsm.partials_dir,
-            mdid + ".u1partial." + os.path.basename(path))
+            mdid + ".u1partial." + os.path.basename(path),
+        )
 
         # start the download, never complete it
         self.fsm.set_by_mdid(mdid, server_hash="blah-hash-blah")
@@ -1968,8 +2092,9 @@ class RootBadStateTests(TwistedBase):
     def test_SERVER_share(self):
         """We were downloading the share root dir but it was interrupted."""
         # create a share
-        share = yield self.create_share('share_id_1', 'rw_share',
-                                        access_level=ACCESS_LEVEL_RW)
+        share = yield self.create_share(
+            'share_id_1', 'rw_share', access_level=ACCESS_LEVEL_RW
+        )
         self.fsm.create(share.path, "share_id_1", is_dir=True)
         self.fsm.set_node_id(share.path, "uuid_share_1")
         share.node_id = "uuid_share_1"
@@ -2005,10 +2130,13 @@ class LimboTests(TwistedBase):
 
         yield self.lr.start()
         self.assertEqual(self.aq.moved, [])
-        self.assertEqual(self.aq.unlinked, [(self.share.volume_id,
-                                             "parent_id", "uuid", path, True)])
-        self.assertTrue(self.handler.check_info(
-            "generating Unlink from trash"))
+        self.assertEqual(
+            self.aq.unlinked,
+            [(self.share.volume_id, "parent_id", "uuid", path, True)],
+        )
+        self.assertTrue(
+            self.handler.check_info("generating Unlink from trash")
+        )
 
     @defer.inlineCallbacks
     def test_trash_two(self):
@@ -2025,10 +2153,13 @@ class LimboTests(TwistedBase):
 
         yield self.lr.start()
         self.assertEqual(self.aq.moved, [])
-        self.assertItemsEqual(self.aq.unlinked, [
-            (self.share.volume_id, "parent_id", "uuid1", path1, True),
-            (self.share.volume_id, "parent_id", "uuid2", path2, False),
-        ])
+        self.assertItemsEqual(
+            self.aq.unlinked,
+            [
+                (self.share.volume_id, "parent_id", "uuid1", path1, True),
+                (self.share.volume_id, "parent_id", "uuid2", path2, False),
+            ],
+        )
 
     @defer.inlineCallbacks
     def test_no_double_unlink(self):
@@ -2073,31 +2204,53 @@ class LimboTests(TwistedBase):
     @defer.inlineCallbacks
     def test_move_limbo_one(self):
         """Something in the move_limbo."""
-        self.fsm.add_to_move_limbo("share", "uuid", "old_parent",
-                                   "new_parent", "new_name", "p_from", "p_to")
+        self.fsm.add_to_move_limbo(
+            "share",
+            "uuid",
+            "old_parent",
+            "new_parent",
+            "new_name",
+            "p_from",
+            "p_to",
+        )
 
         yield self.lr.start()
         self.assertEqual(self.aq.unlinked, [])
-        self.assertEqual(self.aq.moved,
-                         [("share", "uuid", "old_parent",
-                           "new_parent", "new_name", "p_from", "p_to")])
-        self.assertTrue(self.handler.check_info(
-                        "generating Move from limbo"))
+        self.assertEqual(
+            self.aq.moved,
+            [
+                (
+                    "share",
+                    "uuid",
+                    "old_parent",
+                    "new_parent",
+                    "new_name",
+                    "p_from",
+                    "p_to",
+                )
+            ],
+        )
+        self.assertTrue(self.handler.check_info("generating Move from limbo"))
 
     @defer.inlineCallbacks
     def test_move_limbo_two(self):
         """Two nodes (file and dir) in the move_limbo."""
-        self.fsm.add_to_move_limbo("s1", "u1", "op1", "np1", "n1",
-                                   "p_from", "p_to")
-        self.fsm.add_to_move_limbo("s2", "u2", "op2", "np2", "n2",
-                                   "p_from", "p_to")
+        self.fsm.add_to_move_limbo(
+            "s1", "u1", "op1", "np1", "n1", "p_from", "p_to"
+        )
+        self.fsm.add_to_move_limbo(
+            "s2", "u2", "op2", "np2", "n2", "p_from", "p_to"
+        )
 
         yield self.lr.start()
         self.assertEqual(self.aq.unlinked, [])
-        self.assertItemsEqual(self.aq.moved, [
-            ("s1", "u1", "op1", "np1", "n1", "p_from", "p_to"),
-            ("s2", "u2", "op2", "np2", "n2", "p_from", "p_to"),
-        ])
+        self.assertItemsEqual(
+            self.aq.moved,
+            [
+                ("s1", "u1", "op1", "np1", "n1", "p_from", "p_to"),
+                ("s2", "u2", "op2", "np2", "n2", "p_from", "p_to"),
+            ],
+        )
 
     @defer.inlineCallbacks
     def test_mixed_trash_moves(self):
@@ -2107,15 +2260,35 @@ class LimboTests(TwistedBase):
         self.fsm.set_node_id(path, "uuid")
         self.fsm.delete_to_trash(mdid, "parent_id")
 
-        self.fsm.add_to_move_limbo("share", "uuid", "old_parent",
-                                   "new_parent", "new_name", "p_from", "p_to")
+        self.fsm.add_to_move_limbo(
+            "share",
+            "uuid",
+            "old_parent",
+            "new_parent",
+            "new_name",
+            "p_from",
+            "p_to",
+        )
 
         yield self.lr.start()
-        self.assertEqual(self.aq.moved,
-                         [("share", "uuid", "old_parent", "new_parent",
-                           "new_name", "p_from", "p_to")])
-        self.assertEqual(self.aq.unlinked, [(self.share.volume_id,
-                                             "parent_id", "uuid", path, True)])
+        self.assertEqual(
+            self.aq.moved,
+            [
+                (
+                    "share",
+                    "uuid",
+                    "old_parent",
+                    "new_parent",
+                    "new_name",
+                    "p_from",
+                    "p_to",
+                )
+            ],
+        )
+        self.assertEqual(
+            self.aq.unlinked,
+            [(self.share.volume_id, "parent_id", "uuid", path, True)],
+        )
 
     @defer.inlineCallbacks
     def test_move_limbo_markers(self):
@@ -2130,8 +2303,7 @@ class LimboTests(TwistedBase):
 
         yield self.lr.start()
         self.assertEqual(self.aq.moved, [])
-        self.assertTrue(self.handler.check_info(
-                        "removing from move limbo"))
+        self.assertTrue(self.handler.check_info("removing from move limbo"))
         self.assertFalse(self.handler.check_info("generating Move"))
 
 
@@ -2166,8 +2338,11 @@ class ParentWatchForUDFTestCase(BaseTestCase):
             defer.returnValue(True)
 
         self.patch(self.eq, 'add_watch', fake_add)
-        self.patch(self.eq, 'add_watches_to_udf_ancestors',
-                   fake_add_watches_to_udf_ancestors)
+        self.patch(
+            self.eq,
+            'add_watches_to_udf_ancestors',
+            fake_add_watches_to_udf_ancestors,
+        )
 
         self.lr = local_rescan.LocalRescan(self.vm, self.fsm, self.eq, self.aq)
 
@@ -2196,10 +2371,14 @@ class ParentWatchForUDFTestCase(BaseTestCase):
         difference = expected.symmetric_difference(actual)
         msg = (
             'Expected (%s)\n\nIs not subset of real watches (%s).\n\nSet '
-            'symmetric difference is: %s.' % (expected, actual, difference))
+            'symmetric difference is: %s.' % (expected, actual, difference)
+        )
         self.assertTrue(expected.issubset(actual), msg)
-        self.assertTrue(self.handler.check_debug("Adding watch to UDF's",
-                                                 repr(self.ancestors[0])))
+        self.assertTrue(
+            self.handler.check_debug(
+                "Adding watch to UDF's", repr(self.ancestors[0])
+            )
+        )
 
     @defer.inlineCallbacks
     def test_watch_is_not_added_if_present(self):
@@ -2230,8 +2409,9 @@ class BrokenNodesTests(TwistedBase):
         self.fsm.set_by_mdid(mdid, dirty=True, local_hash='foo')
 
         yield self.lr.start()
-        self.assertTrue(self.handler.check_info('Broken node',
-                                                'brokennodepath', mdid))
+        self.assertTrue(
+            self.handler.check_info('Broken node', 'brokennodepath', mdid)
+        )
 
     @defer.inlineCallbacks
     def test_several(self):
@@ -2244,7 +2424,9 @@ class BrokenNodesTests(TwistedBase):
         self.fsm.set_by_mdid(mdid2, dirty=True, local_hash='foo')
 
         yield self.lr.start()
-        self.assertTrue(self.handler.check_info('Broken node',
-                                                'brokenpath1', mdid1))
-        self.assertTrue(self.handler.check_info('Broken node',
-                                                'brokenpath2', mdid2))
+        self.assertTrue(
+            self.handler.check_info('Broken node', 'brokenpath1', mdid1)
+        )
+        self.assertTrue(
+            self.handler.check_info('Broken node', 'brokenpath2', mdid2)
+        )

@@ -47,7 +47,7 @@ class ValidationFailed(Exception):
     """signals that the specification is not correct"""
 
 
-class ValidationError(object):
+class ValidationError:
     """Contains validation errors"""
 
     def __init__(self, description):
@@ -58,7 +58,7 @@ class ValidationError(object):
 
 
 def build_combinations_from_varlist(varlist):
-    """ create all posible variable values combinations
+    """create all posible variable values combinations
 
     takes a dict in the form {varname: [value, value2, *]}
     returns [{varname:value}, {varname:value2}, ...]
@@ -67,8 +67,9 @@ def build_combinations_from_varlist(varlist):
     keys = [x[0] for x in items]
     values = [x[1] for x in items]
 
-    possible_states = [dict(zip(keys, state))
-                       for state in itertools.product(*values)]
+    possible_states = [
+        dict(zip(keys, state)) for state in itertools.product(*values)
+    ]
     return possible_states
 
 
@@ -91,7 +92,7 @@ def expand_var_list(varlist, values):
     return build_combinations_from_varlist(myvalues)
 
 
-class StateMachineRunner(object):
+class StateMachineRunner:
     """Reads a StateMachine descriptions and executes transitions."""
 
     def __init__(self, fsm, log=None):
@@ -106,21 +107,24 @@ class StateMachineRunner(object):
         """Do the transition for this event.
         Returns the function called for the action"""
         # get the state
-        self.log.debug("EVENT: %s:%s with ARGS:%s" % (
-            event_name, parameters, args))
+        self.log.debug(
+            "EVENT: %s:%s with ARGS:%s" % (event_name, parameters, args)
+        )
         try:
             enter_state = self.get_state()
         except KeyError:
-            self.log.error("cant find current state: %s" % (
-                self.get_state_values()))
+            self.log.error(
+                "cant find current state: %s" % (self.get_state_values())
+            )
             raise KeyError("Incorrect In State")
 
         # find the transition
         try:
             transition = enter_state.get_transition(event_name, parameters)
         except KeyError:
-            self.log.error("Cant find transition %s:%s" %
-                           (event_name, parameters))
+            self.log.error(
+                "Cant find transition %s:%s" % (event_name, parameters)
+            )
             return
         action_func_name = transition.action_func
         # call the action_func
@@ -130,14 +134,19 @@ class StateMachineRunner(object):
         elif af == "pass":
             self.log.debug("passing")
         else:
-            self.log.info("Calling %s (got %s:%s)",
-                          action_func_name, event_name, parameters)
+            self.log.info(
+                "Calling %s (got %s:%s)",
+                action_func_name,
+                event_name,
+                parameters,
+            )
             try:
                 af(event_name, parameters, *args)
             except Exception as e:
-                self.log.exception("Executing ACTION_FUNC '%s' "
-                                   "gave an exception: %r" %
-                                   (action_func_name, e))
+                self.log.exception(
+                    "Executing ACTION_FUNC '%s' "
+                    "gave an exception: %r" % (action_func_name, e)
+                )
                 self.on_error(event_name, parameters)
                 return
         # validate the end state
@@ -146,16 +155,24 @@ class StateMachineRunner(object):
         except KeyError:
             self.log.error(
                 "from state %s on %s:%s, cant find current out state: %s",
-                enter_state.values, event_name, parameters,
-                self.get_state_values())
+                enter_state.values,
+                event_name,
+                parameters,
+                self.get_state_values(),
+            )
             self.on_error(event_name, parameters)
             raise KeyError("unknown out state")
 
         if out_state.values != transition.target:
             self.log.error(
                 "in state %s with event %s:%s, out state is: %s and should "
-                "be %s", enter_state.values, event_name, parameters,
-                out_state.values, transition.target)
+                "be %s",
+                enter_state.values,
+                event_name,
+                parameters,
+                out_state.values,
+                transition.target,
+            )
             raise ValueError("Incorrect out state")
         self.log.debug("Called %s", action_func_name)
         return action_func_name
@@ -172,11 +189,10 @@ class StateMachineRunner(object):
         raise NotImplementedError()
 
     def on_error(self, event_name, parameters):
-        """A Transition encontered an error. Cleanup.
-        """
+        """A Transition encontered an error. Cleanup."""
 
 
-class StateMachine(object):
+class StateMachine:
     """The state machine"""
 
     def __init__(self, input_data, event_filter=None):
@@ -193,6 +209,7 @@ class StateMachine(object):
                 # this shouldnt be called with an .ods file on production
                 # environments
                 from magicicadaclient.syncdaemon.fsm import fsm_parser
+
                 spec = fsm_parser.parse(input_data)
             elif input_data.endswith(".py"):
                 result = {}
@@ -230,13 +247,17 @@ class StateMachine(object):
                     value = state[kind][name]
                 except KeyError:
                     err = ValidationError(
-                        "variable name '%s' not found in section %s" %
-                        (name, kind))
+                        "variable name '%s' not found in section %s"
+                        % (name, kind)
+                    )
                     self.errors.append(err)
                 else:
                     if value.strip() == "=" and kind != "STATE_OUT":
-                        self.errors.append(ValidationError(
-                            "Cant have '=' in STATE or PARAMETERS section"))
+                        self.errors.append(
+                            ValidationError(
+                                "Cant have '=' in STATE or PARAMETERS section"
+                            )
+                        )
                     if not value.strip() in ("*", "="):
                         if not value.strip()[0] == "!":
                             vals.add(value)
@@ -271,7 +292,9 @@ class StateMachine(object):
                 except ValueError:
                     self.errors.append(
                         ValidationError(
-                            "State %s already removed from invalid" % es))
+                            "State %s already removed from invalid" % es
+                        )
+                    )
 
         for stateval in possible_states:
             self.states[hash_dict(stateval)] = State(stateval)
@@ -297,9 +320,14 @@ class StateMachine(object):
                     self.errors.append(
                         ValidationError(
                             "Transitiont on %s with %s from '%s'cant find "
-                            "source state." % (transition.event,
-                                               transition.parameters,
-                                               transition.source)))
+                            "source state."
+                            % (
+                                transition.event,
+                                transition.parameters,
+                                transition.source,
+                            )
+                        )
+                    )
                     continue
                 s = {}
                 s.update(transition.source)
@@ -310,7 +338,9 @@ class StateMachine(object):
                     self.errors.append(
                         ValidationError(
                             "For event %s, the following transition was "
-                            "already covered: %s" % (event, transition)))
+                            "already covered: %s" % (event, transition)
+                        )
+                    )
                 else:
                     state.add_transition(transition)
             if tracker.empty():
@@ -318,18 +348,21 @@ class StateMachine(object):
                     self.errors.append(
                         ValidationError(
                             "The following state x parameters where not "
-                            "covered for '%s': %s" % (event, s)))
+                            "covered for '%s': %s" % (event, s)
+                        )
+                    )
 
     def get_state(self, vars_dict):
         """Get a state instance from a dict with {varname:value}"""
         return self.states[hash_dict(vars_dict)]
 
 
-class Tracker(object):
+class Tracker:
     """Tracks a list of state_x_params combinations.
 
     Does the same that a list does, but its more explicit. it used to do more.
     """
+
     def __init__(self, state_x_params):
         """Create a tracker."""
         self.pending = state_x_params[:]
@@ -343,7 +376,7 @@ class Tracker(object):
         return bool(self.pending)
 
 
-class Event(object):
+class Event:
     """Represents events that may happen.
 
     Interesting properties:
@@ -354,6 +387,7 @@ class Event(object):
     draw_transitions: the transitions, but not expanded. for drawing.
     state_x_params: all the posible state_x_params this event may encounter
     """
+
     def __init__(self, name, lines, machine):
         state_vars = machine.state_vars
         param_vars = machine.param_vars
@@ -461,15 +495,22 @@ class Event(object):
         return Tracker(self.state_x_params)
 
 
-class Transition(object):
+class Transition:
     """A transition.
 
     For each expansion of a transition line in the original spreadsheet we
     get one of these. with the corresponding attributes for all sections
     and event name.
     """
-    __slots__ = ('event', 'line', 'source',
-                 'target', 'parameters', 'action_func')
+
+    __slots__ = (
+        'event',
+        'line',
+        'source',
+        'target',
+        'parameters',
+        'action_func',
+    )
 
     def __init__(self, event, line):
         """Create a transition for event event from line.
@@ -486,10 +527,13 @@ class Transition(object):
     def __str__(self):
         """___str___"""
         return "<Transition: %s: %s x %s>" % (
-            self.event, self.source, self.parameters)
+            self.event,
+            self.source,
+            self.parameters,
+        )
 
 
-class State(object):
+class State:
     """A State object.
 
     Represents a combination of state variable values.
@@ -504,8 +548,9 @@ class State(object):
 
     def add_transition(self, transition):
         """Add a transition."""
-        self.transitions[transition.event,
-                         hash_dict(transition.parameters)] = transition
+        self.transitions[
+            transition.event, hash_dict(transition.parameters)
+        ] = transition
 
     def get_transition(self, event, parameters):
         """Get the transition for this events with these parameters."""
@@ -514,6 +559,7 @@ class State(object):
 
 if __name__ == "__main__":
     import sys
+
     s = StateMachine(sys.argv[1], sys.argv[2:])
     if s.errors:
         for e in s.errors:

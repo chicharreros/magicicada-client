@@ -38,7 +38,8 @@ from magicicadaclient.networkstate.windows import (
     NetworkManager,
     NetworkManagerState,
     ONLINE,
-    OFFLINE)
+    OFFLINE,
+)
 from magicicadaclient.tests import TestCase
 
 
@@ -50,8 +51,9 @@ class TestNetworkManager(MockerTestCase):
         self.connection_info = self.mocker.mock()
         self.connection_no_info = self.mocker.mock()
         self.disconnected = self.mocker.mock()
-        self.manager = NetworkManager(self.connection_no_info,
-                                      self.connection_info, self.disconnected)
+        self.manager = NetworkManager(
+            self.connection_no_info, self.connection_info, self.disconnected
+        )
 
     def test_connection_made(self):
         """Ensure db is called."""
@@ -97,7 +99,8 @@ class TestNetworkManagerState(MockerTestCase):
         super(TestNetworkManagerState, self).setUp()
         self.network_manager = self.mocker.mock()
         self.is_connected = self.mocker.replace(
-            'magicicadaclient.networkstate.windows.is_machine_connected')
+            'magicicadaclient.networkstate.windows.is_machine_connected'
+        )
         self.thread = self.mocker.mock()
         self.cb = self.mocker.mock()
         self.state = NetworkManagerState(self.cb)
@@ -123,8 +126,9 @@ class TestNetworkManagerState(MockerTestCase):
         self.thread.daemon = True
         self.thread.start()
         self.mocker.replay()
-        self.state.find_online_state(listener=self.network_manager,
-                                     listener_thread=self.thread)
+        self.state.find_online_state(
+            listener=self.network_manager, listener_thread=self.thread
+        )
 
     def test_find_online_state_connected(self):
         """Test that we do find the online state correctly."""
@@ -135,11 +139,12 @@ class TestNetworkManagerState(MockerTestCase):
         self.thread.daemon = True
         self.thread.start()
         self.mocker.replay()
-        self.state.find_online_state(listener=self.network_manager,
-                                     listener_thread=self.thread)
+        self.state.find_online_state(
+            listener=self.network_manager, listener_thread=self.thread
+        )
 
 
-class FakeWininet(object):
+class FakeWininet:
     """Fake wininet for windll."""
 
     connection_state = -1
@@ -149,7 +154,7 @@ class FakeWininet(object):
         return self.connection_state
 
 
-class FakeWininetException(object):
+class FakeWininetException:
     """Fake wininet for windll."""
 
     connection_state = -1

@@ -40,6 +40,7 @@ from magicicadaclient.logger import (
     MultiFilter,
     basic_formatter,
 )
+
 # api compatibility imports
 from magicicadaclient import logger
 from magicicadaclient.platform import (
@@ -53,11 +54,12 @@ NOTE = logger.NOTE
 TRACE = logger.TRACE
 
 
-class mklog(object):
+class mklog:
     """
     Create a logger that keeps track of the method where it's being
     called from, in order to make more informative messages.
     """
+
     __slots__ = ('logger', 'zipped_desc')
 
     def __init__(self, _logger, _method, _share, _uid, *args, **kwargs):
@@ -69,7 +71,12 @@ class mklog(object):
         args = ", ".join(all_args)
 
         desc = "%-28s share:%-40r node:%-40r %s(%s) " % (
-            _method, _share, _uid, _method, args)
+            _method,
+            _share,
+            _uid,
+            _method,
+            args,
+        )
         desc = desc.replace('%', '%%').encode('utf-8')
         self.zipped_desc = zlib.compress(desc, 9)
         self.logger = _logger
@@ -101,15 +108,19 @@ class mklog(object):
         self._log(self.logger.exception, *args)
 
     def note(self, *args):
-        """Log at NOTE level (high-priority info) """
+        """Log at NOTE level (high-priority info)"""
         self._log(self.logger.high, *args)
 
     def trace(self, *args):
         """Log at level TRACE"""
         self._log(self.logger.trace, *args)
 
-    def callbacks(self, success_message='success', success_arg='',
-                  failure_message='failure'):
+    def callbacks(
+        self,
+        success_message='success',
+        success_arg='',
+        failure_message='failure',
+    ):
         """
         Return a callback and an errback that log success or failure
         messages.
@@ -118,6 +129,7 @@ class mklog(object):
         interfere in the callback/errback chain of the deferred you
         add them to.
         """
+
         def callback(arg, success_arg=success_arg):
             "it worked!"
             if callable(success_arg):
@@ -130,6 +142,7 @@ class mklog(object):
             self.error(failure_message, failure.getErrorMessage())
             self.debug('traceback follows:\n\n' + failure.getTraceback(), '')
             return failure
+
         return callback, errback
 
 
@@ -152,8 +165,12 @@ def configure_handler(handler=None, filename=None, level=logging.DEBUG):
 
 
 def init(
-        base_dir, level=logging.DEBUG, max_bytes=2 ** 20,
-        backup_count=LOGBACKUP, debug=None):
+    base_dir,
+    level=logging.DEBUG,
+    max_bytes=2**20,
+    backup_count=LOGBACKUP,
+    debug=None,
+):
     """Configure logging.
 
     Set the level to debug of all registered loggers.
@@ -188,7 +205,8 @@ def init(
     # add the exception handler to the root logger
     exception_filename = os.path.join(base_dir, 'syncdaemon-exceptions.log')
     exception_handler = configure_handler(
-        filename=exception_filename, level=logging.ERROR)
+        filename=exception_filename, level=logging.ERROR
+    )
     exception_handler.maxBytes = max_bytes
     exception_handler.backupCount = backup_count
     logging.getLogger('').addHandler(exception_handler)
@@ -196,6 +214,7 @@ def init(
 
     # hook twisted.python.log with standard logging
     from twisted.python import log
+
     observer = log.PythonLoggingObserver('twisted')
     observer.start()
     # configure the logger to only show errors
@@ -218,14 +237,17 @@ def init(
     invnames_filename = os.path.join(base_dir, 'syncdaemon-invalid-names.log')
     invnames_logger.setLevel(logging.DEBUG)
     invnames_logger.addHandler(
-        configure_handler(filename=invnames_filename, level=logging.INFO))
+        configure_handler(filename=invnames_filename, level=logging.INFO)
+    )
 
     # broken nodes log
     brokennodes_filename = os.path.join(
-        base_dir, 'syncdaemon-broken-nodes.log')
+        base_dir, 'syncdaemon-broken-nodes.log'
+    )
     brokennodes_logger.setLevel(logging.DEBUG)
     brokennodes_logger.addHandler(
-        configure_handler(filename=brokennodes_filename, level=logging.INFO))
+        configure_handler(filename=brokennodes_filename, level=logging.INFO)
+    )
 
 
 def rotate_logs(handlers):

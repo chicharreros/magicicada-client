@@ -44,8 +44,10 @@ class TestSyncDaemonTool(TestCase):
     def setUp(self):
         yield super(TestSyncDaemonTool, self).setUp()
         self.patch(
-            perspective_broker.UbuntuOneClient, "connect",
-            lambda _: defer.Deferred())
+            perspective_broker.UbuntuOneClient,
+            "connect",
+            lambda _: defer.Deferred(),
+        )
         self.sdtool = perspective_broker.SyncDaemonToolProxy()
         self.calls = {}
 
@@ -53,7 +55,8 @@ class TestSyncDaemonTool(TestCase):
         """Test the _call_after_connection method."""
         collected_calls = []
         test_method = self.sdtool._call_after_connection(
-            lambda *args: collected_calls.append(args))
+            lambda *args: collected_calls.append(args)
+        )
         test_method(123)
         self.assertEqual(len(collected_calls), 0)
         self.sdtool.connected.callback("got connected!")
@@ -63,11 +66,14 @@ class TestSyncDaemonTool(TestCase):
         """Test execute connect in _call_after_connection method."""
         self.patch(self.sdtool.client, "is_connected", lambda: False)
         self.patch(
-            self.sdtool.client, "connect",
-            lambda *a, **kw: operator.setitem(self.calls, "connect", (a, kw)))
+            self.sdtool.client,
+            "connect",
+            lambda *a, **kw: operator.setitem(self.calls, "connect", (a, kw)),
+        )
         collected_calls = []
         test_method = self.sdtool._call_after_connection(
-            lambda *args: collected_calls.append(args))
+            lambda *args: collected_calls.append(args)
+        )
         test_method(123)
         self.assertIn("connect", self.calls)
         self.assertEqual(self.calls["connect"], ((), {}))
@@ -76,11 +82,14 @@ class TestSyncDaemonTool(TestCase):
         """Test execute connect in _call_after_connection method."""
         self.patch(self.sdtool.client, "is_connected", lambda: True)
         self.patch(
-            self.sdtool.client, "connect",
-            lambda *a, **kw: operator.setitem(self.calls, "connect", (a, kw)))
+            self.sdtool.client,
+            "connect",
+            lambda *a, **kw: operator.setitem(self.calls, "connect", (a, kw)),
+        )
         collected_calls = []
         test_method = self.sdtool._call_after_connection(
-            lambda *args: collected_calls.append(args))
+            lambda *args: collected_calls.append(args)
+        )
         test_method(123)
         self.assertNotIn("connect", self.calls)
 
@@ -122,7 +131,7 @@ class TestSyncDaemonTool(TestCase):
                 self.assertNotEqual(func_name, "call_after_connection_inner")
 
 
-class FakeRemoteObject(object):
+class FakeRemoteObject:
     """Fake a remote object."""
 
     def __init__(self):
@@ -157,18 +166,23 @@ class PerspectiveBrokerReconnect(TestCase):
             self.connected_signals.append(('connect_signal', args, kwargs))
 
         self.patch(
-            perspective_broker.SyncDaemonToolProxy, 'connect_signal',
-            connect_signal)
+            perspective_broker.SyncDaemonToolProxy,
+            'connect_signal',
+            connect_signal,
+        )
 
         def fake_reconnect(_):
             """Fake the reconnection of the client."""
             self.reconnected = True
 
         self.patch(
-            perspective_broker.UbuntuOneClient, 'reconnect', fake_reconnect)
+            perspective_broker.UbuntuOneClient, 'reconnect', fake_reconnect
+        )
         self.patch(
-            perspective_broker.UbuntuOneClient, 'connect',
-            lambda _: defer.succeed(True))
+            perspective_broker.UbuntuOneClient,
+            'connect',
+            lambda _: defer.succeed(True),
+        )
 
     @defer.inlineCallbacks
     def test_reconnect_no_signals(self):
@@ -180,14 +194,15 @@ class PerspectiveBrokerReconnect(TestCase):
     @defer.inlineCallbacks
     def test_reconnect_signals(self):
         """Test reconnection with signals."""
-        self.sdtool.connected_signals = dict(create_signal=[lambda: None],
-                                             delete_signal=[lambda: None])
+        self.sdtool.connected_signals = dict(
+            create_signal=[lambda: None], delete_signal=[lambda: None]
+        )
         yield self.sdtool.call_method('fake_remote', 'method_call')
         self.assertTrue(self.reconnected)
         self.assertEqual(2, len(self.connected_signals))
 
 
-class FakeU1Objects(object):
+class FakeU1Objects:
     """Fake PublicFiles for UbuntuOneClient."""
 
     def on_public_files_list_cb(self):
@@ -197,7 +212,7 @@ class FakeU1Objects(object):
         """Do nothing."""
 
 
-class FakeUbuntuOneClient(object):
+class FakeUbuntuOneClient:
     """Fake UbuntuOneClient."""
 
     def __init__(self):

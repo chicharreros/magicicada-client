@@ -98,34 +98,39 @@ if has_oo_bindings:
     class ParseError(Exception):
         """Raised when we cant parse the spreadsheet"""
 
-    class ODSReader(object):
+    class ODSReader:
         """Reads fsm from spreadsheets"""
 
         def __init__(self, filename):
             """Create a reader"""
             local = uno.getComponentContext()
             resolver = local.ServiceManager.createInstanceWithContext(
-                "com.sun.star.bridge.UnoUrlResolver", local)
+                "com.sun.star.bridge.UnoUrlResolver", local
+            )
 
             try:
                 context = resolver.resolve(
                     "uno:socket,host=localhost,port=2002;"
-                    "urp;StarOffice.ComponentContext")
+                    "urp;StarOffice.ComponentContext"
+                )
             except NoConnectException:
                 raise Exception(CONNECT_MSG)
 
             desktop = context.ServiceManager.createInstanceWithContext(
-                "com.sun.star.frame.Desktop", context)
+                "com.sun.star.frame.Desktop", context
+            )
 
             cwd = systemPathToFileUrl(os.getcwd())
             file_url = absolutize(
-                cwd, systemPathToFileUrl(os.path.join(os.getcwd(), filename)))
+                cwd, systemPathToFileUrl(os.path.join(os.getcwd(), filename))
+            )
             path = fileUrlToSystemPath(file_url)
             assert os.path.exists(path), 'Path %r should exist' % path
 
-            in_props = PropertyValue("Hidden", 0, True, 0),
+            in_props = (PropertyValue("Hidden", 0, True, 0),)
             document = desktop.loadComponentFromURL(
-                file_url, "_blank", 0, in_props)
+                file_url, "_blank", 0, in_props
+            )
             self.rules = document.Sheets.getByName('rules')
             try:
                 self.invalid = document.Sheets.getByName('invalid')
@@ -164,7 +169,8 @@ if has_oo_bindings:
             while True:
                 cells = [
                     self.rules.getCellByPosition(x, iter_line).getFormula()
-                    for x in range(line_length)]
+                    for x in range(line_length)
+                ]
                 if not any(cells):
                     break
 
@@ -192,7 +198,8 @@ if has_oo_bindings:
             while True:
                 cells = [
                     self.invalid.getCellByPosition(x, iter_line).getFormula()
-                    for x in range(line_length)]
+                    for x in range(line_length)
+                ]
                 if not any(cells):
                     break
 
@@ -276,8 +283,9 @@ if has_oo_bindings:
         names = rows[2][param_idx:action_idx]
         parameters = dict(zip(names, descs))
         # generate events
-        events_rowno = [n for n in range(len(rows))
-                        if rows[n][0] and not rows[n][1]]
+        events_rowno = [
+            n for n in range(len(rows)) if rows[n][0] and not rows[n][1]
+        ]
         events = {}
         for event_rowno in events_rowno:
             event_name = rows[event_rowno][0]
@@ -292,16 +300,28 @@ if has_oo_bindings:
                 comm = row[comments_idx]
                 afunc = row[action_func_idx]
                 p += 1
-                states.append(dict(STATE=st, STATE_OUT=st_out, PARAMETERS=vars,
-                              ACTION=act, COMMENTS=comm, ACTION_FUNC=afunc))
+                states.append(
+                    dict(
+                        STATE=st,
+                        STATE_OUT=st_out,
+                        PARAMETERS=vars,
+                        ACTION=act,
+                        COMMENTS=comm,
+                        ACTION_FUNC=afunc,
+                    )
+                )
             events[event_name] = states
 
         # build invalid state list
         invalid = ods.get_invalid()
         invalid = [dict(zip(invalid[0], r)) for r in invalid[1:]]
 
-        return dict(events=events, state_vars=state_vars,
-                    parameters=parameters, invalid=invalid)
+        return dict(
+            events=events,
+            state_vars=state_vars,
+            parameters=parameters,
+            invalid=invalid,
+        )
 
 
 def main():
@@ -309,8 +329,13 @@ def main():
     usage = "usage: %prog [options] SPREADSHEET"
 
     parser = optparse.OptionParser(usage=usage)
-    parser.add_option("-o", "--output", dest="output",
-                      help="write result to FILE", metavar="FILE")
+    parser.add_option(
+        "-o",
+        "--output",
+        dest="output",
+        help="write result to FILE",
+        metavar="FILE",
+    )
 
     (options, args) = parser.parse_args()
     if len(args) != 1:
@@ -322,8 +347,11 @@ def main():
     if options.output:
         f = open(options.output, "w")
         data = pprint.pformat(result)
-        f.write("\"\"\"This is a generated python file.\"\"\"\n"
-                "state_machine = %s""" % data)
+        f.write(
+            "\"\"\"This is a generated python file.\"\"\"\n"
+            "state_machine = %s"
+            "" % data
+        )
         f.close()
     else:
         pprint.pprint(result)

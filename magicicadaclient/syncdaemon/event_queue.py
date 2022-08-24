@@ -48,30 +48,49 @@ EVENTS = {
     'FS_DIR_CREATE': ('path',),
     'FS_FILE_DELETE': ('path',),
     'FS_DIR_DELETE': ('path',),
-    'FS_FILE_MOVE': ('path_from', 'path_to',),
-    'FS_DIR_MOVE': ('path_from', 'path_to',),
-    'FS_INVALID_NAME': ('dirname', 'filename',),
-
+    'FS_FILE_MOVE': ('path_from', 'path_to'),
+    'FS_DIR_MOVE': ('path_from', 'path_to'),
+    'FS_INVALID_NAME': ('dirname', 'filename'),
     'AQ_FILE_NEW_OK': ('volume_id', 'marker', 'new_id', 'new_generation'),
     'AQ_FILE_NEW_ERROR': ('marker', 'failure'),
     'AQ_DIR_NEW_OK': ('volume_id', 'marker', 'new_id', 'new_generation'),
     'AQ_DIR_NEW_ERROR': ('marker', 'failure'),
     'AQ_MOVE_OK': ('share_id', 'node_id', 'new_generation'),
-    'AQ_MOVE_ERROR': ('share_id', 'node_id',
-                      'old_parent_id', 'new_parent_id', 'new_name', 'error'),
-    'AQ_UNLINK_OK': ('share_id', 'parent_id', 'node_id', 'new_generation',
-                     'was_dir', 'old_path'),
+    'AQ_MOVE_ERROR': (
+        'share_id',
+        'node_id',
+        'old_parent_id',
+        'new_parent_id',
+        'new_name',
+        'error',
+    ),
+    'AQ_UNLINK_OK': (
+        'share_id',
+        'parent_id',
+        'node_id',
+        'new_generation',
+        'was_dir',
+        'old_path',
+    ),
     'AQ_UNLINK_ERROR': ('share_id', 'parent_id', 'node_id', 'error'),
     'AQ_DOWNLOAD_STARTED': ('share_id', 'node_id', 'server_hash'),
-    'AQ_DOWNLOAD_FILE_PROGRESS': ('share_id', 'node_id',
-                                  'n_bytes_read', 'deflated_size'),
+    'AQ_DOWNLOAD_FILE_PROGRESS': (
+        'share_id',
+        'node_id',
+        'n_bytes_read',
+        'deflated_size',
+    ),
     'AQ_DOWNLOAD_COMMIT': ('share_id', 'node_id', 'server_hash'),
     'AQ_DOWNLOAD_FINISHED': ('share_id', 'node_id', 'server_hash'),
     'AQ_DOWNLOAD_ERROR': ('share_id', 'node_id', 'server_hash', 'error'),
     'AQ_DOWNLOAD_DOES_NOT_EXIST': ('share_id', 'node_id'),
     'AQ_UPLOAD_STARTED': ('share_id', 'node_id', 'hash'),
-    'AQ_UPLOAD_FILE_PROGRESS': ('share_id', 'node_id',
-                                'n_bytes_written', 'deflated_size'),
+    'AQ_UPLOAD_FILE_PROGRESS': (
+        'share_id',
+        'node_id',
+        'n_bytes_written',
+        'deflated_size',
+    ),
     'AQ_UPLOAD_FINISHED': ('share_id', 'node_id', 'hash', 'new_generation'),
     'AQ_UPLOAD_ERROR': ('share_id', 'node_id', 'error', 'hash'),
     'AQ_SHARES_LIST': ('shares_list',),
@@ -91,19 +110,31 @@ EVENTS = {
     'AQ_LIST_VOLUMES_ERROR': ('error',),
     'AQ_DELETE_VOLUME_OK': ('volume_id',),
     'AQ_DELETE_VOLUME_ERROR': ('volume_id', 'error'),
-    'AQ_CHANGE_PUBLIC_ACCESS_OK': ('share_id', 'node_id', 'is_public',
-                                   'public_url'),
+    'AQ_CHANGE_PUBLIC_ACCESS_OK': (
+        'share_id',
+        'node_id',
+        'is_public',
+        'public_url',
+    ),
     'AQ_CHANGE_PUBLIC_ACCESS_ERROR': ('share_id', 'node_id', 'error'),
     'AQ_PUBLIC_FILES_LIST_OK': ('public_files',),
     'AQ_PUBLIC_FILES_LIST_ERROR': ('error',),
-    'AQ_DELTA_OK': ('volume_id', 'delta_content', 'end_generation',
-                    'full', 'free_bytes'),
+    'AQ_DELTA_OK': (
+        'volume_id',
+        'delta_content',
+        'end_generation',
+        'full',
+        'free_bytes',
+    ),
     'AQ_DELTA_ERROR': ('volume_id', 'error'),
     'AQ_DELTA_NOT_POSSIBLE': ('volume_id',),
-    'AQ_RESCAN_FROM_SCRATCH_OK': ('volume_id', 'delta_content',
-                                  'end_generation', 'free_bytes'),
+    'AQ_RESCAN_FROM_SCRATCH_OK': (
+        'volume_id',
+        'delta_content',
+        'end_generation',
+        'free_bytes',
+    ),
     'AQ_RESCAN_FROM_SCRATCH_ERROR': ('volume_id', 'error'),
-
     'SV_SHARE_CHANGED': ('info',),
     'SV_SHARE_DELETED': ('share_id',),
     'SV_SHARE_ANSWERED': ('share_id', 'answer'),
@@ -115,12 +146,9 @@ EVENTS = {
     'SV_FILE_NEW': ('volume_id', 'node_id', 'parent_id', 'name'),
     'SV_DIR_NEW': ('volume_id', 'node_id', 'parent_id', 'name'),
     'SV_FILE_DELETED': ('volume_id', 'node_id', 'was_dir', 'old_path'),
-
     'HQ_HASH_NEW': ('path', 'hash', 'crc32', 'size', 'stat'),
     'HQ_HASH_ERROR': ('mdid',),
-
     'LR_SCAN_ERROR': ('mdid', 'udfmode'),
-
     'SYS_USER_CONNECT': ('access_token',),
     'SYS_USER_DISCONNECT': (),
     'SYS_STATE_CHANGED': ('state',),
@@ -152,11 +180,9 @@ EVENTS = {
     'SYS_QUOTA_EXCEEDED': ('volume_id', 'free_bytes'),
     'SYS_BROKEN_NODE': ('volume_id', 'node_id', 'path', 'mdid'),
     'SYS_QUIT': (),
-
     'FSM_FILE_CONFLICT': ('old_name', 'new_name'),
     'FSM_DIR_CONFLICT': ('old_name', 'new_name'),
     'FSM_PARTIAL_COMMITED': ('share_id', 'node_id'),
-
     'VM_UDF_SUBSCRIBED': ('udf',),
     'VM_UDF_SUBSCRIBE_ERROR': ('udf_id', 'error'),
     'VM_UDF_UNSUBSCRIBED': ('udf',),
@@ -179,14 +205,15 @@ EVENTS = {
 DEFAULT_HANDLER = "handle_default"  # receives (event_name, **kwargs)
 
 
-class EventQueue(object):
+class EventQueue:
     """Manages the events from different sources and distributes them."""
 
     def __init__(self, fs, ignore_config=None, monitor_class=None):
         self.listener_map = {}
 
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.fs = fs
 
         if monitor_class is None:
@@ -309,7 +336,7 @@ class EventQueue(object):
                     break
 
     def _dispatch(self, event_name, **kwargs):
-        """ push the event to all listeners. """
+        """push the event to all listeners."""
         try:
             listeners = self.listener_map[event_name]
         except KeyError:
@@ -321,11 +348,14 @@ class EventQueue(object):
             try:
                 method(**kwargs)
             except self.ignored_base_exception:
-                self.log.exception("Error encountered while handling: %s "
-                                   "in %s", event_name, listener)
+                self.log.exception(
+                    "Error encountered while handling: %s " "in %s",
+                    event_name,
+                    listener,
+                )
 
     def _get_listener_method(self, listener, method_name, event_name):
-        """ returns the method named method_name or hanlde_default from the
+        """returns the method named method_name or hanlde_default from the
         listener. Or None if the methods are not defined in the listener.
         """
         method = getattr(listener, method_name, None)

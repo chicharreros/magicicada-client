@@ -56,7 +56,8 @@ def print_test():
     is_udf_autosubscribe_enabled = yield sdtool.is_udf_autosubscribe_enabled()
     print('\tAutosubscribe enabled: %s' % is_udf_autosubscribe_enabled)
     is_share_autosubscribe_enabled = (
-        yield sdtool.is_share_autosubscribe_enabled())
+        yield sdtool.is_share_autosubscribe_enabled()
+    )
     print('\tAutosubscribe enabled: %s' % is_share_autosubscribe_enabled)
     reactor.stop()
 

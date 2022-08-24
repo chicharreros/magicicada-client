@@ -55,7 +55,7 @@ class TestRunner(BaseTestRunner, TrialRunner):
         self.config = options
 
         try:
-            reactor_name = ('devtools.reactors.%s' % (self.config['reactor'],))
+            reactor_name = 'devtools.reactors.%s' % (self.config['reactor'],)
             reactor = __import__(reactor_name, None, None, [''])
         except ImportError:
             raise TestError('The specified reactor is not supported.')
@@ -65,8 +65,9 @@ class TestRunner(BaseTestRunner, TrialRunner):
             except ImportError:
                 raise TestError(
                     'The Python package providing the requested reactor is '
-                    'not installed. You can find it here: %s' %
-                    reactor.REACTOR_URL)
+                    'not installed. You can find it here: %s'
+                    % reactor.REACTOR_URL
+                )
 
         mode = None
         debugger = None
@@ -74,6 +75,7 @@ class TestRunner(BaseTestRunner, TrialRunner):
             _initialDebugSetup()
             mode = TrialRunner.DEBUG
             import pdb
+
             debugger = pdb
         if self.config['dry-run']:
             mode = TrialRunner.DRY_RUN
@@ -89,7 +91,8 @@ class TestRunner(BaseTestRunner, TrialRunner):
             tracebackFormat=self.config['tbformat'],
             realTimeErrors=self.config['rterrors'],
             uncleanWarnings=self.config['unclean-warnings'],
-            forceGarbageCollection=self.config['force-gc'])
+            forceGarbageCollection=self.config['force-gc'],
+        )
         # Named for trial compatibility.
         self.workingDirectory = self.working_dir
 
@@ -113,11 +116,9 @@ def _get_default_reactor():
 class TestOptions(trial.Options, BaseTestOptions):
     """Class for twisted options handling."""
 
-    optFlags = [["help-reactors", None],
-                ]
+    optFlags = [["help-reactors", None]]
 
-    optParameters = [["reactor", "r", _get_default_reactor()],
-                     ]
+    optParameters = [["reactor", "r", _get_default_reactor()]]
 
     def __init__(self, *args, **kwargs):
         super(TestOptions, self).__init__(*args, **kwargs)
@@ -126,18 +127,20 @@ class TestOptions(trial.Options, BaseTestOptions):
     def opt_coverage(self, option):
         """Handle special flags."""
         self['coverage'] = True
+
     opt_c = opt_coverage
 
     def opt_help_reactors(self):
         """Help on available reactors for use with tests"""
-        synopsis = ('')
+        synopsis = ''
         print(synopsis)
         print('Need to get list of reactors and print them here.\n')
         sys.exit(0)
 
     def opt_reactor(self, option):
         """Which reactor to use (see --help-reactors for a list
-           of possibilities)
-           """
+        of possibilities)
+        """
         self['reactor'] = option
+
     opt_r = opt_reactor

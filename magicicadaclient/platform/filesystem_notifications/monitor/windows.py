@@ -48,20 +48,23 @@ from win32con import (
     FILE_NOTIFY_CHANGE_SIZE,
     FILE_NOTIFY_CHANGE_LAST_WRITE,
     FILE_NOTIFY_CHANGE_SECURITY,
-    OPEN_EXISTING)
+    OPEN_EXISTING,
+)
 from win32file import (
     AllocateReadBuffer,
     CreateFileW,
     GetOverlappedResult,
     ReadDirectoryChangesW,
     FILE_FLAG_OVERLAPPED,
-    FILE_NOTIFY_INFORMATION)
+    FILE_NOTIFY_INFORMATION,
+)
 from win32event import (
     CreateEvent,
     INFINITE,
     SetEvent,
     WaitForMultipleObjects,
-    WAIT_OBJECT_0)
+    WAIT_OBJECT_0,
+)
 
 from magicicadaclient.platform.os_helper.windows import (
     get_syncdaemon_valid_path,
@@ -103,25 +106,29 @@ FILE_NOTIFY_CHANGE_CREATION = 0x00000040
 
 THREADPOOL_MAX = 20
 
-FILESYSTEM_MONITOR_MASK = FILE_NOTIFY_CHANGE_FILE_NAME | \
-    FILE_NOTIFY_CHANGE_DIR_NAME | \
-    FILE_NOTIFY_CHANGE_ATTRIBUTES | \
-    FILE_NOTIFY_CHANGE_SIZE | \
-    FILE_NOTIFY_CHANGE_LAST_WRITE | \
-    FILE_NOTIFY_CHANGE_SECURITY | \
-    FILE_NOTIFY_CHANGE_LAST_ACCESS
+FILESYSTEM_MONITOR_MASK = (
+    FILE_NOTIFY_CHANGE_FILE_NAME
+    | FILE_NOTIFY_CHANGE_DIR_NAME
+    | FILE_NOTIFY_CHANGE_ATTRIBUTES
+    | FILE_NOTIFY_CHANGE_SIZE
+    | FILE_NOTIFY_CHANGE_LAST_WRITE
+    | FILE_NOTIFY_CHANGE_SECURITY
+    | FILE_NOTIFY_CHANGE_LAST_ACCESS
+)
 
 
-class Watch(object):
+class Watch:
     """Implement the same functions as pyinotify.Watch."""
 
-    def __init__(self, path, process_events, mask=FILESYSTEM_MONITOR_MASK,
-                 buf_size=8192):
+    def __init__(
+        self, path, process_events, mask=FILESYSTEM_MONITOR_MASK, buf_size=8192
+    ):
         self.path = os.path.abspath(path)
         self.process_events = process_events
         self.watching = False
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.log.setLevel(logging.DEBUG)
         self._buf_size = buf_size
         self._mask = mask
@@ -143,9 +150,11 @@ class Watch(object):
         # and then use the proc_fun
         for action, file_name in events:
             syncdaemon_path = get_syncdaemon_valid_path(
-                os.path.join(self.path, file_name))
+                os.path.join(self.path, file_name)
+            )
             self.process_events(
-                action, file_name, str(uuid4()), syncdaemon_path)
+                action, file_name, str(uuid4()), syncdaemon_path
+            )
 
     def _call_deferred(self, f, *args):
         """Executes the deferred call avoiding possible race conditions."""
@@ -158,14 +167,19 @@ class Watch(object):
             self._watch()
         except Exception as e:
             reactor.callFromThread(
-                self._call_deferred, self._watch_started_deferred.errback,
-                Failure(e))
+                self._call_deferred,
+                self._watch_started_deferred.errback,
+                Failure(e),
+            )
 
     def _watch(self):
         """Watch a path that is a directory."""
-        self.log.debug('Adding watch for %r (exists? %r is dir? %r).',
-                       self.path,
-                       os.path.exists(self.path), os.path.isdir(self.path))
+        self.log.debug(
+            'Adding watch for %r (exists? %r is dir? %r).',
+            self.path,
+            os.path.exists(self.path),
+            os.path.isdir(self.path),
+        )
         # we are going to be using the ReadDirectoryChangesW whihc requires
         # a directory handle and the mask to be used.
         self._watch_handle = CreateFileW(
@@ -175,7 +189,8 @@ class Watch(object):
             None,
             OPEN_EXISTING,
             FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
-            None)
+            None,
+        )
 
         try:
             self._watch_loop(self._watch_handle)
@@ -203,12 +218,15 @@ class Watch(object):
             )
             if not self._watch_started_deferred.called:
                 reactor.callFromThread(
-                    self._call_deferred, self._watch_started_deferred.callback,
-                    True)
+                    self._call_deferred,
+                    self._watch_started_deferred.callback,
+                    True,
+                )
             # wait for an event and ensure that we either stop or read the
             # data
             rc = WaitForMultipleObjects(
-                (self._wait_stop, self._overlapped.hEvent), 0, INFINITE)
+                (self._wait_stop, self._overlapped.hEvent), 0, INFINITE
+            )
             if rc == WAIT_OBJECT_0:
                 # Stop event
                 break
@@ -218,7 +236,8 @@ class Watch(object):
             events = FILE_NOTIFY_INFORMATION(buf, data)
             self.log.debug(
                 'Got from ReadDirectoryChangesW %r.',
-                [(ACTIONS_NAMES[action], path) for action, path in events])
+                [(ACTIONS_NAMES[action], path) for action, path in events],
+            )
             reactor.callFromThread(self._process_events, events)
 
     def start_watching(self):
@@ -244,7 +263,7 @@ class Watch(object):
         return self._watch_stopped_deferred
 
 
-class WatchManager(object):
+class WatchManager:
     """Implement the same functions as pyinotify.WatchManager.
 
     All paths passed to methods in this class should be windows paths.

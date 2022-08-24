@@ -31,7 +31,7 @@
 from twisted.internet import defer
 
 
-class Inhibitor(object):
+class Inhibitor:
     """An object representing an inhibition, that can be cancelled."""
 
     def inhibit(self, flags, reason):

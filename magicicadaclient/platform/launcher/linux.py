@@ -30,6 +30,7 @@
 
 try:
     from gi.repository import Unity
+
     use_libunity = True
 except ImportError:
     use_libunity = False
@@ -37,12 +38,13 @@ except ImportError:
 CONTROLPANEL_DOTDESKTOP = "ubuntuone-installer.desktop"
 
 
-class LauncherUnity(object):
+class LauncherUnity:
     """The launcher icon."""
 
     def __init__(self):
         self.entry = Unity.LauncherEntry.get_for_desktop_id(
-            CONTROLPANEL_DOTDESKTOP)
+            CONTROLPANEL_DOTDESKTOP
+        )
 
     def show_progressbar(self):
         """Show the progress bar."""
@@ -73,7 +75,7 @@ class LauncherUnity(object):
         self.entry.set_property('count_visible', False)
 
 
-class DummyLauncher(object):
+class DummyLauncher:
     """A dummy launcher icon."""
 
     def __init__(self):

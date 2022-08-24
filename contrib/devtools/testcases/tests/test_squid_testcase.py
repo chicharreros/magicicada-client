@@ -72,8 +72,9 @@ class ProxyClientFactory(client.HTTPClientFactory):
 class ProxyWebClient(object):
     """Provide useful web methods with proxy."""
 
-    def __init__(self, proxy_url=None, proxy_port=None, username=None,
-                 password=None):
+    def __init__(
+        self, proxy_url=None, proxy_port=None, username=None, password=None
+    ):
         """Create a new instance with the proxy settings."""
         self.proxy_url = proxy_url
         self.proxy_port = proxy_port
@@ -87,16 +88,23 @@ class ProxyWebClient(object):
         scheme, _, _, _, _, _ = urlparse(url)
         if scheme == 'https':
             from twisted.internet import ssl
+
             if contextFactory is None:
                 contextFactory = ssl.ClientContextFactory()
-            self.connectors.append(reactor.connectSSL(self.proxy_url,
-                                                      self.proxy_port,
-                                                      self.factory,
-                                                      contextFactory))
+            self.connectors.append(
+                reactor.connectSSL(
+                    self.proxy_url,
+                    self.proxy_port,
+                    self.factory,
+                    contextFactory,
+                )
+            )
         else:
-            self.connectors.append(reactor.connectTCP(self.proxy_url,
-                                                      self.proxy_port,
-                                                      self.factory))
+            self.connectors.append(
+                reactor.connectTCP(
+                    self.proxy_url, self.proxy_port, self.factory
+                )
+            )
 
     def _process_auth_error(self, failure, url, contextFactory):
         """Process an auth failure."""
@@ -106,8 +114,11 @@ class ProxyWebClient(object):
             auth = base64.b64encode('%s:%s' % (self.username, self.password))
             auth_header = 'Basic ' + auth.strip()
             self.factory = ProxyClientFactory(
-                self.proxy_url, self.proxy_port,
-                url, headers={'Proxy-Authorization': auth_header})
+                self.proxy_url,
+                self.proxy_port,
+                url,
+                headers={'Proxy-Authorization': auth_header},
+            )
             self._connect(url, contextFactory)
             return self.factory.deferred
         else:
@@ -120,11 +131,16 @@ class ProxyWebClient(object):
         step. If there is an auth error the method will perform a second try
         so that the username and password are used.
         """
-        self.factory = ProxyClientFactory(self.proxy_url, self.proxy_port, url,
-                                          headers={'Connection': 'close'})
+        self.factory = ProxyClientFactory(
+            self.proxy_url,
+            self.proxy_port,
+            url,
+            headers={'Connection': 'close'},
+        )
         self._connect(url, contextFactory)
-        self.factory.deferred.addErrback(self._process_auth_error, url,
-                                         contextFactory)
+        self.factory.deferred.addErrback(
+            self._process_auth_error, url, contextFactory
+        )
         return self.factory.deferred
 
     @defer.inlineCallbacks
@@ -177,9 +193,9 @@ class MockWebServer(object):
 
         root.putChild(THROWERROR, resource.NoResource())
 
-        unauthorized_resource = resource.ErrorPage(http.UNAUTHORIZED,
-                                                   "Unauthorized",
-                                                   "Unauthorized")
+        unauthorized_resource = resource.ErrorPage(
+            http.UNAUTHORIZED, "Unauthorized", "Unauthorized"
+        )
         root.putChild(UNAUTHORIZED, unauthorized_resource)
 
         self.site = SaveSite(root)
@@ -221,9 +237,12 @@ class ProxyTestCase(SquidTestCase):
         if self.proxy_client is not None:
             self.proxy_client.shutdown()
             return defer.gatherResults(
-                [self.ws.stop(),
-                 self.proxy_client.shutdown(),
-                 self.proxy_client.factory.disconnected_d])
+                [
+                    self.ws.stop(),
+                    self.proxy_client.shutdown(),
+                    self.proxy_client.factory.disconnected_d,
+                ]
+            )
         else:
             return self.ws.stop()
 
@@ -234,10 +253,12 @@ class ProxyTestCase(SquidTestCase):
 
     def access_auth_url(self, address, port, username, password):
         """Access a url throught the proxy."""
-        self.proxy_client = ProxyWebClient(proxy_url=address,
-                                           proxy_port=port,
-                                           username=username,
-                                           password=password)
+        self.proxy_client = ProxyWebClient(
+            proxy_url=address,
+            proxy_port=port,
+            username=username,
+            password=password,
+        )
         return self.proxy_client.get_page(self.url)
 
     @defer.inlineCallbacks
@@ -245,21 +266,23 @@ class ProxyTestCase(SquidTestCase):
         """Test accessing to the url."""
         settings = self.get_nonauth_proxy_settings()
         # if there is an exception we fail.
-        data = yield self.access_noauth_url(settings['host'],
-                                            settings['port'])
+        data = yield self.access_noauth_url(settings['host'], settings['port'])
         self.assertEqual(SAMPLE_RESOURCE, data)
 
-    @skipIfOS('linux2',
-              'LP: #1111880 - ncsa_auth crashing for auth proxy tests.')
+    @skipIfOS(
+        'linux2', 'LP: #1111880 - ncsa_auth crashing for auth proxy tests.'
+    )
     @defer.inlineCallbacks
     def test_auth_url_access(self):
         """Test accessing to the url."""
         settings = self.get_auth_proxy_settings()
         # if there is an exception we fail.
-        data = yield self.access_auth_url(settings['host'],
-                                          settings['port'],
-                                          settings['username'],
-                                          settings['password'])
+        data = yield self.access_auth_url(
+            settings['host'],
+            settings['port'],
+            settings['username'],
+            settings['password'],
+        )
         self.assertEqual(SAMPLE_RESOURCE, data)
 
     def test_auth_url_401(self):
@@ -267,14 +290,21 @@ class ProxyTestCase(SquidTestCase):
         settings = self.get_auth_proxy_settings()
         # swap password for username to fail
         d = self.failUnlessFailure(
-            self.access_auth_url(settings['host'],
-                                 settings['port'], settings['password'],
-                                 settings['username']), error.Error)
+            self.access_auth_url(
+                settings['host'],
+                settings['port'],
+                settings['password'],
+                settings['username'],
+            ),
+            error.Error,
+        )
         return d
 
     def test_auth_url_407(self):
         """Test failing accessing the url."""
         settings = self.get_auth_proxy_settings()
-        d = self.failUnlessFailure(self.access_noauth_url(settings['host'],
-                                   settings['port']), error.Error)
+        d = self.failUnlessFailure(
+            self.access_noauth_url(settings['host'], settings['port']),
+            error.Error,
+        )
         return d

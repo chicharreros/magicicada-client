@@ -32,11 +32,7 @@ import itertools
 from unittest import mock
 
 from twisted.internet import defer
-from twisted.spread.pb import (
-    DeadReferenceError,
-    NoSuchMethod,
-    RemoteReference,
-)
+from twisted.spread.pb import DeadReferenceError, NoSuchMethod, RemoteReference
 from twisted.trial.unittest import TestCase
 
 from devtools.testcases import skipIf, skipIfOS
@@ -81,7 +77,7 @@ class RandomException(Exception):
     """A random exception."""
 
 
-class FakeActivationClient(object):
+class FakeActivationClient:
     """A fake ActivationClient."""
 
     def __init__(self, config):
@@ -93,7 +89,7 @@ class FakeActivationClient(object):
         return defer.succeed(self.config.description.client)
 
 
-class FakeDecoratedObject(object):
+class FakeDecoratedObject:
     """An object that has decorators."""
 
     @signal
@@ -236,7 +232,8 @@ class TestSignalBroadcaster(TestCase):
         self.broad_caster.emit_signal(signal_name, first, second, word=word)
 
         self.client.callRemote.assert_called_once_with(
-            signal_name, first, second, word=word)
+            signal_name, first, second, word=word
+        )
 
     def test_emit_signal_dead_reference(self):
         """Test dead reference while emitting a signal."""
@@ -248,8 +245,9 @@ class TestSignalBroadcaster(TestCase):
         sb.remote_register_to_signals(fake_remote_client, [sample_signal])
         self.assertIn(fake_remote_client, sb.clients_per_signal[sample_signal])
         sb.emit_signal(sample_signal)
-        self.assertNotIn(fake_remote_client,
-                         sb.clients_per_signal[sample_signal])
+        self.assertNotIn(
+            fake_remote_client, sb.clients_per_signal[sample_signal]
+        )
 
         fake_remote_client.callRemote.assert_called_once_with(sample_signal)
 
@@ -270,7 +268,7 @@ class TestSignalBroadcaster(TestCase):
         fake_alive_remote.callRemote.assert_called_once_with(sample_signal)
 
 
-class FakeRemoteClient(object):
+class FakeRemoteClient:
     """A fake RemoteClient."""
 
     missing_signal = "missing"
@@ -333,7 +331,7 @@ class SignalBroadcasterFailuresTestCase(TestCase):
         self.assertIn(expected, warnings)
 
 
-class FakeRemoteObject(object):
+class FakeRemoteObject:
     """A test helper."""
 
     def __init__(self):
@@ -345,7 +343,7 @@ class FakeRemoteObject(object):
         self.called.append(args)
 
 
-class FakeNetworkManagerState(object):
+class FakeNetworkManagerState:
     """Fake NetworkState."""
 
     def __init__(self, result_cb=None):
@@ -366,9 +364,7 @@ class RemoteClientTestCase(TestCase):
         client = RemoteClient(fake_remote_object)
         client.signal_handlers = ["on_abc"]
         client.register_to_signals()
-        expected = [
-            ("register_to_signals", client, client.signal_handlers)
-        ]
+        expected = [("register_to_signals", client, client.signal_handlers)]
         self.assertEqual(fake_remote_object.called, expected)
 
 
@@ -387,12 +383,13 @@ class IPCTestCase(FakeMainTestCase, TCPPbServerTestCase):
         self.patch(ipc, 'ActivationClient', FakeActivationClient)
         # patch the interaction interfaces to not choose the system one but
         # always the perspective broker one
-        self.patch(interaction_interfaces, 'ExternalInterface',
-                   ipc.IPCInterface)
+        self.patch(
+            interaction_interfaces, 'ExternalInterface', ipc.IPCInterface
+        )
 
         yield super(IPCTestCase, self).setUp()
 
-        class FakeDescriptionFactory(object):
+        class FakeDescriptionFactory:
             """Factory used that returns settings for the test."""
 
             def __init__(my_self):
@@ -408,8 +405,11 @@ class IPCTestCase(FakeMainTestCase, TCPPbServerTestCase):
 
         # patch the networkmanagerstate to avoid spawning unnecessary
         # threads when we instantiate the syncdaemonservice:
-        self.patch(interaction_interfaces, 'NetworkManagerState',
-                   FakeNetworkManagerState)
+        self.patch(
+            interaction_interfaces,
+            'NetworkManagerState',
+            FakeNetworkManagerState,
+        )
 
         self.service = self.service_class(main=self.main, send_events=True)
         self.service.auth_credentials = ('foo', 'bar')
@@ -479,8 +479,9 @@ class IPCTestCase(FakeMainTestCase, TCPPbServerTestCase):
         self.assertEqual(real_result, actual)
         self.assertEqual(service._called, {method: [(args, kwargs)]})
 
-    def assert_remote_method(self, method, in_signature='', out_signature='',
-                             async_callbacks=None):
+    def assert_remote_method(
+        self, method, in_signature='', out_signature='', async_callbacks=None
+    ):
         """Assert that 'method' is a remote method.
 
         'in_signature' and 'out_signature' are ignored for now.
@@ -532,8 +533,9 @@ class IPCTestCase(FakeMainTestCase, TCPPbServerTestCase):
             setattr(remote_client, remote_cb_name, fake_remote_cb)
             self.addCleanup(delattr, remote_client, remote_cb_name)
 
-            remote_client_func = getattr(remote_client,
-                                         remote_client_func_name)
+            remote_client_func = getattr(
+                remote_client, remote_client_func_name
+            )
 
             result = remote_client_func(*args)
 
@@ -677,7 +679,7 @@ class RemoteMetaTestCase(TestCase):
         """The remote_calls are renamed."""
         test_token = object()
 
-        class TestClass(object, metaclass=RemoteMeta):
+        class TestClass(metaclass=RemoteMeta):
             """A class for testing."""
 
             remote_calls = ['test_method']
@@ -694,7 +696,7 @@ class RemoteMetaTestCase(TestCase):
         """The signal_handlers are renamed."""
         test_token = object()
 
-        class TestClass(object, metaclass=RemoteMeta):
+        class TestClass(metaclass=RemoteMeta):
             """A class for testing."""
 
             signal_handlers = ['test_signal_handler']
@@ -806,7 +808,8 @@ class IPCPortTestCase(TestCase):
     def test_is_already_running_yes(self):
         """Test the is_already_running function."""
         self.patch_ipc_activation(
-            lambda _: defer.fail(ipc.AlreadyStartedError()))
+            lambda _: defer.fail(ipc.AlreadyStartedError())
+        )
         is_running = yield ipc.is_already_running()
         self.assertTrue(is_running, "Should be running by now.")
 
@@ -852,8 +855,10 @@ class MultipleConnectionsTestCase(TestCase):
             defer.returnValue(True)
 
         self.patch(
-            ipc_client.UbuntuOneClient, '_request_remote_objects',
-            fake_request_remote_objects)
+            ipc_client.UbuntuOneClient,
+            '_request_remote_objects',
+            fake_request_remote_objects,
+        )
 
         @defer.inlineCallbacks
         def fake_register_to_signals(my_self):
@@ -863,8 +868,10 @@ class MultipleConnectionsTestCase(TestCase):
             defer.returnValue(True)
 
         self.patch(
-            ipc_client.UbuntuOneClient, 'register_to_signals',
-            fake_register_to_signals)
+            ipc_client.UbuntuOneClient,
+            'register_to_signals',
+            fake_register_to_signals,
+        )
 
     def grouper(self, n, iterable, fillvalue=None):
         "grouper(3, 'ABCDEFG', 'x') --> ABC DEF Gxx"
@@ -874,13 +881,20 @@ class MultipleConnectionsTestCase(TestCase):
     @defer.inlineCallbacks
     def test_multiple_connections(self):
         """Test that we only perform connect once but all other are correct."""
-        deferreds = [self.client_connect_d, self.client_root_obj_d,
-                     self.remote_obj_d, self.register_to_signals_d]
+        deferreds = [
+            self.client_connect_d,
+            self.client_root_obj_d,
+            self.remote_obj_d,
+            self.register_to_signals_d,
+        ]
 
         # the order in which the calls are expected
         expected_calls = (
-            'ipc_client_connect', 'getRootObject',
-            '_request_remote_objects', 'register_to_signals')
+            'ipc_client_connect',
+            'getRootObject',
+            '_request_remote_objects',
+            'register_to_signals',
+        )
 
         clients = []
         while len(clients) < self.num_clients:
@@ -903,15 +917,21 @@ class MultipleConnectionsTestCase(TestCase):
                 connected_d.append(client.connect())
 
             # perform the rest of steps
-            for step_d in deferreds[num_steps + 1:]:
+            rest_of_steps = num_steps + 1
+            for step_d in deferreds[rest_of_steps:]:
                 step_d.callback(True)
 
             yield defer.gatherResults(connected_d)
 
             # reset all the deferreds for the next round of testing
             methods = enumerate(
-                ('client_connect_d', 'client_root_obj_d', 'remote_obj_d',
-                 'register_to_signals_d'))
+                (
+                    'client_connect_d',
+                    'client_root_obj_d',
+                    'remote_obj_d',
+                    'register_to_signals_d',
+                )
+            )
             for i, d_name in methods:
                 new_d = defer.Deferred()
                 setattr(self, d_name, new_d)

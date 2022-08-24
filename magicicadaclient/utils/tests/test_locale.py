@@ -92,5 +92,6 @@ class LocaleTestCase(TestCase):
         locale.os.environ["LANG"] = "es_ES.UTF-8"
         locale.os.environ["LC_CTYPE"] = "tr_TR.UTF-8"
         locale.fix_turkish_locale()
-        self.assertEqual(locale.os.environ.get("LC_CTYPE", NO_VALUE),
-                         locale.SAFE_LOCALE)
+        self.assertEqual(
+            locale.os.environ.get("LC_CTYPE", NO_VALUE), locale.SAFE_LOCALE
+        )

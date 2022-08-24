@@ -61,7 +61,7 @@ class IPCError(DBusException):
         self.details = details
 
 
-class DBusClient(object):
+class DBusClient:
     """Low level dbus client. To help testing the DBus interface."""
 
     def __init__(self, bus, path, interface, destination=DBUS_IFACE_NAME):
@@ -80,8 +80,9 @@ class DBusClient(object):
 
     def call_method(self, method, *args, **kwargs):
         """Call method with *args and **kwargs over dbus."""
-        msg = MethodCallMessage(self.destination, self.path, self.interface,
-                                method)
+        msg = MethodCallMessage(
+            self.destination, self.path, self.interface, method
+        )
         # get the signature
         signature = kwargs.get('signature', None)
         if signature is not None:
@@ -104,8 +105,9 @@ class DBusClient(object):
         def parse_reply(message):
             """Handle the reply message."""
             if isinstance(message, ErrorMessage):
-                exc = IPCError(name=message.get_error_name(),
-                               info=message.get_args_list())
+                exc = IPCError(
+                    name=message.get_error_name(), info=message.get_args_list()
+                )
                 return error_handler(exc)
             args_list = message.get_args_list()
             if len(args_list) == 0:
@@ -116,12 +118,13 @@ class DBusClient(object):
                 reply_handler(tuple(args_list))
 
         self.bus.send_message_with_reply(
-            msg, reply_handler=parse_reply, require_main_loop=True)
+            msg, reply_handler=parse_reply, require_main_loop=True
+        )
 
         return d
 
 
-class SyncDaemonToolProxy(object):
+class SyncDaemonToolProxy:
     """Platform dependent proxy to syncdaemon."""
 
     def __init__(self, bus=None):
@@ -130,12 +133,15 @@ class SyncDaemonToolProxy(object):
         self.bus = bus
 
         self.config = DBusClient(self.bus, '/config', DBUS_IFACE_CONFIG_NAME)
-        self.file_system = DBusClient(self.bus, '/filesystem',
-                                      DBUS_IFACE_FS_NAME)
-        self.folders = DBusClient(self.bus, '/folders',
-                                  DBUS_IFACE_FOLDERS_NAME)
-        self.public_files = DBusClient(self.bus, '/publicfiles',
-                                       DBUS_IFACE_PUBLIC_FILES_NAME)
+        self.file_system = DBusClient(
+            self.bus, '/filesystem', DBUS_IFACE_FS_NAME
+        )
+        self.folders = DBusClient(
+            self.bus, '/folders', DBUS_IFACE_FOLDERS_NAME
+        )
+        self.public_files = DBusClient(
+            self.bus, '/publicfiles', DBUS_IFACE_PUBLIC_FILES_NAME
+        )
         self.shares = DBusClient(self.bus, '/shares', DBUS_IFACE_SHARES_NAME)
         self.status = DBusClient(self.bus, '/status', DBUS_IFACE_STATUS_NAME)
         self.sync_daemon = DBusClient(self.bus, '/', DBUS_IFACE_SYNC_NAME)
@@ -157,13 +163,15 @@ class SyncDaemonToolProxy(object):
 
     def disconnect_signal(self, signal_name, handler_or_match):
         """Disconnect 'handler_or_match' from 'signal_name'."""
-        return self.bus.remove_signal_receiver(handler_or_match,
-                                               signal_name=signal_name)
+        return self.bus.remove_signal_receiver(
+            handler_or_match, signal_name=signal_name
+        )
 
     def wait_connected(self):
         """Wait until syncdaemon is connected to the server."""
-        self.bus.get_object(DBUS_IFACE_NAME, '/',
-                            follow_name_owner_changes=True)
+        self.bus.get_object(
+            DBUS_IFACE_NAME, '/', follow_name_owner_changes=True
+        )
 
     def start(self):
         """Start syncdaemon, should *not* be running."""

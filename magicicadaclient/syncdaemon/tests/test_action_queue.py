@@ -59,7 +59,10 @@ from devtools import handlers
 from magicicadaclient import clientdefs
 from magicicadaclient.logger import NOTE, TRACE
 from magicicadaclient.platform import (
-    open_file, platform, path_exists, remove_file,
+    open_file,
+    platform,
+    path_exists,
+    remove_file,
 )
 from magicicadaclient.syncdaemon import (
     action_queue,
@@ -68,14 +71,38 @@ from magicicadaclient.syncdaemon import (
     offload_queue,
 )
 from magicicadaclient.syncdaemon.action_queue import (
-    ActionQueue, ActionQueueCommand, ChangePublicAccess, CreateUDF,
-    DeleteVolume, Download, ListVolumes, ActionQueueProtocol, ListShares,
-    RequestQueue, UploadProgressWrapper, Upload,
-    CreateShare, DeleteShare, GetPublicFiles, GetDelta, GetDeltaFromScratch,
-    TRANSFER_PROGRESS_THRESHOLD, Unlink, Move, MakeFile, MakeDir, DeltaList,
-    ZipQueue, DeferredMap, ThrottlingStorageClient, PathLockingTree,
-    InterruptibleDeferred, DeferredInterrupted, ConditionsLocker,
-    PingManager, logger,
+    ActionQueue,
+    ActionQueueCommand,
+    ChangePublicAccess,
+    CreateUDF,
+    DeleteVolume,
+    Download,
+    ListVolumes,
+    ActionQueueProtocol,
+    ListShares,
+    RequestQueue,
+    UploadProgressWrapper,
+    Upload,
+    CreateShare,
+    DeleteShare,
+    GetPublicFiles,
+    GetDelta,
+    GetDeltaFromScratch,
+    TRANSFER_PROGRESS_THRESHOLD,
+    Unlink,
+    Move,
+    MakeFile,
+    MakeDir,
+    DeltaList,
+    ZipQueue,
+    DeferredMap,
+    ThrottlingStorageClient,
+    PathLockingTree,
+    InterruptibleDeferred,
+    DeferredInterrupted,
+    ConditionsLocker,
+    PingManager,
+    logger,
 )
 from magicicadaclient.syncdaemon.event_queue import EventQueue, EVENTS
 from magicicadaclient.syncdaemon.marker import MDMarker
@@ -105,8 +132,9 @@ class MementoHandler(handlers.MementoHandler):
         return self.check(NOTE, *msgs)
 
 
-class FakeOffloadQueue(object):
+class FakeOffloadQueue:
     """Fake replacemente for offload_queue."""
+
     def __init__(self):
         self.queue = collections.deque()
 
@@ -125,12 +153,13 @@ class FakeOffloadQueue(object):
         return self.queue[idx]
 
 
-class FakeMagicHash(object):
+class FakeMagicHash:
     """Fake magic hash."""
+
     _magic_hash = '666'
 
 
-class FakeTempFile(object):
+class FakeTempFile:
     """Fake temporary file."""
 
     def __init__(self, tmpdir):
@@ -161,14 +190,15 @@ class FakedEventQueue(EventQueue):
         super(FakedEventQueue, self).push(event_name, **kwargs)
 
 
-class FakedVolume(object):
+class FakedVolume:
     """Faked volume."""
+
     volume_id = None
     generation = None
     free_bytes = None
 
 
-class FakeSemaphore(object):
+class FakeSemaphore:
     """Fake semaphore."""
 
     def __init__(self):
@@ -183,8 +213,9 @@ class FakeSemaphore(object):
         self.count -= 1
 
 
-class FakeRequest(object):
+class FakeRequest:
     """Fake Request."""
+
     def __init__(self, *a, **k):
         self.deferred = defer.succeed(True)
         self.cancelled = False
@@ -194,8 +225,9 @@ class FakeRequest(object):
         self.cancelled = True
 
 
-class FakeClient(object):
+class FakeClient:
     """Fake Client."""
+
     def __init__(self):
         self.called = []
 
@@ -210,7 +242,7 @@ class FakeClient(object):
         return FakeRequest()
 
 
-class FakeTunnelClient(object):
+class FakeTunnelClient:
     """A fake proxy.tunnel_client."""
 
     def __init__(self):
@@ -227,7 +259,7 @@ class FakeTunnelClient(object):
         self.ssl_connected = True
 
 
-class SavingConnectionTunnelRunner(object):
+class SavingConnectionTunnelRunner:
     """A fake proxy.tunnel_client.TunnelRunner."""
 
     def __init__(self, host, port):
@@ -261,6 +293,7 @@ class TestingProtocol(ActionQueue.protocol):
 
 class TestActionQueue(ActionQueue):
     """AQ class that uses the testing protocol."""
+
     protocol = TestingProtocol
 
 
@@ -286,8 +319,12 @@ class BasicTestCase(BaseTwistedTestCase):
         self.patch(FakeMain, '_fake_AQ_params', (connection_info,))
         self.patch(offload_queue, "OffloadQueue", FakeOffloadQueue)
 
-        self.main = FakeMain(root_dir=self.root, shares_dir=self.shares,
-                             data_dir=self.data, partials_dir=self.partials)
+        self.main = FakeMain(
+            root_dir=self.root,
+            shares_dir=self.shares,
+            data_dir=self.data,
+            partials_dir=self.partials,
+        )
         self.addCleanup(self.main.shutdown)
 
         self.action_queue = self.main.action_q
@@ -296,14 +333,18 @@ class BasicTestCase(BaseTwistedTestCase):
 
         def keep_a_copy(f):
             """Keep a copy of the pushed events."""
+
             @wraps(f)
             def recording(event_name, **kwargs):
                 """Keep a copy of the pushed events."""
                 value = (event_name, kwargs)
-                if event_name != 'SYS_STATE_CHANGED' and \
-                   not event_name.startswith('VM_'):
+                if (
+                    event_name != 'SYS_STATE_CHANGED'
+                    and not event_name.startswith('VM_')
+                ):
                     self.action_queue.event_queue.events.append(value)
                 return f(event_name, **kwargs)
+
             return recording
 
         self.main.event_q.push = keep_a_copy(self.main.event_q.push)
@@ -317,12 +358,14 @@ class BasicTestCase(BaseTwistedTestCase):
         """User requested to connect to server."""
         auth_info = dict(username='test_username', password='test_password')
         self.action_queue.event_queue.push(
-            'SYS_USER_CONNECT', access_token=auth_info)
+            'SYS_USER_CONNECT', access_token=auth_info
+        )
 
     def silent_connection_lost(self, failure):
         """Some tests will generate connection lost, support it."""
-        if not failure.check(twisted_error.ConnectionDone,
-                             twisted_error.ConnectionLost):
+        if not failure.check(
+            twisted_error.ConnectionDone, twisted_error.ConnectionLost
+        ):
             return failure
 
     def mock_action_queue_execute(self):
@@ -330,9 +373,11 @@ class BasicTestCase(BaseTwistedTestCase):
 
         def keep_a_copy(f):
             """Keep a copy of the execute calls."""
+
             @wraps(f)
             def recording(command_class, *args, **kwargs):
                 execute_calls.append((command_class.__name__, args, kwargs))
+
             return recording
 
         self.action_queue.execute = keep_a_copy(self.action_queue.execute)
@@ -341,6 +386,7 @@ class BasicTestCase(BaseTwistedTestCase):
 
 class BasicTests(BasicTestCase):
     """Basic tests to check ActionQueue."""
+
     fake_host = "fake_host"
     fake_iri = "http://%s/" % fake_host
 
@@ -356,8 +402,9 @@ class BasicTests(BasicTestCase):
         d = self.action_queue.uuid_map.get('mdid')
 
         # we received a root!
-        self.main.event_q.push('SYS_ROOT_RECEIVED',
-                               root_id='node_id', mdid='mdid')
+        self.main.event_q.push(
+            'SYS_ROOT_RECEIVED', root_id='node_id', mdid='mdid'
+        )
 
         # it should be demarked with the root node_id
         root_node_id = yield d
@@ -415,8 +462,9 @@ class BasicTests(BasicTestCase):
         cmd = FakeCommand('sh', 'nd')
         self._set_queue(cmd)
         self.action_queue._cancel_op('sh', 'nd', FakeCommand)
-        self.assertTrue(self.handler.check_debug('external cancel attempt',
-                                                 'sh', 'nd'))
+        self.assertTrue(
+            self.handler.check_debug('external cancel attempt', 'sh', 'nd')
+        )
         self.assertTrue(cmd.cancelled)
 
     def test_node_is_queued_move_api(self):
@@ -430,8 +478,16 @@ class BasicTests(BasicTestCase):
     def test_node_is_queued_move_integration(self):
         """Kind of integration test for this method."""
         aq = self.action_queue
-        cmd = Move(aq.queue, VOLUME, 'node', 'o_p', 'n_p', 'n_name',
-                   "pathfrom", "pathto")
+        cmd = Move(
+            aq.queue,
+            VOLUME,
+            'node',
+            'o_p',
+            'n_p',
+            'n_name',
+            "pathfrom",
+            "pathto",
+        )
         self.assertFalse(aq.node_is_with_queued_move(VOLUME, 'node'))
         aq.queue.waiting.append(cmd)
         aq.queue.hashed_waiting[cmd.uniqueness] = cmd
@@ -507,8 +563,9 @@ class TestRequestQueue(TwistedTestCase):
         """Set up."""
         yield super(TestRequestQueue, self).setUp()
 
-        class FakeAQ(object):
+        class FakeAQ:
             """Fake AQ."""
+
             event_queue = self.eq = FakedEventQueue()
 
         self.rq = RequestQueue(action_queue=FakeAQ())
@@ -753,8 +810,9 @@ class TestRequestQueue(TwistedTestCase):
         self._add_to_rq(cmd1, cmd2, cmd3)
         self.rq.remove(cmd2)
         self.assertEqual(list(self.rq.waiting), [cmd1, cmd3])
-        self.assertEqual(set(self.rq.hashed_waiting.values()),
-                         set([cmd1, cmd3]))
+        self.assertEqual(
+            set(self.rq.hashed_waiting.values()), set([cmd1, cmd3])
+        )
 
     def test_hashedwaiting_queue(self):
         """Queue a command and it will be added to hashed waiting."""
@@ -854,8 +912,9 @@ class TestDeferredMap(TwistedTestCase):
         d2 = self.dm.get('bar')
         d3 = self.dm.get('foo')
         d4 = self.dm.get('baz')
-        self.assertEqual(self.dm.waiting,
-                         {'foo': [d1, d3], 'bar': [d2], 'baz': [d4]})
+        self.assertEqual(
+            self.dm.waiting, {'foo': [d1, d3], 'bar': [d2], 'baz': [d4]}
+        )
 
     def test_set_to_nothing(self):
         """It's ok to set a key that is not being waited."""
@@ -923,6 +982,7 @@ class TestZipQueue(BasicTestCase):
 
         def fake_call_in_thread(callable, *args, **kwargs):
             callable(*args, **kwargs)
+
         self.patch(reactor, 'callInThread', fake_call_in_thread)
 
     @defer.inlineCallbacks
@@ -955,6 +1015,7 @@ class TestZipQueue(BasicTestCase):
     @defer.inlineCallbacks
     def test_fileobj_factory_error_is_logged(self):
         """Log the error when fileobj_factory fails."""
+
         def crash():
             """Crash!"""
             raise ValueError("foo")
@@ -967,8 +1028,11 @@ class TestZipQueue(BasicTestCase):
         upload.log.addHandler(self.handler)
 
         yield self.zq.zip(upload, crash)
-        self.assertTrue(self.handler.check_warning("Unable to build fileobj",
-                                                   "ValueError", "foo"))
+        self.assertTrue(
+            self.handler.check_warning(
+                "Unable to build fileobj", "ValueError", "foo"
+            )
+        )
 
     @defer.inlineCallbacks
     def test_fileobj_factory_error_cancels_upload(self):
@@ -1163,8 +1227,9 @@ class FactoryBaseTestCase(BasicTestCase):
         transport_class = webport.transport
 
         def save_an_instance(skt, protocol, addr, sself, s, sreactor):
-            self.server_transport = transport_class(skt, protocol, addr, sself,
-                                                    s, sreactor)
+            self.server_transport = transport_class(
+                skt, protocol, addr, sself, s, sreactor
+            )
             server_transport_deferred.callback(None)
             return self.server_transport
 
@@ -1271,8 +1336,10 @@ class ConnectionTestCase(FactoryBaseTestCase):
             """Receive connection failed and check."""
             orig(connector, reason)
             self.assert_connection_state_reset()
-            self.assertEqual([('SYS_CONNECTION_FAILED', {})],
-                             self.action_queue.event_queue.events)
+            self.assertEqual(
+                [('SYS_CONNECTION_FAILED', {})],
+                self.action_queue.event_queue.events,
+            )
             self.action_queue.clientConnectionFailed = orig
             d.callback(True)
 
@@ -1307,8 +1374,10 @@ class ConnectionTestCase(FactoryBaseTestCase):
             """Receive connection lost and check."""
             orig(connector, reason)
             self.assert_connection_state_reset()
-            self.assertEqual([('SYS_CONNECTION_LOST', {})],
-                             self.action_queue.event_queue.events)
+            self.assertEqual(
+                [('SYS_CONNECTION_LOST', {})],
+                self.action_queue.event_queue.events,
+            )
             self.action_queue.clientConnectionLost = orig
             d.callback(True)
 
@@ -1333,8 +1402,10 @@ class ConnectionTestCase(FactoryBaseTestCase):
             """Receive connection lost and check."""
             orig(*args, **kwargs)
             self.assert_connection_state_reset()
-            self.assertEqual([('SYS_CONNECTION_LOST', {})],
-                             self.action_queue.event_queue.events)
+            self.assertEqual(
+                [('SYS_CONNECTION_LOST', {})],
+                self.action_queue.event_queue.events,
+            )
             self.action_queue.clientConnectionLost = orig
             d.callback(True)
 
@@ -1350,20 +1421,28 @@ class ConnectionTestCase(FactoryBaseTestCase):
         self.assertTrue(self.action_queue is self.action_queue.client.factory)
 
         aq = self.action_queue
-        self.assertEqual(aq.client._share_change_callback,
-                         aq._share_change_callback)
-        self.assertEqual(aq.client._share_answer_callback,
-                         aq._share_answer_callback)
-        self.assertEqual(aq.client._free_space_callback,
-                         aq._free_space_callback)
-        self.assertEqual(aq.client._account_info_callback,
-                         aq._account_info_callback)
-        self.assertEqual(aq.client._volume_created_callback,
-                         aq._volume_created_callback)
-        self.assertEqual(aq.client._volume_deleted_callback,
-                         aq._volume_deleted_callback)
-        self.assertEqual(aq.client._volume_new_generation_callback,
-                         aq._volume_new_generation_callback)
+        self.assertEqual(
+            aq.client._share_change_callback, aq._share_change_callback
+        )
+        self.assertEqual(
+            aq.client._share_answer_callback, aq._share_answer_callback
+        )
+        self.assertEqual(
+            aq.client._free_space_callback, aq._free_space_callback
+        )
+        self.assertEqual(
+            aq.client._account_info_callback, aq._account_info_callback
+        )
+        self.assertEqual(
+            aq.client._volume_created_callback, aq._volume_created_callback
+        )
+        self.assertEqual(
+            aq.client._volume_deleted_callback, aq._volume_deleted_callback
+        )
+        self.assertEqual(
+            aq.client._volume_new_generation_callback,
+            aq._volume_new_generation_callback,
+        )
 
     @defer.inlineCallbacks
     def test_connector_gets_assigned_on_connect(self):
@@ -1379,22 +1458,28 @@ class ConnectionTestCase(FactoryBaseTestCase):
         assert connection_info['host'] == '127.0.0.1'
         assert connection_info['port'] == 0
 
-        class FakeConnector(object):
+        class FakeConnector:
             """Fake connector."""
+
             host = '1.2.3.4'
             port = 4321
 
         self.action_queue.startedConnecting(FakeConnector())
-        self.assertTrue(self.handler.check_info("Connection started",
-                                                "host 1.2.3.4", "port 4321"))
+        self.assertTrue(
+            self.handler.check_info(
+                "Connection started", "host 1.2.3.4", "port 4321"
+            )
+        )
 
     def test_connection_info_rotation(self):
         """It tries to connect to different servers."""
         # store how connectTCP is called
         called = []
         self.patch(
-            reactor, 'connectTCP',
-            lambda host, port, *a, **k: called.append((host, port)))
+            reactor,
+            'connectTCP',
+            lambda host, port, *a, **k: called.append((host, port)),
+        )
 
         multiple_conn = [
             {'host': 'host1', 'port': 'port1', 'use_ssl': False},
@@ -1433,8 +1518,10 @@ class ContextRequestedWithHost(FactoryBaseTestCase):
 
         self.patch(action_queue, "get_ssl_context", fake_get_ssl_context)
         self._patch_connection_info(
-            host=fake_host, use_ssl=True,
-            disable_ssl_verify=fake_disable_ssl_verify)
+            host=fake_host,
+            use_ssl=True,
+            disable_ssl_verify=fake_disable_ssl_verify,
+        )
         yield self.action_queue._make_connection()
 
 
@@ -1457,8 +1544,10 @@ class VolumeManagementTestCase(ConnectedBaseTestCase):
         """Volume created callback push proper event."""
         volume = FakedVolume()
         self.action_queue._volume_created_callback(volume)
-        self.assertEqual([('SV_VOLUME_CREATED', {'volume': volume})],
-                         self.action_queue.event_queue.events)
+        self.assertEqual(
+            [('SV_VOLUME_CREATED', {'volume': volume})],
+            self.action_queue.event_queue.events,
+        )
 
     def test_volume_deleted_push_event(self):
         """Volume deleted callback push proper event."""
@@ -1466,51 +1555,68 @@ class VolumeManagementTestCase(ConnectedBaseTestCase):
         self.action_queue.event_queue.listener_map.pop('SV_VOLUME_DELETED')
         volume_id = VOLUME
         self.action_queue._volume_deleted_callback(volume_id)
-        self.assertEqual([('SV_VOLUME_DELETED', {'volume_id': volume_id})],
-                         self.action_queue.event_queue.events)
+        self.assertEqual(
+            [('SV_VOLUME_DELETED', {'volume_id': volume_id})],
+            self.action_queue.event_queue.events,
+        )
 
     def test_volume_new_generation_push_event_root(self):
         """Volume New Generation callback push proper event with root."""
         self.action_queue.event_queue.listener_map.pop(
-            'SV_VOLUME_NEW_GENERATION')
+            'SV_VOLUME_NEW_GENERATION'
+        )
         volume = request.ROOT
         self.action_queue._volume_new_generation_callback(volume, 77)
-        event = ('SV_VOLUME_NEW_GENERATION',
-                 {'volume_id': volume, 'generation': 77})
+        event = (
+            'SV_VOLUME_NEW_GENERATION',
+            {'volume_id': volume, 'generation': 77},
+        )
         self.assertTrue(event in self.action_queue.event_queue.events)
 
     def test_volume_new_generation_push_event_uuid(self):
         """Volume New Generation callback push proper event with uuid."""
         self.action_queue.event_queue.listener_map.pop(
-            'SV_VOLUME_NEW_GENERATION')
+            'SV_VOLUME_NEW_GENERATION'
+        )
         volume = uuid.uuid4()
         self.action_queue._volume_new_generation_callback(volume, 77)
-        event = ('SV_VOLUME_NEW_GENERATION',
-                 {'volume_id': volume, 'generation': 77})
+        event = (
+            'SV_VOLUME_NEW_GENERATION',
+            {'volume_id': volume, 'generation': 77},
+        )
         self.assertTrue(event in self.action_queue.event_queue.events)
 
     def test_valid_events(self):
         """Volume events are valid in EventQueue."""
-        new_events = ('SV_VOLUME_CREATED', 'SV_VOLUME_DELETED',
-                      'AQ_CREATE_UDF_OK', 'AQ_CREATE_UDF_ERROR',
-                      'AQ_LIST_VOLUMES', 'AQ_LIST_VOLUMES_ERROR',
-                      'AQ_DELETE_VOLUME_OK', 'AQ_DELETE_VOLUME_ERROR',
-                      'SV_VOLUME_NEW_GENERATION')
+        new_events = (
+            'SV_VOLUME_CREATED',
+            'SV_VOLUME_DELETED',
+            'AQ_CREATE_UDF_OK',
+            'AQ_CREATE_UDF_ERROR',
+            'AQ_LIST_VOLUMES',
+            'AQ_LIST_VOLUMES_ERROR',
+            'AQ_DELETE_VOLUME_OK',
+            'AQ_DELETE_VOLUME_ERROR',
+            'SV_VOLUME_NEW_GENERATION',
+        )
         for event in new_events:
             self.assertTrue(event in EVENTS)
 
         self.assertEqual(('volume',), EVENTS['SV_VOLUME_CREATED'])
         self.assertEqual(('volume_id',), EVENTS['SV_VOLUME_DELETED'])
-        self.assertEqual(('volume_id', 'node_id', 'marker'),
-                         EVENTS['AQ_CREATE_UDF_OK'])
+        self.assertEqual(
+            ('volume_id', 'node_id', 'marker'), EVENTS['AQ_CREATE_UDF_OK']
+        )
         self.assertEqual(('error', 'marker'), EVENTS['AQ_CREATE_UDF_ERROR'])
         self.assertEqual(('volumes',), EVENTS['AQ_LIST_VOLUMES'])
         self.assertEqual(('error',), EVENTS['AQ_LIST_VOLUMES_ERROR'])
         self.assertEqual(('volume_id',), EVENTS['AQ_DELETE_VOLUME_OK'])
-        self.assertEqual(('volume_id', 'error',),
-                         EVENTS['AQ_DELETE_VOLUME_ERROR'])
-        self.assertEqual(('volume_id', 'generation',),
-                         EVENTS['SV_VOLUME_NEW_GENERATION'])
+        self.assertEqual(
+            ('volume_id', 'error'), EVENTS['AQ_DELETE_VOLUME_ERROR']
+        )
+        self.assertEqual(
+            ('volume_id', 'generation'), EVENTS['SV_VOLUME_NEW_GENERATION']
+        )
 
     def test_create_udf(self):
         """Test volume creation."""
@@ -1581,7 +1687,7 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
     @defer.inlineCallbacks
     def test_demark_not_marker(self):
         """Test demark with not a marker."""
-        self.cmd.possible_markers = 'foo',
+        self.cmd.possible_markers = ('foo',)
         self.cmd.foo = 'not a marker'
         yield self.cmd.demark()
         self.assertEqual(self.cmd.foo, 'not a marker')
@@ -1594,42 +1700,46 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         """
         mdid = self.main.fs.create(os.path.join(self.root, 'file'), '')
         marker = MDMarker(mdid)
-        self.cmd.possible_markers = 'foo',
+        self.cmd.possible_markers = ('foo',)
         self.cmd.foo = marker
         d = self.cmd.demark()
 
         self.action_queue.uuid_map.set(marker, 'node_id')
         yield d
         self.assertEqual(self.cmd.foo, 'node_id')
-        self.assertTrue(self.handler.check_debug(
-                        "waiting for the real value of marker"))
+        self.assertTrue(
+            self.handler.check_debug("waiting for the real value of marker")
+        )
 
     @defer.inlineCallbacks
     def test_demark_with_marker_ready(self):
         """Test demark with a marker that had data."""
         mdid = self.main.fs.create(os.path.join(self.root, 'file'), '')
         marker = MDMarker(mdid)
-        self.cmd.possible_markers = 'foo',
+        self.cmd.possible_markers = ('foo',)
         self.cmd.foo = marker
         d = self.cmd.demark()
         self.action_queue.uuid_map.set(marker, 'node_id')
         yield d
         self.assertEqual(self.cmd.foo, 'node_id')
-        self.assertTrue(self.handler.check_debug(
-                        "waiting for the real value of marker"))
+        self.assertTrue(
+            self.handler.check_debug("waiting for the real value of marker")
+        )
 
     @defer.inlineCallbacks
     def test_demark_with_marker_solved(self):
         """Test demark with a marker that points to a node already with id."""
-        mdid = self.main.fs.create(os.path.join(self.root, 'file'),
-                                   '', node_id='node_id')
+        mdid = self.main.fs.create(
+            os.path.join(self.root, 'file'), '', node_id='node_id'
+        )
         marker = MDMarker(mdid)
-        self.cmd.possible_markers = 'foo',
+        self.cmd.possible_markers = ('foo',)
         self.cmd.foo = marker
         yield self.cmd.demark()
         self.assertEqual(self.cmd.foo, 'node_id')
-        self.assertTrue(self.handler.check_debug(
-                        "shortcutting the real value of marker"))
+        self.assertTrue(
+            self.handler.check_debug("shortcutting the real value of marker")
+        )
 
     @defer.inlineCallbacks
     def test_demark_mixed_markers(self):
@@ -1647,10 +1757,14 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         # check
         self.assertEqual(self.cmd.foo, 'notamarker')
         self.assertEqual(self.cmd.bar, 'node_id')
-        self.assertTrue(self.handler.check_debug(
-                        "waiting for the real value of marker"))
-        self.assertFalse(self.handler.check_debug(
-                         "waiting for the real value of 'notamarker'"))
+        self.assertTrue(
+            self.handler.check_debug("waiting for the real value of marker")
+        )
+        self.assertFalse(
+            self.handler.check_debug(
+                "waiting for the real value of 'notamarker'"
+            )
+        )
 
     @defer.inlineCallbacks
     def test_demark_marker_future_got_ok(self):
@@ -1658,7 +1772,7 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         # don't have the info now
         mdid = self.main.fs.create(os.path.join(self.root, 'file'), '')
         marker = MDMarker(mdid)
-        self.cmd.possible_markers = 'foo',
+        self.cmd.possible_markers = ('foo',)
         self.cmd.foo = marker
         d = self.cmd.demark()
         self.assertFalse(self.handler.check_debug("for marker"))
@@ -1667,8 +1781,9 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         self.action_queue.uuid_map.set(marker, 'node_id')
         yield d
         self.assertEqual(self.cmd.foo, 'node_id')
-        self.assertTrue(self.handler.check_debug(
-                        "for marker", "got value 'node_id'"))
+        self.assertTrue(
+            self.handler.check_debug("for marker", "got value 'node_id'")
+        )
 
     @defer.inlineCallbacks
     def test_demark_marker_future_got_failure(self):
@@ -1676,7 +1791,7 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         # don't have the info now
         mdid = self.main.fs.create(os.path.join(self.root, 'file'), '')
         marker = MDMarker(mdid)
-        self.cmd.possible_markers = 'foo',
+        self.cmd.possible_markers = ('foo',)
         self.cmd.foo = marker
         d = self.cmd.demark()
         self.assertFalse(self.handler.check_error("failed marker"))
@@ -1756,7 +1871,7 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         """The attribute changes: no change because cancelled."""
         mdid = self.main.fs.create(os.path.join(self.root, 'file'), '')
         marker = MDMarker(mdid)
-        self.cmd.possible_markers = 'b',
+        self.cmd.possible_markers = ('b',)
         self.cmd.b = marker
         self.cmd.cancelled = True
         queue = self.cmd._queue
@@ -1809,15 +1924,17 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         self.cmd.cancel()
 
         self.assertEqual(called, [2])
-        self.assertTrue(self.handler.check_debug(
-                        'command not run because of cancelled'))
+        self.assertTrue(
+            self.handler.check_debug('command not run because of cancelled')
+        )
 
     def test_go_run_ok_release_pathlock(self):
         """If run went ok, release the pathlock."""
         called = []
         self.cmd.run = lambda: defer.succeed(True)
         self.cmd._acquire_pathlock = lambda: defer.succeed(
-            lambda: called.append(True))
+            lambda: called.append(True)
+        )
 
         self.cmd.go()
         self.assertTrue(called)
@@ -1828,7 +1945,8 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         called = []
         self.cmd.run = lambda: defer.fail(ValueError("error message"))
         self.cmd._acquire_pathlock = lambda: defer.succeed(
-            lambda: called.append(True))
+            lambda: called.append(True)
+        )
 
         yield self.cmd.go()
         self.assertTrue(called)
@@ -1837,8 +1955,11 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         # messages in ERROR (the real logging level); finally, clean the
         # records as if we leave them with the exception the test will fail
         self.assertTrue(self.handler.check_exception(ValueError))
-        self.assertTrue(self.handler.check_error("Error running the command",
-                                                 "error message"))
+        self.assertTrue(
+            self.handler.check_error(
+                "Error running the command", "error message"
+            )
+        )
         self.handler.records = []
 
     def test_run_initial(self):
@@ -1875,8 +1996,9 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         d.callback(True)
 
         self.assertFalse(called)
-        self.assertTrue(self.handler.check_debug(
-                        'cancelled before trying to run'))
+        self.assertTrue(
+            self.handler.check_debug('cancelled before trying to run')
+        )
 
     def test_run_queue_not_active(self):
         """Waiting cycle for queue not active."""
@@ -1891,8 +2013,9 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         # run first time
         self.cmd.run()
         self.assertFalse(called)
-        self.assertTrue(self.handler.check_debug(
-                        'not running because of inactive queue'))
+        self.assertTrue(
+            self.handler.check_debug('not running because of inactive queue')
+        )
         self.assertFalse(self.handler.check_debug('unblocked: queue active'))
 
         # active the queue
@@ -1913,8 +2036,9 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         # run first time
         self.cmd.run()
         self.assertFalse(called)
-        self.assertTrue(self.handler.check_debug(
-                        'not running because of conditions'))
+        self.assertTrue(
+            self.handler.check_debug('not running because of conditions')
+        )
         self.assertFalse(self.handler.check_debug('unblocked: conditions ok'))
 
         # active the command
@@ -1968,8 +2092,9 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         # active the queue
         self.rq.run()
         self.assertFalse(called)
-        self.assertTrue(self.handler.check_debug(
-                        'cancelled before trying to run'))
+        self.assertTrue(
+            self.handler.check_debug('cancelled before trying to run')
+        )
 
     def test_run_notrunnable_cancel(self):
         """Got cancelled while waiting the conditions to run."""
@@ -1990,8 +2115,9 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         self.action_queue.conditions_locker.check_conditions()
         self.assertFalse(called)
         self.handler.debug = True
-        self.assertTrue(self.handler.check_debug(
-                        'cancelled before trying to run'))
+        self.assertTrue(
+            self.handler.check_debug('cancelled before trying to run')
+        )
 
     def test_run_waits_markers_dereferencing(self):
         """Don't call _run_command until have the markers."""
@@ -2136,7 +2262,7 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         try:
             yield self.cmd.running_deferred
         except DeferredInterrupted:
-            pass   # this is handled by run() to retry
+            pass  # this is handled by run() to retry
         else:
             self.fail("Test should have raised an exception")
 
@@ -2184,11 +2310,16 @@ class ActionQueueCommandTestCase(ConnectedBaseTestCase):
         """Inherited commands must have __slot__ (that is not inherited)."""
         for obj_name in dir(action_queue):
             obj = getattr(action_queue, obj_name)
-            if isinstance(obj, type) and issubclass(obj, ActionQueueCommand) \
-               and obj is not ActionQueueCommand:
-                self.assertNotIdentical(obj.__slots__,
-                                        ActionQueueCommand.__slots__,
-                                        "class %s has no __slots__" % obj)
+            if (
+                isinstance(obj, type)
+                and issubclass(obj, ActionQueueCommand)
+                and obj is not ActionQueueCommand
+            ):
+                self.assertNotIdentical(
+                    obj.__slots__,
+                    ActionQueueCommand.__slots__,
+                    "class %s has no __slots__" % obj,
+                )
 
     def test_should_be_queued_calls(self):
         """Create the logger and call the aux method."""
@@ -2261,9 +2392,12 @@ class CreateUDFTestCase(ConnectedBaseTestCase):
         request.volume_id = VOLUME
         request.node_id = NODE
         self.command.handle_success(success=request)
-        events = [('AQ_CREATE_UDF_OK', {'volume_id': VOLUME,
-                                        'node_id': NODE,
-                                        'marker': self.marker})]
+        events = [
+            (
+                'AQ_CREATE_UDF_OK',
+                {'volume_id': VOLUME, 'node_id': NODE, 'marker': self.marker},
+            )
+        ]
         self.assertEqual(events, self.command.action_queue.event_queue.events)
 
     def test_handle_failure_push_event(self):
@@ -2271,15 +2405,17 @@ class CreateUDFTestCase(ConnectedBaseTestCase):
         msg = 'Something went wrong'
         failure = Failure(DefaultException(msg))
         self.command.handle_failure(failure=failure)
-        events = [('AQ_CREATE_UDF_ERROR',
-                  {'error': msg, 'marker': self.marker})]
+        events = [
+            ('AQ_CREATE_UDF_ERROR', {'error': msg, 'marker': self.marker})
+        ]
         self.assertEqual(events, self.command.action_queue.event_queue.events)
 
     def test_path_locking(self):
         """Test that it acquires correctly the path lock."""
         t = []
-        self.patch(PathLockingTree, 'acquire',
-                   lambda s, *a, **k: t.extend((a, k)))
+        self.patch(
+            PathLockingTree, 'acquire', lambda s, *a, **k: t.extend((a, k))
+        )
         self.command._acquire_pathlock()
         self.assertEqual(t, [tuple(PATH.split(os.path.sep)), {'logger': None}])
 
@@ -2293,8 +2429,9 @@ class ActionQueueCommandErrorsTestCase(ConnectedBaseTestCase):
 
         self.deferred = defer.Deferred()
 
-        class MyLogger(object):
+        class MyLogger:
             """Fake logger that just stores error and warning calls."""
+
             def __init__(self):
                 self.logged = None
 
@@ -2321,6 +2458,7 @@ class ActionQueueCommandErrorsTestCase(ConnectedBaseTestCase):
 
     def test_suppressed_yes_knownerrors(self):
         """Check that the log is in warning for the known errors."""
+
         def send_failure_and_check(errnum, exception_class):
             """Send the failure."""
             # prepare what to send
@@ -2338,11 +2476,17 @@ class ActionQueueCommandErrorsTestCase(ConnectedBaseTestCase):
             self.command.log.logged = None
             self.command._run = fake_run
             self.command.run()
-            self.assertEqual(self.command.log.logged, "warn",
-                             "Bad log in exception %s" % (exception_class,))
+            self.assertEqual(
+                self.command.log.logged,
+                "warn",
+                "Bad log in exception %s" % (exception_class,),
+            )
 
-        known_errors = [x for x in errors._error_mapping.items()
-                        if x[1] != errors.InternalError]
+        known_errors = [
+            x
+            for x in errors._error_mapping.items()
+            if x[1] != errors.InternalError
+        ]
         for errnum, exception_class in known_errors:
             self.rq.active = True
             send_failure_and_check(errnum, exception_class)
@@ -2550,8 +2694,9 @@ class DeleteVolumeTestCase(ConnectedBaseTestCase):
 
     def test_handle_success_push_event(self):
         """Test AQ_DELETE_VOLUME_OK is pushed on success."""
-        request = client.DeleteVolume(self.action_queue.client,
-                                      volume_id=VOLUME)
+        request = client.DeleteVolume(
+            self.action_queue.client, volume_id=VOLUME
+        )
         self.command.handle_success(success=request)
         events = [('AQ_DELETE_VOLUME_OK', {'volume_id': VOLUME})]
         self.assertEqual(events, self.command.action_queue.event_queue.events)
@@ -2567,8 +2712,9 @@ class DeleteVolumeTestCase(ConnectedBaseTestCase):
     def test_path_locking(self):
         """Test that it acquires correctly the path lock."""
         t = []
-        self.patch(PathLockingTree, 'acquire',
-                   lambda s, *a, **k: t.extend((a, k)))
+        self.patch(
+            PathLockingTree, 'acquire', lambda s, *a, **k: t.extend((a, k))
+        )
         self.command._acquire_pathlock()
         self.assertEqual(t, [tuple(PATH.split(os.path.sep)), {'logger': None}])
 
@@ -2608,8 +2754,10 @@ class ChangePublicAccessTests(ConnectedBaseTestCase):
             self.assertEqual(node_id, NODE)
             self.assertEqual(is_public, True)
             self.called = True
+
         self.patch(
-            self.command.action_queue.client, 'change_public_access', check)
+            self.command.action_queue.client, 'change_public_access', check
+        )
         self.command._run()
         self.assertTrue(self.called, "command wasn't called")
 
@@ -2629,14 +2777,21 @@ class ChangePublicAccessTests(ConnectedBaseTestCase):
 
     def test_handle_success_push_event(self):
         """Test AQ_CHANGE_PUBLIC_ACCESS_OK is pushed on success."""
-        request = client.ChangePublicAccess(self.action_queue.client,
-                                            VOLUME, NODE, True)
+        request = client.ChangePublicAccess(
+            self.action_queue.client, VOLUME, NODE, True
+        )
         request.public_url = 'http://example.com'
 
         self.command.handle_success(request)
-        event = ('AQ_CHANGE_PUBLIC_ACCESS_OK',
-                 {'share_id': VOLUME, 'node_id': NODE, 'is_public': True,
-                  'public_url': 'http://example.com'})
+        event = (
+            'AQ_CHANGE_PUBLIC_ACCESS_OK',
+            {
+                'share_id': VOLUME,
+                'node_id': NODE,
+                'is_public': True,
+                'public_url': 'http://example.com',
+            },
+        )
         self.assertIn(event, self.command.action_queue.event_queue.events)
 
     def test_handle_failure_push_event(self):
@@ -2644,8 +2799,10 @@ class ChangePublicAccessTests(ConnectedBaseTestCase):
         msg = 'Something went wrong'
         failure = Failure(DefaultException(msg))
         self.command.handle_failure(failure=failure)
-        event = ('AQ_CHANGE_PUBLIC_ACCESS_ERROR',
-                 {'share_id': VOLUME, 'node_id': NODE, 'error': msg})
+        event = (
+            'AQ_CHANGE_PUBLIC_ACCESS_ERROR',
+            {'share_id': VOLUME, 'node_id': NODE, 'error': msg},
+        )
         self.assertIn(event, self.command.action_queue.event_queue.events)
 
     def test_possible_markers(self):
@@ -2676,8 +2833,10 @@ class GetPublicFilesTestCase(ConnectedBaseTestCase):
         def check():
             """Take control over client's feature."""
             self.called = True
+
         self.patch(
-            self.command.action_queue.client, 'list_public_files', check)
+            self.command.action_queue.client, 'list_public_files', check
+        )
         self.command._run()
         self.assertTrue(self.called, "command wasn't called")
 
@@ -2692,8 +2851,13 @@ class GetPublicFilesTestCase(ConnectedBaseTestCase):
     def test_handle_success_push_event(self):
         """Test AQ_PUBLIC_FILES_LIST_OK is pushed on success."""
         request = client.ListPublicFiles(self.action_queue.client)
-        response = [{'node_id': uuid.uuid4(), 'volume_id': None,
-                    'public_url': 'http://example.com'}]
+        response = [
+            {
+                'node_id': uuid.uuid4(),
+                'volume_id': None,
+                'public_url': 'http://example.com',
+            }
+        ]
         request.public_files = response
         self.command.handle_success(request)
         event = ('AQ_PUBLIC_FILES_LIST_OK', {'public_files': response})
@@ -2738,15 +2902,20 @@ class DownloadUnconnectedTestCase(FactoryBaseTestCase):
         self.rq = request_queue = RequestQueue(action_queue=self.action_queue)
         self.test_path = os.path.join(self.root, 'file')
         self.mdid = self.main.fs.create(self.test_path, '')
-        self.command = Download(request_queue, share_id='a_share_id',
-                                node_id='a_node_id', server_hash='server_hash',
-                                mdid=self.mdid)
+        self.command = Download(
+            request_queue,
+            share_id='a_share_id',
+            node_id='a_node_id',
+            server_hash='server_hash',
+            mdid=self.mdid,
+        )
         self.command.make_logger()
 
     def test_progress_information_setup(self):
         """Test the setting up of the progress information in ._run()."""
-        self.patch(self.main.fs, 'get_partial_for_writing',
-                   lambda n, s: BytesIO())
+        self.patch(
+            self.main.fs, 'get_partial_for_writing', lambda n, s: BytesIO()
+        )
 
         self.command.action_queue.connect_in_progress = False
         self.command.action_queue.client = FakeClient()
@@ -2785,9 +2954,13 @@ class DownloadTestCase(ConnectedBaseTestCase):
             def sync(s):
                 return None
 
-        self.command = MyDownload(self.rq, share_id='a_share_id',
-                                  node_id='a_node_id',
-                                  server_hash='server_hash', mdid=self.mdid)
+        self.command = MyDownload(
+            self.rq,
+            share_id='a_share_id',
+            node_id='a_node_id',
+            server_hash='server_hash',
+            mdid=self.mdid,
+        )
         self.command.make_logger()
         self.rq.waiting.append(self.command)
 
@@ -2795,17 +2968,21 @@ class DownloadTestCase(ConnectedBaseTestCase):
         """AQ_DOWNLOAD_FILE_PROGRESS is a valid event."""
         event = 'AQ_DOWNLOAD_FILE_PROGRESS'
         self.assertTrue(event in EVENTS)
-        self.assertEqual(('share_id', 'node_id', 'n_bytes_read',
-                          'deflated_size'), EVENTS[event])
+        self.assertEqual(
+            ('share_id', 'node_id', 'n_bytes_read', 'deflated_size'),
+            EVENTS[event],
+        )
 
     def test_progress(self):
         """Test the progress machinery."""
         self.patch(
             self.action_queue.client,
-            'get_content_request', lambda *a, **kw: mock.Mock())
+            'get_content_request',
+            lambda *a, **kw: mock.Mock(),
+        )
 
         # would first get the node attribute including this
-        class FakeDecompressor(object):
+        class FakeDecompressor:
             """Fake decompressor."""
 
             def decompress(self, data):
@@ -2818,7 +2995,8 @@ class DownloadTestCase(ConnectedBaseTestCase):
         self.assertEqual(self.command.n_bytes_read, 0)
         self.assertEqual(self.command.n_bytes_read_last, 0)
         self.command.node_attr_cb(
-            deflated_size=TRANSFER_PROGRESS_THRESHOLD * 2)
+            deflated_size=TRANSFER_PROGRESS_THRESHOLD * 2
+        )
 
         self.command.downloaded_cb(b'x' * 5)
         events = self.command.action_queue.event_queue.events
@@ -2828,20 +3006,26 @@ class DownloadTestCase(ConnectedBaseTestCase):
 
         self.command.downloaded_cb(b'x' * (TRANSFER_PROGRESS_THRESHOLD - 10))
         self.assertFalse('AQ_DOWNLOAD_FILE_PROGRESS' in [x[0] for x in events])
-        self.assertEqual(self.command.n_bytes_read,
-                         TRANSFER_PROGRESS_THRESHOLD - 5)
+        self.assertEqual(
+            self.command.n_bytes_read, TRANSFER_PROGRESS_THRESHOLD - 5
+        )
         self.assertEqual(self.command.n_bytes_read_last, 0)
 
         self.command.downloaded_cb(b'x' * 10)
-        kwargs = {'share_id': 'a_share_id', 'node_id': 'a_node_id',
-                  'deflated_size': TRANSFER_PROGRESS_THRESHOLD * 2,
-                  'n_bytes_read': TRANSFER_PROGRESS_THRESHOLD + 5}
+        kwargs = {
+            'share_id': 'a_share_id',
+            'node_id': 'a_node_id',
+            'deflated_size': TRANSFER_PROGRESS_THRESHOLD * 2,
+            'n_bytes_read': TRANSFER_PROGRESS_THRESHOLD + 5,
+        }
         expected = ('AQ_DOWNLOAD_FILE_PROGRESS', kwargs)
         self.assertTrue(expected in events)
-        self.assertEqual(self.command.n_bytes_read,
-                         TRANSFER_PROGRESS_THRESHOLD + 5)
-        self.assertEqual(self.command.n_bytes_read_last,
-                         self.command.n_bytes_read)
+        self.assertEqual(
+            self.command.n_bytes_read, TRANSFER_PROGRESS_THRESHOLD + 5
+        )
+        self.assertEqual(
+            self.command.n_bytes_read_last, self.command.n_bytes_read
+        )
 
     def test_possible_markers(self):
         """Test that it returns the correct values."""
@@ -2883,11 +3067,14 @@ class DownloadTestCase(ConnectedBaseTestCase):
     def test_path_locking(self):
         """Test that it acquires correctly the path lock."""
         t = []
-        self.patch(PathLockingTree, 'acquire',
-                   lambda s, *a, **k: t.extend((a, k)))
+        self.patch(
+            PathLockingTree, 'acquire', lambda s, *a, **k: t.extend((a, k))
+        )
         self.command._acquire_pathlock()
-        should = [tuple(self.test_path.split(os.path.sep)),
-                  {'logger': self.command.log}]
+        should = [
+            tuple(self.test_path.split(os.path.sep)),
+            {'logger': self.command.log},
+        ]
         self.assertEqual(t, should)
 
     def test_upload_download_uniqueness(self):
@@ -2906,8 +3093,11 @@ class DownloadTestCase(ConnectedBaseTestCase):
         first_cmd = self.action_queue.queue.waiting[0]
         self.action_queue.download('foo', 'bar', 0, self.mdid)
         self.assertTrue(first_cmd.cancelled)
-        self.assertTrue(self.handler.check_debug("Previous command cancelled",
-                                                 "Upload", "foo", "bar"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "Previous command cancelled", "Upload", "foo", "bar"
+            )
+        )
 
     def test_uniqueness_download(self):
         """There should be only one upload/download for a specific node."""
@@ -2916,8 +3106,11 @@ class DownloadTestCase(ConnectedBaseTestCase):
         first_cmd = self.action_queue.queue.waiting[0]
         self.action_queue.download('foo', 'bar', 1, self.mdid)
         self.assertTrue(first_cmd.cancelled)
-        self.assertTrue(self.handler.check_debug("Previous command cancelled",
-                                                 "Download", "foo", "bar"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "Previous command cancelled", "Download", "foo", "bar"
+            )
+        )
 
     def test_uniqueness_even_with_markers(self):
         """Only one upload/download per node, even using markers."""
@@ -2940,8 +3133,11 @@ class DownloadTestCase(ConnectedBaseTestCase):
 
         self.assertEqual(len(self.action_queue.queue.waiting), 2)
         first_cmd, second_cmd = self.action_queue.queue.waiting
-        self.assertTrue(self.handler.check_debug("Tried to cancel", "couldn't",
-                                                 "Download", "foo", "bar"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "Tried to cancel", "couldn't", "Download", "foo", "bar"
+            )
+        )
         self.assertFalse(first_cmd.cancelled)
         self.assertFalse(second_cmd.cancelled)
 
@@ -2979,7 +3175,8 @@ class DownloadTestCase(ConnectedBaseTestCase):
         # check it released the semaphore
         req.release.assert_called_once()
         self.assertTrue(
-            self.handler.check_debug('semaphore released', 'cancelled'))
+            self.handler.check_debug('semaphore released', 'cancelled')
+        )
         self.assertIsNone(self.command.tx_semaphore)
 
     def test_finish_releases_semaphore_if_acquired(self):
@@ -3009,7 +3206,8 @@ class DownloadTestCase(ConnectedBaseTestCase):
         self.action_queue.client.get_content_request = lambda *a, **k: obj
 
         self.patch(
-            self.main.fs, 'get_partial_for_writing', lambda n, s: BytesIO())
+            self.main.fs, 'get_partial_for_writing', lambda n, s: BytesIO()
+        )
         self.command._run()
         decompressor1 = self.command.gunzip
         self.command._run()
@@ -3021,8 +3219,9 @@ class DownloadTestCase(ConnectedBaseTestCase):
         # don't use the real protocol
         self.action_queue.client.get_content_request = FakeRequest
 
-        class FakeFileObj(object):
+        class FakeFileObj:
             """Fake class to check behaviour."""
+
             def __init__(self):
                 self.seek_count = 0
                 self.truncate_count = 0
@@ -3035,12 +3234,12 @@ class DownloadTestCase(ConnectedBaseTestCase):
                 """Fake truncate."""
                 self.truncate_count += 1
 
-        self.patch(self.main.fs, 'get_partial_for_writing',
-                   lambda n, s: FakeFileObj())
+        self.patch(
+            self.main.fs, 'get_partial_for_writing', lambda n, s: FakeFileObj()
+        )
         test_path = os.path.join(self.root, 'foo', 'bar')
         mdid = self.main.fs.create(test_path, '')
-        cmd = Download(self.rq, 'a_share_id', 'a_node_id', 'server_hash',
-                       mdid)
+        cmd = Download(self.rq, 'a_share_id', 'a_node_id', 'server_hash', mdid)
 
         # first run, it is just instantiated
         cmd._run()
@@ -3079,9 +3278,16 @@ class UploadUnconnectedTestCase(FactoryBaseTestCase):
         self.mdid = self.main.fs.create(self.test_path, '')
 
         self.rq = request_queue = RequestQueue(action_queue=self.action_queue)
-        self.command = Upload(request_queue, share_id='a_share_id',
-                              node_id='a_node_id', previous_hash='prev_hash',
-                              hash='yadda', crc32=0, size=0, mdid=self.mdid)
+        self.command = Upload(
+            request_queue,
+            share_id='a_share_id',
+            node_id='a_node_id',
+            previous_hash='prev_hash',
+            hash='yadda',
+            crc32=0,
+            size=0,
+            mdid=self.mdid,
+        )
         self.command.make_logger()
         self.command.magic_hash = FakeMagicHash()
         self.client = FakeClient()
@@ -3149,7 +3355,8 @@ class UploadProgressWrapperTestCase(BaseTwistedTestCase):
 
     def test_read(self):
         """Test the read method."""
-        class FakeCommand(object):
+
+        class FakeCommand:
             """Fake command."""
 
             def __init__(self):
@@ -3176,7 +3383,8 @@ class UploadProgressWrapperTestCase(BaseTwistedTestCase):
 
     def test_seek(self):
         """Test the seek method."""
-        class FakeCommand(object):
+
+        class FakeCommand:
             """Fake command."""
 
             def __init__(self):
@@ -3228,9 +3436,16 @@ class UploadTestCase(ConnectedBaseTestCase):
             """Just to allow monkeypatching."""
 
         self.share_id = str(uuid.uuid4())
-        self.command = MyUpload(self.rq, share_id=self.share_id,
-                                node_id='a_node_id', previous_hash='prev_hash',
-                                hash='yadda', crc32=0, size=0, mdid=self.mdid)
+        self.command = MyUpload(
+            self.rq,
+            share_id=self.share_id,
+            node_id='a_node_id',
+            previous_hash='prev_hash',
+            hash='yadda',
+            crc32=0,
+            size=0,
+            mdid=self.mdid,
+        )
         self.command.make_logger()
 
     @defer.inlineCallbacks
@@ -3246,7 +3461,6 @@ class UploadTestCase(ConnectedBaseTestCase):
         mdobj = mock.Mock(share_id='share_id', path='path')
 
         class DummyFSM:
-
             def get_by_mdid(instance, mdid):
                 self.assertEqual(mdid, self.mdid)
                 return mdobj
@@ -3280,9 +3494,17 @@ class UploadTestCase(ConnectedBaseTestCase):
         """Test AQ_UPLOAD_FINISHED is pushed on success."""
         # create a request and fill it with succesful information
         aq_client = TestingProtocol()
-        request = client.PutContent(aq_client, VOLUME, 'node',
-                                    'prvhash', 'newhash', 'crc32', 'size',
-                                    'deflated', 'fd')
+        request = client.PutContent(
+            aq_client,
+            VOLUME,
+            'node',
+            'prvhash',
+            'newhash',
+            'crc32',
+            'size',
+            'deflated',
+            'fd',
+        )
         request.new_generation = 13
         self.command.tempfile = FakeTempFile(self.tmpdir)
 
@@ -3290,8 +3512,12 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.command.handle_success(request)
 
         # check for successful event
-        kwargs = dict(share_id=self.command.share_id, node_id='a_node_id',
-                      hash='yadda', new_generation=13)
+        kwargs = dict(
+            share_id=self.command.share_id,
+            node_id='a_node_id',
+            hash='yadda',
+            new_generation=13,
+        )
         events = [('AQ_UPLOAD_FINISHED', kwargs)]
         self.assertEqual(events, self.command.action_queue.event_queue.events)
 
@@ -3301,8 +3527,12 @@ class UploadTestCase(ConnectedBaseTestCase):
         msg = 'Something went wrong'
         failure = Failure(DefaultException(msg))
         self.command.handle_failure(failure=failure)
-        kwargs = dict(share_id=self.command.share_id, node_id='a_node_id',
-                      hash='yadda', error=msg)
+        kwargs = dict(
+            share_id=self.command.share_id,
+            node_id='a_node_id',
+            hash='yadda',
+            error=msg,
+        )
         events = [('AQ_UPLOAD_ERROR', kwargs)]
         self.assertEqual(events, self.command.action_queue.event_queue.events)
 
@@ -3340,24 +3570,29 @@ class UploadTestCase(ConnectedBaseTestCase):
         failure = Failure(error)
 
         self.command.handle_retryable(failure)
-        event = ('SYS_QUOTA_EXCEEDED', {'volume_id': self.command.share_id,
-                                        'free_bytes': 1331564676})
+        event = (
+            'SYS_QUOTA_EXCEEDED',
+            {'volume_id': self.command.share_id, 'free_bytes': 1331564676},
+        )
         self.assertTrue(event in self.command.action_queue.event_queue.events)
 
     def test_retryable_failure_nothing_on_other_errors(self):
         """Test nothing is pushed on other errors."""
         failure = Failure(twisted_error.ConnectionLost())
         self.command.handle_retryable(failure)
-        event_names = [x[0]
-                       for x in self.command.action_queue.event_queue.events]
+        event_names = [
+            x[0] for x in self.command.action_queue.event_queue.events
+        ]
         self.assertFalse('SYS_QUOTA_EXCEEDED' in event_names)
 
     def test_AQ_UPLOAD_FILE_PROGRESS_is_valid_event(self):
         """AQ_UPLOAD_FILE_PROGRESS is a valid event."""
         event = 'AQ_UPLOAD_FILE_PROGRESS'
         self.assertTrue(event in EVENTS)
-        self.assertEqual(('share_id', 'node_id', 'n_bytes_written',
-                          'deflated_size'), EVENTS[event])
+        self.assertEqual(
+            ('share_id', 'node_id', 'n_bytes_written', 'deflated_size'),
+            EVENTS[event],
+        )
 
     def test_progress_hook(self):
         """Test the progress hook."""
@@ -3376,13 +3611,17 @@ class UploadTestCase(ConnectedBaseTestCase):
 
         self.command.n_bytes_written = TRANSFER_PROGRESS_THRESHOLD + 5
         self.command.progress_hook()
-        kwargs = {'share_id': self.command.share_id, 'node_id': 'a_node_id',
-                  'deflated_size': 2 * TRANSFER_PROGRESS_THRESHOLD,
-                  'n_bytes_written': 5 + TRANSFER_PROGRESS_THRESHOLD}
+        kwargs = {
+            'share_id': self.command.share_id,
+            'node_id': 'a_node_id',
+            'deflated_size': 2 * TRANSFER_PROGRESS_THRESHOLD,
+            'n_bytes_written': 5 + TRANSFER_PROGRESS_THRESHOLD,
+        }
         events = [('AQ_UPLOAD_FILE_PROGRESS', kwargs)]
         self.assertEqual(events, self.command.action_queue.event_queue.events)
-        self.assertEqual(self.command.n_bytes_written_last,
-                         TRANSFER_PROGRESS_THRESHOLD + 5)
+        self.assertEqual(
+            self.command.n_bytes_written_last, TRANSFER_PROGRESS_THRESHOLD + 5
+        )
 
     def test_runnable_space_ok(self):
         """The upload is runnable if space ok."""
@@ -3422,8 +3661,9 @@ class UploadTestCase(ConnectedBaseTestCase):
         called = []
         self.patch(ActionQueueCommand, 'cancel', lambda s: called.append(1))
 
-        class FakeProducer(object):
+        class FakeProducer:
             """Fake producer."""
+
             finished = True
 
         fake_request = FakeRequest()
@@ -3438,11 +3678,13 @@ class UploadTestCase(ConnectedBaseTestCase):
     def test_cancel_cancels_when_producer_not_finished(self):
         """If the producer didn't finished, really cancel."""
         called = []
-        self.patch(ActionQueueCommand, 'cancel',
-                   lambda s: called.append(True) or True)
+        self.patch(
+            ActionQueueCommand, 'cancel', lambda s: called.append(True) or True
+        )
 
-        class FakeProducer(object):
+        class FakeProducer:
             """Fake producer."""
+
             finished = False
 
         fake_request = FakeRequest()
@@ -3477,11 +3719,14 @@ class UploadTestCase(ConnectedBaseTestCase):
     def test_path_locking(self):
         """Test that it acquires correctly the path lock."""
         t = []
-        self.patch(PathLockingTree, 'acquire',
-                   lambda s, *a, **k: t.extend((a, k)))
+        self.patch(
+            PathLockingTree, 'acquire', lambda s, *a, **k: t.extend((a, k))
+        )
         self.command._acquire_pathlock()
-        should = [tuple(self.test_path.split(os.path.sep)),
-                  {'logger': self.command.log}]
+        should = [
+            tuple(self.test_path.split(os.path.sep)),
+            {'logger': self.command.log},
+        ]
         self.assertEqual(t, should)
 
     def test_uniqueness_upload(self):
@@ -3492,8 +3737,11 @@ class UploadTestCase(ConnectedBaseTestCase):
         first_cmd = self.action_queue.queue.waiting[0]
         self.action_queue.upload('foo', 'bar', 1, 1, 1, 1, self.mdid)
         self.assertTrue(first_cmd.cancelled)
-        self.assertTrue(self.handler.check_debug("Previous command cancelled",
-                                                 "Upload", "foo", "bar"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "Previous command cancelled", "Upload", "foo", "bar"
+            )
+        )
 
     def test_uniqueness_download(self):
         """There should be only one upload/download for a specific node."""
@@ -3502,8 +3750,11 @@ class UploadTestCase(ConnectedBaseTestCase):
         first_cmd = self.action_queue.queue.waiting[0]
         self.action_queue.upload('foo', 'bar', 0, 0, 0, 0, self.mdid)
         self.assertTrue(first_cmd.cancelled)
-        self.assertTrue(self.handler.check_debug("Previous command cancelled",
-                                                 "Download", "foo", "bar"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "Previous command cancelled", "Download", "foo", "bar"
+            )
+        )
 
     def test_uniqueness_even_with_markers(self):
         """Only one upload/download per node, even using markers."""
@@ -3525,8 +3776,11 @@ class UploadTestCase(ConnectedBaseTestCase):
 
         self.action_queue.upload('foo', 'bar', 1, 1, 1, 1, self.mdid, BytesIO)
         self.assertEqual(len(self.action_queue.queue.waiting), 2)
-        self.assertTrue(self.handler.check_debug("Tried to cancel", "couldn't",
-                                                 "Upload", "foo", "bar"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "Tried to cancel", "couldn't", "Upload", "foo", "bar"
+            )
+        )
 
     def test_start_locks_on_semaphore(self):
         """_start acquire the semaphore and locks."""
@@ -3538,10 +3792,10 @@ class UploadTestCase(ConnectedBaseTestCase):
         mdobj = mock.Mock(mdid='mdid')
 
         class DummyFSM:
-
             def get_by_node_id(instance, *args):
                 self.assertEqual(
-                    args, (self.command.share_id, self.command.node_id))
+                    args, (self.command.share_id, self.command.node_id)
+                )
                 return mdobj
 
             def open_file(instance, mdid):
@@ -3578,7 +3832,8 @@ class UploadTestCase(ConnectedBaseTestCase):
         # check it released the semaphore
         req.release.assert_called_once()
         self.assertTrue(
-            self.handler.check_debug('semaphore released', 'cancelled'))
+            self.handler.check_debug('semaphore released', 'cancelled')
+        )
         self.assertIsNone(self.command.tx_semaphore)
 
     def test_finish_releases_semaphore_if_acquired(self):
@@ -3607,15 +3862,18 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.command.share_id = request.ROOT
         # create the node
         path = os.path.join(self.main.root_dir, 'foo')
-        self.main.fs.create(path=path, share_id=self.command.share_id,
-                            is_dir=False)
+        self.main.fs.create(
+            path=path, share_id=self.command.share_id, is_dir=False
+        )
         self.main.fs.set_node_id(path, self.command.node_id)
         self.command._upload_id_cb('hola', 1234)
-        mdobj = self.main.fs.get_by_node_id(self.command.share_id,
-                                            self.command.node_id)
+        mdobj = self.main.fs.get_by_node_id(
+            self.command.share_id, self.command.node_id
+        )
         self.assertEqual('hola', mdobj.upload_id)
-        self.assertTrue(self.handler.check_debug(
-            'upload_id', 'hola', 'offset', '1234'))
+        self.assertTrue(
+            self.handler.check_debug('upload_id', 'hola', 'offset', '1234')
+        )
 
     def test_start_paused_use_upload_id(self):
         """Test that starting a paused command make use of the upload_id."""
@@ -3628,8 +3886,9 @@ class UploadTestCase(ConnectedBaseTestCase):
         self.command.share_id = request.ROOT
         # create the node
         path = os.path.join(self.main.root_dir, 'foo')
-        self.main.fs.create(path=path, share_id=self.command.share_id,
-                            is_dir=False)
+        self.main.fs.create(
+            path=path, share_id=self.command.share_id, is_dir=False
+        )
         self.main.fs.set_node_id(path, self.command.node_id)
         self.action_queue.queue.queue(self.command)
         self.command._run()
@@ -3682,19 +3941,33 @@ class CreateShareTestCase(ConnectedBaseTestCase):
 
     def test_possible_markers(self):
         """Test that it returns the correct values."""
-        cmd = CreateShare(self.request_queue, 'node_id', 'shareto@example.com',
-                          'share_name', ACCESS_LEVEL_RO, 'marker', 'path')
+        cmd = CreateShare(
+            self.request_queue,
+            'node_id',
+            'shareto@example.com',
+            'share_name',
+            ACCESS_LEVEL_RO,
+            'marker',
+            'path',
+        )
         res = [getattr(cmd, x) for x in cmd.possible_markers]
         self.assertEqual(res, ['node_id'])
 
     def test_path_locking(self):
         """Test that it acquires correctly the path lock."""
         t = []
-        self.patch(PathLockingTree, 'acquire',
-                   lambda s, *a, **k: t.extend((a, k)))
-        cmd = CreateShare(self.request_queue, NODE, 'share_to',
-                          'share_name', ACCESS_LEVEL_RO, 'marker_id',
-                          os.path.join('foo', 'bar'))
+        self.patch(
+            PathLockingTree, 'acquire', lambda s, *a, **k: t.extend((a, k))
+        )
+        cmd = CreateShare(
+            self.request_queue,
+            NODE,
+            'share_to',
+            'share_name',
+            ACCESS_LEVEL_RO,
+            'marker_id',
+            os.path.join('foo', 'bar'),
+        )
         cmd._acquire_pathlock()
         self.assertEqual(t, [('foo', 'bar'), {'logger': None}])
 
@@ -3702,12 +3975,19 @@ class CreateShareTestCase(ConnectedBaseTestCase):
         """Test AQ_CREATE_SHARE_ERROR is pushed on failure."""
         msg = 'Something went wrong'
         failure = Failure(DefaultException(msg))
-        cmd = CreateShare(self.request_queue, NODE, 'share_to',
-                          'share_name', ACCESS_LEVEL_RO, 'marker_id',
-                          os.path.join('foo', 'bar'))
+        cmd = CreateShare(
+            self.request_queue,
+            NODE,
+            'share_to',
+            'share_name',
+            ACCESS_LEVEL_RO,
+            'marker_id',
+            os.path.join('foo', 'bar'),
+        )
         cmd.handle_failure(failure=failure)
-        events = [('AQ_CREATE_SHARE_ERROR',
-                  {'marker': 'marker_id', 'error': msg})]
+        events = [
+            ('AQ_CREATE_SHARE_ERROR', {'marker': 'marker_id', 'error': msg})
+        ]
         self.assertEqual(events, cmd.action_queue.event_queue.events)
 
 
@@ -3740,6 +4020,7 @@ class DeleteShareTestCase(ConnectedBaseTestCase):
             """Take control over client's feature."""
             self.called = True
             self.assertEqual(SHARE, share_id)
+
         self.patch(self.command.action_queue.client, 'delete_share', check)
         self.command._run()
         self.assertTrue(self.called, "command wasn't called")
@@ -3756,8 +4037,7 @@ class DeleteShareTestCase(ConnectedBaseTestCase):
         msg = 'Something went wrong'
         failure = Failure(DefaultException(msg))
         self.command.handle_failure(failure=failure)
-        events = [('AQ_DELETE_SHARE_ERROR',
-                  {'share_id': SHARE, 'error': msg})]
+        events = [('AQ_DELETE_SHARE_ERROR', {'share_id': SHARE, 'error': msg})]
         self.assertEqual(events, self.command.action_queue.event_queue.events)
 
 
@@ -3783,6 +4063,7 @@ class SimpleAQTestCase(BasicTestCase):
             self.assertIn('foo', result)
             self.assertIn('bar', result)
             return result
+
         d.addCallback(check)
         return d
 
@@ -3792,35 +4073,44 @@ class SimpleAQTestCase(BasicTestCase):
         If free_space is None, SYS_QUOTA_EXCEEDED is not pushed.
 
         """
-        self.patch(self.action_queue.main.vm, 'get_free_space',
-                   lambda share_id: None)  # free space is None
+        self.patch(
+            self.action_queue.main.vm, 'get_free_space', lambda share_id: None
+        )  # free space is None
         volume_id = 'test share'
-        res = self.action_queue.have_sufficient_space_for_upload(volume_id,
-                                                                 upload_size=1)
+        res = self.action_queue.have_sufficient_space_for_upload(
+            volume_id, upload_size=1
+        )
         self.assertTrue(res, "Must have enough space to upload.")
-        events = map(operator.itemgetter(0),
-                     self.action_queue.event_queue.events)
+        events = map(
+            operator.itemgetter(0), self.action_queue.event_queue.events
+        )
         self.assertNotIn('SYS_QUOTA_EXCEEDED', events)
 
     def test_have_sufficient_space_for_upload_if_no_free_space(self):
         """Check have_sufficient_space_for_upload pushes SYS_QUOTA_EXCEEDED."""
-        self.patch(self.action_queue.main.vm, 'get_free_space',
-                   lambda share_id: 0)  # no free space, always
+        self.patch(
+            self.action_queue.main.vm, 'get_free_space', lambda share_id: 0
+        )  # no free space, always
         volume_id = 'test share'
-        res = self.action_queue.have_sufficient_space_for_upload(volume_id,
-                                                                 upload_size=1)
+        res = self.action_queue.have_sufficient_space_for_upload(
+            volume_id, upload_size=1
+        )
         self.assertEqual(res, False, "Must not have enough space to upload.")
         msg = 'SYS_QUOTA_EXCEEDED must have been pushed to event queue.'
-        expected = ('SYS_QUOTA_EXCEEDED',
-                    {'volume_id': volume_id, 'free_bytes': 0})
+        expected = (
+            'SYS_QUOTA_EXCEEDED',
+            {'volume_id': volume_id, 'free_bytes': 0},
+        )
         self.assertTrue(expected in self.action_queue.event_queue.events, msg)
 
     def test_have_sufficient_space_for_upload_if_free_space(self):
         """Check have_sufficient_space_for_upload doesn't push any event."""
-        self.patch(self.action_queue.main.vm, 'get_free_space',
-                   lambda share_id: 1)  # free space, always
-        res = self.action_queue.have_sufficient_space_for_upload(share_id=None,
-                                                                 upload_size=0)
+        self.patch(
+            self.action_queue.main.vm, 'get_free_space', lambda share_id: 1
+        )  # free space, always
+        res = self.action_queue.have_sufficient_space_for_upload(
+            share_id=None, upload_size=0
+        )
         self.assertEqual(res, True, "Must have enough space to upload.")
         msg = 'No event must have been pushed to event queue.'
         self.assertEqual(self.action_queue.event_queue.events, [], msg)
@@ -3843,14 +4133,15 @@ class SimpleAQTestCase(BasicTestCase):
         self.user_connect()
         self.assertEqual(
             self.action_queue.credentials,
-            {'password': 'test_password', 'username': 'test_username'})
+            {'password': 'test_password', 'username': 'test_username'},
+        )
 
 
 class SpecificException(Exception):
     """The specific exception."""
 
 
-class SillyClass(object):
+class SillyClass:
     """Silly class that accepts the set of any attribute.
 
     We can't use object() directly, since its raises AttributeError.
@@ -3874,28 +4165,34 @@ class ErrorHandlingTestCase(BasicTestCase):
 
     def fail_please(self, an_exception):
         """Raise the given exception."""
+
         def inner(*args, **kwargs):
             """A request to the server that fails."""
             self.called = True
             return defer.fail(an_exception)
+
         return inner
 
     def succeed_please(self, result):
         """Return the given result."""
+
         def inner(*args, **kwargs):
             """A request to the server that succeeds."""
             self.called = True
             return defer.succeed(result)
+
         return inner
 
     def mock_caps(self, accepted):
         """Reply to query caps with False."""
+
         def gset_caps(caps):
             """get/set caps helper."""
             req = SillyClass()
             req.caps = caps
             req.accepted = accepted
             return defer.succeed(req)
+
         return gset_caps
 
     def test_valid_event(self):
@@ -3914,16 +4211,20 @@ class ErrorHandlingTestCase(BasicTestCase):
 
         result = object()
         request = self.succeed_please(result)
-        kwargs = dict(request=request, request_error=SpecificException,
-                      event_error='YADDA_YADDA', event_ok=event,
-                      args=(1, 2), kwargs={})
+        kwargs = dict(
+            request=request,
+            request_error=SpecificException,
+            event_error='YADDA_YADDA',
+            event_ok=event,
+            args=(1, 2),
+            kwargs={},
+        )
         d = self.action_queue._send_request_and_handle_errors(**kwargs)
         actual_result = yield d
 
         self.assertTrue(self.called, 'the request was called')
         self.assertEqual(actual_result, result)
-        self.assertEqual((event, {}),
-                         self.action_queue.event_queue.events[-1])
+        self.assertEqual((event, {}), self.action_queue.event_queue.events[-1])
 
         # assert over logging
         self.assertTrue(self.handler.check_info(request.__name__, 'OK'))
@@ -3935,15 +4236,18 @@ class ErrorHandlingTestCase(BasicTestCase):
 
         result = object()
         request = self.succeed_please(result)
-        kwargs = dict(request=request, request_error=SpecificException,
-                      event_error='YADDA_YADDA', event_ok=None)
+        kwargs = dict(
+            request=request,
+            request_error=SpecificException,
+            event_error='YADDA_YADDA',
+            event_ok=None,
+        )
         d = self.action_queue._send_request_and_handle_errors(**kwargs)
         actual_result = yield d
 
         self.assertTrue(self.called, 'the request was called')
         self.assertEqual(actual_result, result)
-        self.assertEqual(original_events,
-                         self.action_queue.event_queue.events)
+        self.assertEqual(original_events, self.action_queue.event_queue.events)
 
         # assert over logging
         self.assertTrue(self.handler.check_info(request.__name__, 'OK'))
@@ -3958,25 +4262,36 @@ class ErrorHandlingTestCase(BasicTestCase):
 
         exc = SpecificException('The request failed! please be happy.')
         request = self.fail_please(exc)
-        kwargs = dict(request=request, request_error=SpecificException,
-                      event_error=event, event_ok='YADDA_YADDA')
+        kwargs = dict(
+            request=request,
+            request_error=SpecificException,
+            event_error=event,
+            event_ok='YADDA_YADDA',
+        )
         d = self.action_queue._send_request_and_handle_errors(**kwargs)
         yield d
 
         self.assertTrue(self.called, 'the request was called')
-        self.assertEqual((event, {'error': str(exc)}),
-                         self.action_queue.event_queue.events[-1])
+        self.assertEqual(
+            (event, {'error': str(exc)}),
+            self.action_queue.event_queue.events[-1],
+        )
 
         # assert over logging
-        self.assertTrue(self.handler.check_info(request.__name__,
-                                                event, str(exc)))
+        self.assertTrue(
+            self.handler.check_info(request.__name__, event, str(exc))
+        )
 
     @defer.inlineCallbacks
     def assert_send_request_and_handle_errors_on_connection_end(self, exc):
         """_send_request_and_handle_errors is ok when connection lost/done."""
         request = self.fail_please(exc)
-        kwargs = dict(request=request, request_error=SpecificException,
-                      event_error='BAR', event_ok='FOO')
+        kwargs = dict(
+            request=request,
+            request_error=SpecificException,
+            event_error='BAR',
+            event_ok='FOO',
+        )
         d = self.action_queue._send_request_and_handle_errors(**kwargs)
         yield d
 
@@ -4012,18 +4327,25 @@ class ErrorHandlingTestCase(BasicTestCase):
         exc = errors.error_to_exception(serr)(request=None, message=msg)
 
         request = self.fail_please(exc)
-        kwargs = dict(request=request, request_error=SpecificException,
-                      event_error='BAR', event_ok='FOO')
+        kwargs = dict(
+            request=request,
+            request_error=SpecificException,
+            event_error='BAR',
+            event_ok='FOO',
+        )
         d = self.action_queue._send_request_and_handle_errors(**kwargs)
         yield d
 
         event = 'SYS_SERVER_ERROR'
-        self.assertEqual((event, {'error': str(exc)}),
-                         self.action_queue.event_queue.events[-1])
+        self.assertEqual(
+            (event, {'error': str(exc)}),
+            self.action_queue.event_queue.events[-1],
+        )
 
         # assert over logging
-        self.assertTrue(self.handler.check_info(request.__name__,
-                                                event, str(exc)))
+        self.assertTrue(
+            self.handler.check_info(request.__name__, event, str(exc))
+        )
 
     @defer.inlineCallbacks
     def test_send_request_and_handle_errors_on_try_again(self):
@@ -4140,8 +4462,12 @@ class ErrorHandlingTestCase(BasicTestCase):
         exc = errors.error_to_exception(serr)(request=None, message=msg)
 
         request = self.fail_please(exc)
-        kwargs = dict(request=request, request_error=SpecificException,
-                      event_error='BAR', event_ok='FOO')
+        kwargs = dict(
+            request=request,
+            request_error=SpecificException,
+            event_error='BAR',
+            event_ok='FOO',
+        )
         d = self.action_queue._send_request_and_handle_errors(**kwargs)
         yield d
 
@@ -4149,8 +4475,9 @@ class ErrorHandlingTestCase(BasicTestCase):
         self.assertIn((event, {}), self.action_queue.event_queue.events)
 
         # assert over logging
-        self.assertTrue(self.handler.check_info(request.__name__,
-                                                event, str(exc)))
+        self.assertTrue(
+            self.handler.check_info(request.__name__, event, str(exc))
+        )
 
     @defer.inlineCallbacks
     def test_send_request_and_handle_errors_on_no_protocol_error(self):
@@ -4160,16 +4487,21 @@ class ErrorHandlingTestCase(BasicTestCase):
         error_msg = 'Error message for any Exception.'
         exc = Exception(error_msg)
         request = self.fail_please(exc)
-        kwargs = dict(request=request, request_error=SpecificException,
-                      event_error='BAR', event_ok='FOO')
+        kwargs = dict(
+            request=request,
+            request_error=SpecificException,
+            event_error='BAR',
+            event_ok='FOO',
+        )
         d = self.action_queue._send_request_and_handle_errors(**kwargs)
         yield d
 
         self.assertIn((event, {}), self.action_queue.event_queue.events)
 
         # assert over logging
-        self.assertTrue(self.handler.check_info(request.__name__,
-                                                event, str(exc)))
+        self.assertTrue(
+            self.handler.check_info(request.__name__, event, str(exc))
+        )
 
     @defer.inlineCallbacks
     def test_send_request_and_handle_errors_on_client_mismatch(self):
@@ -4180,16 +4512,23 @@ class ErrorHandlingTestCase(BasicTestCase):
             self.action_queue.client = object()
 
         self.action_queue.event_queue.events = []  # event cleanup
-        kwargs = dict(request=change_client, request_error=SpecificException,
-                      event_error='BAR', event_ok='FOO')
+        kwargs = dict(
+            request=change_client,
+            request_error=SpecificException,
+            event_error='BAR',
+            event_ok='FOO',
+        )
         d = self.action_queue._send_request_and_handle_errors(**kwargs)
         yield d
 
         self.assertEqual([], self.action_queue.event_queue.events)
 
         # assert over logging
-        self.assertTrue(self.handler.check_warning(change_client.__name__,
-                                                   'Client mismatch'))
+        self.assertTrue(
+            self.handler.check_warning(
+                change_client.__name__, 'Client mismatch'
+            )
+        )
 
     @defer.inlineCallbacks
     def test_check_version_when_unsupported_version_exception(self):
@@ -4217,8 +4556,10 @@ class ErrorHandlingTestCase(BasicTestCase):
         msg = "The server doesn't have the requested capabilities"
         event = ('SYS_SET_CAPABILITIES_ERROR', {'error': msg})
         self.assertEqual(event, self.action_queue.event_queue.events[-1])
-        self.assertNotIn(('SYS_SET_CAPABILITIES_OK', {}),
-                         self.action_queue.event_queue.events)
+        self.assertNotIn(
+            ('SYS_SET_CAPABILITIES_OK', {}),
+            self.action_queue.event_queue.events,
+        )
 
     @defer.inlineCallbacks
     def test_set_capabilities_when_set_caps_not_accepted(self):
@@ -4233,8 +4574,10 @@ class ErrorHandlingTestCase(BasicTestCase):
         msg = "The server denied setting '%s' capabilities" % caps
         event = ('SYS_SET_CAPABILITIES_ERROR', {'error': msg})
         self.assertEqual(event, self.action_queue.event_queue.events[-1])
-        self.assertNotIn(('SYS_SET_CAPABILITIES_OK', {}),
-                         self.action_queue.event_queue.events)
+        self.assertNotIn(
+            ('SYS_SET_CAPABILITIES_OK', {}),
+            self.action_queue.event_queue.events,
+        )
 
     @defer.inlineCallbacks
     def test_set_capabilities_when_client_is_none(self):
@@ -4246,8 +4589,10 @@ class ErrorHandlingTestCase(BasicTestCase):
         msg = "'NoneType' object has no attribute 'query_caps'"
         event = ('SYS_SET_CAPABILITIES_ERROR', {'error': msg})
         self.assertEqual(event, self.action_queue.event_queue.events[-1])
-        self.assertNotIn(('SYS_SET_CAPABILITIES_OK', {}),
-                         self.action_queue.event_queue.events)
+        self.assertNotIn(
+            ('SYS_SET_CAPABILITIES_OK', {}),
+            self.action_queue.event_queue.events,
+        )
 
     @defer.inlineCallbacks
     def test_set_capabilities_when_set_caps_is_accepted(self):
@@ -4264,11 +4609,13 @@ class ErrorHandlingTestCase(BasicTestCase):
     @defer.inlineCallbacks
     def test_authenticate_when_authenticated(self):
         """Test error handling after authenticate with no error."""
-        request = client.Authenticate(self.action_queue.client,
-                                      {'dummy_token': 'credentials'})
+        request = client.Authenticate(
+            self.action_queue.client, {'dummy_token': 'credentials'}
+        )
         request.session_id = str(uuid.uuid4())
-        self.action_queue.client.simple_authenticate = \
-            self.succeed_please(result=request)
+        self.action_queue.client.simple_authenticate = self.succeed_please(
+            result=request
+        )
         yield self.action_queue.authenticate()
         event = ('SYS_AUTH_OK', {})
         self.assertEqual(event, self.action_queue.event_queue.events[-1])
@@ -4317,8 +4664,9 @@ class GetDeltaTestCase(ConnectedBaseTestCase):
     def test_run_calls_protocol(self):
         """Test protocol's get delta is called."""
         called = []
-        self.patch(self.action_queue.client, 'get_delta',
-                   lambda *a: called.append(a))
+        self.patch(
+            self.action_queue.client, 'get_delta', lambda *a: called.append(a)
+        )
 
         cmd = GetDelta(self.rq, VOLUME, 35)
         cmd._run()
@@ -4327,8 +4675,9 @@ class GetDeltaTestCase(ConnectedBaseTestCase):
     def test_handle_success_push_event(self):
         """Test AQ_DELTA_OK is pushed on success."""
         # create a request and fill it with succesful information
-        request = client.GetDelta(self.action_queue.client,
-                                  share_id=VOLUME, from_generation=21)
+        request = client.GetDelta(
+            self.action_queue.client, share_id=VOLUME, from_generation=21
+        )
         request.response = ['foo', 'bar']
         request.end_generation = 76
         request.full = True
@@ -4340,9 +4689,13 @@ class GetDeltaTestCase(ConnectedBaseTestCase):
 
         # check for successful event
         received = self.action_queue.event_queue.events[0]
-        delta_info = dict(volume_id=VOLUME, delta_content=['foo', 'bar'],
-                          end_generation=76,
-                          full=True, free_bytes=1231234)
+        delta_info = dict(
+            volume_id=VOLUME,
+            delta_content=['foo', 'bar'],
+            end_generation=76,
+            full=True,
+            free_bytes=1231234,
+        )
         self.assertEqual(received, ('AQ_DELTA_OK', delta_info))
         self.assertIsInstance(received[1]["delta_content"], DeltaList)
 
@@ -4358,8 +4711,9 @@ class GetDeltaTestCase(ConnectedBaseTestCase):
 
         # check for event
         received = self.action_queue.event_queue.events[0]
-        self.assertEqual(received, ('AQ_DELTA_ERROR',
-                                    {'volume_id': VOLUME, 'error': msg}))
+        self.assertEqual(
+            received, ('AQ_DELTA_ERROR', {'volume_id': VOLUME, 'error': msg})
+        )
 
     def test_handle_notpossible_failure_push_event(self):
         """Test AQ_DELTA_NOT_POSSIBLE is pushed on that failure."""
@@ -4376,8 +4730,9 @@ class GetDeltaTestCase(ConnectedBaseTestCase):
 
         # check for event
         received = self.action_queue.event_queue.events[0]
-        self.assertEqual(received, ('AQ_DELTA_NOT_POSSIBLE',
-                                    {'volume_id': VOLUME}))
+        self.assertEqual(
+            received, ('AQ_DELTA_NOT_POSSIBLE', {'volume_id': VOLUME})
+        )
 
     def test_queued_mixed_types(self):
         """Command gets queued if other command is waiting."""
@@ -4478,8 +4833,9 @@ class GetDeltaTestCase(ConnectedBaseTestCase):
     def test_path_locking(self):
         """Test that it acquires correctly the path lock."""
         t = []
-        self.patch(PathLockingTree, 'acquire',
-                   lambda s, *a, **k: t.extend((a, k)))
+        self.patch(
+            PathLockingTree, 'acquire', lambda s, *a, **k: t.extend((a, k))
+        )
         cmd = GetDelta(self.rq, 'volume_id', 123)
         cmd._acquire_pathlock()
         self.assertEqual(t, [('GetDelta', 'volume_id'), {'logger': None}])
@@ -4513,8 +4869,11 @@ class GetDeltaFromScratchTestCase(ConnectedBaseTestCase):
     def test_run_calls_protocol(self):
         """Test protocol's get delta is called."""
         called = []
-        self.patch(self.action_queue.client, 'get_delta',
-                   lambda *a, **b: called.append((a, b)))
+        self.patch(
+            self.action_queue.client,
+            'get_delta',
+            lambda *a, **b: called.append((a, b)),
+        )
 
         cmd = GetDeltaFromScratch(self.rq, VOLUME)
         cmd._run()
@@ -4523,8 +4882,9 @@ class GetDeltaFromScratchTestCase(ConnectedBaseTestCase):
     def test_handle_success_push_event(self):
         """Test AQ_DELTA_OK is pushed on success."""
         # create a request and fill it with succesful information
-        request = client.GetDelta(self.action_queue.client,
-                                  share_id=VOLUME, from_scratch=True)
+        request = client.GetDelta(
+            self.action_queue.client, share_id=VOLUME, from_scratch=True
+        )
         request.response = ['foo', 'bar']
         request.end_generation = 76
         request.full = True
@@ -4536,9 +4896,12 @@ class GetDeltaFromScratchTestCase(ConnectedBaseTestCase):
 
         # check for successful event
         received = self.action_queue.event_queue.events[0]
-        delta_info = dict(volume_id=VOLUME, delta_content=['foo', 'bar'],
-                          end_generation=76,
-                          free_bytes=1231234)
+        delta_info = dict(
+            volume_id=VOLUME,
+            delta_content=['foo', 'bar'],
+            end_generation=76,
+            free_bytes=1231234,
+        )
         self.assertEqual(received, ('AQ_RESCAN_FROM_SCRATCH_OK', delta_info))
         self.assertIsInstance(received[1]["delta_content"], DeltaList)
 
@@ -4554,8 +4917,13 @@ class GetDeltaFromScratchTestCase(ConnectedBaseTestCase):
 
         # check for event
         received = self.action_queue.event_queue.events[0]
-        self.assertEqual(received, ('AQ_RESCAN_FROM_SCRATCH_ERROR',
-                                    {'volume_id': VOLUME, 'error': msg}))
+        self.assertEqual(
+            received,
+            (
+                'AQ_RESCAN_FROM_SCRATCH_ERROR',
+                {'volume_id': VOLUME, 'error': msg},
+            ),
+        )
 
     def test_queued_mixed_types(self):
         """Command gets queued if other command is waiting."""
@@ -4603,15 +4971,21 @@ class UnlinkTestCase(ConnectedBaseTestCase):
         request.new_generation = 13
 
         # create a command and trigger it success
-        cmd = Unlink(self.rq, VOLUME, 'parent_id', 'node_id', sample_path,
-                     False)
+        cmd = Unlink(
+            self.rq, VOLUME, 'parent_id', 'node_id', sample_path, False
+        )
         cmd.handle_success(request)
 
         # check for successful event
         received = self.action_queue.event_queue.events[0]
-        info = dict(share_id=VOLUME, parent_id='parent_id',
-                    node_id='node_id', new_generation=13,
-                    was_dir=False, old_path=sample_path)
+        info = dict(
+            share_id=VOLUME,
+            parent_id='parent_id',
+            node_id='node_id',
+            new_generation=13,
+            was_dir=False,
+            old_path=sample_path,
+        )
         self.assertEqual(received, ('AQ_UNLINK_OK', info))
 
     def test_handle_success_push_event_directory(self):
@@ -4621,17 +4995,23 @@ class UnlinkTestCase(ConnectedBaseTestCase):
         request.new_generation = 13
 
         # create a command and trigger it success
-        cmd = Unlink(self.rq, VOLUME, 'parent_id', 'node_id', 'test_path',
-                     True)
+        cmd = Unlink(
+            self.rq, VOLUME, 'parent_id', 'node_id', 'test_path', True
+        )
         cmd.handle_success(request)
 
         full_path = "test_path"
 
         # check for successful event
         received = self.action_queue.event_queue.events[0]
-        info = dict(share_id=VOLUME, parent_id='parent_id',
-                    node_id='node_id', new_generation=13,
-                    was_dir=True, old_path=full_path)
+        info = dict(
+            share_id=VOLUME,
+            parent_id='parent_id',
+            node_id='node_id',
+            new_generation=13,
+            was_dir=True,
+            old_path=full_path,
+        )
         self.assertEqual(received, ('AQ_UNLINK_OK', info))
 
     def test_possible_markers(self):
@@ -4643,14 +5023,25 @@ class UnlinkTestCase(ConnectedBaseTestCase):
     def test_path_locking(self):
         """Test that it acquires correctly the path lock."""
         t = []
-        self.patch(PathLockingTree, 'acquire',
-                   lambda s, *a, **k: t.extend((a, k)))
-        cmd = Unlink(self.rq, VOLUME, 'parent_id', 'node_id',
-                     os.path.join('foo', 'bar'), False)
+        self.patch(
+            PathLockingTree, 'acquire', lambda s, *a, **k: t.extend((a, k))
+        )
+        cmd = Unlink(
+            self.rq,
+            VOLUME,
+            'parent_id',
+            'node_id',
+            os.path.join('foo', 'bar'),
+            False,
+        )
         cmd._acquire_pathlock()
-        self.assertEqual(t, [('foo', 'bar'), {'on_parent': True,
-                                              'on_children': True,
-                                              'logger': None}])
+        self.assertEqual(
+            t,
+            [
+                ('foo', 'bar'),
+                {'on_parent': True, 'on_children': True, 'logger': None},
+            ],
+        )
 
     def test_to_dict_info(self):
         """Some info should be in to_dict."""
@@ -4671,13 +5062,22 @@ class MoveTestCase(ConnectedBaseTestCase):
     def test_handle_success_push_event(self):
         """Test AQ_MOVE_OK is pushed on success."""
         # create a request and fill it with succesful information
-        request = client.Move(self.action_queue.client, VOLUME, 'node',
-                              'new_parent', 'new_name')
+        request = client.Move(
+            self.action_queue.client, VOLUME, 'node', 'new_parent', 'new_name'
+        )
         request.new_generation = 13
 
         # create a command and trigger it success
-        cmd = Move(self.rq, VOLUME, 'node', 'o_parent', 'n_parent', 'n_name',
-                   'path_from', 'path_to')
+        cmd = Move(
+            self.rq,
+            VOLUME,
+            'node',
+            'o_parent',
+            'n_parent',
+            'n_name',
+            'path_from',
+            'path_to',
+        )
         cmd.handle_success(request)
 
         # check for successful event
@@ -4687,15 +5087,31 @@ class MoveTestCase(ConnectedBaseTestCase):
 
     def test_possible_markers(self):
         """Test that it returns the correct values."""
-        cmd = Move(self.rq, VOLUME, 'node', 'o_parent', 'n_parent', 'n_name',
-                   'path_from', 'path_to')
+        cmd = Move(
+            self.rq,
+            VOLUME,
+            'node',
+            'o_parent',
+            'n_parent',
+            'n_name',
+            'path_from',
+            'path_to',
+        )
         res = [getattr(cmd, x) for x in cmd.possible_markers]
         self.assertEqual(res, ['node', 'o_parent', 'n_parent'])
 
     def test_uniqueness(self):
         """Info used for uniqueness."""
-        cmd = Move(self.rq, VOLUME, 'node', 'o_parent', 'n_parent', 'n_name',
-                   'path_from', 'path_to')
+        cmd = Move(
+            self.rq,
+            VOLUME,
+            'node',
+            'o_parent',
+            'n_parent',
+            'n_name',
+            'path_from',
+            'path_to',
+        )
         self.assertEqual(cmd.uniqueness, ('Move', VOLUME, 'node'))
 
     def test_path_locking(self):
@@ -4706,14 +5122,22 @@ class MoveTestCase(ConnectedBaseTestCase):
             return t.extend((a, k)) or defer.succeed(None)
 
         self.patch(PathLockingTree, 'acquire', fake_acquire)
-        cmd = Move(self.rq, VOLUME, 'node', 'o_parent', 'n_parent', 'n_name',
-                   os.path.join(os.path.sep, 'path', 'from'),
-                   os.path.join(os.path.sep, 'path', 'to'))
+        cmd = Move(
+            self.rq,
+            VOLUME,
+            'node',
+            'o_parent',
+            'n_parent',
+            'n_name',
+            os.path.join(os.path.sep, 'path', 'from'),
+            os.path.join(os.path.sep, 'path', 'to'),
+        )
         cmd._acquire_pathlock()
         should = [
-            ("", "path", "from"), {'on_parent': True,
-                                   'on_children': True, 'logger': None},
-            ("", "path", "to"), {'on_parent': True, 'logger': None},
+            ("", "path", "from"),
+            {'on_parent': True, 'on_children': True, 'logger': None},
+            ("", "path", "to"),
+            {'on_parent': True, 'logger': None},
         ]
         self.assertEqual(t, should)
 
@@ -4722,8 +5146,9 @@ class MoveTestCase(ConnectedBaseTestCase):
         d1 = defer.Deferred()
         d2 = defer.Deferred()
         fake_defers = [d1, d2]
-        self.patch(PathLockingTree, 'acquire',
-                   lambda *a, **k: fake_defers.pop())
+        self.patch(
+            PathLockingTree, 'acquire', lambda *a, **k: fake_defers.pop()
+        )
         cmd = Move(self.rq, VOLUME, 'node', 'o_p', 'n_p', 'n_n', 'p/f', 'p/t')
 
         # get the path lock, and add a callback to get the release function
@@ -4748,8 +5173,16 @@ class MoveTestCase(ConnectedBaseTestCase):
 
     def test_to_dict_info(self):
         """Some info should be in to_dict."""
-        cmd = Move(self.rq, VOLUME, 'node', 'o_parent', 'n_parent', 'n_name',
-                   'path_from', 'path_to')
+        cmd = Move(
+            self.rq,
+            VOLUME,
+            'node',
+            'o_parent',
+            'n_parent',
+            'n_name',
+            'path_from',
+            'path_to',
+        )
         info = cmd.to_dict()
         self.assertEqual(info['path_from'], 'path_from')
         self.assertEqual(info['path_to'], 'path_to')
@@ -4769,8 +5202,9 @@ class MakeFileTestCase(ConnectedBaseTestCase):
     def test_handle_success_push_event(self):
         """Test AQ_FILE_NEW_OK is pushed on success."""
         # create a request and fill it with succesful information
-        request = client.MakeFile(self.action_queue.client, VOLUME,
-                                  'parent', 'name')
+        request = client.MakeFile(
+            self.action_queue.client, VOLUME, 'parent', 'name'
+        )
         request.new_id = 'new_id'
         request.new_generation = 13
 
@@ -4780,15 +5214,20 @@ class MakeFileTestCase(ConnectedBaseTestCase):
 
         # check for successful event
         received = self.action_queue.event_queue.events[0]
-        info = dict(marker='marker', new_id='new_id', new_generation=13,
-                    volume_id=VOLUME)
+        info = dict(
+            marker='marker',
+            new_id='new_id',
+            new_generation=13,
+            volume_id=VOLUME,
+        )
         self.assertEqual(received, ('AQ_FILE_NEW_OK', info))
 
     def test_handle_failure_push_event(self):
         """Test AQ_FILE_NEW_ERROR is pushed on error."""
         # create a request and fill it with succesful information
-        request = client.MakeFile(self.action_queue.client, VOLUME,
-                                  'parent', 'name')
+        request = client.MakeFile(
+            self.action_queue.client, VOLUME, 'parent', 'name'
+        )
         request.new_id = 'new_id'
         request.new_generation = 13
 
@@ -4811,12 +5250,15 @@ class MakeFileTestCase(ConnectedBaseTestCase):
     def test_path_locking(self):
         """Test that it acquires correctly the path lock."""
         t = []
-        self.patch(PathLockingTree, 'acquire',
-                   lambda s, *a, **k: t.extend((a, k)))
+        self.patch(
+            PathLockingTree, 'acquire', lambda s, *a, **k: t.extend((a, k))
+        )
         cmd = MakeFile(self.rq, VOLUME, 'parent', 'name', 'marker', self.mdid)
         cmd._acquire_pathlock()
-        should = [tuple(self.test_path.split(os.path.sep)),
-                  {'on_parent': True, 'logger': None}]
+        should = [
+            tuple(self.test_path.split(os.path.sep)),
+            {'on_parent': True, 'logger': None},
+        ]
         self.assertEqual(t, should)
 
     def test_has_path_at_init(self):
@@ -4845,8 +5287,9 @@ class MakeDirTestCase(ConnectedBaseTestCase):
     def test_handle_success_push_event(self):
         """Test AQ_DIR_NEW_OK is pushed on success."""
         # create a request and fill it with succesful information
-        request = client.MakeDir(self.action_queue.client, VOLUME,
-                                 'parent', 'name')
+        request = client.MakeDir(
+            self.action_queue.client, VOLUME, 'parent', 'name'
+        )
         request.new_id = 'new_id'
         request.new_generation = 13
 
@@ -4856,15 +5299,20 @@ class MakeDirTestCase(ConnectedBaseTestCase):
 
         # check for successful event
         received = self.action_queue.event_queue.events[0]
-        info = dict(marker='marker', new_id='new_id', new_generation=13,
-                    volume_id=VOLUME)
+        info = dict(
+            marker='marker',
+            new_id='new_id',
+            new_generation=13,
+            volume_id=VOLUME,
+        )
         self.assertEqual(received, ('AQ_DIR_NEW_OK', info))
 
     def test_handle_failure_push_event(self):
         """Test AQ_DIR_NEW_ERROR is pushed on error."""
         # create a request and fill it with succesful information
-        request = client.MakeDir(self.action_queue.client, VOLUME,
-                                 'parent', 'name')
+        request = client.MakeDir(
+            self.action_queue.client, VOLUME, 'parent', 'name'
+        )
         request.new_id = 'new_id'
         request.new_generation = 13
 
@@ -4887,12 +5335,15 @@ class MakeDirTestCase(ConnectedBaseTestCase):
     def test_path_locking(self):
         """Test that it acquires correctly the path lock."""
         t = []
-        self.patch(PathLockingTree, 'acquire',
-                   lambda s, *a, **k: t.extend((a, k)))
+        self.patch(
+            PathLockingTree, 'acquire', lambda s, *a, **k: t.extend((a, k))
+        )
         cmd = MakeDir(self.rq, VOLUME, 'parent', 'name', 'marker', self.mdid)
         cmd._acquire_pathlock()
-        should = [tuple(self.test_path.split(os.path.sep)),
-                  {'on_parent': True, 'logger': None}]
+        should = [
+            tuple(self.test_path.split(os.path.sep)),
+            {'on_parent': True, 'logger': None},
+        ]
         self.assertEqual(t, should)
 
     def test_has_path_at_init(self):
@@ -4941,16 +5392,19 @@ class AuthenticateTestCase(ConnectedBaseTestCase):
     @defer.inlineCallbacks
     def test_session_id_is_logged(self):
         """Test that session_id is logged after auth ok."""
-        request = client.Authenticate(self.action_queue.client,
-                                      {'dummy_token': 'credentials'})
+        request = client.Authenticate(
+            self.action_queue.client, {'dummy_token': 'credentials'}
+        )
         request.session_id = str(uuid.uuid4())
         self.action_queue.client.simple_authenticate = (
-            lambda *args: defer.succeed(request))
+            lambda *args: defer.succeed(request)
+        )
 
         yield self.action_queue.authenticate()
 
-        self.assertTrue(self.handler.check_note('Session ID: %r' %
-                                                str(request.session_id)))
+        self.assertTrue(
+            self.handler.check_note('Session ID: %r' % str(request.session_id))
+        )
 
     @defer.inlineCallbacks
     def test_send_platform_and_version(self):
@@ -4959,8 +5413,9 @@ class AuthenticateTestCase(ConnectedBaseTestCase):
 
         def fake_authenticate(*args, **kwargs):
             called.append((args, kwargs))
-            request = client.Authenticate(self.action_queue.client,
-                                          {'dummy_token': 'credentials'})
+            request = client.Authenticate(
+                self.action_queue.client, {'dummy_token': 'credentials'}
+            )
             request.session_id = str(uuid.uuid4())
             return defer.succeed(request)
 
@@ -4969,7 +5424,9 @@ class AuthenticateTestCase(ConnectedBaseTestCase):
         self.assertEqual(len(called), 1)
         metadata = called[0][0][2]
         expected_metadata = {
-            'platform': platform, 'version': clientdefs.VERSION}
+            'platform': platform,
+            'version': clientdefs.VERSION,
+        }
         self.assertEqual(metadata, expected_metadata)
 
 
@@ -4990,18 +5447,23 @@ class ActionQueueProtocolTests(TwistedTestCase):
         self.aqp.log.addHandler(self.handler)
         self.addCleanup(self.aqp.log.removeHandler, self.handler)
         self.addCleanup(
-            lambda: self.aqp.ping_manager and self.aqp.ping_manager.stop())
+            lambda: self.aqp.ping_manager and self.aqp.ping_manager.stop()
+        )
 
     def test_connection_made(self):
         """Connection is made."""
         super_called = []
-        self.patch(ThrottlingStorageClient, 'connectionMade',
-                   lambda s: super_called.append(True))
+        self.patch(
+            ThrottlingStorageClient,
+            'connectionMade',
+            lambda s: super_called.append(True),
+        )
         # test
         self.aqp.connectionMade()
 
         self.aqp.factory.event_queue.push.assert_called_once_with(
-            'SYS_CONNECTION_MADE')
+            'SYS_CONNECTION_MADE'
+        )
         self.assertTrue(self.handler.check_info('Connection made.'))
         self.assertIsNotNone(self.aqp.ping_manager)
         self.assertTrue(super_called)
@@ -5009,11 +5471,15 @@ class ActionQueueProtocolTests(TwistedTestCase):
     def test_connection_lost(self):
         """Connection is lost."""
         super_called = []
-        self.patch(ThrottlingStorageClient, 'connectionLost',
-                   lambda s, r: super_called.append(True))
+        self.patch(
+            ThrottlingStorageClient,
+            'connectionLost',
+            lambda s, r: super_called.append(True),
+        )
         self.aqp.connectionLost('foo')
-        self.assertTrue(self.handler.check_info(
-                        'Connection lost, reason: foo.'))
+        self.assertTrue(
+            self.handler.check_info('Connection lost, reason: foo.')
+        )
         self.assertIsNone(self.aqp.ping_manager)
         self.assertTrue(super_called)
 
@@ -5279,6 +5745,7 @@ class CommandCycleTestCase(BasicTestCase):
         def fake_finish():
             ActionQueueCommand.finish(self.cmd)
             finished.callback(True)
+
         self.cmd.finish = fake_finish
 
         # let the command go
@@ -5318,6 +5785,7 @@ class CommandCycleTestCase(BasicTestCase):
         def fake_finish():
             ActionQueueCommand.finish(self.cmd)
             finished.callback(True)
+
         self.cmd.finish = fake_finish
 
         # let the command go, it will fail and wait for conditions
@@ -5349,6 +5817,7 @@ class CommandCycleTestCase(BasicTestCase):
             """Flag and call the real one."""
             called.append(3)
             ActionQueueCommand.finish(self.cmd)
+
         self.cmd.finish = fake_finish
 
         # let the command go
@@ -5387,7 +5856,8 @@ class CommandCycleTestCase(BasicTestCase):
         self.cmd.is_runnable = False
         released = []
         self.cmd._acquire_pathlock = lambda: defer.succeed(
-            lambda: released.append(True))
+            lambda: released.append(True)
+        )
 
         # let the command go (will stuck because not runnable), and
         # cancel in the middle
@@ -5404,7 +5874,8 @@ class CommandCycleTestCase(BasicTestCase):
         self.queue.stop()
         released = []
         self.cmd._acquire_pathlock = lambda: defer.succeed(
-            lambda: released.append(True))
+            lambda: released.append(True)
+        )
 
         # let the command go (will stuck because not runnable), and
         # cancel in the middle
@@ -5432,6 +5903,7 @@ class CommandCycleTestCase(BasicTestCase):
             """Flag and call the real one."""
             called.append('finish')
             ActionQueueCommand.finish(self.cmd)
+
         self.cmd.finish = fake_finish
 
         # do not let demark callback the marker
@@ -5459,9 +5931,16 @@ class CommandCycleTestCase(BasicTestCase):
         download/upload commands.
         """
         mdid = self.main.fs.create(os.path.join(self.root, 'file'), '')
-        cmd = Upload(self.queue, share_id='a_share_id', node_id='a_node_id',
-                     previous_hash='prev_hash', hash='yadda', crc32=0, size=0,
-                     mdid=mdid)
+        cmd = Upload(
+            self.queue,
+            share_id='a_share_id',
+            node_id='a_node_id',
+            previous_hash='prev_hash',
+            hash='yadda',
+            crc32=0,
+            size=0,
+            mdid=mdid,
+        )
         cmd.make_logger()
 
         # patch the command to simulate a request to an already full
@@ -5701,8 +6180,9 @@ class PingManagerTestCase(TwistedTestCase):
         """Set up."""
         yield super(PingManagerTestCase, self).setUp()
 
-        class FakeActionQueueProtocol(object):
+        class FakeActionQueueProtocol:
             """Fake object for the tests."""
+
             log = logger
             log.setLevel(TRACE)
 
@@ -5828,7 +6308,8 @@ class ActionQueueTestCase(BasicTestCase):
 
         # test
         executed = aq._really_execute(
-            fake_command_class, 'arg1', 'arg2', kwarg='foo')
+            fake_command_class, 'arg1', 'arg2', kwarg='foo'
+        )
 
         cmd.should_be_queued.assert_called_once()
         cmd.log.debug.assert_called_once_with('queueing')
@@ -5855,7 +6336,8 @@ class ActionQueueTestCase(BasicTestCase):
 
         # test
         yield self.action_queue._really_execute(
-            fake_command_class, 'arg', foo='bar')
+            fake_command_class, 'arg', foo='bar'
+        )
 
         cmd.should_be_queued.assert_called_once()
         cmd.log.debug.assert_not_called()
@@ -5870,8 +6352,11 @@ class ActionQueueTestCase(BasicTestCase):
 
         pushed = self.action_queue.disk_queue.pop()
         self.assertEqual(pushed, ("FakeCommand", ('arg',), {'foo': 'bar'}))
-        self.assertTrue(self.handler.check_debug("offload push", "FakeCommand",
-                                                 "('arg',)", "{'foo': 'bar'}"))
+        self.assertTrue(
+            self.handler.check_debug(
+                "offload push", "FakeCommand", "('arg',)", "{'foo': 'bar'}"
+            )
+        )
 
     def test_execute_normal_case(self):
         """Normal execution case."""

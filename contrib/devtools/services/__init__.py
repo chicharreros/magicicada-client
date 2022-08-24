@@ -37,10 +37,16 @@ from dirspec.basedir import load_data_paths
 def find_config_file(in_config_file):
     """Find the first appropriate conf to use."""
     # In case we're running from within the source tree
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                        os.path.pardir, os.path.pardir,
-                                        os.path.pardir,
-                                        "data", in_config_file))
+    path = os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            os.path.pardir,
+            os.path.pardir,
+            os.path.pardir,
+            "data",
+            in_config_file,
+        )
+    )
     if not os.path.exists(path):
         # Use the installed file in $pkgdatadir as source
         for path in load_data_paths(in_config_file):

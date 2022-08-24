@@ -41,7 +41,7 @@ class BadEventError(Exception):
     """One of the managers received a bad event."""
 
 
-class ConnectionManager(object):
+class ConnectionManager:
     """Class that knows how to play with network.
 
     This has four states, as you can see in the class attribs here.
@@ -61,7 +61,7 @@ class ConnectionManager(object):
         self.sm = state_manager
         self.eq = state_manager.main.event_q
         self.handshake_timeout = handshake_timeout
-        self.waiting_timeout = .2
+        self.waiting_timeout = 0.2
         self.state = self.NU_NN
         self.working = True
 
@@ -72,7 +72,8 @@ class ConnectionManager(object):
         )
 
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self._hshake_timer = None
         self._waiting_timer = None
         self.log.debug("start")
@@ -139,16 +140,22 @@ class ConnectionManager(object):
             self.waiting_timeout *= 2
             if self.waiting_timeout > MAX_WAITING:
                 self.waiting_timeout = MAX_WAITING
-            self.log.debug("Setting up the 'waiting' timer on %d secs",
-                           self.waiting_timeout)
-            self._waiting_timer = reactor.callLater(self.waiting_timeout,
-                                                    self._waiting_timeout)
+            self.log.debug(
+                "Setting up the 'waiting' timer on %d secs",
+                self.waiting_timeout,
+            )
+            self._waiting_timer = reactor.callLater(
+                self.waiting_timeout, self._waiting_timeout
+            )
 
         elif new_node in self._handshake_nodes:
-            self.log.debug("Setting up the 'handshake' timer on %d secs",
-                           self.handshake_timeout)
-            self._hshake_timer = reactor.callLater(self.handshake_timeout,
-                                                   self._hshake_timeout)
+            self.log.debug(
+                "Setting up the 'handshake' timer on %d secs",
+                self.handshake_timeout,
+            )
+            self._hshake_timer = reactor.callLater(
+                self.handshake_timeout, self._hshake_timeout
+            )
 
     def _internal_transition(self, event):
         """Execute the internal transition."""
@@ -179,13 +186,15 @@ class ConnectionManager(object):
                 new_state = self.NU_NN
 
         else:
-            raise ValueError("Bad ConnectionManager internal state: %r",
-                             self.state)
+            raise ValueError(
+                "Bad ConnectionManager internal state: %r", self.state
+            )
 
         # check if transitions
         if new_state is not None:
-            self.log.debug("Internal transition %r -> %r",
-                           self.state, new_state)
+            self.log.debug(
+                "Internal transition %r -> %r", self.state, new_state
+            )
             self.state = new_state
             if new_state == self.WU_WN and self.sm.state == StateManager.READY:
                 self.sm.aq.connect()
@@ -200,8 +209,9 @@ class ConnectionManager(object):
             self._waiting_timer.cancel()
 
 
-class Node(object):
+class Node:
     """Node information."""
+
     def __init__(self, name, desc, error=False, conn=False, online=False):
         self.name = name
         self.description = desc
@@ -214,12 +224,17 @@ class Node(object):
 
     def __repr__(self):
         return "<Node %s (%s) error=%s connected=%s online=%s>" % (
-            self.name, self.description, self.is_error, self.is_connected,
-            self.is_online)
+            self.name,
+            self.description,
+            self.is_error,
+            self.is_connected,
+            self.is_online,
+        )
 
 
 class StateInfo(Node):
     """Object to pass state information."""
+
     def __init__(self, node, queue, conn):
         self.__dict__.update(node.__dict__)
         self.queue_state = queue.state
@@ -228,13 +243,21 @@ class StateInfo(Node):
     def __repr__(self):
         return (
             "%s (error=%s connected=%s online=%s)  Queue: %s  Connection: "
-            "%s" % (self.name, self.is_error, self.is_connected,
-                    self.is_online, self.queue_state, self.connection_state))
+            "%s"
+            % (
+                self.name,
+                self.is_error,
+                self.is_connected,
+                self.is_online,
+                self.queue_state,
+                self.connection_state,
+            )
+        )
 
     __str__ = __repr__
 
 
-class QueueManager(object):
+class QueueManager:
     """A smaller finite state machine to handle queues."""
 
     IDLE = Node('IDLE', "nothing in the queues")
@@ -243,7 +266,8 @@ class QueueManager(object):
     def __init__(self):
         self.state = self.IDLE
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.log.debug("start")
 
     def _set_state(self, new_state):
@@ -306,7 +330,7 @@ ACCEPTED_EVENTS = [
 ]
 
 
-class StateManager(object):
+class StateManager:
     """The Manager of the high level states."""
 
     INIT = Node('INIT', "just initialized")
@@ -314,27 +338,32 @@ class StateManager(object):
     READY = Node('READY', "ready to connect")
     WAITING = Node('WAITING', "waiting before try connecting again")
 
-    CHECK_VERSION = Node('CHECK_VERSION', "checking protocol version",
-                         conn=True)
+    CHECK_VERSION = Node(
+        'CHECK_VERSION', "checking protocol version", conn=True
+    )
     BAD_VERSION = Node('BAD_VERSION', "bad protocol version", error=True)
 
-    SET_CAPABILITIES = Node('SET_CAPABILITIES', "checking capabilities",
-                            conn=True)
-    CAPABILITIES_MISMATCH = Node('CAPABILITIES_MISMATCH',
-                                 "capabilities mismatch", error=True)
+    SET_CAPABILITIES = Node(
+        'SET_CAPABILITIES', "checking capabilities", conn=True
+    )
+    CAPABILITIES_MISMATCH = Node(
+        'CAPABILITIES_MISMATCH', "capabilities mismatch", error=True
+    )
 
     AUTHENTICATE = Node('AUTHENTICATE', "doing auth dance", conn=True)
     AUTH_FAILED = Node('AUTH_FAILED', "auth failed", error=True)
 
     SERVER_RESCAN = Node('SERVER_RESCAN', "doing server rescan", conn=True)
 
-    QUEUE_MANAGER = Node('QUEUE_MANAGER', "processing the commands pool",
-                         conn=True, online=True)
+    QUEUE_MANAGER = Node(
+        'QUEUE_MANAGER', "processing the commands pool", conn=True, online=True
+    )
 
     STANDOFF = Node('STANDOFF', "waiting for connection to end", conn=True)
 
-    ROOT_MISMATCH = Node('ROOT_MISMATCH', "local and server roots are "
-                         "different", error=True)
+    ROOT_MISMATCH = Node(
+        'ROOT_MISMATCH', "local and server roots are " "different", error=True
+    )
     UNKNOWN_ERROR = Node('UNKNOWN_ERROR', "something went wrong", error=True)
 
     SHUTDOWN = Node('SHUTDOWN', "shutting down the service")
@@ -348,7 +377,8 @@ class StateManager(object):
         self.connection = ConnectionManager(self, handshake_timeout)
         self.eq.subscribe(self)
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.log.debug("start")
 
         # define transitions!
@@ -365,15 +395,23 @@ class StateManager(object):
             (self.READY, 'SYS_CONNECTION_MADE'): _from_ready,
             (self.READY, 'SYS_CONNECTION_FAILED'): self.WAITING,
             (self.WAITING, 'SYS_CONNECTION_RETRY'): self.READY,
-            (self.CHECK_VERSION,
-             'SYS_PROTOCOL_VERSION_OK'): self.SET_CAPABILITIES,
-            (self.CHECK_VERSION,
-             'SYS_PROTOCOL_VERSION_ERROR'): self.BAD_VERSION,
+            (
+                self.CHECK_VERSION,
+                'SYS_PROTOCOL_VERSION_OK',
+            ): self.SET_CAPABILITIES,
+            (
+                self.CHECK_VERSION,
+                'SYS_PROTOCOL_VERSION_ERROR',
+            ): self.BAD_VERSION,
             (self.CHECK_VERSION, 'SYS_SERVER_ERROR'): self.STANDOFF,
-            (self.SET_CAPABILITIES,
-             'SYS_SET_CAPABILITIES_OK'): self.AUTHENTICATE,
-            (self.SET_CAPABILITIES,
-             'SYS_SET_CAPABILITIES_ERROR'): self.CAPABILITIES_MISMATCH,
+            (
+                self.SET_CAPABILITIES,
+                'SYS_SET_CAPABILITIES_OK',
+            ): self.AUTHENTICATE,
+            (
+                self.SET_CAPABILITIES,
+                'SYS_SET_CAPABILITIES_ERROR',
+            ): self.CAPABILITIES_MISMATCH,
             (self.SET_CAPABILITIES, 'SYS_SERVER_ERROR'): self.STANDOFF,
             (self.AUTHENTICATE, 'SYS_AUTH_OK'): self.SERVER_RESCAN,
             (self.AUTHENTICATE, 'SYS_AUTH_ERROR'): self.AUTH_FAILED,
@@ -412,9 +450,14 @@ class StateManager(object):
             return
 
         # User events
-        if event in ('SYS_NET_CONNECTED', 'SYS_USER_CONNECT',
-                     'SYS_NET_DISCONNECTED', 'SYS_USER_DISCONNECT',
-                     'SYS_CONNECTION_LOST', 'SYS_HANDSHAKE_TIMEOUT'):
+        if event in (
+            'SYS_NET_CONNECTED',
+            'SYS_USER_CONNECT',
+            'SYS_NET_DISCONNECTED',
+            'SYS_USER_DISCONNECT',
+            'SYS_CONNECTION_LOST',
+            'SYS_HANDSHAKE_TIMEOUT',
+        ):
             self.log.debug("sending event to ConnectionManager")
             try:
                 new_node = self.connection.on_event(event)
@@ -441,8 +484,13 @@ class StateManager(object):
     def _bad_event(self, event):
         """Log that we received a bad event."""
         m = "Bad Event received: Got %r while in %r (queues %s  connection %s)"
-        self.log.warning(m, event, self.state.name,
-                         self.queues.state.name, self.connection.state)
+        self.log.warning(
+            m,
+            event,
+            self.state.name,
+            self.queues.state.name,
+            self.connection.state,
+        )
 
     def _transition(self, event, new_node):
         """Make the transition.
@@ -454,9 +502,14 @@ class StateManager(object):
             # no transition really
             return
 
-        self.log.debug("Transition %s --[%s]--> %s (queues: %s; "
-                       "connection: %s)", self.state, event, new_node,
-                       self.queues.state.name, self.connection.state)
+        self.log.debug(
+            "Transition %s --[%s]--> %s (queues: %s; " "connection: %s)",
+            self.state,
+            event,
+            new_node,
+            self.queues.state.name,
+            self.connection.state,
+        )
 
         # on exit actions
         if self.state == self.QUEUE_MANAGER:
@@ -497,7 +550,10 @@ class StateManager(object):
 
     def __str__(self):
         return "<State: %r  (queues %s  connection %r)>" % (
-            self.state.name, self.queues.state.name, self.connection.state)
+            self.state.name,
+            self.queues.state.name,
+            self.connection.state,
+        )
 
     def shutdown(self):
         """Finish all pending work."""

@@ -34,7 +34,7 @@ from twisted.trial.unittest import TestCase
 from magicicadaclient.platform import launcher
 
 
-class FakeLauncherEntryProps(object):
+class FakeLauncherEntryProps:
     """A fake Unity.LauncherEntry.props"""
 
     progress = 0.0
@@ -44,7 +44,7 @@ class FakeLauncherEntryProps(object):
     urgent = False
 
 
-class FakeLauncherEntry(object):
+class FakeLauncherEntry:
     """A fake Unity.LauncherEntry"""
 
     @staticmethod
@@ -65,6 +65,7 @@ class LauncherTestCase(TestCase):
     """Test the Launcher interface."""
 
     from magicicadaclient.platform.launcher.linux import use_libunity
+
     skip = None if use_libunity else "libunity not installed."
 
     @defer.inlineCallbacks
@@ -72,27 +73,37 @@ class LauncherTestCase(TestCase):
         """Initialize this test instance."""
         yield super(LauncherTestCase, self).setUp()
         import magicicadaclient.platform.launcher.linux
-        self.patch(magicicadaclient.platform.launcher.linux.Unity,
-                   "LauncherEntry", FakeLauncherEntry)
+
+        self.patch(
+            magicicadaclient.platform.launcher.linux.Unity,
+            "LauncherEntry",
+            FakeLauncherEntry,
+        )
         self.launcher = launcher.Launcher()
 
     def test_progress_starts_hidden(self):
         """The progressbar starts hidden."""
-        self.assertFalse(self.launcher.entry.props.progress_visible,
-                         "The progressbar starts hidden.")
+        self.assertFalse(
+            self.launcher.entry.props.progress_visible,
+            "The progressbar starts hidden.",
+        )
 
     def test_progress_shown(self):
         """The progressbar is shown."""
         self.launcher.show_progressbar()
-        self.assertTrue(self.launcher.entry.props.progress_visible,
-                        "The progressbar is shown.")
+        self.assertTrue(
+            self.launcher.entry.props.progress_visible,
+            "The progressbar is shown.",
+        )
 
     def test_progress_hidden_after_shown(self):
         """The progressbar is hidden after being shown."""
         self.launcher.show_progressbar()
         self.launcher.hide_progressbar()
-        self.assertFalse(self.launcher.entry.props.progress_visible,
-                         "The progressbar is hidden.")
+        self.assertFalse(
+            self.launcher.entry.props.progress_visible,
+            "The progressbar is hidden.",
+        )
 
     def test_progress_is_updated(self):
         """The progress value is updated."""
@@ -105,11 +116,13 @@ class LauncherTestCase(TestCase):
         self.launcher.set_urgent()
         self.assertTrue(
             self.launcher.entry.props.urgent,
-            "The launcher should be set to urgent.")
+            "The launcher should be set to urgent.",
+        )
         self.launcher.set_urgent(False)
         self.assertFalse(
             self.launcher.entry.props.urgent,
-            "The launcher should not be set to urgent.")
+            "The launcher should not be set to urgent.",
+        )
 
     def test_set_count(self):
         """The count property is set on the launcher."""

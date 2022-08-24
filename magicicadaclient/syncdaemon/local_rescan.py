@@ -77,11 +77,12 @@ def is_valid_name(path):
     return isinstance(path, str)
 
 
-class LocalRescan(object):
+class LocalRescan:
     """Local re-scanner.
 
     Compares the real disc with FSM's metadata, and pushes the changes to EQ.
     """
+
     def __init__(self, vm, fsm, eq, aq):
         self.vm = vm
         self.fsm = fsm
@@ -99,7 +100,8 @@ class LocalRescan(object):
             # check that the path exists in disk
             if not path_exists(vol.path):
                 log_warning(
-                    'Volume dissapeared: %r - %r', vol.volume_id, vol.path)
+                    'Volume dissapeared: %r - %r', vol.volume_id, vol.path
+                )
                 if isinstance(vol, volume_manager.Share):
                     log_debug('Removing %r metadata', vol.volume_id)
                     self.vm.share_deleted(vol.volume_id)
@@ -162,12 +164,21 @@ class LocalRescan(object):
             self.aq.unlink(share_id, parent_id, node_id, path, is_dir)
 
         log_info("processing move limbo")
-        move_log = ("share_id=%r  node_id=%r  old_parent_id=%r  "
-                    "new_parent_id=%r  new_name=%r  path_from=%r  path_to=%r")
+        move_log = (
+            "share_id=%r  node_id=%r  old_parent_id=%r  "
+            "new_parent_id=%r  new_name=%r  path_from=%r  path_to=%r"
+        )
         for data in self.fsm.get_iter_move_limbo():
             to_log = move_log % data
-            (share_id, node_id, old_parent_id, new_parent_id, new_name,
-             path_from, path_to) = data
+            (
+                share_id,
+                node_id,
+                old_parent_id,
+                new_parent_id,
+                new_name,
+                path_from,
+                path_to,
+            ) = data
             maybe_markers = (share_id, node_id, old_parent_id, new_parent_id)
             if any(IMarker.providedBy(x) for x in maybe_markers):
                 # situation where the move was not ready
@@ -175,16 +186,24 @@ class LocalRescan(object):
                 self.fsm.remove_from_move_limbo(share_id, node_id)
                 continue
             log_info("generating Move from limbo: " + to_log)
-            self.aq.move(share_id, node_id, old_parent_id,
-                         new_parent_id, new_name, path_from, path_to)
+            self.aq.move(
+                share_id,
+                node_id,
+                old_parent_id,
+                new_parent_id,
+                new_name,
+                path_from,
+                path_to,
+            )
 
     def _process_ro_shares(self):
         """Process ro shares and reschedule interrupted downloads."""
         # to avoid the lookups in the nested for
         changed = self.fsm.changed
         CHANGED_SERVER = self.fsm.CHANGED_SERVER
-        for share in self._get_volumes(all_volumes=False,
-                                       access_level=ACCESS_LEVEL_RO):
+        for share in self._get_volumes(
+            all_volumes=False, access_level=ACCESS_LEVEL_RO
+        ):
             for mdobj in self.fsm.get_mdobjs_by_share_id(share.id):
                 if changed(mdid=mdobj.mdid) == CHANGED_SERVER:
                     fullname = os.path.join(share.path, mdobj.path)
@@ -192,10 +211,12 @@ class LocalRescan(object):
                         # old state, no sense now with generations
                         # but required for the migration path.
                         log_warning(
-                            "Found a directory in SERVER: %r", fullname)
+                            "Found a directory in SERVER: %r", fullname
+                        )
                         mdobj = self.fsm.get_by_path(fullname)
-                        self.fsm.set_by_mdid(mdobj.mdid,
-                                             server_hash=mdobj.local_hash)
+                        self.fsm.set_by_mdid(
+                            mdobj.mdid, server_hash=mdobj.local_hash
+                        )
                         self.fsm.remove_partial(mdobj.node_id, mdobj.share_id)
                     else:
                         log_debug("comp yield: file %r in SERVER", fullname)
@@ -212,8 +233,9 @@ class LocalRescan(object):
         modify = access_level == ACCESS_LEVEL_RW
         view = access_level == ACCESS_LEVEL_RO
         for volume in self.vm.get_volumes(all_volumes=all_volumes):
-            if (modify and volume.can_write()) or \
-               (view and not volume.can_write()):
+            if (modify and volume.can_write()) or (
+                view and not volume.can_write()
+            ):
                 yield volume
 
     def scan_dir(self, mdid, direct, udfmode=False):
@@ -241,7 +263,7 @@ class LocalRescan(object):
             # it's better to delay the rescan some miliseconds, as if a
             # directory was moved, it's better to leave stuff some time to
             # settle down
-            reactor.callLater(.1, self._send_scan_error, mdid, udfmode)
+            reactor.callLater(0.1, self._send_scan_error, mdid, udfmode)
             return
         elif not stat.S_ISDIR(stat_result.st_mode):
             m = "The path is in disk but it's not a dir: %r" % direct
@@ -302,8 +324,17 @@ class LocalRescan(object):
         share_info = []
         for obj in self.fsm.get_mdobjs_in_dir(path):
             changd = self.fsm.changed(mdid=obj.mdid)
-            share_info.append((obj.path, obj.is_dir, obj.stat, changd,
-                               obj.node_id, obj.local_hash, obj.server_hash))
+            share_info.append(
+                (
+                    obj.path,
+                    obj.is_dir,
+                    obj.stat,
+                    changd,
+                    obj.node_id,
+                    obj.local_hash,
+                    obj.server_hash,
+                )
+            )
         return share_info
 
     def _scan_tree(self, share, path, mdid, udfmode):
@@ -320,8 +351,11 @@ class LocalRescan(object):
             """Explore that directory again."""
             if failure.check(ScanTransactionDirty):
                 reason = failure.getErrorMessage()
-                log_debug("re queue, transaction dirty for %r, reason: %s",
-                          path, reason)
+                log_debug(
+                    "re queue, transaction dirty for %r, reason: %s",
+                    path,
+                    reason,
+                )
                 self._queue.appendleft((share, path, mdid, udfmode))
             elif failure.check(OSError, IOError):
                 reason = failure.getErrorMessage()
@@ -332,10 +366,14 @@ class LocalRescan(object):
                 # it's better to delay the rescan some miliseconds, as if a
                 # directory was moved, it's better to leave stuff some time to
                 # settle down
-                reactor.callLater(.1, self._send_scan_error, mdid, udfmode)
+                reactor.callLater(0.1, self._send_scan_error, mdid, udfmode)
             else:
-                log_error("in the scan: %s (%s)\n%s",
-                          failure.type, failure.value, failure.getTraceback())
+                log_error(
+                    "in the scan: %s (%s)\n%s",
+                    failure.type,
+                    failure.value,
+                    failure.getTraceback(),
+                )
                 return failure
 
         d = defer.succeed((share, path, udfmode))
@@ -347,16 +385,24 @@ class LocalRescan(object):
     def _resume_download(self, fullname):
         """Resume an interrupted download."""
         mdobj = self.fsm.get_by_path(fullname)
-        self.aq.download(mdobj.share_id, mdobj.node_id,
-                         mdobj.server_hash, mdobj.mdid)
+        self.aq.download(
+            mdobj.share_id, mdobj.node_id, mdobj.server_hash, mdobj.mdid
+        )
 
     def _resume_upload(self, fullname):
         """Resume an interrupted upload."""
         mdobj = self.fsm.get_by_path(fullname)
         upload_id = getattr(mdobj, 'upload_id', None)
-        self.aq.upload(mdobj.share_id, mdobj.node_id, mdobj.server_hash,
-                       mdobj.local_hash, mdobj.crc32, mdobj.size,
-                       mdobj.mdid, upload_id=upload_id)
+        self.aq.upload(
+            mdobj.share_id,
+            mdobj.node_id,
+            mdobj.server_hash,
+            mdobj.local_hash,
+            mdobj.crc32,
+            mdobj.size,
+            mdobj.mdid,
+            upload_id=upload_id,
+        )
 
     def check_stat(self, fullname, oldstat):
         """Check stat info and return if different.
@@ -370,15 +416,24 @@ class LocalRescan(object):
         if oldstat is None:
             return True
         newstat = stat_path(fullname)
-        different = (newstat.st_ino != oldstat.st_ino or
-                     newstat.st_size != oldstat.st_size or
-                     newstat.st_mtime != oldstat.st_mtime)
+        different = (
+            newstat.st_ino != oldstat.st_ino
+            or newstat.st_size != oldstat.st_size
+            or newstat.st_mtime != oldstat.st_mtime
+        )
         if different:
-            log_debug("stat differ for: %r  "
-                      "Old: st_ino=%d st_size=%d st_mtime=%r  "
-                      "New: st_ino=%d st_size=%d st_mtime=%r", fullname,
-                      oldstat.st_ino, oldstat.st_size, oldstat.st_mtime,
-                      newstat.st_ino, newstat.st_size, newstat.st_mtime)
+            log_debug(
+                "stat differ for: %r  "
+                "Old: st_ino=%d st_size=%d st_mtime=%r  "
+                "New: st_ino=%d st_size=%d st_mtime=%r",
+                fullname,
+                oldstat.st_ino,
+                oldstat.st_size,
+                oldstat.st_mtime,
+                newstat.st_ino,
+                newstat.st_size,
+                newstat.st_mtime,
+            )
         return different
 
     def _compare(self, dirpath, dirnames, filenames, share):
@@ -424,16 +479,21 @@ class LocalRescan(object):
             changed = self.fsm.changed(mdid=mdobj.mdid)
             if changed == "SERVER":
                 # download interrupted
-                log_debug("checking root: %r in SERVER, fixing hash and "
-                          "removing partial.", fullname)
-                self.fsm.set_by_mdid(mdobj.mdid,
-                                     server_hash=mdobj.local_hash)
+                log_debug(
+                    "checking root: %r in SERVER, fixing hash and "
+                    "removing partial.",
+                    fullname,
+                )
+                self.fsm.set_by_mdid(mdobj.mdid, server_hash=mdobj.local_hash)
                 self.fsm.remove_partial(mdobj.node_id, mdobj.share_id)
             elif changed == "NONE":
                 log_debug("checking root: %r in NONE, ok!", fullname)
             else:
-                log_warning("checking root: %r in wrong changed "
-                            "value '%s'", fullname, changed)
+                log_warning(
+                    "checking root: %r in wrong changed " "value '%s'",
+                    fullname,
+                    changed,
+                )
 
         for dname in dirnames:
             fullname = os.path.join(dirpath, dname)
@@ -448,14 +508,18 @@ class LocalRescan(object):
                     # old state, no sense now with generations
                     log_warning("Found a directory in SERVER: %r", fullname)
                     mdobj = self.fsm.get_by_path(fullname)
-                    self.fsm.set_by_mdid(mdobj.mdid,
-                                         server_hash=mdobj.local_hash)
+                    self.fsm.set_by_mdid(
+                        mdobj.mdid, server_hash=mdobj.local_hash
+                    )
                     self.fsm.remove_partial(mdobj.node_id, mdobj.share_id)
                     to_scan_later.append(fullname)
                 elif changed == "NONE":
                     # it's old, we should scan it later
-                    log_trace("comp yield: dir %r will be scaned later "
-                              "because it's in NONE!", fullname)
+                    log_trace(
+                        "comp yield: dir %r will be scaned later "
+                        "because it's in NONE!",
+                        fullname,
+                    )
                     to_scan_later.append(fullname)
                 else:
                     m = "Wrong 'changed' value for %r: " + changed
@@ -481,22 +545,30 @@ class LocalRescan(object):
                     different = self.check_stat(fullname, statinfo)
                     if different:
                         # hash it to see the changes, Sync will take care
-                        log_debug("comp yield: file %r in LOCAL and changed",
-                                  fullname)
+                        log_debug(
+                            "comp yield: file %r in LOCAL and changed",
+                            fullname,
+                        )
                         events.append(('FS_FILE_CLOSE_WRITE', fullname))
                     else:
                         # file didn't change, resume upload
-                        log_debug("resuming upload because it was "
-                                  "interrupted: %r", fullname)
+                        log_debug(
+                            "resuming upload because it was "
+                            "interrupted: %r",
+                            fullname,
+                        )
                         self._resume_upload(fullname)
                 elif changed == "NONE":
                     # what about stat info?
-                    log_trace("comp yield: file %r was here, let's check stat",
-                              fullname)
+                    log_trace(
+                        "comp yield: file %r was here, let's check stat",
+                        fullname,
+                    )
                     different = self.check_stat(fullname, statinfo)
                     if different:
-                        log_debug("comp yield: file content changed: %r",
-                                  fullname)
+                        log_debug(
+                            "comp yield: file content changed: %r", fullname
+                        )
                         events.append(('FS_FILE_CLOSE_WRITE', fullname))
                     # no 'else' here: the file is the same as before, all ok
                 elif changed == "SERVER":
@@ -539,7 +611,8 @@ class LocalRescan(object):
 
                 # get all the info inside that dir
                 objs = self.fsm.get_mdobjs_by_share_id(
-                    share.volume_id, fullname)
+                    share.volume_id, fullname
+                )
                 for obj in objs:
                     shrpath = obj.path
                     qparts = len(shrpath.split(os.path.sep))
@@ -560,8 +633,10 @@ class LocalRescan(object):
             else:
                 if changed == 'SERVER':
                     # download interruped and partial lost
-                    log_debug("comp yield: file %r not in disk, in SERVER "
-                              "state", fullname)
+                    log_debug(
+                        "comp yield: file %r not in disk, in SERVER " "state",
+                        fullname,
+                    )
                     self._resume_download(fullname)
                 elif changed in ('NONE', 'LOCAL'):
                     # if it had content somewhen, now is really gone (otherwise
@@ -643,8 +718,11 @@ class LocalRescan(object):
                     log_info(m, fullname)
                     continue
                 if not access(fullname):
-                    log_warning("Ignoring path as we don't have enough "
-                                "permissions to track it: %r", fullname)
+                    log_warning(
+                        "Ignoring path as we don't have enough "
+                        "permissions to track it: %r",
+                        fullname,
+                    )
                     continue
 
                 if stat.S_ISDIR(stat_result.st_mode):
@@ -652,11 +730,13 @@ class LocalRescan(object):
                 elif stat.S_ISREG(stat_result.st_mode):
                     fnames.append(something)
                 else:
-                    log_warning("Path: %r isn't a dir, file or symlink.",
-                                fullname)
+                    log_warning(
+                        "Path: %r isn't a dir, file or symlink.", fullname
+                    )
 
-            events, to_scan_later = self._compare(dirpath, dnames, fnames,
-                                                  share)
+            events, to_scan_later = self._compare(
+                dirpath, dnames, fnames, share
+            )
             to_later.extend(to_scan_later)
             return events
 
@@ -683,8 +763,9 @@ class LocalRescan(object):
                     log_info("UDF mode! Removing metadata from file %r", path)
                     fsm.delete_metadata(path)
                 else:
-                    raise ValueError("Bad delete event! got %s (on %r)"
-                                     % (evtname, path))
+                    raise ValueError(
+                        "Bad delete event! got %s (on %r)" % (evtname, path)
+                    )
 
             return to_later
 

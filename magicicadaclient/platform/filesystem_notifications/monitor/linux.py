@@ -32,7 +32,7 @@ import logging
 import os
 
 import pyinotify
-from twisted.internet import abstract, reactor,  defer
+from twisted.internet import abstract, reactor, defer
 
 from magicicadaclient.platform.os_helper import access
 from magicicadaclient.platform.filesystem_notifications import notify_processor
@@ -55,27 +55,31 @@ NAME_TRANSLATIONS = {
 
 # these are the events that will listen from inotify
 INOTIFY_EVENTS_GENERAL = (
-    pyinotify.IN_OPEN |
-    pyinotify.IN_CLOSE_NOWRITE |
-    pyinotify.IN_CLOSE_WRITE |
-    pyinotify.IN_CREATE |
-    pyinotify.IN_DELETE |
-    pyinotify.IN_MOVED_FROM |
-    pyinotify.IN_MOVED_TO |
-    pyinotify.IN_MOVE_SELF)
+    pyinotify.IN_OPEN
+    | pyinotify.IN_CLOSE_NOWRITE
+    | pyinotify.IN_CLOSE_WRITE
+    | pyinotify.IN_CREATE
+    | pyinotify.IN_DELETE
+    | pyinotify.IN_MOVED_FROM
+    | pyinotify.IN_MOVED_TO
+    | pyinotify.IN_MOVE_SELF
+)
 
 INOTIFY_EVENTS_ANCESTORS = (
-    pyinotify.IN_DELETE |
-    pyinotify.IN_MOVED_FROM |
-    pyinotify.IN_MOVED_TO |
-    pyinotify.IN_MOVE_SELF)
+    pyinotify.IN_DELETE
+    | pyinotify.IN_MOVED_FROM
+    | pyinotify.IN_MOVED_TO
+    | pyinotify.IN_MOVE_SELF
+)
 
 
 class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
     """inotify's processor when an event happens on an UDFs ancestor."""
+
     def __init__(self, monitor):
         self.log = logging.getLogger(
-            '.'.join((__name__, self.__class__.__name__)))
+            '.'.join((__name__, self.__class__.__name__))
+        )
         self.monitor = monitor
 
     def _get_udfs(self, path):
@@ -92,6 +96,7 @@ class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
         We just turned this event on because pyinotify does some
         path-fixing in its internal processing when this happens.
         """
+
     process_IN_MOVED_TO = process_IN_MOVE_SELF
 
     def process_IN_MOVED_FROM(self, event):
@@ -101,7 +106,9 @@ class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
             for udf in self._get_udfs(event.pathname):
                 self.log.info(
                     "Got MOVED_FROM on path %r, unsubscribing udf %s",
-                    event.pathname, udf)
+                    event.pathname,
+                    udf,
+                )
                 self.monitor.fs.vm.unsubscribe_udf(udf.volume_id)
                 unsubscribed_udfs.add(udf)
             self._unwatch_ancestors(unsubscribed_udfs)
@@ -113,7 +120,9 @@ class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
             for udf in self._get_udfs(event.pathname):
                 self.log.info(
                     "Got DELETE on path %r, deleting udf %s",
-                    event.pathname, udf)
+                    event.pathname,
+                    udf,
+                )
                 self.monitor.fs.vm.delete_volume(udf.volume_id)
                 deleted_udfs.add(udf)
             self._unwatch_ancestors(deleted_udfs)
@@ -128,7 +137,8 @@ class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
         # collect the ancestors of all the still subscribed UDFs except
         # the received ones
         sub_udfs = (
-            u for u in self.monitor.fs.vm.udfs.values() if u.subscribed)
+            u for u in self.monitor.fs.vm.udfs.values() if u.subscribed
+        )
         udf_remain = set(sub_udfs) - udfs
         ancestors_to_keep = set()
         for udf in udf_remain:
@@ -140,7 +150,7 @@ class _AncestorsINotifyProcessor(pyinotify.ProcessEvent):
             self.monitor.rm_watch(ancestor)
 
 
-class FilesystemMonitor(object):
+class FilesystemMonitor:
     """Manages the signals from filesystem."""
 
     def __init__(self, eq, fs, ignore_config=None):
@@ -153,7 +163,8 @@ class FilesystemMonitor(object):
         self._processor = notify_processor.NotifyProcessor(self, ignore_config)
         self._inotify_notifier_gral = pyinotify.Notifier(wm, self._processor)
         self._inotify_reader_gral = self._hook_inotify_to_twisted(
-            wm, self._inotify_notifier_gral)
+            wm, self._inotify_notifier_gral
+        )
         self._general_watchs = {}
 
         # ancestors inotify
@@ -161,7 +172,8 @@ class FilesystemMonitor(object):
         antr_processor = _AncestorsINotifyProcessor(self)
         self._inotify_notifier_antr = pyinotify.Notifier(wm, antr_processor)
         self._inotify_reader_antr = self._hook_inotify_to_twisted(
-            wm, self._inotify_notifier_antr)
+            wm, self._inotify_notifier_antr
+        )
         self._ancestors_watchs = {}
 
     @classmethod
@@ -183,6 +195,7 @@ class FilesystemMonitor(object):
 
         class MyReader(abstract.FileDescriptor):
             """Chain between inotify and twisted."""
+
             # will never pass a fd to write
 
             def fileno(self):
@@ -215,8 +228,9 @@ class FilesystemMonitor(object):
             w_dict = self._ancestors_watchs
             w_manager = self._inotify_ancestors_wm
         else:
-            self.log.warning("Tried to remove a nonexistent watch on %r",
-                             dirpath)
+            self.log.warning(
+                "Tried to remove a nonexistent watch on %r", dirpath
+            )
             return
 
         wd = w_dict.pop(dirpath)

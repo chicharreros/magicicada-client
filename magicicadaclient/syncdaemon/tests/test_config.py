@@ -34,10 +34,7 @@ import os
 from configparser import ConfigParser
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
-from dirspec.basedir import (
-    xdg_data_home,
-    xdg_cache_home,
-)
+from dirspec.basedir import xdg_data_home, xdg_cache_home
 
 from magicicadaclient.testing.testcase import BaseTwistedTestCase
 from magicicadaclient import platform
@@ -57,15 +54,23 @@ class TestConfigBasic(BaseTwistedTestCase):
         """Assert equality for two ConfigParser."""
         self.assertEqual(expected.getboolean(config.THROTTLING, 'on'), on)
         self.assertEqual(
-            expected.getint(config.THROTTLING, 'read_limit'), read)
+            expected.getint(config.THROTTLING, 'read_limit'), read
+        )
         self.assertEqual(
-            expected.getint(config.THROTTLING, 'write_limit'), write)
-        self.assertEqual(expected.getboolean(config.THROTTLING, 'on'),
-                         current.get_throttling())
-        self.assertEqual(expected.getint(config.THROTTLING, 'read_limit'),
-                         current.get_throttling_read_limit())
-        self.assertEqual(expected.getint(config.THROTTLING, 'write_limit'),
-                         current.get_throttling_write_limit())
+            expected.getint(config.THROTTLING, 'write_limit'), write
+        )
+        self.assertEqual(
+            expected.getboolean(config.THROTTLING, 'on'),
+            current.get_throttling(),
+        )
+        self.assertEqual(
+            expected.getint(config.THROTTLING, 'read_limit'),
+            current.get_throttling_read_limit(),
+        )
+        self.assertEqual(
+            expected.getint(config.THROTTLING, 'write_limit'),
+            current.get_throttling_write_limit(),
+        )
 
     def test_load_empty(self):
         """Test loading the a non-existent config file."""
@@ -124,8 +129,9 @@ class TestConfigBasic(BaseTwistedTestCase):
 
     def test_write_existing(self):
         """Test writing the throttling section to a existing config file."""
-        conf_file = os.path.join(self.test_root,
-                                 'test_write_existing_config.conf')
+        conf_file = os.path.join(
+            self.test_root, 'test_write_existing_config.conf'
+        )
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
             fp.write('[bandwidth_throttling]\n')
@@ -146,7 +152,8 @@ class TestConfigBasic(BaseTwistedTestCase):
     def test_write_extra(self):
         """Writing the throttling back to the file, with extra sections."""
         conf_file = os.path.join(
-            self.test_root, 'test_write_extra_config.conf')
+            self.test_root, 'test_write_extra_config.conf'
+        )
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
             fp.write('[__main__]\n')
@@ -167,15 +174,20 @@ class TestConfigBasic(BaseTwistedTestCase):
         conf_1 = ConfigParser()
         conf_1.read(conf_file)
         self.assertThrottlingSection(conf_1, conf, True, 3000, 300)
-        self.assertEqual(conf_1.get('__main__', 'log_level'),
-                         conf.get('__main__', 'log_level'))
-        self.assertEqual(conf_1.getboolean('__main__', 'disable_ssl_verify'),
-                         conf.getboolean('__main__', 'disable_ssl_verify'))
+        self.assertEqual(
+            conf_1.get('__main__', 'log_level'),
+            conf.get('__main__', 'log_level'),
+        )
+        self.assertEqual(
+            conf_1.getboolean('__main__', 'disable_ssl_verify'),
+            conf.getboolean('__main__', 'disable_ssl_verify'),
+        )
 
     def test_write_existing_partial(self):
         """Writing a partially updated throttling section to existing file."""
-        conf_file = os.path.join(self.test_root,
-                                 'test_write_existing_config.conf')
+        conf_file = os.path.join(
+            self.test_root, 'test_write_existing_config.conf'
+        )
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
             fp.write('[bandwidth_throttling]\n')
@@ -243,8 +255,9 @@ class TestConfigBasic(BaseTwistedTestCase):
 
     def test_load_udf_autosubscribe(self):
         """Test load/set/override of udf_autosubscribe config value."""
-        conf_file = os.path.join(self.test_root,
-                                 'test_udf_autosubscribe_config.conf')
+        conf_file = os.path.join(
+            self.test_root, 'test_udf_autosubscribe_config.conf'
+        )
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
             fp.write('[__main__]\n')
@@ -284,16 +297,18 @@ class TestConfigBasic(BaseTwistedTestCase):
         overridden_opts = [('__main__', 'udf_autosubscribe', False)]
         conf.override_options(overridden_opts)
         self.assertFalse(conf.get_udf_autosubscribe())
-        self.assertNotEqual(conf.get_udf_autosubscribe(),
-                            conf_orig.get_udf_autosubscribe())
+        self.assertNotEqual(
+            conf.get_udf_autosubscribe(), conf_orig.get_udf_autosubscribe()
+        )
         conf.save()
         conf_1 = config._Config(conf_file)
         self.assertTrue(conf_1.get_udf_autosubscribe())
 
     def test_load_share_autosubscribe(self):
         """Test load/set/override of share_autosubscribe config value."""
-        conf_file = os.path.join(self.test_root,
-                                 'test_share_autosubscribe_config.conf')
+        conf_file = os.path.join(
+            self.test_root, 'test_share_autosubscribe_config.conf'
+        )
         # write some throttling values to the config file
         with open_file(conf_file, 'w') as fp:
             fp.write('[__main__]\n')
@@ -326,16 +341,18 @@ class TestConfigBasic(BaseTwistedTestCase):
         overridden_opts = [('__main__', 'share_autosubscribe', False)]
         conf.override_options(overridden_opts)
         self.assertFalse(conf.get_share_autosubscribe())
-        self.assertNotEqual(conf.get_share_autosubscribe(),
-                            conf_orig.get_share_autosubscribe())
+        self.assertNotEqual(
+            conf.get_share_autosubscribe(), conf_orig.get_share_autosubscribe()
+        )
         conf.save()
         conf_1 = config._Config(conf_file)
         self.assertTrue(conf_1.get_share_autosubscribe())
 
     def test_load_autoconnect(self):
         """Test load/set/override of autoconnect config value."""
-        conf_file = os.path.join(self.test_root,
-                                 'test_autoconnect_config.conf')
+        conf_file = os.path.join(
+            self.test_root, 'test_autoconnect_config.conf'
+        )
         # ensure that autoconnect is True
         with open_file(conf_file, 'w') as fp:
             fp.write('[__main__]\n')
@@ -345,8 +362,9 @@ class TestConfigBasic(BaseTwistedTestCase):
         conf_orig = config._Config(conf_file)
 
         # assert default is correct
-        self.assertTrue(conf_orig.get_autoconnect(),
-                        'autoconnect is True by default.')
+        self.assertTrue(
+            conf_orig.get_autoconnect(), 'autoconnect is True by default.'
+        )
 
         # load the config
         conf = config._Config(conf_file)
@@ -374,8 +392,9 @@ class TestConfigBasic(BaseTwistedTestCase):
         overridden_opts = [('__main__', 'autoconnect', False)]
         conf.override_options(overridden_opts)
         self.assertFalse(conf.get_autoconnect())
-        self.assertNotEqual(conf.get_autoconnect(),
-                            conf_orig.get_autoconnect())
+        self.assertNotEqual(
+            conf.get_autoconnect(), conf_orig.get_autoconnect()
+        )
         conf.save()
         conf_1 = config._Config(conf_file)
         self.assertTrue(conf_1.get_autoconnect())
@@ -491,70 +510,101 @@ class ConfigglueParsersTests(BaseTwistedTestCase):
 
     def test_serverconnection_simple_defaultmode(self):
         results = config.server_connection_parser('test.host:666')
-        self.assertEqual(results, [{
-            'host': 'test.host',
-            'port': 666,
-            'use_ssl': True,
-            'disable_ssl_verify': False,
-        }])
+        self.assertEqual(
+            results,
+            [
+                {
+                    'host': 'test.host',
+                    'port': 666,
+                    'use_ssl': True,
+                    'disable_ssl_verify': False,
+                }
+            ],
+        )
 
     def test_serverconnection_simple_plain(self):
         results = config.server_connection_parser('test.host:666:plain')
-        self.assertEqual(results, [{
-            'host': 'test.host',
-            'port': 666,
-            'use_ssl': False,
-            'disable_ssl_verify': False,
-        }])
+        self.assertEqual(
+            results,
+            [
+                {
+                    'host': 'test.host',
+                    'port': 666,
+                    'use_ssl': False,
+                    'disable_ssl_verify': False,
+                }
+            ],
+        )
 
     def test_serverconnection_simple_ssl(self):
         results = config.server_connection_parser('test.host:666:ssl')
-        self.assertEqual(results, [{
-            'host': 'test.host',
-            'port': 666,
-            'use_ssl': True,
-            'disable_ssl_verify': False,
-        }])
+        self.assertEqual(
+            results,
+            [
+                {
+                    'host': 'test.host',
+                    'port': 666,
+                    'use_ssl': True,
+                    'disable_ssl_verify': False,
+                }
+            ],
+        )
 
     def test_serverconnection_simple_noverify(self):
         results = config.server_connection_parser('test.host:666:ssl_noverify')
-        self.assertEqual(results, [{
-            'host': 'test.host',
-            'port': 666,
-            'use_ssl': True,
-            'disable_ssl_verify': True,
-        }])
+        self.assertEqual(
+            results,
+            [
+                {
+                    'host': 'test.host',
+                    'port': 666,
+                    'use_ssl': True,
+                    'disable_ssl_verify': True,
+                }
+            ],
+        )
 
     def test_serverconnection_simple_bad_mode(self):
         self.assertRaises(
-            ValueError, config.server_connection_parser, 'host:666:badmode')
+            ValueError, config.server_connection_parser, 'host:666:badmode'
+        )
 
     def test_serverconnection_simple_too_many_parts(self):
         self.assertRaises(
-            ValueError, config.server_connection_parser, 'host:666:plain:what')
+            ValueError, config.server_connection_parser, 'host:666:plain:what'
+        )
 
     def test_serverconnection_simple_too_few_parts(self):
         self.assertRaises(
-            ValueError, config.server_connection_parser, 'test.host')
+            ValueError, config.server_connection_parser, 'test.host'
+        )
 
     def test_serverconnection_simple_port_not_numeric(self):
         self.assertRaises(
-            ValueError, config.server_connection_parser, 'test.host:port')
+            ValueError, config.server_connection_parser, 'test.host:port'
+        )
 
     def test_serverconnection_multiple(self):
         results = config.server_connection_parser(
-            'test.host1:666:plain,host2.com:447')
-        self.assertEqual(results, [{
-            'host': 'test.host1',
-            'port': 666,
-            'use_ssl': False,
-            'disable_ssl_verify': False,
-        }, {
-            'host': 'host2.com',
-            'port': 447,
-            'use_ssl': True,
-            'disable_ssl_verify': False,
-        }])
+            'test.host1:666:plain,host2.com:447'
+        )
+        self.assertEqual(
+            results,
+            [
+                {
+                    'host': 'test.host1',
+                    'port': 666,
+                    'use_ssl': False,
+                    'disable_ssl_verify': False,
+                },
+                {
+                    'host': 'host2.com',
+                    'port': 447,
+                    'use_ssl': True,
+                    'disable_ssl_verify': False,
+                },
+            ],
+        )
 
 
 class XdgHomeParsersTests(BaseTwistedTestCase):
@@ -586,7 +636,8 @@ class XdgHomeParsersTests(BaseTwistedTestCase):
             self.parser(bad_value)
 
         self.assertEqual(
-            str(ctx.exception), "[Errno 1] Operation not permitted: '/..'")
+            str(ctx.exception), "[Errno 1] Operation not permitted: '/..'"
+        )
 
     def test_invalid_value(self):
         """Test the parser using an invalid value."""
@@ -617,8 +668,9 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
     def setUp(self):
         yield super(SyncDaemonConfigParserTests, self).setUp()
         self.test_root = self.mktemp()
-        self.default_config = os.path.join(os.environ['ROOTDIR'], 'data',
-                                           'syncdaemon.conf')
+        self.default_config = os.path.join(
+            os.environ['ROOTDIR'], 'data', 'syncdaemon.conf'
+        )
         self.cp = config.SyncDaemonConfigParser()
         with open(self.default_config) as f:
             self.cp.readfp(f)
@@ -649,8 +701,9 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
 
     def test_log_level_old_and_new_config(self):
         """Test log_level upgrade hook with a mixed config."""
-        conf_file = os.path.join(self.test_root,
-                                 'test_old_and_new_config.conf')
+        conf_file = os.path.join(
+            self.test_root, 'test_old_and_new_config.conf'
+        )
         # write some throttling values to the config file (not default ones)
         with open_file(conf_file, 'w') as fp:
             fp.write('[__main__]\n')
@@ -685,8 +738,9 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.cp.add_upgrade_hook('foo', 'bar', lambda x: None)
         self.assertIn(('foo', 'bar'), self.cp.upgrade_hooks)
         # try to add the same upgrade_hook
-        self.assertRaises(ValueError, self.cp.add_upgrade_hook, 'foo', 'bar',
-                          lambda x: None)
+        self.assertRaises(
+            ValueError, self.cp.add_upgrade_hook, 'foo', 'bar', lambda x: None
+        )
 
     def test_ignore_one(self):
         """Test ignore files config, one regex."""
@@ -709,8 +763,10 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.assertTrue(path_exists(conf_file))
         self.cp.read([conf_file])
         self.cp.parse_all()
-        self.assertEqual(self.cp.get('__main__', 'ignore').value,
-                         ['.*\\.pyc', '.*\\.sw[opnx]'])
+        self.assertEqual(
+            self.cp.get('__main__', 'ignore').value,
+            ['.*\\.pyc', '.*\\.sw[opnx]'],
+        )
 
     def test_fs_monitor_not_default(self):
         """Test get monitor."""
@@ -723,7 +779,8 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
         self.cp.read([conf_file])
         self.cp.parse_all()
         self.assertEqual(
-            self.cp.get('__main__', 'fs_monitor').value, monitor_id)
+            self.cp.get('__main__', 'fs_monitor').value, monitor_id
+        )
 
     def test_use_trash_default(self):
         """Test default configuration for use_trash."""
@@ -733,8 +790,9 @@ class SyncDaemonConfigParserTests(BaseTwistedTestCase):
     def test_ignore_libreoffice_lockfiles(self):
         """Test the default config includes ignoring libreoffice lockfiles."""
         self.cp.parse_all()
-        self.assertIn(r'\A\.~lock\..*#\Z',
-                      self.cp.get('__main__', 'ignore').value)
+        self.assertIn(
+            r'\A\.~lock\..*#\Z', self.cp.get('__main__', 'ignore').value
+        )
 
     def test_simult_transfers(self):
         """Test default configuration for simultaneous transfers."""

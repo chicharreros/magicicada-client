@@ -48,7 +48,7 @@ class TestCase(unittest.TestCase):
         self._called = (args, kwargs)
 
 
-class Recorder(object):
+class Recorder:
     """A class that records every call clients made to it."""
 
     no_wrap = ['_called']
@@ -62,8 +62,10 @@ class Recorder(object):
         try:
             result = super(Recorder, self).__getattribute__(attr_name)
         except AttributeError:
+
             def result(*a, **kw):
                 return self._next_result
+
             super(Recorder, self).__setattr__(attr_name, result)
 
         if attr_name in super(Recorder, self).__getattribute__('no_wrap'):
@@ -73,6 +75,7 @@ class Recorder(object):
 
         def wrap_me(f):
             """Wrap 'f'."""
+
             @wraps(f)
             def inner(*a, **kw):
                 """Keep track of calls to 'f', execute it and return result."""

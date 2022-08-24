@@ -102,7 +102,7 @@ WINDOWS_ILLEGAL_CHARS_MAP = {
     '|': BASE_CODE % '\N{DIVIDES}',
     '?': BASE_CODE % '\N{INTERROBANG}',
     '*': BASE_CODE % '\N{SEXTILE}',
-    '\n': BASE_CODE % '\N{LINE SEPARATOR}'
+    '\n': BASE_CODE % '\N{LINE SEPARATOR}',
 }
 # inverse map
 LINUX_ILLEGAL_CHARS_MAP = {}
@@ -112,8 +112,9 @@ for key, value in WINDOWS_ILLEGAL_CHARS_MAP.items():
 
 def get_user_sid():
     process_handle = win32api.GetCurrentProcess()
-    security_info = GetSecurityInfo(process_handle, SE_KERNEL_OBJECT,
-                                    OWNER_SECURITY_INFORMATION)
+    security_info = GetSecurityInfo(
+        process_handle, SE_KERNEL_OBJECT, OWNER_SECURITY_INFORMATION
+    )
     return security_info.GetSecurityDescriptorOwner()
 
 
@@ -127,6 +128,7 @@ def _int_to_bin(n):
 
 # Functions to be used for path validation
 # XXX consider switching validation to the `pathvalidate` library
+
 
 def _add_method_info(messages, method_name=None):
     """Loop through the messages and add the extra info."""
@@ -156,8 +158,8 @@ def assert_windows_path(path, method_name=None):
     messages = {
         'unicode_path': 'Path %r should be unicode.',
         'long_path': 'Path %r should start with the LONG_PATH_PREFIX.',
-        'illegal_path': '%r should not contain any character from' +
-                        ' WINDOWS_ILLEGAL_CHARS_MAP.',
+        'illegal_path': '%r should not contain any character from'
+        + ' WINDOWS_ILLEGAL_CHARS_MAP.',
     }
     messages = _add_method_info(messages, method_name)
 
@@ -168,7 +170,8 @@ def assert_windows_path(path, method_name=None):
     path = path.replace(LONG_PATH_PREFIX, '')
     drive, path = os.path.splitdrive(path)
     assert not any(c in WINDOWS_ILLEGAL_CHARS_MAP for c in path), (
-        messages['illegal_path'] % path)
+        messages['illegal_path'] % path
+    )
 
 
 def assert_syncdaemon_path(path, method_name=None):
@@ -184,14 +187,15 @@ def assert_syncdaemon_path(path, method_name=None):
         'str_path': 'Path %r should be str.',
         'long_path': '%r should not start with the LONG_PATH_PREFIX.',
         'unicode_chars': '%r should not contain any character from '
-                         'LINUX_ILLEGAL_CHARS_MAP.',
+        'LINUX_ILLEGAL_CHARS_MAP.',
     }
     messages = _add_method_info(messages, method_name)
 
     assert isinstance(path, str), messages['str_path'] % path
     assert not path.startswith(LONG_PATH_PREFIX), messages['long_path']
-    assert not any(c in LINUX_ILLEGAL_CHARS_MAP for c in path), \
+    assert not any(c in LINUX_ILLEGAL_CHARS_MAP for c in path), (
         messages['unicode_chars'] % path
+    )
 
 
 # Functions to be used for path transformation
@@ -419,6 +423,7 @@ def syncdamonpath(path_indexes=None):
 
 # internals
 
+
 def _get_group_sid(group_name):
     """Return the SID for a group with the given name."""
     return LookupAccountName('', group_name)[0]
@@ -453,8 +458,11 @@ def _set_file_attributes(path, groups):
         # set the attributes of the group only if not null
         if attributes:
             dacl.AddAccessAllowedAceEx(
-                ACL_REVISION, CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE,
-                attributes, group_sid)
+                ACL_REVISION,
+                CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE,
+                attributes,
+                group_sid,
+            )
     # the dacl has all the info of the diff groups passed in the parameters
     security_descriptor.SetSecurityDescriptorDacl(1, dacl, 0)
     SetFileSecurity(path, DACL_SECURITY_INFORMATION, security_descriptor)
@@ -612,14 +620,20 @@ def native_rename(path_from, path_to):
     # function from win32 which will allow to replace the destination path if
     # exists and the user has the proper rights. For further information, see:
     # http://msdn.microsoft.com/en-us/library/aa365240(v=vs.85).aspx
-    flag = (MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH |
-            MOVEFILE_REPLACE_EXISTING)
+    flag = (
+        MOVEFILE_COPY_ALLOWED
+        | MOVEFILE_WRITE_THROUGH
+        | MOVEFILE_REPLACE_EXISTING
+    )
     try:
         MoveFileExW(path_from, path_to, flag)
     except PyWinError as e:
         # we need to transform a PyWinError into a OSError
-        logger.exception('Got exception when trying to rename from ' +
-                         '%r to %r', path_from, path_to)
+        logger.exception(
+            'Got exception when trying to rename from ' + '%r to %r',
+            path_from,
+            path_to,
+        )
         raise OSError(e.winerror, str(e))
 
 
@@ -660,8 +674,12 @@ def make_link(target, destination):
         pf = shortcut.QueryInterface(IPersistFile)
         pf.Save(destination, True)
     except Exception:
-        logger.exception('make_link could not be completed for target %r, '
-                         'destination %r:', target, destination)
+        logger.exception(
+            'make_link could not be completed for target %r, '
+            'destination %r:',
+            target,
+            destination,
+        )
         raise
 
 
@@ -745,8 +763,12 @@ def listdir(directory):
 
     return map(
         _windows_to_linux_path,
-        [p for p in os.listdir(directory)
-         if not native_is_system_path(os.path.join(directory, p))])
+        [
+            p
+            for p in os.listdir(directory)
+            if not native_is_system_path(os.path.join(directory, p))
+        ],
+    )
 
 
 @windowspath()
@@ -770,12 +792,20 @@ def walk(path, topdown=True):
             continue
         dirnames = map(
             _windows_to_linux_path,
-            [p for p in dirnames
-             if not native_is_system_path(os.path.join(dirpath, p))])
+            [
+                p
+                for p in dirnames
+                if not native_is_system_path(os.path.join(dirpath, p))
+            ],
+        )
         filenames = map(
             _windows_to_linux_path,
-            [p for p in filenames
-             if not native_is_system_path(os.path.join(dirpath, p))])
+            [
+                p
+                for p in filenames
+                if not native_is_system_path(os.path.join(dirpath, p))
+            ],
+        )
         yield dirpath, dirnames, filenames
 
 
@@ -799,8 +829,8 @@ def access(path):
         ace = dacl.GetAce(index)
         if _has_read_mask(ace[1]):
             sids.append(ace[2])
-    return (
-        (USER_SID in sids or EVERYONE_SID in sids) and os.access(path, os.R_OK)
+    return (USER_SID in sids or EVERYONE_SID in sids) and os.access(
+        path, os.R_OK
     )
 
 
@@ -824,8 +854,8 @@ def can_write(path):
         ace = dacl.GetAce(index)
         if _has_read_mask(ace[1]):
             sids.append(ace[2])
-    return (
-        (USER_SID in sids or EVERYONE_SID in sids) and os.access(path, os.R_OK)
+    return (USER_SID in sids or EVERYONE_SID in sids) and os.access(
+        path, os.R_OK
     )
 
 
@@ -857,10 +887,15 @@ def move_to_trash(path):
     # the shell code does not know how to deal with long paths, lets
     # try to move it to the trash if it is short enough, else we remove it
     no_prefix_path = path.replace(LONG_PATH_PREFIX, '')
-    flags = (shellcon.FOF_ALLOWUNDO | shellcon.FOF_NOCONFIRMATION |
-             shellcon.FOF_NOERRORUI | shellcon.FOF_SILENT)
-    result = shell.SHFileOperation((0, shellcon.FO_DELETE,
-                                    no_prefix_path, None, flags))
+    flags = (
+        shellcon.FOF_ALLOWUNDO
+        | shellcon.FOF_NOCONFIRMATION
+        | shellcon.FOF_NOERRORUI
+        | shellcon.FOF_SILENT
+    )
+    result = shell.SHFileOperation(
+        (0, shellcon.FO_DELETE, no_prefix_path, None, flags)
+    )
 
     # from http://msdn.microsoft.com/en-us/library/bb762164%28v=vs.85%29.aspx:
 
@@ -875,8 +910,12 @@ def move_to_trash(path):
 
     code, aborted = result
     if code != 0 or aborted:
-        logger.error('Got error %r when trying to move_to_trash path %r '
-                     '(removing anyways).', result, path)
+        logger.error(
+            'Got error %r when trying to move_to_trash path %r '
+            '(removing anyways).',
+            result,
+            path,
+        )
         if os.path.isdir(path):
             shutil.rmtree(path)
         else:

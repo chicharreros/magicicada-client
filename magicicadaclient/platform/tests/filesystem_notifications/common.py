@@ -39,15 +39,14 @@ from twisted.internet import defer
 
 from devtools.handlers import MementoHandler
 from magicicadaclient.testing.testcase import BaseTwistedTestCase
-from magicicadaclient.platform.filesystem_notifications.agnostic \
-    import (
-        EventsCodes,
-        ProcessEvent,
-        IN_CLOSE_WRITE,
-        IN_CREATE,
-        IN_DELETE,
-        IN_OPEN,
-    )
+from magicicadaclient.platform.filesystem_notifications.agnostic import (
+    EventsCodes,
+    ProcessEvent,
+    IN_CLOSE_WRITE,
+    IN_CREATE,
+    IN_DELETE,
+    IN_OPEN,
+)
 from magicicadaclient.platform.filesystem_notifications import notify_processor
 from magicicadaclient.platform.filesystem_notifications.monitor.common import (
     FilesystemMonitor,
@@ -66,7 +65,7 @@ for key, value in ACTIONS.items():
     REVERSE_OS_ACTIONS[value] = key
 
 
-class FakeEventsProcessor(object):
+class FakeEventsProcessor:
 
     """Handle fake events creation and processing."""
 
@@ -181,7 +180,8 @@ class TestWatch(BaseTwistedTestCase):
             fd.close()
 
         events = yield self._perform_operations(
-            self.basedir, self.mask, create_file, 1)
+            self.basedir, self.mask, create_file, 1
+        )
         event = events[0]
         self.assertFalse(event.dir)
         self.assertEqual(OP_FLAGS['IN_CREATE'], event.mask)
@@ -201,7 +201,8 @@ class TestWatch(BaseTwistedTestCase):
             os.mkdir(dir_name)
 
         events = yield self._perform_operations(
-            self.basedir, self.mask, create_dir, 1)
+            self.basedir, self.mask, create_dir, 1
+        )
         event = events[0]
         self.assertTrue(event.dir)
         self.assertEqual(OP_FLAGS['IN_CREATE'] | IS_DIR, event.mask)
@@ -222,8 +223,9 @@ class TestWatch(BaseTwistedTestCase):
             """Action for the test."""
             os.remove(file_name)
 
-        events = yield self._perform_operations(self.basedir, self.mask,
-                                                remove_file, 1)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, remove_file, 1
+        )
         event = events[0]
         self.assertFalse(event.dir)
         self.assertEqual(OP_FLAGS['IN_DELETE'], event.mask)
@@ -244,8 +246,9 @@ class TestWatch(BaseTwistedTestCase):
             """Action for the test."""
             os.rmdir(dir_name)
 
-        events = yield self._perform_operations(self.basedir, self.mask,
-                                                remove_dir, 1)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, remove_dir, 1
+        )
         event = events[0]
         self.assertTrue(event.dir)
         self.assertEqual(OP_FLAGS['IN_DELETE'] | IS_DIR, event.mask)
@@ -262,9 +265,11 @@ class TestWatch(BaseTwistedTestCase):
     def test_file_moved_to_watched_dir_same_watcher(self):
         """Test that the correct event is raised when a file is moved."""
         from_file_name = os.path.join(
-            self.basedir, 'test_file_moved_to_watched_dir_same_watcher')
+            self.basedir, 'test_file_moved_to_watched_dir_same_watcher'
+        )
         to_file_name = os.path.join(
-            self.basedir, 'test_file_moved_to_watched_dir_same_watcher_2')
+            self.basedir, 'test_file_moved_to_watched_dir_same_watcher_2'
+        )
         open(from_file_name, 'w').close()
 
         # create file before recording
@@ -273,20 +278,23 @@ class TestWatch(BaseTwistedTestCase):
             """Action for the test."""
             os.rename(from_file_name, to_file_name)
 
-        events = yield self._perform_operations(self.basedir, self.mask,
-                                                move_file, 2)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, move_file, 2
+        )
         move_from_event = events[0]
         move_to_event = events[1]
         # first test the move from
         self.assertFalse(move_from_event.dir)
         self.assertEqual(OP_FLAGS['IN_MOVED_FROM'], move_from_event.mask)
         self.assertEqual('IN_MOVED_FROM', move_from_event.maskname)
-        self.assertEqual(os.path.split(from_file_name)[1],
-                         move_from_event.name)
+        self.assertEqual(
+            os.path.split(from_file_name)[1], move_from_event.name
+        )
         self.assertEqual('.', move_from_event.path)
         self.assertEqual(
             os.path.join(self.basedir, from_file_name),
-            move_from_event.pathname)
+            move_from_event.pathname,
+        )
         self.assertEqual(0, move_from_event.wd)
         # test the move to
         self.assertFalse(move_to_event.dir)
@@ -295,9 +303,11 @@ class TestWatch(BaseTwistedTestCase):
         self.assertEqual(os.path.split(to_file_name)[1], move_to_event.name)
         self.assertEqual('.', move_to_event.path)
         self.assertEqual(
-            os.path.join(self.basedir, to_file_name), move_to_event.pathname)
+            os.path.join(self.basedir, to_file_name), move_to_event.pathname
+        )
         self.assertEqual(
-            os.path.split(from_file_name)[1], move_to_event.src_pathname)
+            os.path.split(from_file_name)[1], move_to_event.src_pathname
+        )
         self.assertEqual(0, move_to_event.wd)
         # assert that both cookies are the same
         self.assertEqual(move_from_event.cookie, move_to_event.cookie)
@@ -306,37 +316,43 @@ class TestWatch(BaseTwistedTestCase):
     def test_file_moved_to_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
         from_file_name = os.path.join(
-            self.basedir, 'test_file_moved_to_not_watched_dir')
+            self.basedir, 'test_file_moved_to_not_watched_dir'
+        )
         open(from_file_name, 'w').close()
 
         def move_file():
             """Action for the test."""
             target = os.path.join(
-                tempfile.mkdtemp(), 'test_file_moved_to_not_watched_dir')
+                tempfile.mkdtemp(), 'test_file_moved_to_not_watched_dir'
+            )
             os.rename(from_file_name, target)
 
         # while on linux we will have to do some sort of magic like facundo
         # did, on windows we will get a deleted event which is much more
         # cleaner, first time ever windows is nicer!
-        events = yield self._perform_operations(self.basedir, self.mask,
-                                                move_file, 1)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, move_file, 1
+        )
         event = events[0]
         self.assertFalse(event.dir)
         self.assertEqual(OP_FLAGS['IN_DELETE'], event.mask)
         self.assertEqual('IN_DELETE', event.maskname)
         self.assertEqual(os.path.split(from_file_name)[1], event.name)
         self.assertEqual('.', event.path)
-        self.assertEqual(os.path.join(self.basedir, from_file_name),
-                         event.pathname)
+        self.assertEqual(
+            os.path.join(self.basedir, from_file_name), event.pathname
+        )
         self.assertEqual(0, event.wd)
 
     @defer.inlineCallbacks
     def test_file_move_from_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
         from_file_name = os.path.join(
-            tempfile.mkdtemp(), 'test_file_move_from_not_watched_dir')
+            tempfile.mkdtemp(), 'test_file_move_from_not_watched_dir'
+        )
         to_file_name = os.path.join(
-            self.basedir, 'test_file_move_from_not_watched_dir')
+            self.basedir, 'test_file_move_from_not_watched_dir'
+        )
         # create file before we record
         open(from_file_name, 'w').close()
 
@@ -346,8 +362,9 @@ class TestWatch(BaseTwistedTestCase):
 
         # while on linux we have to do some magic operations like facundo did
         # on windows we have a created file, hurray!
-        events = yield self._perform_operations(self.basedir, self.mask,
-                                                move_files, 1)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, move_files, 1
+        )
         event = events[0]
         self.assertFalse(event.dir)
         self.assertEqual(OP_FLAGS['IN_CREATE'], event.mask)
@@ -355,16 +372,19 @@ class TestWatch(BaseTwistedTestCase):
         self.assertEqual(os.path.split(to_file_name)[1], event.name)
         self.assertEqual('.', event.path)
         self.assertEqual(
-            os.path.join(self.basedir, to_file_name), event.pathname)
+            os.path.join(self.basedir, to_file_name), event.pathname
+        )
         self.assertEqual(0, event.wd)
 
     @defer.inlineCallbacks
     def test_dir_moved_to_watched_dir_same_watcher(self):
         """Test that the correct event is raised when a dir is moved."""
         from_dir_name = os.path.join(
-            self.basedir, 'test_dir_moved_to_watched_dir_same_watcher')
+            self.basedir, 'test_dir_moved_to_watched_dir_same_watcher'
+        )
         to_dir_name = os.path.join(
-            self.basedir, 'test_dir_moved_to_watched_dir_same_watcher_2')
+            self.basedir, 'test_dir_moved_to_watched_dir_same_watcher_2'
+        )
         os.mkdir(from_dir_name)
 
         def move_file():
@@ -372,19 +392,21 @@ class TestWatch(BaseTwistedTestCase):
             os.rename(from_dir_name, to_dir_name)
 
         events = yield self._perform_operations(
-            self.basedir, self.mask, move_file, 2)
+            self.basedir, self.mask, move_file, 2
+        )
         move_from_event = events[0]
         move_to_event = events[1]
         # first test the move from
         self.assertTrue(move_from_event.dir)
         self.assertEqual(
-            OP_FLAGS['IN_MOVED_FROM'] | IS_DIR, move_from_event.mask)
+            OP_FLAGS['IN_MOVED_FROM'] | IS_DIR, move_from_event.mask
+        )
         self.assertEqual('IN_MOVED_FROM|IN_ISDIR', move_from_event.maskname)
         self.assertEqual(os.path.split(from_dir_name)[1], move_from_event.name)
         self.assertEqual('.', move_from_event.path)
         self.assertEqual(
-            os.path.join(self.basedir, from_dir_name),
-            move_from_event.pathname)
+            os.path.join(self.basedir, from_dir_name), move_from_event.pathname
+        )
         self.assertEqual(0, move_from_event.wd)
         # test the move to
         self.assertTrue(move_to_event.dir)
@@ -393,9 +415,11 @@ class TestWatch(BaseTwistedTestCase):
         self.assertEqual(os.path.split(to_dir_name)[1], move_to_event.name)
         self.assertEqual('.', move_to_event.path)
         self.assertEqual(
-            os.path.join(self.basedir, to_dir_name), move_to_event.pathname)
+            os.path.join(self.basedir, to_dir_name), move_to_event.pathname
+        )
         self.assertEqual(
-            os.path.split(from_dir_name)[1], move_to_event.src_pathname)
+            os.path.split(from_dir_name)[1], move_to_event.src_pathname
+        )
         self.assertEqual(0, move_to_event.wd)
         # assert that both cookies are the same
         self.assertEqual(move_from_event.cookie, move_to_event.cookie)
@@ -404,18 +428,21 @@ class TestWatch(BaseTwistedTestCase):
     def test_dir_moved_to_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
         dir_name = os.path.join(
-            self.basedir, 'test_dir_moved_to_not_watched_dir')
+            self.basedir, 'test_dir_moved_to_not_watched_dir'
+        )
         os.mkdir(dir_name)
 
         def move_dir():
             """Action for the test."""
             target = os.path.join(
-                tempfile.mkdtemp(), 'test_dir_moved_to_not_watched_dir')
+                tempfile.mkdtemp(), 'test_dir_moved_to_not_watched_dir'
+            )
             os.rename(dir_name, target)
 
         # on windows a move to outside a watched dir translates to a remove
-        events = yield self._perform_operations(self.basedir, self.mask,
-                                                move_dir, 1)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, move_dir, 1
+        )
         event = events[0]
         self.assertTrue(event.dir)
         self.assertEqual(OP_FLAGS['IN_DELETE'] | IS_DIR, event.mask)
@@ -428,9 +455,11 @@ class TestWatch(BaseTwistedTestCase):
     def test_dir_move_from_not_watched_dir(self):
         """Test that the correct event is raised when a file is moved."""
         from_dir_name = os.path.join(
-            tempfile.mkdtemp(), 'test_dir_move_from_not_watched_dir')
+            tempfile.mkdtemp(), 'test_dir_move_from_not_watched_dir'
+        )
         to_dir_name = os.path.join(
-            self.basedir, 'test_dir_move_from_not_watched_dir')
+            self.basedir, 'test_dir_move_from_not_watched_dir'
+        )
         # create file before we record
         os.mkdir(from_dir_name)
 
@@ -438,16 +467,18 @@ class TestWatch(BaseTwistedTestCase):
             """Action for the test."""
             os.rename(from_dir_name, to_dir_name)
 
-        events = yield self._perform_operations(self.basedir, self.mask,
-                                                move_dir, 1)
+        events = yield self._perform_operations(
+            self.basedir, self.mask, move_dir, 1
+        )
         event = events[0]
         self.assertTrue(event.dir)
         self.assertEqual(OP_FLAGS['IN_CREATE'] | IS_DIR, event.mask)
         self.assertEqual('IN_CREATE|IN_ISDIR', event.maskname)
         self.assertEqual(os.path.split(from_dir_name)[1], event.name)
         self.assertEqual('.', event.path)
-        self.assertEqual(os.path.join(self.basedir, to_dir_name),
-                         event.pathname)
+        self.assertEqual(
+            os.path.join(self.basedir, to_dir_name), event.pathname
+        )
         self.assertEqual(0, event.wd)
 
     def test_exclude_filter(self):
@@ -455,15 +486,19 @@ class TestWatch(BaseTwistedTestCase):
         handler = TestCaseHandler(number_events=0)
         manager = WatchManager(handler)
         # add a watch that will always exclude all actions
-        manager.add_watch(get_os_valid_path(self.basedir),
-                          self.mask, auto_add=True,
-                          exclude_filter=lambda x: True)
+        manager.add_watch(
+            get_os_valid_path(self.basedir),
+            self.mask,
+            auto_add=True,
+            exclude_filter=lambda x: True,
+        )
         # execution the actions
         file_name = os.path.join(self.basedir, 'test_file_create')
         open(file_name, 'w').close()
         # give some time for the system to get the events
         time.sleep(1)
         self.assertEqual(0, len(handler.processed_events))
+
     test_exclude_filter.skip = "we must rethink this test."
 
     def test_ignore_path(self):
@@ -480,14 +515,17 @@ class TestWatch(BaseTwistedTestCase):
         paths_to_ignore = []
         for file_name in 'abcdef':
             fake_event = self.fake_events_processor.create_fake_event(
-                os.path.join(child, file_name))
+                os.path.join(child, file_name)
+            )
             paths_to_ignore.append(fake_event)
         # ensure that the watch is watching
         watch.platform_watch.watching = True
         self.fake_events_processor.custom_process_events(
-            watch, paths_to_ignore)
-        self.assertEqual(0, len(events),
-                         'All events should have been ignored.')
+            watch, paths_to_ignore
+        )
+        self.assertEqual(
+            0, len(events), 'All events should have been ignored.'
+        )
 
     def test_not_ignore_path(self):
         """Test that we do get the events when they do not match."""
@@ -503,14 +541,19 @@ class TestWatch(BaseTwistedTestCase):
         paths_not_to_ignore = []
         for file_name in 'abcdef':
             event = self.fake_events_processor.create_fake_event(
-                os.path.join(child + file_name, file_name))
+                os.path.join(child + file_name, file_name)
+            )
             paths_not_to_ignore.append(event)
         # ensure that the watch is watching
         watch.platform_watch.watching = True
         self.fake_events_processor.custom_process_events(
-            watch, paths_not_to_ignore)
-        self.assertEqual(len(paths_not_to_ignore), len(events),
-                         'No events should have been ignored.')
+            watch, paths_not_to_ignore
+        )
+        self.assertEqual(
+            len(paths_not_to_ignore),
+            len(events),
+            'No events should have been ignored.',
+        )
 
     def test_mixed_ignore_path(self):
         """Test that we do get the correct events."""
@@ -530,16 +573,23 @@ class TestWatch(BaseTwistedTestCase):
             valid = os.path.join(child + file_name, file_name)
             paths_to_ignore.append((1, os.path.join(child, file_name)))
             paths_not_to_ignore.append(
-                self.fake_events_processor.create_fake_event(valid))
+                self.fake_events_processor.create_fake_event(valid)
+            )
             expected_events.append(os.path.join(self.common_path, valid))
         # ensure that the watch is watching
         watch.platform_watch.watching = True
         self.fake_events_processor.custom_process_events(
-            watch, paths_not_to_ignore)
-        self.assertEqual(len(paths_not_to_ignore), len(events),
-                         'Wrong number of events ignored.')
-        self.assertTrue(all([event in expected_events for event in events]),
-                        'Paths ignored that should have not been ignored.')
+            watch, paths_not_to_ignore
+        )
+        self.assertEqual(
+            len(paths_not_to_ignore),
+            len(events),
+            'Wrong number of events ignored.',
+        )
+        self.assertTrue(
+            all([event in expected_events for event in events]),
+            'Paths ignored that should have not been ignored.',
+        )
 
     def test_undo_ignore_path_ignored(self):
         """Test that we do deal with events from and old ignored path."""
@@ -556,14 +606,19 @@ class TestWatch(BaseTwistedTestCase):
         paths_not_to_ignore = []
         for file_name in 'abcdef':
             event = self.fake_events_processor.create_fake_event(
-                os.path.join(child, file_name))
+                os.path.join(child, file_name)
+            )
             paths_not_to_ignore.append(event)
         # ensure that the watch is watching
         watch.platform_watch.watching = True
         self.fake_events_processor.custom_process_events(
-            watch, paths_not_to_ignore)
-        self.assertEqual(len(paths_not_to_ignore), len(events),
-                         'All events should have been accepted.')
+            watch, paths_not_to_ignore
+        )
+        self.assertEqual(
+            len(paths_not_to_ignore),
+            len(events),
+            'All events should have been accepted.',
+        )
 
     def test_undo_ignore_path_other_ignored(self):
         """Test that we can undo and the other path is ignored."""
@@ -591,11 +646,17 @@ class TestWatch(BaseTwistedTestCase):
         # ensure that the watch is watching
         watch.platform_watch.watching = True
         self.fake_events_processor.custom_process_events(
-            watch, paths_not_to_ignore)
-        self.assertEqual(len(paths_not_to_ignore), len(events),
-                         'All events should have been accepted.')
-        self.assertTrue(all([e in expected_events for e in events]),
-                        'Paths ignored that should have not been ignored.')
+            watch, paths_not_to_ignore
+        )
+        self.assertEqual(
+            len(paths_not_to_ignore),
+            len(events),
+            'All events should have been accepted.',
+        )
+        self.assertTrue(
+            all([e in expected_events for e in events]),
+            'Paths ignored that should have not been ignored.',
+        )
 
     def random_error(self, *args):
         """Throw a fake exception."""
@@ -765,8 +826,9 @@ class TestWatchManager(BaseTwistedTestCase):
             self.platform_rm_watch_wd = wd
 
         self.patch(self.manager, "stop_watching", fake_stop_watching)
-        self.patch(self.manager.platform_manager,
-                   "rm_watch", fake_platform_rm_watch)
+        self.patch(
+            self.manager.platform_manager, "rm_watch", fake_platform_rm_watch
+        )
 
         yield self.manager.rm_watch(1)
         self.assertTrue(self.stop_called)
@@ -786,7 +848,8 @@ class TestWatchManager(BaseTwistedTestCase):
         self.assertEqual(self.watch, self.manager._wdm.get(1))
         self.watch._watching = True
         event = self.fake_events_processor.create_fake_event(
-            os.path.join(self.path, 'test'))
+            os.path.join(self.path, 'test')
+        )
         self.fake_events_processor.custom_process_events(self.watch, [event])
         self.assertEqual(0, len(events))
 
@@ -805,7 +868,8 @@ class TestWatchManager(BaseTwistedTestCase):
         # assert that the correct event is ignored
         self.watch.platform_watch.watching = True
         event = self.fake_events_processor.create_fake_event(
-            os.path.join('child', 'test'))
+            os.path.join('child', 'test')
+        )
         self.fake_events_processor.custom_process_events(self.watch, [event])
         self.assertEqual(0, len(events))
         # assert that other events are not ignored
@@ -814,11 +878,12 @@ class TestWatchManager(BaseTwistedTestCase):
         self.assertEqual(1, len(events))
 
 
-class FakeEvent(object):
+class FakeEvent:
     """Fake event."""
 
-    def __init__(self, wd=0, dir=True, name=None, path=None, pathname=None,
-                 cookie=None):
+    def __init__(
+        self, wd=0, dir=True, name=None, path=None, pathname=None, cookie=None
+    ):
         """Create fake event."""
         self.dir = dir
         self.wd = wd
@@ -828,7 +893,7 @@ class FakeEvent(object):
         self.cookie = cookie
 
 
-class FakeLog(object):
+class FakeLog:
     """A fake log that is used by the general processor."""
 
     def __init__(self):
@@ -840,7 +905,7 @@ class FakeLog(object):
         self.called_methods.append(('info', args))
 
 
-class FakeGeneralProcessor(object):
+class FakeGeneralProcessor:
     """Fake implementation of the general processor."""
 
     def __init__(self):
@@ -870,13 +935,15 @@ class FakeGeneralProcessor(object):
 
     def eq_push(self, event, path=None, path_to=None, path_from=None):
         """Fake event to push event."""
-        self.called_methods.append(('eq_push', event, path, path_to,
-                                    path_from))
+        self.called_methods.append(
+            ('eq_push', event, path, path_to, path_from)
+        )
 
     def get_paths_starting_with(self, fullpath, include_base=False):
         """Fake get_paths_starting_with."""
-        self.called_methods.append(('get_paths_starting_with', fullpath,
-                                    include_base))
+        self.called_methods.append(
+            ('get_paths_starting_with', fullpath, include_base)
+        )
         return self.paths_to_return
 
     def get_path_share_id(self, path):
@@ -918,8 +985,9 @@ class TestNotifyProcessor(BaseTwistedTestCase):
         paths = 'paths'
         self.processor.rm_from_mute_filter(event, paths)
         self.assertEqual(1, len(self.general.called_methods))
-        self.assertEqual('rm_from_mute_filter',
-                         self.general.called_methods[0][0])
+        self.assertEqual(
+            'rm_from_mute_filter', self.general.called_methods[0][0]
+        )
         self.assertEqual(event, self.general.called_methods[0][1])
         self.assertEqual(paths, self.general.called_methods[0][2])
 
@@ -929,8 +997,9 @@ class TestNotifyProcessor(BaseTwistedTestCase):
         paths = 'paths'
         self.processor.add_to_mute_filter(event, paths)
         self.assertEqual(1, len(self.general.called_methods))
-        self.assertEqual('add_to_mute_filter',
-                         self.general.called_methods[0][0])
+        self.assertEqual(
+            'add_to_mute_filter', self.general.called_methods[0][0]
+        )
         self.assertEqual(event, self.general.called_methods[0][1])
         self.assertEqual(paths, self.general.called_methods[0][2])
 
@@ -939,8 +1008,7 @@ class TestNotifyProcessor(BaseTwistedTestCase):
         path = 'path'
         self.processor.is_ignored(path)
         self.assertEqual(1, len(self.general.called_methods))
-        self.assertEqual('is_ignored',
-                         self.general.called_methods[0][0])
+        self.assertEqual('is_ignored', self.general.called_methods[0][0])
         self.assertEqual(path, self.general.called_methods[0][1])
 
     def test_release_held_event(self):
@@ -949,8 +1017,7 @@ class TestNotifyProcessor(BaseTwistedTestCase):
         # set the held event to assert that is pushed
         self.processor.held_event = event
         self.processor.release_held_event()
-        self.assertEqual('push_event',
-                         self.general.called_methods[0][0])
+        self.assertEqual('push_event', self.general.called_methods[0][0])
         self.assertEqual(event, self.general.called_methods[0][1])
 
     def test_process_IN_MODIFY_dir(self):
@@ -962,115 +1029,154 @@ class TestNotifyProcessor(BaseTwistedTestCase):
 
     def test_process_IN_MODIFY_file(self):
         """Test that the modify works as expected with files."""
-        event = FakeEvent(dir=False, wd=0, name='name',
-                          path='path', pathname='pathname')
+        event = FakeEvent(
+            dir=False, wd=0, name='name', path='path', pathname='pathname'
+        )
         self.processor.process_IN_MODIFY(event)
         # we should be getting two different method, and open and a close
         self.assertEqual(2, len(self.general.called_methods))
-        self.assertEqual('push_event',
-                         self.general.called_methods[0][0])
-        self.assertEqual('push_event',
-                         self.general.called_methods[1][0])
+        self.assertEqual('push_event', self.general.called_methods[0][0])
+        self.assertEqual('push_event', self.general.called_methods[1][0])
         self.assertEqual(event.dir, self.general.called_methods[0][1].dir)
         self.assertEqual(event.wd, self.general.called_methods[0][1].wd)
         self.assertEqual(event.name, self.general.called_methods[0][1].name)
         self.assertEqual(event.path, self.general.called_methods[0][1].path)
-        self.assertEqual(event.pathname,
-                         self.general.called_methods[0][1].pathname)
-        self.assertEqual(IN_OPEN,
-                         self.general.called_methods[0][1].mask)
+        self.assertEqual(
+            event.pathname, self.general.called_methods[0][1].pathname
+        )
+        self.assertEqual(IN_OPEN, self.general.called_methods[0][1].mask)
         self.assertEqual(event.dir, self.general.called_methods[1][1].dir)
         self.assertEqual(event.wd, self.general.called_methods[1][1].wd)
         self.assertEqual(event.name, self.general.called_methods[1][1].name)
         self.assertEqual(event.path, self.general.called_methods[1][1].path)
-        self.assertEqual(event.pathname,
-                         self.general.called_methods[1][1].pathname)
-        self.assertEqual(IN_CLOSE_WRITE,
-                         self.general.called_methods[1][1].mask)
+        self.assertEqual(
+            event.pathname, self.general.called_methods[1][1].pathname
+        )
+        self.assertEqual(
+            IN_CLOSE_WRITE, self.general.called_methods[1][1].mask
+        )
 
     def test_process_IN_MOVED_FROM(self):
         """Test that the in moved from works as expected."""
-        event = FakeEvent(dir=False, wd=0, name='name',
-                          path='path', pathname='pathname')
+        event = FakeEvent(
+            dir=False, wd=0, name='name', path='path', pathname='pathname'
+        )
         self.processor.process_IN_MOVED_FROM(event)
         self.assertEqual(event, self.processor.held_event)
 
     def test_process_IN_MOVED_TO_dir(self):
         """Test that the in moved to works as expected."""
-        event = FakeEvent(wd=0, dir=True, name='name', path='path',
-                          pathname=os.path.join('test', 'pathname'),
-                          cookie='cookie')
-        held_event = FakeEvent(wd=0, dir=True, name='hname', path='hpath',
-                               pathname=os.path.join('test', 'hpathname'),
-                               cookie='cookie')
+        event = FakeEvent(
+            wd=0,
+            dir=True,
+            name='name',
+            path='path',
+            pathname=os.path.join('test', 'pathname'),
+            cookie='cookie',
+        )
+        held_event = FakeEvent(
+            wd=0,
+            dir=True,
+            name='hname',
+            path='hpath',
+            pathname=os.path.join('test', 'hpathname'),
+            cookie='cookie',
+        )
         self.general.share_id = 'my_share_id'
         self.processor.held_event = held_event
         self.processor.process_IN_MOVED_TO(event)
         self.assertEqual(5, len(self.general.called_methods))
         # assert that the ignores are called
         self.assertEqual('is_ignored', self.general.called_methods[0][0])
-        self.assertEqual(held_event.pathname,
-                         self.general.called_methods[0][1])
+        self.assertEqual(
+            held_event.pathname, self.general.called_methods[0][1]
+        )
         self.assertEqual('is_ignored', self.general.called_methods[1][0])
         self.assertEqual(event.pathname, self.general.called_methods[1][1])
         # assert that we do request the share_id
-        self.assertEqual('get_path_share_id',
-                         self.general.called_methods[2][0])
-        self.assertEqual(os.path.split(event.pathname)[0],
-                         self.general.called_methods[2][1],
-                         'Get the share_id for event')
-        self.assertEqual('get_path_share_id',
-                         self.general.called_methods[3][0])
-        self.assertEqual(os.path.split(held_event.pathname)[0],
-                         self.general.called_methods[3][1],
-                         'Get the share_id for held event.')
+        self.assertEqual(
+            'get_path_share_id', self.general.called_methods[2][0]
+        )
+        self.assertEqual(
+            os.path.split(event.pathname)[0],
+            self.general.called_methods[2][1],
+            'Get the share_id for event',
+        )
+        self.assertEqual(
+            'get_path_share_id', self.general.called_methods[3][0]
+        )
+        self.assertEqual(
+            os.path.split(held_event.pathname)[0],
+            self.general.called_methods[3][1],
+            'Get the share_id for held event.',
+        )
 
         self.assertEqual('eq_push', self.general.called_methods[4][0])
         self.assertEqual('FS_DIR_MOVE', self.general.called_methods[4][1])
         self.assertEqual(event.pathname, self.general.called_methods[4][3])
-        self.assertEqual(held_event.pathname,
-                         self.general.called_methods[4][4])
+        self.assertEqual(
+            held_event.pathname, self.general.called_methods[4][4]
+        )
 
     def test_process_IN_MOVED_TO_file(self):
         """Test that the in moved to works as expected."""
-        event = FakeEvent(wd=0, dir=False, name='name', path='path',
-                          pathname=os.path.join('test', 'pathname'),
-                          cookie='cookie')
-        held_event = FakeEvent(wd=0, dir=False, name='hname', path='hpath',
-                               pathname=os.path.join('test', 'hpathname'),
-                               cookie='cookie')
+        event = FakeEvent(
+            wd=0,
+            dir=False,
+            name='name',
+            path='path',
+            pathname=os.path.join('test', 'pathname'),
+            cookie='cookie',
+        )
+        held_event = FakeEvent(
+            wd=0,
+            dir=False,
+            name='hname',
+            path='hpath',
+            pathname=os.path.join('test', 'hpathname'),
+            cookie='cookie',
+        )
         self.general.share_id = 'my_share_id'
         self.processor.held_event = held_event
         self.processor.process_IN_MOVED_TO(event)
         self.assertEqual(5, len(self.general.called_methods))
         # assert that the ignores are called
         self.assertEqual('is_ignored', self.general.called_methods[0][0])
-        self.assertEqual(held_event.pathname,
-                         self.general.called_methods[0][1])
+        self.assertEqual(
+            held_event.pathname, self.general.called_methods[0][1]
+        )
         self.assertEqual('is_ignored', self.general.called_methods[1][0])
         self.assertEqual(event.pathname, self.general.called_methods[1][1])
         # assert that we do request the share_id
-        self.assertEqual('get_path_share_id',
-                         self.general.called_methods[2][0])
-        self.assertEqual(os.path.split(event.pathname)[0],
-                         self.general.called_methods[2][1],
-                         'Get the share_id for event')
-        self.assertEqual('get_path_share_id',
-                         self.general.called_methods[3][0])
-        self.assertEqual(os.path.split(held_event.pathname)[0],
-                         self.general.called_methods[3][1],
-                         'Get the share_id for held event.')
+        self.assertEqual(
+            'get_path_share_id', self.general.called_methods[2][0]
+        )
+        self.assertEqual(
+            os.path.split(event.pathname)[0],
+            self.general.called_methods[2][1],
+            'Get the share_id for event',
+        )
+        self.assertEqual(
+            'get_path_share_id', self.general.called_methods[3][0]
+        )
+        self.assertEqual(
+            os.path.split(held_event.pathname)[0],
+            self.general.called_methods[3][1],
+            'Get the share_id for held event.',
+        )
 
         self.assertEqual('eq_push', self.general.called_methods[4][0])
         self.assertEqual('FS_FILE_MOVE', self.general.called_methods[4][1])
         self.assertEqual(event.pathname, self.general.called_methods[4][3])
-        self.assertEqual(held_event.pathname,
-                         self.general.called_methods[4][4])
+        self.assertEqual(
+            held_event.pathname, self.general.called_methods[4][4]
+        )
 
     def test_fake_create_event_dir(self):
         """Test that the in moved to works as expected."""
-        event = FakeEvent(wd=0, dir=True, name='name', path='path',
-                          pathname='pathname')
+        event = FakeEvent(
+            wd=0, dir=True, name='name', path='path', pathname='pathname'
+        )
         self.processor._fake_create_event(event)
         self.assertEqual(1, len(self.general.called_methods))
         self.assertEqual('eq_push', self.general.called_methods[0][0])
@@ -1079,54 +1185,63 @@ class TestNotifyProcessor(BaseTwistedTestCase):
 
     def test_fake_create_event_file(self):
         """Test that the in moved to works as expected."""
-        event = FakeEvent(wd=0, dir=False, name='name', path='path',
-                          pathname='pathname')
+        event = FakeEvent(
+            wd=0, dir=False, name='name', path='path', pathname='pathname'
+        )
         self.processor._fake_create_event(event)
         self.assertEqual(2, len(self.general.called_methods))
         self.assertEqual('eq_push', self.general.called_methods[0][0])
         self.assertEqual('FS_FILE_CREATE', self.general.called_methods[0][1])
         self.assertEqual(event.pathname, self.general.called_methods[0][2])
         self.assertEqual('eq_push', self.general.called_methods[1][0])
-        self.assertEqual('FS_FILE_CLOSE_WRITE',
-                         self.general.called_methods[1][1])
+        self.assertEqual(
+            'FS_FILE_CLOSE_WRITE', self.general.called_methods[1][1]
+        )
         self.assertEqual(event.pathname, self.general.called_methods[1][2])
 
     def test_fake_delete_create_event_dir(self):
         """Test that we do fake a delete and a later delete."""
-        event = FakeEvent(wd=0, dir=True, name='name', path='path',
-                          pathname='pathname')
-        held_event = FakeEvent(wd=0, dir=True, name='hname', path='hpath',
-                               pathname='hpathname')
+        event = FakeEvent(
+            wd=0, dir=True, name='name', path='path', pathname='pathname'
+        )
+        held_event = FakeEvent(
+            wd=0, dir=True, name='hname', path='hpath', pathname='hpathname'
+        )
         self.processor.held_event = held_event
         self.processor._fake_delete_create_event(event)
         self.assertEqual(2, len(self.general.called_methods))
         self.assertEqual('eq_push', self.general.called_methods[0][0])
         self.assertEqual('FS_DIR_DELETE', self.general.called_methods[0][1])
-        self.assertEqual(held_event.pathname,
-                         self.general.called_methods[0][2])
+        self.assertEqual(
+            held_event.pathname, self.general.called_methods[0][2]
+        )
         self.assertEqual('eq_push', self.general.called_methods[1][0])
         self.assertEqual('FS_DIR_CREATE', self.general.called_methods[1][1])
         self.assertEqual(event.pathname, self.general.called_methods[1][2])
 
     def test_fake_delete_create_event_file(self):
         """Test that we do fake a delete and a later delete."""
-        event = FakeEvent(wd=0, dir=False, name='name', path='path',
-                          pathname='pathname')
-        held_event = FakeEvent(wd=0, dir=False, name='hname', path='hpath',
-                               pathname='hpathname')
+        event = FakeEvent(
+            wd=0, dir=False, name='name', path='path', pathname='pathname'
+        )
+        held_event = FakeEvent(
+            wd=0, dir=False, name='hname', path='hpath', pathname='hpathname'
+        )
         self.processor.held_event = held_event
         self.processor._fake_delete_create_event(event)
         self.assertEqual(3, len(self.general.called_methods))
         self.assertEqual('eq_push', self.general.called_methods[0][0])
         self.assertEqual('FS_FILE_DELETE', self.general.called_methods[0][1])
-        self.assertEqual(held_event.pathname,
-                         self.general.called_methods[0][2])
+        self.assertEqual(
+            held_event.pathname, self.general.called_methods[0][2]
+        )
         self.assertEqual('eq_push', self.general.called_methods[1][0])
         self.assertEqual('FS_FILE_CREATE', self.general.called_methods[1][1])
         self.assertEqual(event.pathname, self.general.called_methods[1][2])
         self.assertEqual('eq_push', self.general.called_methods[2][0])
-        self.assertEqual('FS_FILE_CLOSE_WRITE',
-                         self.general.called_methods[2][1])
+        self.assertEqual(
+            'FS_FILE_CLOSE_WRITE', self.general.called_methods[2][1]
+        )
         self.assertEqual(event.pathname, self.general.called_methods[2][2])
 
     def test_process_default_no_held(self):
@@ -1134,10 +1249,8 @@ class TestNotifyProcessor(BaseTwistedTestCase):
         event = 'event'
         self.processor.process_default(event)
         self.assertEqual(1, len(self.general.called_methods))
-        self.assertEqual('push_event',
-                         self.general.called_methods[0][0])
-        self.assertEqual(event,
-                         self.general.called_methods[0][1])
+        self.assertEqual('push_event', self.general.called_methods[0][0])
+        self.assertEqual(event, self.general.called_methods[0][1])
 
     def test_process_default_with_held(self):
         """Test that the process default works as expected."""
@@ -1146,14 +1259,10 @@ class TestNotifyProcessor(BaseTwistedTestCase):
         self.processor.held_event = held_event
         self.processor.process_default(event)
         self.assertEqual(2, len(self.general.called_methods))
-        self.assertEqual('push_event',
-                         self.general.called_methods[0][0])
-        self.assertEqual(held_event,
-                         self.general.called_methods[0][1])
-        self.assertEqual('push_event',
-                         self.general.called_methods[1][0])
-        self.assertEqual(event,
-                         self.general.called_methods[1][1])
+        self.assertEqual('push_event', self.general.called_methods[0][0])
+        self.assertEqual(held_event, self.general.called_methods[0][1])
+        self.assertEqual('push_event', self.general.called_methods[1][0])
+        self.assertEqual(event, self.general.called_methods[1][1])
 
     def test_handle_dir_delete_files(self):
         """Test that the handle dir delete works as expected."""
@@ -1164,8 +1273,9 @@ class TestNotifyProcessor(BaseTwistedTestCase):
             self.general.paths_to_return.append((file_name, False))
         self.processor.handle_dir_delete(path)
         # there are calls for, rm the watch, get paths and then one per file
-        self.assertEqual(len(present_files) + 2,
-                         len(self.general.called_methods))
+        self.assertEqual(
+            len(present_files) + 2, len(self.general.called_methods)
+        )
         rm_call = self.general.called_methods.pop(0)
         self.assertEqual('rm_watch', rm_call[0])
         self.assertEqual(path, rm_call[1])
@@ -1190,8 +1300,9 @@ class TestNotifyProcessor(BaseTwistedTestCase):
             self.general.paths_to_return.append((file_name, True))
         self.processor.handle_dir_delete(path)
         # there are calls for, rm the watch, get paths and then one per file
-        self.assertEqual(2 * len(present_files) + 2,
-                         len(self.general.called_methods))
+        self.assertEqual(
+            2 * len(present_files) + 2, len(self.general.called_methods)
+        )
         rm_call = self.general.called_methods.pop(0)
         self.assertEqual('rm_watch', rm_call[0])
         self.assertEqual(path, rm_call[1])
@@ -1209,8 +1320,9 @@ class TestNotifyProcessor(BaseTwistedTestCase):
             args = [iter(iterable)] * n
             return itertools.zip_longest(fillvalue=fillvalue, *args)
 
-        for i, called_methods in enumerate(grouper(2,
-                                           self.general.called_methods)):
+        for i, called_methods in enumerate(
+            grouper(2, self.general.called_methods)
+        ):
             rm_call = called_methods[0]
             self.assertEqual('rm_watch', rm_call[0])
             self.assertEqual(present_files[i], rm_call[1])
@@ -1224,24 +1336,21 @@ class TestNotifyProcessor(BaseTwistedTestCase):
         path = 'path'
         self.processor.freeze_begin(path)
         self.assertEqual(1, len(self.general.called_methods))
-        self.assertEqual('freeze_begin',
-                         self.general.called_methods[0][0])
+        self.assertEqual('freeze_begin', self.general.called_methods[0][0])
         self.assertEqual(path, self.general.called_methods[0][1])
 
     def test_freeze_rollback(self):
         """Test that the freeze rollback works as expected."""
         self.processor.freeze_rollback()
         self.assertEqual(1, len(self.general.called_methods))
-        self.assertEqual('freeze_rollback',
-                         self.general.called_methods[0][0])
+        self.assertEqual('freeze_rollback', self.general.called_methods[0][0])
 
     def test_freeze_commit(self):
         """Test that the freeze commit works as expected."""
         path = 'path'
         self.processor.freeze_commit(path)
         self.assertEqual(1, len(self.general.called_methods))
-        self.assertEqual('freeze_commit',
-                         self.general.called_methods[0][0])
+        self.assertEqual('freeze_commit', self.general.called_methods[0][0])
         self.assertEqual(path, self.general.called_methods[0][1])
 
 
@@ -1256,21 +1365,25 @@ class FilesystemMonitorTestCase(BaseTwistedTestCase):
 
     def test_add_watches_to_udf_ancestors(self):
         """Test that the ancestor watches are not added."""
-        class FakeVolume(object):
+
+        class FakeVolume:
             """A fake UDF."""
 
             def __init__(self, ancestors):
                 """Create a new instance."""
                 self.ancestors = ancestors
 
-        ancestors = ['~', '~\\Pictures', '~\\Pictures\\Home', ]
+        ancestors = ['~', '~\\Pictures', '~\\Pictures\\Home']
         volume = FakeVolume(ancestors)
         monitor = FilesystemMonitor(None, None)
         added = yield monitor.add_watches_to_udf_ancestors(volume)
         self.assertTrue(added, 'We should always return true.')
         # lets ensure that we never added the watches
-        self.assertEqual(0, len(monitor._watch_manager._wdm.values()),
-                         'No watches should have been added.')
+        self.assertEqual(
+            0,
+            len(monitor._watch_manager._wdm.values()),
+            'No watches should have been added.',
+        )
 
     @defer.inlineCallbacks
     def test_is_available_monitor(self):

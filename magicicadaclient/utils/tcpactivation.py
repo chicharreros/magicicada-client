@@ -41,6 +41,7 @@ NUMBER_OF_CHECKS = 600
 def async_sleep(delay):
     """Fire the returned deferred after some specified delay."""
     from twisted.internet import reactor
+
     d = defer.Deferred()
     reactor.callLater(delay, d.callback, None)
     return d
@@ -95,7 +96,7 @@ class PortDetectFactory(protocol.ClientFactory):
             self.d.callback(False)
 
 
-class ActivationConfig(object):
+class ActivationConfig:
     """The configuration for tcp activation."""
 
     def __init__(self, service_name, command_line, description):
@@ -105,7 +106,7 @@ class ActivationConfig(object):
         self.description = description
 
 
-class ActivationDetector(object):
+class ActivationDetector:
     """Base class to detect if the service is running."""
 
     def __init__(self, config):
@@ -116,6 +117,7 @@ class ActivationDetector(object):
     def is_already_running(self):
         """Check if the instance is already running."""
         from twisted.internet import reactor
+
         factory = PortDetectFactory()
         client = clientFromString(reactor, self.config.description.client)
         try:
