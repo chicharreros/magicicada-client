@@ -147,7 +147,7 @@ EVENTS = {
     'SV_DIR_NEW': ('volume_id', 'node_id', 'parent_id', 'name'),
     'SV_FILE_DELETED': ('volume_id', 'node_id', 'was_dir', 'old_path'),
     'HQ_HASH_NEW': ('path', 'hash', 'crc32', 'size', 'stat'),
-    'HQ_HASH_ERROR': ('mdid',),
+    'HQ_HASH_ERROR': ('mdid', 'path'),
     'LR_SCAN_ERROR': ('mdid', 'udfmode'),
     'SYS_USER_CONNECT': ('access_token',),
     'SYS_USER_DISCONNECT': (),

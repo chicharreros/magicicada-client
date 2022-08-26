@@ -155,10 +155,20 @@ class DownloadFinishedNanny:
         return opened
 
     def handle_HQ_HASH_NEW(self, path, hash, crc32, size, stat):
-        """Receives HASH_NEW, maybe releases a blocked event."""
+        """Received HASH_NEW, maybe releases a blocked event."""
         if path in self._hashing:
             self._hashing.remove(path)
         self._release(path, "hashed")
+
+    def handle_HQ_HASH_ERROR(self, mdid, path):
+        """Received HASH_ERROR, maybe releases a blocked event."""
+        self.logger.debug(
+            'handle_HQ_HASH_ERROR: path %r currently tracked as opened? %s '
+            'hashing? %s blocked? %s (doing nothing for now)',
+            path in self._opened,
+            path in self._hashing,
+            path in self._blocked,
+        )
 
     def _release(self, path, why):
         """Release the event if it was blocked."""
@@ -169,6 +179,17 @@ class DownloadFinishedNanny:
 
         # is it opened or being hashed?
         if path in self._opened or path in self._hashing:
+            self.logger.debug(
+                'Not releasing! (%s)  path %r  share %r  node %r  '
+                'server_hash %s',
+                'path is tracked as currently opened'
+                if path in self._opened
+                else 'path is tracked as being hashed',
+                path,
+                share_id,
+                node_id,
+                server_hash,
+            )
             return
 
         # get the mdobj to retrieve further info
@@ -177,17 +198,33 @@ class DownloadFinishedNanny:
         except KeyError:
             # the node is gone, just clean blocked
             del self._blocked[path]
+            self.logger.debug(
+                'Not releasing! (path no longer exists in fsm)  path %r  '
+                'share %r  node %r  server_hash %s',
+                path,
+                share_id,
+                node_id,
+                server_hash,
+            )
             return
 
         # is it being hashed?
         abspath = self.fsm.get_abspath(share_id, mdobj.path)
         if self.hq.is_hashing(abspath, node_id):
+            self.logger.debug(
+                'Not releasing! (path is being hashed in HQ)  path %r  '
+                'share %r  node %r  server_hash %s',
+                path,
+                share_id,
+                node_id,
+                server_hash,
+            )
             return
 
         # ok, so we unblock and release it!
         del self._blocked[path]
         self.logger.debug(
-            "Released! (%s)  path %r  share %r  " "node %r  server_hash %s",
+            'Released! (%s)  path %r  share %r  node %r  server_hash %s',
             why,
             path,
             share_id,

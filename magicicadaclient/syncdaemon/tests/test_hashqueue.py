@@ -245,7 +245,7 @@ class HasherTests(BaseTwistedTestCase):
         hasher.join(timeout=5)
 
         self.assertEqual(event, "HQ_HASH_ERROR")
-        self.assertEqual(kwargs['mdid'], "foo")
+        self.assertEqual(kwargs, {'mdid': 'foo', 'path': 'not_to_be_found'})
 
     @defer.inlineCallbacks
     def test_order(self):
@@ -526,7 +526,9 @@ class HashQueueTests(BaseTwistedTestCase):
                 # if it is *our* call, check the args
                 self.assertEqual(delay, 0.1)
                 self.assertEqual(args, (receiver.push, 'HQ_HASH_ERROR'))
-                self.assertEqual(kwargs, dict(mdid='foo'))
+                self.assertEqual(
+                    kwargs, {'mdid': 'foo', 'path': 'not_to_be_found'}
+                )
                 call_later_called.append(True)
             return original_call_later(delay, func, *args, **kwargs)
 
@@ -537,7 +539,7 @@ class HashQueueTests(BaseTwistedTestCase):
 
         event, kwargs = yield receiver.deferred
         self.assertEqual(event, "HQ_HASH_ERROR")
-        self.assertEqual(kwargs['mdid'], "foo")
+        self.assertEqual(kwargs, {'mdid': 'foo', 'path': 'not_to_be_found'})
         self.assertTrue(call_later_called)
 
     def test_being_hashed(self):

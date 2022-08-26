@@ -1242,7 +1242,7 @@ class Sync:
         ssmr = SyncStateMachineRunner(self.fsm, self.m, key, log)
         ssmr.on_event('LR_SCAN_ERROR', {}, udfmode)
 
-    def handle_HQ_HASH_ERROR(self, mdid):
+    def handle_HQ_HASH_ERROR(self, mdid, path):
         """on HQ_HASH_ERROR"""
         key = FSKey(self.m.fs, mdid=mdid)
         log = FileLogger(self.logger, key)
