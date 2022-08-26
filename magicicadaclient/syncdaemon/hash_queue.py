@@ -94,7 +94,7 @@ class _Hasher(threading.Thread):
             try:
                 result = self._hash(path)
             except (IOError, OSError) as e:
-                m = "Hasher: hash error %s  (path %r  mdid %s)"
+                m = 'Hasher: hash error "%s" (path %r  mdid %s)'
                 self.logger.debug(m, e, path, mdid)
                 reactor.callLater(
                     0.1,
