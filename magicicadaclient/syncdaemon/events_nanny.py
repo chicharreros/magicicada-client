@@ -164,11 +164,14 @@ class DownloadFinishedNanny:
         """Received HASH_ERROR, maybe releases a blocked event."""
         self.logger.debug(
             'handle_HQ_HASH_ERROR: path %r currently tracked as opened? %s '
-            'hashing? %s blocked? %s (doing nothing for now)',
+            'hashing? %s blocked? %s (Releasing!!!)',
             path in self._opened,
             path in self._hashing,
             path in self._blocked,
         )
+        if path in self._hashing:
+            self._hashing.remove(path)
+        self._release(path, "hash error")
 
     def _release(self, path, why):
         """Release the event if it was blocked."""
