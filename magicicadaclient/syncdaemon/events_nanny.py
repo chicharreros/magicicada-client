@@ -117,7 +117,7 @@ class DownloadFinishedNanny:
         """Receives CLOSE_WRITE.
 
         It updates the opened paths. We don't release the event here, as
-        that is done when the HQ_HASH_NEW arrives.
+        that is done when the HQ_HASH_{NEW,ERROR} arrives.
         """
         self._hashing.add(path)
 
