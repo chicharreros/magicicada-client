@@ -157,20 +157,14 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-
-        d = defer.Deferred()
-        d.addCallback(check)
-        d.callback(None)
-        return d
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertNotIn(self.tf, self.nanny._blocked)
 
     def test_blocks_when_open(self):
         """Blocks the event if the file is opened."""
@@ -182,42 +176,30 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertIn(self.tf, self.nanny._blocked)
 
-        d = defer.Deferred()
-        d.addCallback(check)
-        d.callback(None)
-        return d
-
+    @defer.inlineCallbacks
     def test_blocks_when_hashing(self):
         """Blocks the event if the file is being hashed."""
-
-        def check(_):
-            self.assertEqual(
-                self.listener.events(),
-                [("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash")],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        d = self.insert_in_hq(self.tf, "nodeid")
-        d.addCallback(
-            lambda _: self.eq.push(
-                "AQ_DOWNLOAD_COMMIT",
-                share_id="",
-                node_id="nodeid",
-                server_hash="s_hash",
-            )
+        yield self.insert_in_hq(self.tf, "nodeid")
+        self.eq.push(
+            "AQ_DOWNLOAD_COMMIT",
+            share_id="",
+            node_id="nodeid",
+            server_hash="s_hash",
         )
-        d.addCallback(check)
-        return d
+        self.assertEqual(
+            self.listener.events(),
+            [("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash")],
+        )
+        self.assertIn(self.tf, self.nanny._blocked)
 
     def test_closenowrite(self):
         """A close_nowrite received, but no file was blocked."""
@@ -229,30 +211,20 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_CLOSE_WRITE", self.tf)]
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_WRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+            ],
         )
-        d.addCallback(check2)
-        d.callback(None)
-        return d
+        self.assertIn(self.tf, self.nanny._blocked)
+
+        self.eq.push("FS_FILE_CLOSE_WRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(), [("FS_FILE_CLOSE_WRITE", self.tf)]
+        )
+        self.assertIn(self.tf, self.nanny._blocked)
 
     def test_blocks_closewrite(self):
         """Blocks the event and does NOT release it when close write."""
@@ -264,32 +236,23 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[self.tf], 1)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_CLOSE_WRITE", self.tf)]
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertNotIn(self.tf, self.nanny._opened)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_WRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+            ],
         )
-        d.addCallback(check2)
-        d.callback(None)
-        return d
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[self.tf], 1)
+
+        self.eq.push("FS_FILE_CLOSE_WRITE", path=self.tf)
+
+        self.assertEqual(
+            self.listener.events(), [("FS_FILE_CLOSE_WRITE", self.tf)]
+        )
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertNotIn(self.tf, self.nanny._opened)
 
     def test_blocks_release_close(self):
         """Blocks the event and releases it when close."""
@@ -301,36 +264,26 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[self.tf], 1)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_CLOSE_NOWRITE", self.tf),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-            self.assertNotIn(self.tf, self.nanny._opened)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+            ],
         )
-        d.addCallback(check2)
-        d.callback(None)
-        return d
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[self.tf], 1)
+
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_CLOSE_NOWRITE", self.tf),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertNotIn(self.tf, self.nanny._blocked)
+        self.assertNotIn(self.tf, self.nanny._opened)
 
     def test_blocks_release_hash_doubleopen(self):
         """Blocks the event and releases it when hashed, double mixed open."""
@@ -342,79 +295,59 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[self.tf], 1)
-            self.assertNotIn(self.tf, self.nanny._hashing)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_CLOSE_WRITE", self.tf)]
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertNotIn(self.tf, self.nanny._opened)
-            self.assertIn(self.tf, self.nanny._hashing)
-
-        def check3(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_OPEN", self.tf)]
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[self.tf], 1)
-            self.assertIn(self.tf, self.nanny._hashing)
-
-        def check4(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_CLOSE_NOWRITE", self.tf)]
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertNotIn(self.tf, self.nanny._opened)
-            self.assertIn(self.tf, self.nanny._hashing)
-
-        def check5(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("HQ_HASH_NEW", self.tf, "crc", "hash", "size", "stt"),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-            self.assertNotIn(self.tf, self.nanny._opened)
-            self.assertNotIn(self.tf, self.nanny._hashing)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_WRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+            ],
         )
-        d.addCallback(check2)
-        d.addCallback(lambda _: self.eq.push("FS_FILE_OPEN", path=self.tf))
-        d.addCallback(check3)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[self.tf], 1)
+        self.assertNotIn(self.tf, self.nanny._hashing)
+
+        self.eq.push("FS_FILE_CLOSE_WRITE", path=self.tf)
+
+        self.assertEqual(
+            self.listener.events(), [("FS_FILE_CLOSE_WRITE", self.tf)]
         )
-        d.addCallback(check4)
-        d.addCallback(
-            lambda _: self.eq.push(
-                "HQ_HASH_NEW",
-                path=self.tf,
-                hash="hash",
-                crc32="crc",
-                size="size",
-                stat="stt",
-            )
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertNotIn(self.tf, self.nanny._opened)
+        self.assertIn(self.tf, self.nanny._hashing)
+
+        self.eq.push("FS_FILE_OPEN", path=self.tf)
+
+        self.assertEqual(self.listener.events(), [("FS_FILE_OPEN", self.tf)])
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[self.tf], 1)
+        self.assertIn(self.tf, self.nanny._hashing)
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+
+        self.assertEqual(
+            self.listener.events(), [("FS_FILE_CLOSE_NOWRITE", self.tf)]
         )
-        d.addCallback(check5)
-        d.callback(None)
-        return d
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertNotIn(self.tf, self.nanny._opened)
+        self.assertIn(self.tf, self.nanny._hashing)
+
+        self.eq.push(
+            "HQ_HASH_NEW",
+            path=self.tf,
+            hash="hash",
+            crc32="crc",
+            size="size",
+            stat="stt",
+        )
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("HQ_HASH_NEW", self.tf, "crc", "hash", "size", "stt"),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertNotIn(self.tf, self.nanny._blocked)
+        self.assertNotIn(self.tf, self.nanny._opened)
+        self.assertNotIn(self.tf, self.nanny._hashing)
 
     def test_blocks_release_close_doubleopen(self):
         """Blocks the event and releases it when close, double open."""
@@ -427,48 +360,35 @@ class DownloadFinishedTests(BaseTwistedTestCase):
         )
         self.eq.push("FS_FILE_OPEN", path=self.tf)
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                    ("FS_FILE_OPEN", self.tf),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[self.tf], 2)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_CLOSE_NOWRITE", self.tf)]
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[self.tf], 1)
-
-        def check3(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_CLOSE_NOWRITE", self.tf),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-            self.assertNotIn(self.tf, self.nanny._opened)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+                ("FS_FILE_OPEN", self.tf),
+            ],
         )
-        d.addCallback(check2)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[self.tf], 2)
+
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+
+        self.assertEqual(
+            self.listener.events(), [("FS_FILE_CLOSE_NOWRITE", self.tf)]
         )
-        d.addCallback(check3)
-        d.callback(None)
-        return d
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[self.tf], 1)
+
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_CLOSE_NOWRITE", self.tf),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertNotIn(self.tf, self.nanny._blocked)
+        self.assertNotIn(self.tf, self.nanny._opened)
 
     def test_blocks_release_close_differentfiles(self):
         """Blocks the event and releases it when close, several files."""
@@ -480,89 +400,68 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_CLOSE_NOWRITE", "other")]
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        def check3(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_CLOSE_NOWRITE", self.tf),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_NOWRITE", path="other")
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+            ],
         )
-        d.addCallback(check2)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
-        )
-        d.addCallback(check3)
-        d.callback(None)
-        return d
+        self.assertIn(self.tf, self.nanny._blocked)
 
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path="other")
+        self.assertEqual(
+            self.listener.events(), [("FS_FILE_CLOSE_NOWRITE", "other")]
+        )
+        self.assertIn(self.tf, self.nanny._blocked)
+
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_CLOSE_NOWRITE", self.tf),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertNotIn(self.tf, self.nanny._blocked)
+
+    @defer.inlineCallbacks
     def test_blocks_release_hashdone(self):
         """Blocks the event and releases it when the hash is done."""
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash")],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("HQ_HASH_NEW", self.tf, "crc", "hash", "siz", "stt"),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-
-        d = self.insert_in_hq(self.tf, "nodeid")
-        d.addCallback(
-            lambda _: self.eq.push(
-                "AQ_DOWNLOAD_COMMIT",
-                share_id="",
-                node_id="nodeid",
-                server_hash="s_hash",
-            )
+        yield self.insert_in_hq(self.tf, "nodeid")
+        self.eq.push(
+            "AQ_DOWNLOAD_COMMIT",
+            share_id="",
+            node_id="nodeid",
+            server_hash="s_hash",
         )
-        d.addCallback(check1)
-        d.addCallback(lambda _: self.release_hq())
-        d.addCallback(
-            lambda _: self.eq.push(
-                "HQ_HASH_NEW",
-                path=self.tf,
-                hash="hash",
-                crc32="crc",
-                size="siz",
-                stat="stt",
-            )
-        )
-        d.addCallback(check2)
-        return d
 
+        self.assertEqual(
+            self.listener.events(),
+            [("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash")],
+        )
+        self.assertIn(self.tf, self.nanny._blocked)
+
+        yield self.release_hq()
+        self.eq.push(
+            "HQ_HASH_NEW",
+            path=self.tf,
+            hash="hash",
+            crc32="crc",
+            size="siz",
+            stat="stt",
+        )
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("HQ_HASH_NEW", self.tf, "crc", "hash", "siz", "stt"),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertNotIn(self.tf, self.nanny._blocked)
+
+    @defer.inlineCallbacks
     def test_blocks_closewrite_hashdone(self):
         """Knows that is hashing also because of CLOSE_WRITE."""
         self.eq.push("FS_FILE_OPEN", path=self.tf)
@@ -573,56 +472,43 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertNotIn(self.tf, self.nanny._hashing)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_CLOSE_WRITE", self.tf)]
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertIn(self.tf, self.nanny._hashing)
-
-        def check3(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("HQ_HASH_NEW", self.tf, "crc", "hash", "siz", "stt"),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-            self.assertNotIn(self.tf, self.nanny._hashing)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(lambda _: self.insert_in_hq(self.tf, "nodeid"))
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_WRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+            ],
         )
-        d.addCallback(check2)
-        d.addCallback(lambda _: self.release_hq())
-        d.addCallback(
-            lambda _: self.eq.push(
-                "HQ_HASH_NEW",
-                path=self.tf,
-                hash="hash",
-                crc32="crc",
-                size="siz",
-                stat="stt",
-            )
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertNotIn(self.tf, self.nanny._hashing)
+
+        yield self.insert_in_hq(self.tf, "nodeid")
+        self.eq.push("FS_FILE_CLOSE_WRITE", path=self.tf)
+
+        self.assertEqual(
+            self.listener.events(), [("FS_FILE_CLOSE_WRITE", self.tf)]
         )
-        d.addCallback(check3)
-        d.callback(None)
-        return d
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertIn(self.tf, self.nanny._hashing)
+
+        yield self.release_hq()
+        self.eq.push(
+            "HQ_HASH_NEW",
+            path=self.tf,
+            hash="hash",
+            crc32="crc",
+            size="siz",
+            stat="stt",
+        )
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("HQ_HASH_NEW", self.tf, "crc", "hash", "siz", "stt"),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertNotIn(self.tf, self.nanny._blocked)
+        self.assertNotIn(self.tf, self.nanny._hashing)
 
     def test_create_discards(self):
         """The block and open count is discarded when file created."""
@@ -634,44 +520,25 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[self.tf], 1)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[self.tf], 1)
 
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_CREATE", self.tf)]
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-            self.assertNotIn(self.tf, self.nanny._opened)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(lambda _: self.eq.push("FS_FILE_CREATE", path=self.tf))
-        d.addCallback(check2)
-        d.callback(None)
-        return d
+        self.eq.push("FS_FILE_CREATE", path=self.tf)
+        self.assertEqual(self.listener.events(), [("FS_FILE_CREATE", self.tf)])
+        self.assertNotIn(self.tf, self.nanny._blocked)
+        self.assertNotIn(self.tf, self.nanny._opened)
 
     def test_create_noblocked(self):
         """Create is received, nothing was blocked."""
-
-        def check(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_CREATE", self.tf)]
-            )
-
-        d = defer.Deferred()
-        d.addCallback(lambda _: self.eq.push("FS_FILE_CREATE", path=self.tf))
-        d.addCallback(check)
-        d.callback(None)
-        return d
+        self.eq.push("FS_FILE_CREATE", path=self.tf)
+        self.assertEqual(self.listener.events(), [("FS_FILE_CREATE", self.tf)])
 
     def test_delete_discards(self):
         """The block and open count is discarded when file deleted."""
@@ -683,44 +550,25 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[self.tf], 1)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertIn(self.tf, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[self.tf], 1)
 
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_DELETE", self.tf)]
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-            self.assertNotIn(self.tf, self.nanny._opened)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(lambda _: self.eq.push("FS_FILE_DELETE", path=self.tf))
-        d.addCallback(check2)
-        d.callback(None)
-        return d
+        self.eq.push("FS_FILE_DELETE", path=self.tf)
+        self.assertEqual(self.listener.events(), [("FS_FILE_DELETE", self.tf)])
+        self.assertNotIn(self.tf, self.nanny._blocked)
+        self.assertNotIn(self.tf, self.nanny._opened)
 
     def test_delete_noblocked(self):
         """Delete is received, nothing was blocked."""
-
-        def check(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_DELETE", self.tf)]
-            )
-
-        d = defer.Deferred()
-        d.addCallback(lambda _: self.eq.push("FS_FILE_DELETE", path=self.tf))
-        d.addCallback(check)
-        d.callback(None)
-        return d
+        self.eq.push("FS_FILE_DELETE", path=self.tf)
+        self.assertEqual(self.listener.events(), [("FS_FILE_DELETE", self.tf)])
 
     def test_file_move_changeblock(self):
         """Move event affects the blocked stuff."""
@@ -738,47 +586,32 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_MOVE", self.tf, tf2)]
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-            self.assertIn(tf2, self.nanny._blocked)
-
-        def check3(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_CLOSE_NOWRITE", tf2),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertNotIn(tf2, self.nanny._blocked)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(
-            lambda _: self.eq.push(
-                "FS_FILE_MOVE", path_from=self.tf, path_to=tf2
-            )
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+            ],
         )
-        d.addCallback(check2)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_NOWRITE", path=tf2)
+        self.assertIn(self.tf, self.nanny._blocked)
+
+        self.eq.push("FS_FILE_MOVE", path_from=self.tf, path_to=tf2)
+
+        self.assertEqual(
+            self.listener.events(), [("FS_FILE_MOVE", self.tf, tf2)]
         )
-        d.addCallback(check3)
-        d.callback(None)
-        return d
+        self.assertNotIn(self.tf, self.nanny._blocked)
+        self.assertIn(tf2, self.nanny._blocked)
+
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=tf2)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_CLOSE_NOWRITE", tf2),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertNotIn(tf2, self.nanny._blocked)
 
     @skip_if_win32_missing_fs_event
     def test_dir_move_changeblock(self):
@@ -806,68 +639,52 @@ class DownloadFinishedTests(BaseTwistedTestCase):
                 server_hash="s_hash",
             )
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", tf1),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid1", "s_hash"),
-                    ("FS_FILE_OPEN", tf2),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid2", "s_hash"),
-                    ("FS_FILE_OPEN", tf3),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid3", "s_hash"),
-                    ("FS_FILE_OPEN", tf4),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid4", "s_hash"),
-                    ("FS_FILE_OPEN", tf5),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid5", "s_hash"),
-                ],
-            )
-            self.assertIn(tf1, self.nanny._blocked)
-            self.assertIn(tf2, self.nanny._blocked)
-            self.assertIn(tf3, self.nanny._blocked)
-            self.assertIn(tf4, self.nanny._blocked)
-            self.assertIn(tf5, self.nanny._blocked)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_DIR_MOVE", dir_from, dir_to)]
-            )
-            self.assertIn(tf1, self.nanny._blocked)
-            self.assertNotIn(tf2, self.nanny._blocked)
-            self.assertIn(newtf2, self.nanny._blocked)
-            self.assertIn(tf3, self.nanny._blocked)
-            self.assertIn(tf4, self.nanny._blocked)
-            self.assertIn(tf5, self.nanny._blocked)
-
-        def check3(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_CLOSE_NOWRITE", newtf2),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid2", "s_hash"),
-                ],
-            )
-            self.assertIn(tf1, self.nanny._blocked)
-            self.assertNotIn(tf2, self.nanny._blocked)
-            self.assertNotIn(newtf2, self.nanny._blocked)
-            self.assertIn(tf3, self.nanny._blocked)
-            self.assertIn(tf4, self.nanny._blocked)
-            self.assertIn(tf5, self.nanny._blocked)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(
-            lambda _: self.eq.push(
-                "FS_DIR_MOVE", path_from=dir_from, path_to=dir_to
-            )
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", tf1),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid1", "s_hash"),
+                ("FS_FILE_OPEN", tf2),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid2", "s_hash"),
+                ("FS_FILE_OPEN", tf3),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid3", "s_hash"),
+                ("FS_FILE_OPEN", tf4),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid4", "s_hash"),
+                ("FS_FILE_OPEN", tf5),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid5", "s_hash"),
+            ],
         )
-        d.addCallback(check2)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_NOWRITE", path=newtf2)
+        self.assertIn(tf1, self.nanny._blocked)
+        self.assertIn(tf2, self.nanny._blocked)
+        self.assertIn(tf3, self.nanny._blocked)
+        self.assertIn(tf4, self.nanny._blocked)
+        self.assertIn(tf5, self.nanny._blocked)
+
+        self.eq.push("FS_DIR_MOVE", path_from=dir_from, path_to=dir_to)
+        self.assertEqual(
+            self.listener.events(), [("FS_DIR_MOVE", dir_from, dir_to)]
         )
-        d.addCallback(check3)
-        d.callback(None)
-        return d
+        self.assertIn(tf1, self.nanny._blocked)
+        self.assertNotIn(tf2, self.nanny._blocked)
+        self.assertIn(newtf2, self.nanny._blocked)
+        self.assertIn(tf3, self.nanny._blocked)
+        self.assertIn(tf4, self.nanny._blocked)
+        self.assertIn(tf5, self.nanny._blocked)
+
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=newtf2)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_CLOSE_NOWRITE", newtf2),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid2", "s_hash"),
+            ],
+        )
+        self.assertIn(tf1, self.nanny._blocked)
+        self.assertNotIn(tf2, self.nanny._blocked)
+        self.assertNotIn(newtf2, self.nanny._blocked)
+        self.assertIn(tf3, self.nanny._blocked)
+        self.assertIn(tf4, self.nanny._blocked)
+        self.assertIn(tf5, self.nanny._blocked)
 
     @skip_if_win32_missing_fs_event
     def test_complex(self):
@@ -883,12 +700,6 @@ class DownloadFinishedTests(BaseTwistedTestCase):
         self.fsm.create(tf1, "")
         self.fsm.set_node_id(tf1, "nodeid")
 
-        def push_events(event_name, **event_kwargs):
-            def f(*a, **kw):
-                self.eq.push(event_name, **event_kwargs)
-
-            return f
-
         self.eq.push("FS_FILE_OPEN", path=tf1)
         self.eq.push(
             "AQ_DOWNLOAD_COMMIT",
@@ -898,138 +709,104 @@ class DownloadFinishedTests(BaseTwistedTestCase):
         )
         self.eq.push("FS_FILE_OPEN", path=tf1)
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", tf1),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                    ("FS_FILE_OPEN", tf1),
-                ],
-            )
-            self.assertIn(tf1, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[tf1], 2)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(push_events("FS_FILE_CLOSE_NOWRITE", path=tf1))
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_CLOSE_NOWRITE", tf1)]
-            )
-            self.assertIn(tf1, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[tf1], 1)
-
-        d.addCallback(check2)
-        d.addCallback(push_events("FS_FILE_MOVE", path_from=tf1, path_to=tf2))
-
-        def check3(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_MOVE", tf1, tf2)]
-            )
-            self.assertNotIn(tf1, self.nanny._blocked)
-            self.assertIn(tf2, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[tf2], 1)
-
-        d.addCallback(check3)
-        d.addCallback(push_events("FS_FILE_OPEN", path=tf2))
-        d.addCallback(
-            push_events("FS_DIR_MOVE", path_from=dir_from, path_to=dir_to)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", tf1),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+                ("FS_FILE_OPEN", tf1),
+            ],
         )
+        self.assertIn(tf1, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[tf1], 2)
 
-        def check4(_):
-            self.assertEqual(
-                self.listener.events(),
-                [("FS_FILE_OPEN", tf2), ("FS_DIR_MOVE", dir_from, dir_to)],
-            )
-            self.assertNotIn(tf2, self.nanny._blocked)
-            self.assertIn(newtf2, self.nanny._blocked)
-            self.assertEqual(self.nanny._opened[newtf2], 2)
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=tf1)
 
-        d.addCallback(check4)
-        d.addCallback(push_events("FS_FILE_CLOSE_NOWRITE", path=newtf2))
-        d.addCallback(push_events("FS_FILE_CLOSE_NOWRITE", path=newtf2))
+        self.assertEqual(
+            self.listener.events(), [("FS_FILE_CLOSE_NOWRITE", tf1)]
+        )
+        self.assertIn(tf1, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[tf1], 1)
 
-        def check5(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_CLOSE_NOWRITE", newtf2),
-                    ("FS_FILE_CLOSE_NOWRITE", newtf2),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertNotIn(newtf2, self.nanny._blocked)
-            self.assertNotIn(newtf2, self.nanny._opened)
+        self.eq.push("FS_FILE_MOVE", path_from=tf1, path_to=tf2)
 
-        d.addCallback(check5)
-        d.callback(None)
-        return d
+        self.assertEqual(self.listener.events(), [("FS_FILE_MOVE", tf1, tf2)])
+        self.assertNotIn(tf1, self.nanny._blocked)
+        self.assertIn(tf2, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[tf2], 1)
 
+        self.eq.push("FS_FILE_OPEN", path=tf2)
+        self.eq.push("FS_DIR_MOVE", path_from=dir_from, path_to=dir_to)
+
+        self.assertEqual(
+            self.listener.events(),
+            [("FS_FILE_OPEN", tf2), ("FS_DIR_MOVE", dir_from, dir_to)],
+        )
+        self.assertNotIn(tf2, self.nanny._blocked)
+        self.assertIn(newtf2, self.nanny._blocked)
+        self.assertEqual(self.nanny._opened[newtf2], 2)
+
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=newtf2)
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=newtf2)
+
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_CLOSE_NOWRITE", newtf2),
+                ("FS_FILE_CLOSE_NOWRITE", newtf2),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertNotIn(newtf2, self.nanny._blocked)
+        self.assertNotIn(newtf2, self.nanny._opened)
+
+    @defer.inlineCallbacks
     def test_mixed_hash_close(self):
         """It's ready to release according to hashing, but it's opened."""
-
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash")],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_OPEN", self.tf)]
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        def check3(_):
-            self.assertEqual(
-                self.listener.events(),
-                [("HQ_HASH_NEW", self.tf, "crc", "hash", "siz", "stt")],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        def check4(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_CLOSE_NOWRITE", self.tf),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-
-        d = self.insert_in_hq(self.tf, "nodeid")
-        d.addCallback(
-            lambda _: self.eq.push(
-                "AQ_DOWNLOAD_COMMIT",
-                share_id="",
-                node_id="nodeid",
-                server_hash="s_hash",
-            )
+        yield self.insert_in_hq(self.tf, "nodeid")
+        self.eq.push(
+            "AQ_DOWNLOAD_COMMIT",
+            share_id="",
+            node_id="nodeid",
+            server_hash="s_hash",
         )
-        d.addCallback(check1)
-        d.addCallback(lambda _: self.eq.push("FS_FILE_OPEN", path=self.tf))
-        d.addCallback(check2)
-        d.addCallback(lambda _: self.release_hq())
-        d.addCallback(
-            lambda _: self.eq.push(
-                "HQ_HASH_NEW",
-                path=self.tf,
-                hash="hash",
-                crc32="crc",
-                size="siz",
-                stat="stt",
-            )
-        )
-        d.addCallback(check3)
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
-        )
-        d.addCallback(check4)
-        return d
 
+        self.assertEqual(
+            self.listener.events(),
+            [("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash")],
+        )
+        self.assertIn(self.tf, self.nanny._blocked)
+
+        self.eq.push("FS_FILE_OPEN", path=self.tf)
+        self.assertEqual(self.listener.events(), [("FS_FILE_OPEN", self.tf)])
+        self.assertIn(self.tf, self.nanny._blocked)
+
+        yield self.release_hq()
+        self.eq.push(
+            "HQ_HASH_NEW",
+            path=self.tf,
+            hash="hash",
+            crc32="crc",
+            size="siz",
+            stat="stt",
+        )
+        self.assertEqual(
+            self.listener.events(),
+            [("HQ_HASH_NEW", self.tf, "crc", "hash", "siz", "stt")],
+        )
+        self.assertIn(self.tf, self.nanny._blocked)
+
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_CLOSE_NOWRITE", self.tf),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertNotIn(self.tf, self.nanny._blocked)
+
+    @defer.inlineCallbacks
     def test_mixed_close_hash(self):
         """It's ready to release according to open/close, but it's hashing."""
         self.eq.push("FS_FILE_OPEN", path=self.tf)
@@ -1040,53 +817,39 @@ class DownloadFinishedTests(BaseTwistedTestCase):
             server_hash="s_hash",
         )
 
-        def check1(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("FS_FILE_OPEN", self.tf),
-                    ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        def check2(_):
-            self.assertEqual(
-                self.listener.events(), [("FS_FILE_CLOSE_NOWRITE", self.tf)]
-            )
-            self.assertIn(self.tf, self.nanny._blocked)
-
-        def check3(_):
-            self.assertEqual(
-                self.listener.events(),
-                [
-                    ("HQ_HASH_NEW", self.tf, "crc", "hash", "siz", "stt"),
-                    ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
-                ],
-            )
-            self.assertNotIn(self.tf, self.nanny._blocked)
-
-        d = defer.Deferred()
-        d.addCallback(check1)
-        d.addCallback(lambda _: self.insert_in_hq(self.tf, "nodeid"))
-        d.addCallback(
-            lambda _: self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("FS_FILE_OPEN", self.tf),
+                ("AQ_DOWNLOAD_COMMIT", "", "nodeid", "s_hash"),
+            ],
         )
-        d.addCallback(check2)
-        d.addCallback(lambda _: self.release_hq())
-        d.addCallback(
-            lambda _: self.eq.push(
-                "HQ_HASH_NEW",
-                path=self.tf,
-                hash="hash",
-                crc32="crc",
-                size="siz",
-                stat="stt",
-            )
+        self.assertIn(self.tf, self.nanny._blocked)
+
+        yield self.insert_in_hq(self.tf, "nodeid")
+        self.eq.push("FS_FILE_CLOSE_NOWRITE", path=self.tf)
+        self.assertEqual(
+            self.listener.events(), [("FS_FILE_CLOSE_NOWRITE", self.tf)]
         )
-        d.addCallback(check3)
-        d.callback(None)
-        return d
+        self.assertIn(self.tf, self.nanny._blocked)
+
+        yield self.release_hq()
+        self.eq.push(
+            "HQ_HASH_NEW",
+            path=self.tf,
+            hash="hash",
+            crc32="crc",
+            size="siz",
+            stat="stt",
+        )
+        self.assertEqual(
+            self.listener.events(),
+            [
+                ("HQ_HASH_NEW", self.tf, "crc", "hash", "siz", "stt"),
+                ("AQ_DOWNLOAD_FINISHED", "", "nodeid", "s_hash"),
+            ],
+        )
+        self.assertNotIn(self.tf, self.nanny._blocked)
 
 
 class EventListenersTests(unittest.TestCase):

@@ -102,6 +102,7 @@ class _Hasher(threading.Thread):
                     self.eq.push,
                     "HQ_HASH_ERROR",
                     mdid=mdid,
+                    path=path,
                 )
             except StopHashing as e:
                 self.logger.debug(str(e))
