@@ -9,4 +9,4 @@ PyGObject==3.42.2
 pyinotify==0.9.6
 Send2Trash==1.8.0
 tritcask==0.3
-Twisted==21.7.0
+Twisted==22.4.0
