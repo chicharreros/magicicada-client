@@ -160,18 +160,6 @@ def async_main(parser, options, argv):
     assert isinstance(options.data_dir, str)
     assert isinstance(options.partials_dir, str)
 
-    # check if we have auth credentials
-    auth_credentials = None
-    if options.auth:
-        values = options.auth.split(':')
-        if len(values) == 2:
-            auth_credentials = dict(zip(('username', 'password'), values))
-        else:
-            parser.error(
-                "--auth requires a username and password together "
-                "in the form USERNAME:PASSWORD"
-            )
-
     # check which file monitor to use
     monitor_class = yield get_filemonitor_class(options.fs_monitor)
 
@@ -185,7 +173,7 @@ def async_main(parser, options, argv):
                 write_limit=options.bandwidth_throttling_write_limit,
                 throttling_enabled=options.bandwidth_throttling_on,
                 ignore_files=options.ignore,
-                auth_credentials=auth_credentials,
+                auth_credentials=options.auth,
                 monitor_class=monitor_class)
 
     # override the reactor default signal handlers in order to
