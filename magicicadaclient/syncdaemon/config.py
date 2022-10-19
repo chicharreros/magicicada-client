@@ -31,6 +31,7 @@
 import os
 import functools
 import logging
+import argparse
 
 from backports.configparser import NoOptionError, NoSectionError
 from optparse import OptionParser
@@ -97,6 +98,29 @@ def make_dir_if_needed(dirpath):
         make_dir(dirpath, recursive=True)
 
 
+def unparse_default(value):
+    if value is not None:
+        value = str(value)
+    return value
+
+
+class Parser:
+    """A parser abstraction that can parse and unparse values.
+
+    Useful for defining parsers for config values, specially if the unparsing
+    is a non trivial operation.
+
+    """
+
+    @classmethod
+    def parse(cls, value):
+        return value
+
+    @classmethod
+    def unparse(cls, value):
+        return unparse_default(value)
+
+
 def home_dir_parser(value):
     """Parser for the root_dir and shares_dir options.
 
@@ -131,62 +155,106 @@ def xdg_data_dir_parser(value):
     return result
 
 
-def server_connection_parser(value):
-    """Parser for the server connection info."""
-    results = []
-    for item in value.split(","):
-        ci_parts = item.split(':')
-        if len(ci_parts) == 2:
-            host, port = ci_parts
-            mode = 'ssl'  # default
-        elif len(ci_parts) == 3:
-            host, port, mode = ci_parts
-        else:
-            raise ValueError(
-                "--server info must be HOST:PORT or HOST:PORT:SSL_MODE"
-            )
+class ServerConnectionParser(Parser):
 
-        if mode == 'plain':
-            use_ssl = False
-            disable_ssl_verify = False
-        elif mode == 'ssl':
-            use_ssl = True
-            disable_ssl_verify = False
-        elif mode == 'ssl_noverify':
-            use_ssl = True
-            disable_ssl_verify = True
-        else:
-            raise ValueError(
-                "--server form (HOST:PORT:SSL_MODE) accepts the following"
-                "SSL_MODE options only: 'plain', 'ssl', 'ssl_noverify'"
+    HOST_SEP = ','
+    CONNECTION_SEP = ':'
+
+    @classmethod
+    def parse(cls, value):
+        """Parser for the server connection info."""
+        results = []
+        for item in value.split(cls.HOST_SEP):
+            ci_parts = item.split(cls.CONNECTION_SEP)
+            if len(ci_parts) == 2:
+                host, port = ci_parts
+                mode = 'ssl'  # default
+            elif len(ci_parts) == 3:
+                host, port, mode = ci_parts
+            else:
+                raise argparse.ArgumentTypeError(
+                    "connection string must be HOST:PORT or HOST:PORT:SSL_MODE"
+                )
+
+            if mode == 'plain':
+                use_ssl = False
+                disable_ssl_verify = False
+            elif mode == 'ssl':
+                use_ssl = True
+                disable_ssl_verify = False
+            elif mode == 'ssl_noverify':
+                use_ssl = True
+                disable_ssl_verify = True
+            else:
+                raise argparse.ArgumentTypeError(
+                    "SSL mode (from HOST:PORT:SSL_MODE) accepts only the "
+                    "following options: 'plain', 'ssl', 'ssl_noverify'"
+                )
+
+            try:
+                port = int(port)
+            except ValueError:
+                raise argparse.ArgumentTypeError(
+                    "Port (from HOST:PORT:SSL_MODE) should be an integer value"
+                )
+
+            results.append(
+                {
+                    'host': host,
+                    'port': port,
+                    'use_ssl': use_ssl,
+                    'disable_ssl_verify': disable_ssl_verify,
+                }
             )
-        results.append(
-            {
-                'host': host,
-                'port': int(port),
-                'use_ssl': use_ssl,
-                'disable_ssl_verify': disable_ssl_verify,
-            }
+        return results
+
+    @classmethod
+    def unparse_one_host(cls, value):
+        use_ssl = value.pop('use_ssl')
+        disable_ssl_verify = value.pop('disable_ssl_verify')
+        if use_ssl and disable_ssl_verify:
+            mode = 'ssl_noverify'
+        elif use_ssl and not disable_ssl_verify:
+            mode = 'ssl'
+        else:
+            mode = 'plain'
+        return '{host}{sep}{port}{sep}{mode}'.format(
+            **value, mode=mode, sep=cls.CONNECTION_SEP
         )
-    return results
+
+    @classmethod
+    def unparse(cls, value):
+        return cls.HOST_SEP.join(cls.unparse_one_host(host) for host in value)
 
 
-def log_level_parser(value):
-    """Parser for "logging" module log levels.
+server_connection_parser = ServerConnectionParser.parse
 
-    The logging API sucks big time, the only way to trustworthy find if the
-    log level is defined is to check the private attribute.
-    """
-    try:
-        level = logging._nameToLevel[value]
-    except KeyError:
-        # if level don't exists in our custom levels, fallback to DEBUG
-        level = logging.DEBUG
-    return level
+
+class LogLevelParser(Parser):
+    @classmethod
+    def parse(cls, value):
+        """Parser for "logging" module log levels.
+
+        The logging API sucks big time, the only way to trustworthy find if the
+        log level is defined is to check the private attribute.
+        """
+        try:
+            level = logging._nameToLevel[value]
+        except KeyError:
+            # if level don't exists in our custom levels, fallback to DEBUG
+            level = logging.DEBUG
+        return level
+
+    @classmethod
+    def unparse(cls, value):
+        return logging.getLevelName(value)
+
+
+log_level_parser = LogLevelParser.parse
 
 
 def throttling_limit_parser(value):
-    """parser for throttling limit values, if value <= 0 returns None"""
+    """Parser for throttling limit values, if value <= 0 returns None"""
     value = int(value)
     if value <= 0:
         return None
@@ -194,15 +262,76 @@ def throttling_limit_parser(value):
         return value
 
 
+class AuthParser(Parser):
+    @classmethod
+    def parse(cls, value):
+        if not value:
+            return
+
+        values = []
+        if isinstance(value, str):
+            # check if we have auth credentials
+            values = value.split(':', 1)
+        if len(values) != 2 or not values[0]:
+            raise argparse.ArgumentTypeError(
+                "%r is not of the form USERNAME:PASSWORD" % value
+            )
+
+        return dict(zip(('username', 'password'), values))
+
+    @classmethod
+    def unparse(cls, value):
+        return '{username}:{password}'.format(**value)
+
+
+auth_parser = AuthParser.parse
+
+
+def boolean_parser(value):
+    """Taken from https://docs.python.org/3/library/configparser.html.
+
+    A convenience method which coerces the value to a Boolean value. Note that
+    the accepted values for the option are '1', 'yes', 'true', and 'on', which
+    cause this method to return True, and '0', 'no', 'false', and 'off', which
+    cause it to return False. These string values are checked in a
+    case-insensitive manner. Any other value will cause it to raise ValueError.
+
+    """
+    value = getattr(value, 'lower', lambda: None)()
+    if value in ('1', 'yes', 'true', 'on'):
+        result = True
+    elif value in ('0', 'no', 'false', 'off'):
+        result = False
+    else:
+        raise argparse.ArgumentTypeError(
+            '%r is not a valid boolean-like value.' % value
+        )
+    return result
+
+
+class LinesParser(Parser):
+    @classmethod
+    def parse(cls, value):
+        return [i.strip() for i in value.split() if i.strip()]
+
+    @classmethod
+    def unparse(cls, value):
+        return '\n'.join(value)
+
+
 def get_parsers():
-    """returns a list of tuples: (name, parser)"""
+    """Return a list of tuples: (name, parser)."""
     return [
+        ('auth', auth_parser),
+        # ('bool', boolean_parser),
+        ('connection', server_connection_parser),
+        # ('int', int),
         ('home_dir', home_dir_parser),
+        # ('lines', LinesParser),
+        ('log_level', log_level_parser),
+        ('throttling_limit', throttling_limit_parser),
         ('xdg_cache', xdg_cache_dir_parser),
         ('xdg_data', xdg_data_dir_parser),
-        ('log_level', log_level_parser),
-        ('connection', server_connection_parser),
-        ('throttling_limit', throttling_limit_parser),
     ]
 
 

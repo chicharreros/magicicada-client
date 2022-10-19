@@ -31,6 +31,7 @@
 import logging
 import os
 
+from argparse import ArgumentTypeError
 from configparser import ConfigParser
 from twisted.internet import defer
 from twisted.trial.unittest import TestCase
@@ -481,8 +482,8 @@ class PathsTestCase(TestCase):
         self.assertIn(branch_config, config_files)
 
 
-class ConfigglueParsersTests(BaseTwistedTestCase):
-    """Tests for our custom configglue parsers."""
+class ParsersTests(BaseTwistedTestCase):
+    """Tests for our custom config parsers."""
 
     def test_throttling_limit_parser(self):
         """Test throttling_limit_parser."""
@@ -507,6 +508,21 @@ class ConfigglueParsersTests(BaseTwistedTestCase):
         self.assertEqual(logging.INFO, parser(good_value))
         self.assertEqual(logging.DEBUG, parser(bad_value))
         self.assertEqual(logging.DEBUG, parser(invalid_value))
+
+    def test_boolean_pasers_true(self):
+        for i in ('1', 'yes', 'true', 'on', 'YES', 'Yes', 'True', 'True'):
+            with self.subTest(value=i):
+                self.assertEqual(config.boolean_parser(i), True)
+
+    def test_boolean_pasers_false(self):
+        for i in ('0', 'no', 'false', 'off', 'NO', 'False', 'FALSE', 'OFF'):
+            with self.subTest(value=i):
+                self.assertEqual(config.boolean_parser(i), False)
+
+    def test_boolean_pasers_error(self):
+        for i in (None, 'None', '', object(), [], {}, 0):
+            with self.subTest(value=i):
+                self.assertRaises(ArgumentTypeError, config.boolean_parser, i)
 
     def test_serverconnection_simple_defaultmode(self):
         results = config.server_connection_parser('test.host:666')
@@ -566,22 +582,28 @@ class ConfigglueParsersTests(BaseTwistedTestCase):
 
     def test_serverconnection_simple_bad_mode(self):
         self.assertRaises(
-            ValueError, config.server_connection_parser, 'host:666:badmode'
+            ArgumentTypeError,
+            config.server_connection_parser,
+            'host:666:badmode',
         )
 
     def test_serverconnection_simple_too_many_parts(self):
         self.assertRaises(
-            ValueError, config.server_connection_parser, 'host:666:plain:what'
+            ArgumentTypeError,
+            config.server_connection_parser,
+            'host:666:plain:what',
         )
 
     def test_serverconnection_simple_too_few_parts(self):
         self.assertRaises(
-            ValueError, config.server_connection_parser, 'test.host'
+            ArgumentTypeError, config.server_connection_parser, 'test.host'
         )
 
     def test_serverconnection_simple_port_not_numeric(self):
         self.assertRaises(
-            ValueError, config.server_connection_parser, 'test.host:port'
+            ArgumentTypeError,
+            config.server_connection_parser,
+            'test.host:port',
         )
 
     def test_serverconnection_multiple(self):
@@ -605,6 +627,59 @@ class ConfigglueParsersTests(BaseTwistedTestCase):
                 },
             ],
         )
+
+
+class AuthParserTests(BaseTwistedTestCase):
+    def test_parse_ok(self):
+        cases = [
+            ('foo:', 'foo', ''),
+            ('foo:bar', 'foo', 'bar'),
+            ('foo::::bar', 'foo', ':::bar'),
+            ('f:oo::::bar', 'f', 'oo::::bar'),
+            ('foo:b:a:r:', 'foo', 'b:a:r:'),
+            ('foo:[]{}:!@`?><09', 'foo', '[]{}:!@`?><09'),
+        ]
+        for value, username, password in cases:
+            with self.subTest(value=value):
+                self.assertEqual(
+                    config.AuthParser.parse(value),
+                    {'username': username, 'password': password},
+                )
+
+    def test_parse_error(self):
+        cases = [
+            ':bar',
+            ':::bar',
+            'foo',
+            'foo-bar',
+            ':foo:bar',
+            # None,
+            'None',
+            # '',
+            object(),
+            # [],
+            # {},
+            # 0,
+        ]
+        for i in cases:
+            with self.subTest(value=i):
+                self.assertRaises(
+                    ArgumentTypeError, config.AuthParser.parse, i
+                )
+
+    def test_unparse(self):
+        cases = [
+            (0, 1, '0:1'),
+            ('a', 'asdsadsfd', 'a:asdsadsfd'),
+            ('', '', ':'),
+            (None, {}, 'None:{}'),
+        ]
+        for username, password, expected in cases:
+            with self.subTest(value=expected):
+                result = config.AuthParser.unparse(
+                    {'username': username, 'password': password}
+                )
+                self.assertEqual(result, expected)
 
 
 class XdgHomeParsersTests(BaseTwistedTestCase):
