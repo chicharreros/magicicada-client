@@ -145,7 +145,6 @@ class TestSpecialOSCalls(BaseTwistedTestCase):
 
 
 class FakeSecurityInfo:
-
     user_sid = 'user_sid'
 
     def GetSecurityDescriptorOwner(self):

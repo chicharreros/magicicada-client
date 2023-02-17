@@ -4414,7 +4414,6 @@ class VolumeManagerOperationsTests(BaseVolumeManagerTests):
 
 
 class MetadataTestCase(BaseTwistedTestCase):
-
     md_version_None = False
     main = None
     share_md_dir = None

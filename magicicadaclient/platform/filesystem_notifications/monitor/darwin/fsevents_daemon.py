@@ -228,7 +228,6 @@ class PyInotifyEventsFactory(fseventsd.FsEventsFactory):
         # the rename is a special type of event because it has to be either
         # converted is a pair of events or in a single one (CREATE or DELETE)
         if event.event_type == fseventsd.FSE_RENAME:
-
             is_create = self.is_create(event)
             is_delete = self.is_delete(event)
 

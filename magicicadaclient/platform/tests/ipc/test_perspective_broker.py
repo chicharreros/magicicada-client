@@ -527,7 +527,6 @@ class IPCTestCase(FakeMainTestCase, TCPPbServerTestCase):
         client = getattr(self, self.client_name)
         remote_client = self.client_class(FakeRemoteObject())
         for signal_name, args in self.signal_mapping:
-
             remote_client_func_name = client.signal_mapping[signal_name]
             remote_cb_name = "%s_cb" % remote_client_func_name
             setattr(remote_client, remote_cb_name, fake_remote_cb)

@@ -1435,7 +1435,7 @@ class ActionQueueCommand:
                 waiting_structure.append((name, marker, d))
 
         # now, we wait for all the dereferencings... if any
-        for (name, marker, deferred) in waiting_structure:
+        for name, marker, deferred in waiting_structure:
             try:
                 value = yield deferred
             except Exception as e:
@@ -1495,6 +1495,7 @@ class ActionQueueCommand:
     @defer.inlineCallbacks
     def go(self):
         """Execute all the steps for a command."""
+
         # set up basic marker failure handler and demark
         def f(failure):
             self.log.debug("failing because marker failed: %s", failure)

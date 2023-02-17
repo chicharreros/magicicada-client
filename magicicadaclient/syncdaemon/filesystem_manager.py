@@ -972,7 +972,7 @@ class FileSystemManager:
                 raise DirectoryNotRemovable()
 
         # check disk searching for previous conflicts
-        for (dirpath, dirnames, filenames) in platform.walk(path):
+        for dirpath, dirnames, filenames in platform.walk(path):
             for fname in filenames + dirnames:
                 if fname.endswith(self.CONFLICT_SUFFIX):
                     logger(

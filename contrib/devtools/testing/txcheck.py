@@ -68,7 +68,7 @@ class Problem(AssertionError):
     def __hash__(self):
         """Return hash."""
         member_hash = 0
-        for (key, value) in self.__dict__.items():
+        for key, value in self.__dict__.items():
             member_hash ^= hash(key) ^ hash(value)
         return hash(type(self)) ^ member_hash
 
