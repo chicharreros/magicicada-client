@@ -2136,7 +2136,6 @@ class VMFileShelf(file_shelf.CachedFileShelf):
 
 
 class LegacyShareFileShelfPickler(pickle.Unpickler):
-
     upgrade_map = {
         ('ubuntuone.syncdaemon.volume_manager', 'UDF'): _UDF,
         ('ubuntuone.syncdaemon.volume_manager', 'Share'): _Share,

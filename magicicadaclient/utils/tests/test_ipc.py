@@ -242,7 +242,6 @@ class BaseIPCTestCase(TCPPbServerTestCase, TestCase):
         self.client = None
 
         if self.service_class is not None:
-
             self.service = self.service_class()
             self.client = self.client_class()
 

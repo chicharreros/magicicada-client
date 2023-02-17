@@ -156,7 +156,6 @@ def xdg_data_dir_parser(value):
 
 
 class ServerConnectionParser(Parser):
-
     HOST_SEP = ','
     CONNECTION_SEP = ':'
 

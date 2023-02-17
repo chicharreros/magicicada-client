@@ -623,7 +623,7 @@ class LocalRescan:
                 to_inform.sort(reverse=True)
 
                 # inform deletion!
-                for (_, name, is_dir) in to_inform:
+                for _, name, is_dir in to_inform:
                     fullname = os.path.join(share.path, name)
                     log_info("Inform deletion of stuff in dir: %r", fullname)
                     if is_dir:

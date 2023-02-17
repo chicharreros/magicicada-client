@@ -76,7 +76,6 @@ class DontHitMe:
 
 
 class FakedVolume:
-
     path = __file__
 
 

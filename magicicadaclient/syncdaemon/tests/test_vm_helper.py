@@ -151,7 +151,6 @@ class VMHelperLinkTestCase(BaseTwistedTestCase):
 
 
 class GetShareDirNameTests(BaseVolumeManagerTests):
-
     share_id = uuid.uuid4()
     name = 'The little pretty share (♥)'
 
