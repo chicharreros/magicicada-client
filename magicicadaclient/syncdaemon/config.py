@@ -112,12 +112,10 @@ class Parser:
 
     """
 
-    @classmethod
-    def parse(cls, value):
+    def __call__(self, value):
         return value
 
-    @classmethod
-    def unparse(cls, value):
+    def unparse(self, value):
         return unparse_default(value)
 
 
@@ -159,8 +157,7 @@ class ServerConnectionParser(Parser):
     HOST_SEP = ','
     CONNECTION_SEP = ':'
 
-    @classmethod
-    def parse(cls, value):
+    def __call__(cls, value):
         """Parser for the server connection info."""
         results = []
         for item in value.split(cls.HOST_SEP):
@@ -226,12 +223,11 @@ class ServerConnectionParser(Parser):
         return cls.HOST_SEP.join(cls.unparse_one_host(host) for host in value)
 
 
-server_connection_parser = ServerConnectionParser.parse
+server_connection_parser = ServerConnectionParser()
 
 
 class LogLevelParser(Parser):
-    @classmethod
-    def parse(cls, value):
+    def __call__(self, value):
         """Parser for "logging" module log levels.
 
         The logging API sucks big time, the only way to trustworthy find if the
@@ -249,7 +245,7 @@ class LogLevelParser(Parser):
         return logging.getLevelName(value)
 
 
-log_level_parser = LogLevelParser.parse
+log_level_parser = LogLevelParser()
 
 
 def throttling_limit_parser(value):
@@ -262,11 +258,7 @@ def throttling_limit_parser(value):
 
 
 class AuthParser(Parser):
-    @classmethod
-    def parse(cls, value):
-        if not value:
-            return
-
+    def __call__(self, value):
         values = []
         if isinstance(value, str):
             # check if we have auth credentials
@@ -283,10 +275,7 @@ class AuthParser(Parser):
         return '{username}:{password}'.format(**value)
 
 
-auth_parser = AuthParser.parse
-
-
-def boolean_parser(value):
+class BooleanParser(Parser):
     """Taken from https://docs.python.org/3/library/configparser.html.
 
     A convenience method which coerces the value to a Boolean value. Note that
@@ -296,42 +285,51 @@ def boolean_parser(value):
     case-insensitive manner. Any other value will cause it to raise ValueError.
 
     """
-    value = getattr(value, 'lower', lambda: None)()
-    if value in ('1', 'yes', 'true', 'on'):
-        result = True
-    elif value in ('0', 'no', 'false', 'off'):
-        result = False
-    else:
-        raise argparse.ArgumentTypeError(
-            '%r is not a valid boolean-like value.' % value
-        )
-    return result
+
+    def __call__(self, value):
+        value = getattr(value, 'lower', lambda: None)()
+        if value in ('1', 'yes', 'true', 'on'):
+            result = True
+        elif value in ('0', 'no', 'false', 'off'):
+            result = False
+        else:
+            raise argparse.ArgumentTypeError(
+                '%r is not a valid boolean-like value.' % value
+            )
+        return result
+
+
+boolean_parser = BooleanParser()
 
 
 class LinesParser(Parser):
-    @classmethod
-    def parse(cls, value):
-        return [i.strip() for i in value.split() if i.strip()]
+    def __call__(self, value):
+        result = []
+        if value:
+            result = [i.strip() for i in value.split() if i.strip()]
+        return result
 
     @classmethod
     def unparse(cls, value):
-        return '\n'.join(value)
+        return '\n'.join(value or [])
 
 
 def get_parsers():
     """Return a list of tuples: (name, parser)."""
-    return [
-        ('auth', auth_parser),
-        # ('bool', boolean_parser),
-        ('connection', server_connection_parser),
-        # ('int', int),
-        ('home_dir', home_dir_parser),
-        # ('lines', LinesParser),
-        ('log_level', log_level_parser),
-        ('throttling_limit', throttling_limit_parser),
-        ('xdg_cache', xdg_cache_dir_parser),
-        ('xdg_data', xdg_data_dir_parser),
-    ]
+    return dict(
+        (
+            ('auth', AuthParser()),
+            ('bool-new', boolean_parser),
+            ('connection', ServerConnectionParser()),
+            ('int-new', int),
+            ('home_dir', home_dir_parser),
+            ('lines-new', LinesParser()),
+            ('log_level', LogLevelParser()),
+            ('throttling_limit', throttling_limit_parser),
+            ('xdg_cache', xdg_cache_dir_parser),
+            ('xdg_data', xdg_data_dir_parser),
+        )
+    )
 
 
 def get_config_files():
@@ -395,7 +393,7 @@ class SyncDaemonConfigParser(TypedConfigParser):
     def __init__(self, *args, **kwargs):
         super(SyncDaemonConfigParser, self).__init__(*args, **kwargs)
         self.upgrade_hooks = {}
-        for name, parser in get_parsers():
+        for name, parser in get_parsers().items():
             self.add_parser(name, parser)
         self.add_upgrade_hook(MAIN, 'log_level', upgrade_log_level)
 
