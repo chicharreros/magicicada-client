@@ -482,50 +482,61 @@ class PathsTestCase(TestCase):
         self.assertIn(branch_config, config_files)
 
 
-class ParsersTests(BaseTwistedTestCase):
-    """Tests for our custom config parsers."""
+class ParserBaseTestCase(BaseTwistedTestCase):
+    parser_name = None
 
-    def test_throttling_limit_parser(self):
+    @property
+    def parser(self):
+        return config.get_parsers()[self.parser_name]
+
+
+class ThrottlingLimitParserTests(ParserBaseTestCase):
+    parser_name = 'throttling_limit'
+
+    def test_parser(self):
         """Test throttling_limit_parser."""
         good_value = '20480'
         unset_value = '-1'
         bad_value = 'hola'
         invalid_value = None
         zero_value = '0'
-        parser = config.throttling_limit_parser
-        self.assertEqual(20480, parser(good_value))
-        self.assertIsNone(parser(unset_value))
-        self.assertRaises(ValueError, parser, bad_value)
-        self.assertRaises(TypeError, parser, invalid_value)
-        self.assertIsNone(parser(zero_value))
+        self.assertEqual(20480, self.parser(good_value))
+        self.assertIsNone(self.parser(unset_value))
+        self.assertRaises(ValueError, self.parser, bad_value)
+        self.assertRaises(TypeError, self.parser, invalid_value)
+        self.assertIsNone(self.parser(zero_value))
 
-    def test_log_level_parser(self):
-        """Test log_level_parser."""
-        good_value = 'INFO'
-        bad_value = 'hola'
-        invalid_value = None
-        parser = config.log_level_parser
-        self.assertEqual(logging.INFO, parser(good_value))
-        self.assertEqual(logging.DEBUG, parser(bad_value))
-        self.assertEqual(logging.DEBUG, parser(invalid_value))
 
-    def test_boolean_pasers_true(self):
+class BooleanParserTests(ParserBaseTestCase):
+    parser_name = 'bool-new'
+
+    def test_true(self):
         for i in ('1', 'yes', 'true', 'on', 'YES', 'Yes', 'True', 'True'):
             with self.subTest(value=i):
-                self.assertEqual(config.boolean_parser(i), True)
+                self.assertEqual(self.parser(i), True)
 
-    def test_boolean_pasers_false(self):
+    def test_false(self):
         for i in ('0', 'no', 'false', 'off', 'NO', 'False', 'FALSE', 'OFF'):
             with self.subTest(value=i):
-                self.assertEqual(config.boolean_parser(i), False)
+                self.assertEqual(self.parser(i), False)
 
-    def test_boolean_pasers_error(self):
+    def test_error(self):
         for i in (None, 'None', '', object(), [], {}, 0):
             with self.subTest(value=i):
-                self.assertRaises(ArgumentTypeError, config.boolean_parser, i)
+                self.assertRaises(ArgumentTypeError, self.parser, i)
 
-    def test_serverconnection_simple_defaultmode(self):
-        results = config.server_connection_parser('test.host:666')
+    def test_unparse(self):
+        for value in (True, False):
+            with self.subTest(value=value):
+                result = self.parser.unparse(value)
+                self.assertEqual(result, str(value))
+
+
+class ServerConnectionParserTests(ParserBaseTestCase):
+    parser_name = 'connection'
+
+    def test_simple_defaultmode(self):
+        results = self.parser('test.host:666')
         self.assertEqual(
             results,
             [
@@ -538,8 +549,8 @@ class ParsersTests(BaseTwistedTestCase):
             ],
         )
 
-    def test_serverconnection_simple_plain(self):
-        results = config.server_connection_parser('test.host:666:plain')
+    def test_simple_plain(self):
+        results = self.parser('test.host:666:plain')
         self.assertEqual(
             results,
             [
@@ -552,8 +563,8 @@ class ParsersTests(BaseTwistedTestCase):
             ],
         )
 
-    def test_serverconnection_simple_ssl(self):
-        results = config.server_connection_parser('test.host:666:ssl')
+    def test_simple_ssl(self):
+        results = self.parser('test.host:666:ssl')
         self.assertEqual(
             results,
             [
@@ -566,8 +577,8 @@ class ParsersTests(BaseTwistedTestCase):
             ],
         )
 
-    def test_serverconnection_simple_noverify(self):
-        results = config.server_connection_parser('test.host:666:ssl_noverify')
+    def test_simple_noverify(self):
+        results = self.parser('test.host:666:ssl_noverify')
         self.assertEqual(
             results,
             [
@@ -580,36 +591,32 @@ class ParsersTests(BaseTwistedTestCase):
             ],
         )
 
-    def test_serverconnection_simple_bad_mode(self):
+    def test_simple_bad_mode(self):
         self.assertRaises(
             ArgumentTypeError,
-            config.server_connection_parser,
+            self.parser,
             'host:666:badmode',
         )
 
-    def test_serverconnection_simple_too_many_parts(self):
+    def test_simple_too_many_parts(self):
         self.assertRaises(
             ArgumentTypeError,
-            config.server_connection_parser,
+            self.parser,
             'host:666:plain:what',
         )
 
-    def test_serverconnection_simple_too_few_parts(self):
-        self.assertRaises(
-            ArgumentTypeError, config.server_connection_parser, 'test.host'
-        )
+    def test_simple_too_few_parts(self):
+        self.assertRaises(ArgumentTypeError, self.parser, 'test.host')
 
-    def test_serverconnection_simple_port_not_numeric(self):
+    def test_simple_port_not_numeric(self):
         self.assertRaises(
             ArgumentTypeError,
-            config.server_connection_parser,
+            self.parser,
             'test.host:port',
         )
 
-    def test_serverconnection_multiple(self):
-        results = config.server_connection_parser(
-            'test.host1:666:plain,host2.com:447'
-        )
+    def test_multiple(self):
+        results = self.parser('test.host1:666:plain,host2.com:447')
         self.assertEqual(
             results,
             [
@@ -629,7 +636,28 @@ class ParsersTests(BaseTwistedTestCase):
         )
 
 
-class AuthParserTests(BaseTwistedTestCase):
+class LogLevelParserTests(ParserBaseTestCase):
+    parser_name = 'log_level'
+
+    def test_parse(self):
+        """Test log_level_parser."""
+        good_value = 'INFO'
+        bad_value = 'hola'
+        invalid_value = None
+        self.assertEqual(logging.INFO, self.parser(good_value))
+        self.assertEqual(logging.DEBUG, self.parser(bad_value))
+        self.assertEqual(logging.DEBUG, self.parser(invalid_value))
+
+    def test_unparse(self):
+        for level in ['INFO', 'DEBUG', 'ERROR', 'WARNING']:
+            with self.subTest(level=level):
+                result = self.parser.unparse(level)
+                self.assertEqual(result, getattr(logging, level))
+
+
+class AuthParserTests(ParserBaseTestCase):
+    parser_name = 'auth'
+
     def test_parse_ok(self):
         cases = [
             ('foo:', 'foo', ''),
@@ -642,7 +670,7 @@ class AuthParserTests(BaseTwistedTestCase):
         for value, username, password in cases:
             with self.subTest(value=value):
                 self.assertEqual(
-                    config.AuthParser.parse(value),
+                    self.parser(value),
                     {'username': username, 'password': password},
                 )
 
@@ -653,19 +681,17 @@ class AuthParserTests(BaseTwistedTestCase):
             'foo',
             'foo-bar',
             ':foo:bar',
-            # None,
+            None,
             'None',
-            # '',
+            '',
             object(),
-            # [],
-            # {},
-            # 0,
+            [],
+            {},
+            0,
         ]
         for i in cases:
             with self.subTest(value=i):
-                self.assertRaises(
-                    ArgumentTypeError, config.AuthParser.parse, i
-                )
+                self.assertRaises(ArgumentTypeError, self.parser, i)
 
     def test_unparse(self):
         cases = [
@@ -682,17 +708,41 @@ class AuthParserTests(BaseTwistedTestCase):
                 self.assertEqual(result, expected)
 
 
-class XdgHomeParsersTests(BaseTwistedTestCase):
-    """Tests for our custom xdg parsers."""
+class LinesParserTests(ParserBaseTestCase):
+    parser_name = 'lines-new'
 
+    def test_parser(self):
+        cases = [
+            (None, []),
+            (0, []),
+            ({}, []),
+            ([], []),
+            ('', []),
+            ('     ', []),
+            (' \n   \n \n  \n', []),
+            (' foo \n   \n bar \n  \n', ['foo', 'bar']),
+        ]
+        for value, expected in cases:
+            with self.subTest(value=value):
+                result = self.parser(value)
+                self.assertEqual(result, expected)
+
+    def test_unparse(self):
+        cases = [
+            None,
+            [],
+            ['foo', 'bar', 'baz'],
+        ]
+        for value in cases:
+            with self.subTest(value=value):
+                result = self.parser.unparse(value)
+                self.assertEqual(result, '\n'.join(value) if value else '')
+
+
+class XdgHomeParsersTests(ParserBaseTestCase):
+    parser_name = 'home_dir'
     good_value = '~/hola/mundo'
-    name = 'home'
     xdg_dir = os.path.join('', 'home', 'fake')
-
-    @defer.inlineCallbacks
-    def setUp(self):
-        yield super(XdgHomeParsersTests, self).setUp()
-        self.parser = getattr(config, '%s_dir_parser' % self.name)
 
     def test_good_value(self):
         """Test the parser using a good value."""
@@ -721,18 +771,14 @@ class XdgHomeParsersTests(BaseTwistedTestCase):
 
 
 class XdgCacheParsersTests(XdgHomeParsersTests):
-    """Tests for our custom xdg parsers."""
-
+    parser_name = 'xdg_cache'
     good_value = 'hola/mundo'
-    name = 'xdg_cache'
     xdg_dir = xdg_cache_home
 
 
 class XdgDataParsersTests(XdgCacheParsersTests):
-    """Tests for our custom xdg parsers."""
-
+    parser_name = 'xdg_data'
     good_value = 'hola/mundo'
-    name = 'xdg_data'
     xdg_dir = xdg_data_home
 
 
