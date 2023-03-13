@@ -407,7 +407,7 @@ class SyncDaemonConfigOption:
         return str(self.__dict__)
 
     def __repr__(self):
-        return str(self.__dict__)
+        return f'<SyncDaemonConfigOption: {self.__dict__=}>'
 
     def add_option(self, key, value):
         self.attrs[key] = value
@@ -526,28 +526,6 @@ class SyncDaemonConfigOption:
         return result
 
 
-def config_parser_as_dict(parser):
-    result = defaultdict(dict)
-    # regroup options by prefix
-    for section in parser.sections():
-        for optname in parser.options(section):
-            value = parser.get(section, optname)
-            assert '.' in optname, optname
-            if '.' in optname:
-                item, subitem = optname.split('.', 1)
-            if item not in result[section]:
-                result[section][item] = SyncDaemonConfigOption(section, item)
-            result[section][item].add_option(subitem, value)
-    return result
-
-
-def base_config_as_dict():
-    base_parser = ConfigParser()
-    assert os.path.exists(BASE_CONFIG_FILE)
-    base_parser.read(BASE_CONFIG_FILE)
-    return config_parser_as_dict(base_parser)
-
-
 class SyncDaemonConfigParser(ConfigParser):
     """Custom ConfigParser with syncdaemon parsers.
 
@@ -558,13 +536,62 @@ class SyncDaemonConfigParser(ConfigParser):
 
     def __init__(self, *filenames, **kwargs):
         # get the base/template config files
-        self.defaults = base_config_as_dict()
         super().__init__(**kwargs)
-        self.filenames = list(filenames)
-        self.read(self.filenames)  # XXX
+        self.defaults = self._load_defaults(config_files=[BASE_CONFIG_FILE])
+        self.overridden = defaultdict(lambda: SENTINEL)
+        self.filenames = filenames
+        self.parse_all()
+
+    def __getattribute__(self, attr):
+        error = None
+        try:
+            result = super().__getattribute__(attr)
+        except AttributeError as e:
+            error = e
+            result = SENTINEL
+
+        try:
+            # can we grab the attr from the config values?
+            if result is SENTINEL and isinstance(attr, str):
+                section = MAIN
+                optname = attr
+                for s in SECTIONS:
+                    prefix = s + SyncDaemonConfigOption.ARGPARSE_SECTION_SEP
+                    if attr.startswith(prefix):
+                        optname = attr.replace(prefix, '')
+                        section = s
+                        break
+                result = super().__getattribute__('get')(section, optname)
+        except Exception:
+            logger.exception('SyncDaemonConfigParser.__getattribute__ ERROR!')
+
+        if result is SENTINEL:
+            raise error
+
+        return result
 
     def parse_all(self):
         self.read(self.filenames)
+
+    @staticmethod
+    def _load_defaults(config_files):
+        base_parser = ConfigParser()
+        assert all(os.path.exists(f) for f in config_files)
+        base_parser.read(config_files)
+        result = defaultdict(dict)
+        # regroup options by prefix
+        for section in base_parser.sections():
+            for optname in base_parser.options(section):
+                value = base_parser.get(section, optname)
+                assert '.' in optname, optname
+                if '.' in optname:
+                    item, subitem = optname.split('.', 1)
+                if item not in result[section]:
+                    result[section][item] = SyncDaemonConfigOption(
+                        section, item
+                    )
+                result[section][item].add_option(subitem, value)
+        return result
 
     def save(self, config_file=None):
         """Save the config object to disk."""
@@ -574,31 +601,35 @@ class SyncDaemonConfigParser(ConfigParser):
         for section in SECTIONS:
             if self.has_section(section) and not self.options(section):
                 self.remove_section(section)
+        # do the actual save to disk
         with open(config_file + '.new', 'w') as fp:
             self.write(fp)
         if os.path.exists(config_file):
             os.rename(config_file, config_file + '.old')
         os.rename(config_file + '.new', config_file)
 
-    def override_options_from_args(self, args):
-        """Merge in the values provided by the overridden options from args."""
-        return  # XXX
-        control = defaultdict(dict)  # XXX: to be removed when tests are added
-        for section, values in self.items():
-            for optname, option in values.items():
-                argvalue = getattr(args, option.argparse_name)
-                self.set(section, optname, argvalue)
-                control[section][optname] = argvalue
-        return control
+    def sections(self):
+        result = super().sections()
+        # Add any missing section from the default config
+        result.extend(s for s in self.defaults.keys() if s not in result)
+        return result
 
-    def override_options(self, overridden_options):
-        """Merge in the values provided by the overridden_options."""
-        for section, optname, optvalue in overridden_options:
-            self.set(section, optname, optvalue)
+    def options(self, section):
+        if not self.has_section(section):
+            self.add_section(section)
+        result = super().options(section)
+        # Add any missing options from the default config
+        result.extend(
+            i.name for i in self.defaults[section].values() if i not in result
+        )
+        return result
 
     def get(self, section, option, **kwargs):
         if not self.has_section(section):
             self.add_section(section)
+        if (section, option) in self.overridden:
+            return self.overridden[(section, option)]
+
         default = self.defaults[section].get(option, SENTINEL)
         if default is not SENTINEL:
             kwargs.setdefault('fallback', default.raw_value)
@@ -613,15 +644,35 @@ class SyncDaemonConfigParser(ConfigParser):
         default = self.defaults[section][option]
         super().set(section, option, default.unparse(value))
 
+    def override_options(self, overridden_options):
+        """Merge in the values provided by the overridden_options param."""
+        for section, optname, optvalue in overridden_options:
+            # self.set(section, optname, optvalue)
+            self.overridden[(section, optname)] = optvalue
+
+    def override_options_from_args(self, args):
+        """Merge in the values provided by the overridden options from args.
+
+        If the args's value matches the default, do not use.
+
+        """
+        overrides = []
+        for section, values in self.defaults.items():
+            for optname, option in values.items():
+                argvalue = getattr(args, option.argparse_name)
+                if argvalue != option.value:
+                    overrides.append((section, optname, argvalue))
+        self.override_options(overrides)
+
     # throttling section get/set
     def set_throttling(self, enabled):
         self.set(THROTTLING, 'on', enabled)
 
     def set_throttling_read_limit(self, bytes):
-        self.set(THROTTLING, 'read_limit', str(bytes))
+        self.set(THROTTLING, 'read_limit', bytes)
 
     def set_throttling_write_limit(self, bytes):
-        self.set(THROTTLING, 'write_limit', str(bytes))
+        self.set(THROTTLING, 'write_limit', bytes)
 
     def get_throttling(self):
         return self.get(THROTTLING, 'on')
@@ -710,8 +761,8 @@ def configglue(args):
     )
     parsed_args, remaining_args = parser.parse_known_args(args or [])
 
-    filenames = existing_config_files + parsed_args.conf_file
-    config = get_user_config(config_files=filenames)
+    filenames = [getattr(i, 'name', i) for i in parsed_args.conf_file]
+    config = get_user_config(config_files=filenames, force_reload=True)
 
     # Configure and parse the rest of arguments
     # Don't suppress add_help here so it properly handles -h
@@ -732,7 +783,8 @@ def configglue(args):
             )
 
     final_args = parser.parse_args(remaining_args)
+    config.override_options_from_args(final_args)
 
-    # XXX: return current config which should have the overriden values set
-    # (but not stored in file)
-    return final_args
+    # Current config should have the CLI overridden values set (but not stored
+    # in the file, unless someone calls .save())
+    return config
