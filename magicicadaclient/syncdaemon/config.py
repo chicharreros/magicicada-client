@@ -28,13 +28,12 @@
 
 """SyncDaemon config."""
 
-import os
-import functools
-import logging
 import argparse
+import os
+import logging
+from collections import defaultdict
+from configparser import ConfigParser
 
-from backports.configparser import NoOptionError, NoSectionError
-from optparse import OptionParser
 from dirspec.basedir import (
     load_config_paths,
     save_config_path,
@@ -50,34 +49,30 @@ from magicicadaclient.platform import (
     set_dir_readwrite,
 )
 
-# the try/except is to work with older versions of configglue (that
-# had everything that is now configglue.inischema.* as configglue.*).
-try:
-    from configglue.glue import normoptname
-    from configglue import TypedConfigParser
-except ImportError:
-    from configglue.inischema import TypedConfigParser
-
-    def normoptname(_, section, option):
-        if section == "__main__":
-            return option
-        return section + "_" + option
-
 
 BASE_FILE_PATH = 'magicicada'
 CONFIG_FILE = 'syncdaemon.conf'
+BASE_CONFIG_FILE = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        os.path.pardir,
+        os.path.pardir,
+        'data',
+        CONFIG_FILE,
+    )
+)
+SENTINEL = object()
+
 
 # sections
 MAIN = '__main__'
 LOGGING = 'logging'
+DEBUG = 'debug'
 THROTTLING = 'bandwidth_throttling'
-SECTIONS = [MAIN, THROTTLING, LOGGING]
+SECTIONS = [MAIN, THROTTLING, LOGGING, DEBUG]
 
 # global logger
 logger = logging.getLogger(__name__)
-
-# get (and possibly create if don't exists) the user config file
-_user_config_path = os.path.join(save_config_path(BASE_FILE_PATH), CONFIG_FILE)
 
 # module private config instance.
 # this object is the shared config
@@ -319,11 +314,11 @@ def get_parsers():
     return dict(
         (
             ('auth', AuthParser()),
-            ('bool-new', boolean_parser),
+            ('bool', boolean_parser),
             ('connection', ServerConnectionParser()),
-            ('int-new', int),
+            ('int', int),
             ('home_dir', home_dir_parser),
-            ('lines-new', LinesParser()),
+            ('lines', LinesParser()),
             ('log_level', LogLevelParser()),
             ('throttling_limit', throttling_limit_parser),
             ('xdg_cache', xdg_cache_dir_parser),
@@ -339,338 +334,457 @@ def get_config_files():
     but it's returned in reverse order (e.g: /etc/xdg first).
 
     """
-    config_files = []
+    # get (and possibly create if don't exists) the user config file
+    _user_config_path = os.path.join(
+        save_config_path(BASE_FILE_PATH), CONFIG_FILE
+    )
+    config_files = [_user_config_path]
     for xdg_config_dir in load_config_paths(BASE_FILE_PATH):
         config_file = os.path.join(xdg_config_dir, CONFIG_FILE)
-        if os.path.exists(config_file):
+        if os.path.exists(config_file) and config_file not in config_files:
             config_files.append(config_file)
 
     # reverse the list as load_config_paths returns the user dir first
     config_files.reverse()
-    # if we are running from a branch, get the config files from it too
-    config_file = os.path.join(
-        os.path.dirname(__file__),
-        os.path.pardir,
-        os.path.pardir,
-        'data',
-        CONFIG_FILE,
-    )
-    if os.path.exists(config_file):
-        config_files.append(config_file)
 
     return config_files
 
 
-def get_user_config(config_file=_user_config_path, config_files=None):
-    """return the shared _Config instance"""
+def get_user_config(config_files=None, force_reload=False):
+    """Return the singleton SyncDaemonConfigParser instance."""
     global _user_config
-    if _user_config is None:
-        _user_config = _Config(config_file, config_files)
+    if _user_config is None or force_reload:
+        if config_files is None:
+            config_files = get_config_files()
+        _user_config = SyncDaemonConfigParser(*config_files)
     return _user_config
 
 
-def requires_section(section):
-    """decorator to enforce the existence of a section in the config."""
+class _StoreTrueAction(argparse.Action):
+    """Re-implement from upstream.
 
-    def wrapper(meth):
-        """the wrapper"""
+    https://github.com/python/cpython/issues/96220
 
-        def wrapped(self, *args, **kwargs):
-            """the real thing, wrap the method and do the job"""
-            if not self.has_section(section):
-                self.add_section(section)
-            return meth(self, *args, **kwargs)
-
-        functools.update_wrapper(wrapped, meth)
-        return wrapped
-
-    return wrapper
-
-
-class SyncDaemonConfigParser(TypedConfigParser):
-    """Custom TypedConfigParser with upgrade support and syncdaemon parsers."""
-
-    def __init__(self, *args, **kwargs):
-        super(SyncDaemonConfigParser, self).__init__(*args, **kwargs)
-        self.upgrade_hooks = {}
-        for name, parser in get_parsers().items():
-            self.add_parser(name, parser)
-        self.add_upgrade_hook(MAIN, 'log_level', upgrade_log_level)
-
-    def add_upgrade_hook(self, section, option, func):
-        """Add an upgrade hook for (section, option)"""
-        if (section, option) in self.upgrade_hooks:
-            raise ValueError(
-                'An upgrade hook for %s, %s already exists' % (section, option)
-            )
-        self.upgrade_hooks[(section, option)] = func
-
-    def parse_all(self):
-        """Override default parse_all() and call upgrade_all() after it"""
-        super(SyncDaemonConfigParser, self).parse_all()
-        self.upgrade_all()
-
-    def upgrade_all(self):
-        """Iterate over all upgrade_hooks and execute them."""
-        for section, option in self.upgrade_hooks:
-            if self.has_option(section, option):
-                self.upgrade_hooks[(section, option)](self)
-
-
-def upgrade_log_level(cp):
-    """upgrade log_level to logging-level option"""
-    if not cp.has_option('logging', 'level'):
-        # an old default config, someone changed it
-        # just replace the setting
-        old = cp.get(MAIN, 'log_level')
-        cp.set('logging', 'level', old)
-    else:
-        current = cp.get('logging', 'level')
-        parser = current.parser
-        old = cp.get(MAIN, 'log_level')
-        if isinstance(old.value, str):
-            # wasn't parsed
-            old.value = parser(old.value)
-        if parser(current.attrs['default']) == current.value:
-            # override the default in the new setting
-            current.value = old.value
-            cp.set('logging', 'level', current)
-    # else, we ignore the setting as we have a non-default
-    # value in logging-level (newer setting wins)
-    logger.warning(
-        "Found deprecated config option 'log_level'" " in section: MAIN"
-    )
-    cp.remove_option(MAIN, 'log_level')
-
-
-class _Config(SyncDaemonConfigParser):
-    """Minimal config object to read/write config values
-    from/to the user config file.
-    Most of the methods in this class aren't thread-safe.
-
-    Only supports bandwidth throttling options.
-
-    Ideally TypedConfigParser should implement a write method that converts
-    from configglue.attributed.ValueWithAttrs back to str in order to take
-    advantage of all the nice tricks of configglue.
     """
 
-    def __init__(self, config_file=_user_config_path, config_files=None):
-        """Create the instance, add our custom parsers and
-        read the config file
+    def __init__(
+        self,
+        option_strings,
+        dest,
+        default=False,
+        type=boolean_parser,
+        required=False,
+        help=None,
+        metavar=None,
+    ):
+        super(_StoreTrueAction, self).__init__(
+            option_strings=option_strings,
+            dest=dest,
+            nargs=0,
+            const=True,
+            default=default,
+            type=type,
+            required=required,
+            help=help,
+            metavar=metavar,
+        )
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, self.const)
+
+
+class SyncDaemonConfigOption:
+    ARGPARSE_SECTION_SEP = '_'
+
+    def __init__(self, section, name):
+        super().__init__()
+        self.section = section
+        self.name = name
+        self.parsed_value = None
+        self.attrs = {}
+
+    def __str__(self):
+        return str(self.__dict__)
+
+    def __repr__(self):
+        return f'<SyncDaemonConfigOption: {self.__dict__=}>'
+
+    def add_option(self, key, value):
+        self.attrs[key] = value
+
+    def parse(self, value):
+        return self.parser(value) if self.parser else value
+
+    def unparse(self, value):
+        parser = getattr(self.parser, 'unparse', unparse_default)
+        return parser(value) if parser else value
+
+    @property
+    def parser(self):
+        parser_name = self.attrs.get('parser')
+        _parser = get_parsers().get(parser_name)
+        return getattr(_parser, 'parse', _parser)
+
+    @property
+    def raw_value(self):
+        return self.attrs.get('raw', self.default)
+
+    @property
+    def default(self):
+        return self.attrs.get('default')
+
+    @property
+    def value(self):
+        if self.parsed_value is not None:
+            return self.parsed_value
+
+        value = self.default if self.raw_value is None else self.raw_value
+        self.parsed_value = self.parse(value)
+        return self.parsed_value
+
+    @property
+    def is_empty(self):
+        return not bool(self.default)
+
+    @property
+    def argparse_name(self):
+        if self.section == MAIN:
+            result = self.name
+        else:
+            result = f'{self.section}{self.ARGPARSE_SECTION_SEP}{self.name}'
+        return result.lower()
+
+    @property
+    def argparse_flag(self):
+        """Return the argparse flag name for this option.
+
+        name or flags - Either a name or a list of option strings, e.g. foo or
+        -f, --foo.
+
         """
-        super(_Config, self).__init__()
-        self.config_file = config_file
-        self.read(config_file)
-        # create and fill the default typed config
-        self.default = self._load_defaults(config_files)
-        # create the overridden typed config
-        self.overridden = SyncDaemonConfigParser()
-        self.overridden.parse_all()
+        return '--' + self.argparse_name
+
+    def argparse_data(self):
+        """Return argparse's add_argument suitable kwargs, following the doc.
+
+        action - The basic type of action to be taken when this argument is
+        encountered at the command line.
+
+        nargs - The number of command-line arguments that should be consumed.
+
+        const - A constant value required by some action and nargs selections.
+
+        default - The value produced if the argument is absent from the command
+        line.
+
+        type - The type to which the command-line argument should be converted.
+
+        choices - A container of the allowable values for the argument.
+
+        required - Whether or not the command-line option may be omitted
+        (optionals only).
+
+        help - A brief description of what the argument does.
+
+        metavar - A name for the argument in usage messages.
+
+        dest - The name of the attribute to be added to the object returned by
+        parse_args().
+
+        """
+        result = {}
+
+        help_text = self.attrs.get('help')
+        # format help message, if needed
+        if help_text:
+            help_text %= self.attrs
+            result['help'] = help_text
+
+        action = self.attrs.get('action')
+        if action == 'store_true':
+            result['action'] = _StoreTrueAction
+        elif action is not None:
+            result['action'] = action
+
+        metavar = self.attrs.get('metavar')
+        if metavar is not None:
+            result['metavar'] = metavar
+
+        # define converters using this item's parser
+        # `type` can take any callable that takes a single string argument and
+        # returns the converted value
+        if self.parser is not None:
+            result['type'] = self.parser
+
+        # `default` specifies what value should be used if the command-line
+        # argument is not present.
+        if self.default is not None:
+            result['default'] = self.default
+        else:
+            result.pop('default', None)
+
+        return result
+
+
+class SyncDaemonConfigParser(ConfigParser):
+    """Custom ConfigParser with syncdaemon parsers.
+
+    Config object to read/write config values from/to the user config file.
+    Most of the methods in this class aren't thread-safe.
+
+    """
+
+    def __init__(self, *filenames, **kwargs):
+        # get the base/template config files
+        super().__init__(**kwargs)
+        self.defaults = self._load_defaults(config_files=[BASE_CONFIG_FILE])
+        self.overridden = defaultdict(lambda: SENTINEL)
+        self.filenames = filenames
+        self.parse_all()
+
+    def __getattribute__(self, attr):
+        error = None
+        try:
+            result = super().__getattribute__(attr)
+        except AttributeError as e:
+            error = e
+            result = SENTINEL
+
+        try:
+            # can we grab the attr from the config values?
+            if result is SENTINEL and isinstance(attr, str):
+                section = MAIN
+                optname = attr
+                for s in SECTIONS:
+                    prefix = s + SyncDaemonConfigOption.ARGPARSE_SECTION_SEP
+                    if attr.startswith(prefix):
+                        optname = attr.replace(prefix, '')
+                        section = s
+                        break
+                result = super().__getattribute__('get')(section, optname)
+        except Exception:
+            logger.exception('SyncDaemonConfigParser.__getattribute__ ERROR!')
+
+        if result is SENTINEL:
+            raise error
+
+        return result
+
+    def parse_all(self):
+        self.read(self.filenames)
 
     @staticmethod
     def _load_defaults(config_files):
-        """load typed defaults from config_files"""
-        cp = SyncDaemonConfigParser()
-        if config_files is None:
-            config_files = get_config_files()
-        cp.read(config_files)
-        cp.parse_all()
-        return cp
+        base_parser = ConfigParser()
+        assert all(os.path.exists(f) for f in config_files)
+        base_parser.read(config_files)
+        result = defaultdict(dict)
+        # regroup options by prefix
+        for section in base_parser.sections():
+            for optname in base_parser.options(section):
+                value = base_parser.get(section, optname)
+                assert '.' in optname, optname
+                if '.' in optname:
+                    item, subitem = optname.split('.', 1)
+                if item not in result[section]:
+                    result[section][item] = SyncDaemonConfigOption(
+                        section, item
+                    )
+                result[section][item].add_option(subitem, value)
+        return result
 
-    def save(self):
-        """Save the config object to disk"""
-        # We should not use standard functions from os_helper here,
-        # because the configglue superclasses do not use them.
-        # Instead, all paths used in this module should be "native",
-        # that is: utf-8 str on linux, or (unicode or mbcs str) on windows
-        from magicicadaclient.platform import native_rename
-
+    def save(self, config_file=None):
+        """Save the config object to disk."""
+        if config_file is None:
+            config_file = self.filenames[0]  # XXX: IndexError if no filenames
         # cleanup empty sections
         for section in SECTIONS:
             if self.has_section(section) and not self.options(section):
                 self.remove_section(section)
-        with open(self.config_file + '.new', 'w') as fp:
+        # do the actual save to disk
+        with open(config_file + '.new', 'w') as fp:
             self.write(fp)
-        if os.path.exists(self.config_file):
-            native_rename(self.config_file, self.config_file + '.old')
-        native_rename(self.config_file + '.new', self.config_file)
+        if os.path.exists(config_file):
+            os.rename(config_file, config_file + '.old')
+        os.rename(config_file + '.new', config_file)
 
-    def get_parsed(self, section, option):
-        """get that fallbacks to our custom defaults"""
-        try:
-            return self.overridden.get(section, option).value
-        except (NoOptionError, NoSectionError):
-            try:
-                value = super(_Config, self).get(section, option)
-                # get the parser from the default config
-                default = self.default.get(section, option)
-                return default.parser(value)
-            except NoOptionError:
-                return self.default.get(section, option).value
+    def sections(self):
+        result = super().sections()
+        # Add any missing section from the default config
+        result.extend(s for s in self.defaults.keys() if s not in result)
+        return result
+
+    def options(self, section):
+        if not self.has_section(section):
+            self.add_section(section)
+        result = super().options(section)
+        # Add any missing options from the default config
+        result.extend(
+            i.name for i in self.defaults[section].values() if i not in result
+        )
+        return result
+
+    def get(self, section, option, **kwargs):
+        if not self.has_section(section):
+            self.add_section(section)
+        if (section, option) in self.overridden:
+            return self.overridden[(section, option)]
+
+        default = self.defaults[section].get(option, SENTINEL)
+        if default is not SENTINEL:
+            kwargs.setdefault('fallback', default.raw_value)
+        result = unparsed = super().get(section, option, **kwargs)
+        if default is not SENTINEL:
+            result = default.parse(unparsed)
+        return result
+
+    def set(self, section, option, value):
+        if not self.has_section(section):
+            self.add_section(section)
+        default = self.defaults[section][option]
+        super().set(section, option, default.unparse(value))
 
     def override_options(self, overridden_options):
-        """Merge in the values provided by the options object, into
-        self.overridden TypedConfigParser.
-        This override the default and user configured values only if the values
-        are != to the default ones. These 'overriden' values are not saved
-        to user config file.
+        """Merge in the values provided by the overridden_options param."""
+        for section, optname, optvalue in overridden_options:
+            # self.set(section, optname, optvalue)
+            self.overridden[(section, optname)] = optvalue
+
+    def override_options_from_args(self, args):
+        """Merge in the values provided by the overridden options from args.
+
+        If the args's value matches the default, do not use.
+
         """
-        for section, optname, value in overridden_options:
-            if section not in self.overridden.sections():
-                self.overridden.add_section(section)
-            self.overridden.set(section, optname, value)
-        self.overridden.parse_all()
+        overrides = []
+        for section, values in self.defaults.items():
+            for optname, option in values.items():
+                argvalue = getattr(args, option.argparse_name)
+                if argvalue != option.value:
+                    overrides.append((section, optname, argvalue))
+        self.override_options(overrides)
 
     # throttling section get/set
-    @requires_section(THROTTLING)
     def set_throttling(self, enabled):
-        self.set(THROTTLING, 'on', str(enabled))
+        self.set(THROTTLING, 'on', enabled)
 
-    @requires_section(THROTTLING)
     def set_throttling_read_limit(self, bytes):
         self.set(THROTTLING, 'read_limit', bytes)
 
-    @requires_section(THROTTLING)
     def set_throttling_write_limit(self, bytes):
         self.set(THROTTLING, 'write_limit', bytes)
 
-    @requires_section(THROTTLING)
     def get_throttling(self):
-        return self.get_parsed(THROTTLING, 'on')
+        return self.get(THROTTLING, 'on')
 
-    @requires_section(THROTTLING)
     def get_throttling_read_limit(self):
-        return self.get_parsed(THROTTLING, 'read_limit')
+        return self.get(THROTTLING, 'read_limit')
 
-    @requires_section(THROTTLING)
     def get_throttling_write_limit(self):
-        return self.get_parsed(THROTTLING, 'write_limit')
+        return self.get(THROTTLING, 'write_limit')
 
-    @requires_section(MAIN)
     def set_udf_autosubscribe(self, enabled):
-        self.set(MAIN, 'udf_autosubscribe', str(enabled))
+        self.set(MAIN, 'udf_autosubscribe', enabled)
 
-    @requires_section(MAIN)
     def get_udf_autosubscribe(self):
-        return self.get_parsed(MAIN, 'udf_autosubscribe')
+        return self.get(MAIN, 'udf_autosubscribe')
 
-    @requires_section(MAIN)
     def set_share_autosubscribe(self, enabled):
-        self.set(MAIN, 'share_autosubscribe', str(enabled))
+        self.set(MAIN, 'share_autosubscribe', enabled)
 
-    @requires_section(MAIN)
     def get_share_autosubscribe(self):
-        return self.get_parsed(MAIN, 'share_autosubscribe')
+        return self.get(MAIN, 'share_autosubscribe')
 
     # files sync enablement get/set
-    @requires_section(MAIN)
     def set_files_sync_enabled(self, enabled):
-        self.set(MAIN, 'files_sync_enabled', str(enabled))
+        self.set(MAIN, 'files_sync_enabled', enabled)
 
-    @requires_section(MAIN)
     def get_files_sync_enabled(self):
-        return self.get_parsed(MAIN, 'files_sync_enabled')
+        return self.get(MAIN, 'files_sync_enabled')
 
-    @requires_section(MAIN)
     def set_autoconnect(self, enabled):
-        self.set(MAIN, 'autoconnect', str(enabled))
+        self.set(MAIN, 'autoconnect', enabled)
 
-    @requires_section(MAIN)
     def get_autoconnect(self):
-        return self.get_parsed(MAIN, 'autoconnect')
+        return self.get(MAIN, 'autoconnect')
 
-    @requires_section(MAIN)
     def get_use_trash(self):
-        return self.get_parsed(MAIN, 'use_trash')
+        return self.get(MAIN, 'use_trash')
 
-    @requires_section(MAIN)
     def set_use_trash(self, enabled):
-        self.set(MAIN, 'use_trash', str(enabled))
+        self.set(MAIN, 'use_trash', enabled)
 
-    @requires_section(MAIN)
     def get_simult_transfers(self):
         """Get the simultaneous transfers value."""
-        return self.get_parsed(MAIN, 'simult_transfers')
+        return self.get(MAIN, 'simult_transfers')
 
-    @requires_section(MAIN)
     def set_simult_transfers(self, value):
         """Set the simultaneous transfers value."""
-        self.set(MAIN, 'simult_transfers', str(value))
+        self.set(MAIN, 'simult_transfers', value)
 
-    @requires_section(MAIN)
     def get_max_payload_size(self):
         """Get the maximum payload size."""
-        return self.get_parsed(MAIN, 'max_payload_size')
+        return self.get(MAIN, 'max_payload_size')
 
-    @requires_section(MAIN)
     def set_max_payload_size(self, value):
         """Set the maximum payload size."""
-        self.set(MAIN, 'max_payload_size', str(value))
+        self.set(MAIN, 'max_payload_size', value)
 
-    @requires_section(MAIN)
     def get_memory_pool_limit(self):
         """Get the memory pool limit."""
-        return self.get_parsed(MAIN, 'memory_pool_limit')
+        return self.get(MAIN, 'memory_pool_limit')
 
-    @requires_section(MAIN)
     def set_memory_pool_limit(self, value):
         """Set the memory pool limit."""
-        self.set(MAIN, 'memory_pool_limit', str(value))
+        self.set(MAIN, 'memory_pool_limit', value)
 
 
-def configglue(fileobj, *filenames, **kwargs):
-    """Populate an OptionParser with options and defaults taken from a
-    series of files.
+def configglue(args):
+    """Parse arguments with options and defaults taken from config files.
 
-    @param fileobj: An INI file, as a file-like object.
-    @param filenames: An optional series of filenames to merge.
-    @param kwargs: options passed on to the OptionParser constructor except for
-    @param args: parse these args (defaults to sys.argv[1:])
+    @param args: arguments to be parsed.
+
     """
-    cp = SyncDaemonConfigParser()
-    cp.readfp(fileobj)
-    cp.read(filenames)
-    cp.parse_all()
+    existing_config_files = get_config_files()
+    # Parse any conf_file specification
+    # Set add_help=False so that it doesn't parse -h and print incomplete help.
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument(
+        'conf_file',
+        nargs='*',
+        default=existing_config_files,
+        type=argparse.FileType('r'),
+        help=(
+            'Zero or more config files, the leftist file has precedence over '
+            'those to its right.'
+        ),
+    )
+    parsed_args, remaining_args = parser.parse_known_args(args or [])
 
-    args = kwargs.pop('args', None)
+    filenames = [getattr(i, 'name', i) for i in parsed_args.conf_file]
+    config = get_user_config(config_files=filenames, force_reload=True)
 
-    op = OptionParser(**kwargs)
+    # Configure and parse the rest of arguments
+    # Don't suppress add_help here so it properly handles -h
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        # Inherit options from previous parser
+        parents=[parser],
+    )
 
-    for section in cp.sections():
+    for section, values in config.defaults.items():
         if section == MAIN:
-            og = op
-            tpl = '--%(option)s'
+            group_parser = parser
         else:
-            og = op.add_option_group(section)
-            tpl = '--%(section)s-%(option)s'
-        for optname in cp.options(section):
-            option = cp.get(section, optname)
-            if 'help' in option.attrs:
-                option.attrs['help'] %= option.attrs
-            if option.is_empty:
-                default = None
-            else:
-                default = option.value
-            og.add_option(
-                tpl % {'section': section.lower(), 'option': optname.lower()},
-                **dict(option.attrs, default=default)
+            group_parser = parser.add_argument_group(section)
+        for optname, option in values.items():
+            group_parser.add_argument(
+                option.argparse_flag, **option.argparse_data()
             )
 
-    options, args = op.parse_args(args)
+    final_args = parser.parse_args(remaining_args)
+    config.override_options_from_args(final_args)
 
-    overridden = []
-    for section in cp.sections():
-        for optname, optval in cp.items(section):
-            normopt = normoptname(cp, section, optname)
-            value = getattr(options, normopt)
-            if optval.value != value:
-                # the value has been overridden by an argument;
-                # re-parse it.
-                setattr(options, normopt, optval.parser(value))
-                overridden.append((section, optname, value))
-
-    config_files = [fileobj.name] + list(filenames)
-    config = get_user_config(config_files=config_files)
-    config.override_options(overridden)
-    return op, options, args
+    # Current config should have the CLI overridden values set (but not stored
+    # in the file, unless someone calls .save())
+    return config
