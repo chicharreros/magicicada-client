@@ -39,8 +39,12 @@ bootstrap: deps venv build
 
 venv:
 	virtualenv -p python3 $(ENV)
-	$(ENV)/bin/pip install -U pip setuptools
+	$(ENV)/bin/pip install -U pip pip-tools
 	$(ENV)/bin/pip install -U -r requirements.txt -r requirements-devel.txt
+
+venv-update: $(ENV)
+	$(ENV)/bin/pip-compile --upgrade --generate-hashes --resolver=backtracking requirements.in
+	$(ENV)/bin/pip-compile --upgrade --generate-hashes --resolver=backtracking requirements-devel.in
 
 black:
 	$(ENV)/bin/black .

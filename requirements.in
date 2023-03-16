@@ -1,0 +1,10 @@
+dbus-python
+magicicadaprotocol
+pathvalidate
+protobuf<4
+pycairo
+PyGObject
+pyinotify
+Send2Trash
+tritcask
+Twisted
