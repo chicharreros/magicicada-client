@@ -2341,7 +2341,7 @@ class SyncdaemonServiceAllEventsTestCase(BaseTestCase):
         """All event listener is not subscribed by default."""
         subscribed = []
         self.patch(
-            self.main.event_q, 'subscribe', lambda l: subscribed.append(l)
+            self.main.event_q, 'subscribe', lambda evt: subscribed.append(evt)
         )
         obj = SyncdaemonService(self.main, send_events=False)
 
@@ -2353,7 +2353,7 @@ class SyncdaemonServiceAllEventsTestCase(BaseTestCase):
         """All event listener is subscribed if indicated."""
         subscribed = []
         self.patch(
-            self.main.event_q, 'subscribe', lambda l: subscribed.append(l)
+            self.main.event_q, 'subscribe', lambda evt: subscribed.append(evt)
         )
         obj = SyncdaemonService(self.main, send_events=True)
 
